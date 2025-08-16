@@ -1,0 +1,140 @@
+{
+  "main_menu": [
+    {
+        "id": "synthese",
+        "name": "Synthèse",
+        "path": "/synthese",
+        "type": "home",
+        "children": [
+            {
+                "id": "comptabilite_nationale",
+                "name": "Comptabilité Nationale",
+                "path": "synthese/comptabilite-nationale",
+                "type": "indicator_group",
+                "children": [
+                    {
+                    "id": "pib",
+                    "name": "PIB",
+                    "path": "synthese/comptabilite-nationale/pib",
+                    "type": "indicator"
+                    },
+                    {
+                    "id": "consommation",
+                    "name": "Consommation",
+                    "path": "synthese/comptabilite-nationale/consommation",
+                    "type": "indicator"
+                    }
+                ]
+            },
+            {
+                "id": "finances_publiques",
+                "name": "Finances Publiques",
+                "path": "synthese/finances-publiques",
+                "type": "indicator_group",
+                "children": [
+                    {
+                    "id": "recettes_publiques",
+                    "name": "Recettes Publiques",
+                    "path": "synthese/finances-publiques/recettes-publiques",
+                    "type": "indicator"
+                    },
+                    {
+                    "id": "depenses_publiques",
+                    "name": "Dépenses Publiques",
+                    "path": "synthese/finances-publiques/depenses-publiques",
+                    "type": "indicator"
+                    }
+                ]
+            },
+            {
+                "id": "about",
+                "name": "À propos",
+                "path": "/about",
+                "type": "about"
+            }
+        ]
+    },
+    {
+        "id": "detail",
+        "name": "Détail",
+        "path": "/detail",
+        "type": "home",
+        "children": [
+                        {
+                "id": "comptabilite_nationale",
+                "name": "Comptabilité Nationale",
+                "path": "detail/comptabilite-nationale",
+                "type": "indicator_group",
+                "children": [
+                    {
+                        "id": "france",
+                        "name": "France",
+                        "path": "detail/france",
+                        "type": "indicator_group",
+                        "children": [
+                            {
+                            "id": "pib",
+                            "name": "PIB",
+                            "path": "detail/comptabilite-nationale/france/pib",
+                            "type": "indicator"
+                            },
+                            {
+                            "id": "consommation",
+                            "name": "Consommation",
+                            "path": "detail/comptabilite-nationale/france/consommation",
+                            "type": "indicator"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "allemagne",
+                        "name": "Allemagne",
+                        "path": "detail/allemagne",
+                        "type": "indicator_group",
+                        "children": [
+                            {
+                            "id": "pib",
+                            "name": "PIB",
+                            "path": "detail/comptabilite-nationale/allemagne/pib",
+                            "type": "indicator"
+                            },
+                            {
+                            "id": "consommation",
+                            "name": "Consommation",
+                            "path": "detail/comptabilite-nationale/allemagne/consommation",
+                            "type": "indicator"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "id": "finances_publiques",
+                "name": "Finances Publiques",
+                "path": "detail/finances-publiques",
+                "type": "indicator_group",
+                "children": [
+                    {
+                    "id": "recettes_publiques",
+                    "name": "Recettes Publiques",
+                    "path": "detail/finances-publiques/recettes-publiques",
+                    "type": "indicator"
+                    },
+                    {
+                    "id": "depenses_publiques",
+                    "name": "Dépenses Publiques",
+                    "path": "detail/finances-publiques/depenses-publiques",
+                    "type": "indicator"
+                    }
+                ]
+            },
+            {
+                "id": "about",
+                "name": "À propos",
+                "path": "/about",
+                "type": "about"
+            }
+        ]
+    }
+    ]
+}

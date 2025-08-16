@@ -1,0 +1,66 @@
+{
+  "architecture": [
+    {
+      "path": "/",
+      "name": "Accueil",
+      "type": "home",
+      "children": null
+    },
+    {
+      "path": "/comptabilite-nationale",
+      "name": "Comptabilité Nationale",
+      "type": "indicator_group",
+      "children": [
+        {
+            "path": "/france",
+            "name": "France",
+            "children": [
+                {
+                "path": "/pib",
+                "name": "PIB"
+                },
+                {
+                "path": "/consommation",
+                "name": "Consommation"
+                }
+            ]
+        },
+        {
+            "path": "/allemagne",
+            "name": "Allemagne",
+            "children": [
+                {
+                "path": "/pib",
+                "name": "PIB"
+                },
+                {
+                "path": "/consommation",
+                "name": "Consommation"
+                }
+            ]
+        }
+      ]
+    },
+    {
+      "path": "/finances-publiques",
+      "name": "Finances Publiques",
+      "type": "indicator_group",
+      "children": [
+        {
+          "path": "/recettes-publiques",
+          "name": "Recettes Publiques"
+        },
+        {
+          "path": "/depenses-publiques",
+          "name": "Dépenses Publiques"
+        }
+      ]
+    },
+    {
+      "path": "/about",
+      "name": "À propos",
+      "type": "about",
+      "children": null
+    }
+  ]
+}

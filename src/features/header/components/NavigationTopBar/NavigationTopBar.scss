@@ -1,0 +1,175 @@
+// ===== VARIABLES =====
+$mobile-breakpoint: 768px;
+$tablet-breakpoint: 1024px;
+
+// ===== BOUTON TOGGLE MOBILE =====
+.mobile-nav-toggle {
+  display: none; // Masqué par défaut sur desktop
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  
+  &:hover {
+    background-color: var(--nav-hover-bg, rgba(0, 0, 0, 0.1));
+  }
+  
+  &:focus {
+    outline: 2px solid var(--focus-color, #007acc);
+    outline-offset: 2px;
+  }
+  
+  // Icône hamburger
+  .hamburger-icon {
+    display: flex;
+    flex-direction: column;
+    width: 20px;
+    height: 16px;
+    position: relative;
+    
+    .line {
+      width: 100%;
+      height: 2px;
+      background-color: var(--nav-text-color, #333333);
+      transition: all 0.3s ease;
+      transform-origin: center;
+      
+      &:nth-child(1) {
+        margin-bottom: 5px;
+      }
+      
+      &:nth-child(2) {
+        margin-bottom: 5px;
+      }
+    }
+  }
+  
+  // Animation de l'icône hamburger quand le menu est ouvert
+  &[aria-expanded="true"] {
+    .hamburger-icon {
+      .line {
+        &:nth-child(1) {
+          transform: rotate(45deg) translate(5px, 5px);
+        }
+        
+        &:nth-child(2) {
+          opacity: 0;
+        }
+        
+        &:nth-child(3) {
+          transform: rotate(-45deg) translate(7px, -6px);
+        }
+      }
+    }
+  }
+}
+
+// ===== MENU DE NAVIGATION =====
+.nav-menu {
+  // État normal (desktop)
+  .primary-navigation {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 1.5rem;
+    align-items: center;
+  }
+}
+
+// ===== OVERLAY MOBILE =====
+.nav-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  animation: fadeIn 0.3s ease forwards;
+  
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+// ===== CLASSE UTILITAIRE POUR L'ACCESSIBILITÉ =====
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ===== RESPONSIVE =====
+
+// Tablette et mobile
+@media (max-width: $mobile-breakpoint) {
+  // Afficher le bouton toggle
+  .mobile-nav-toggle {
+    display: block;
+    order: -1; // Placer le bouton avant la navigation
+  }
+  
+  // Transformer le menu en overlay mobile
+  .nav-menu {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 280px;
+    height: 100vh;
+    background-color: var(--nav-mobile-bg, #ffffff);
+    box-shadow: -4px 0 8px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease;
+    z-index: 1000;
+    overflow-y: auto;
+    
+    &.nav-menu--open {
+      right: 0;
+    }
+    
+    .primary-navigation {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 2rem 0;
+      gap: 0;
+      height: 100%;
+    }
+  }
+}
+
+// Mobile uniquement
+@media (max-width: 480px) {
+  .nav-menu {
+    width: 100vw; // Pleine largeur sur très petits écrans
+    
+    .primary-navigation {
+      padding: 1.5rem 0;
+    }
+  }
+}
+
+// ===== VARIABLES CSS POUR LES THÈMES =====
+:root {
+  --nav-text-color: #333333;
+  --nav-hover-bg: rgba(0, 0, 0, 0.1);
+  --nav-mobile-bg: #ffffff;
+  --focus-color: #007acc;
+}
+
+[data-theme="dark"] {
+  --nav-text-color: #ffffff;
+  --nav-hover-bg: rgba(255, 255, 255, 0.1);
+  --nav-mobile-bg: #1a1a1a;
+  --focus-color: #66b3ff;
+}

@@ -1,0 +1,91 @@
+// ===== HEADER PRINCIPAL =====
+.primary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: var(--header-bg, #ffffff);
+  border-bottom: 1px solid var(--border-color, #e5e5e5);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1000;
+
+  // ===== CONTENEUR DE GAUCHE =====
+  .left-container {
+    display: flex;
+    align-items: center;
+    gap: 2rem; // Espacement entre le logo et la navigation
+    
+    // ===== LOGO =====
+    .logo-link {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      transition: opacity 0.3s ease;
+      
+      &:hover {
+        opacity: 0.8;
+      }
+      
+      .logo {
+        height: 40px;
+        width: auto;
+        object-fit: contain;
+      }
+    }
+  }
+
+  // ===== CONTENEUR DE DROITE =====
+  .right-container {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem; // Espacement entre la recherche et le toggle
+  }
+
+  // ===== RESPONSIVE =====
+  
+  // Tablette
+  @media (max-width: 768px) {
+    padding: 0.75rem 1rem;
+    
+    .left-container {
+      gap: 1rem;
+      
+      .logo {
+        height: 32px;
+      }
+    }
+    
+    .right-container {
+      gap: 1rem;
+    }
+  }
+  
+  // Mobile
+  @media (max-width: 480px) {
+    padding: 0.5rem 0.75rem;
+    
+    .left-container {
+      gap: 0.5rem;
+      
+      .logo {
+        height: 28px;
+      }
+    }
+    
+    .right-container {
+      gap: 0.75rem;
+    }
+  }
+}
+
+// ===== VARIABLES CSS POUR LES THÈMES =====
+:root {
+  --header-bg: #ffffff;
+  --border-color: #e5e5e5;
+}
+
+[data-theme="dark"] {
+  --header-bg: #1a1a1a;
+  --border-color: #333333;
+}

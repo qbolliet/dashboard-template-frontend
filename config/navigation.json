@@ -1,0 +1,66 @@
+{
+  "architecture": [
+    {
+      "path": "/",
+      "name": "Accueil",
+      "type": "home",
+      "children": null
+    },
+    {
+      "path": "/person",
+      "name": "Personnes",
+      "type": "person",
+      "children": [
+        {
+          "path": "/individu-1",
+          "name": "Individu 1"
+        },
+        {
+          "path": "/individu-2", 
+          "name": "Individu 2"
+        }
+      ]
+    },
+    {
+      "path": "/indicator",
+      "name": "Indicateurs",
+      "type": "indicator",
+      "children": [
+        {
+          "path": "/group-1",
+          "name": "Groupe 1",
+          "children": [
+            {
+              "path": "/indicator-1-1",
+              "name": "Indicateur 1-1"
+            },
+            {
+              "path": "/indicator-1-2",
+              "name": "Indicateur 1-2"
+            }
+          ]
+        },
+        {
+          "path": "/group-2",
+          "name": "Groupe 2",
+          "children": [
+            {
+              "path": "/indicator-2-1",
+              "name": "Indicateur 2-1"
+            },
+            {
+              "path": "/indicator-2-2",
+              "name": "Indicateur 2-2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/about",
+      "name": "À propos",
+      "type": "about",
+      "children": null
+    }
+  ]
+}
