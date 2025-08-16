@@ -1,64 +1,78 @@
 {
-  "architecture": [
+  "navigationData": [
     {
-      "path": "/",
-      "name": "Accueil",
-      "type": "home",
+      "name": "Home",
+      "path": "/", 
+      "type": "home", 
       "children": null
     },
     {
-      "path": "/comptabilite-nationale",
-      "name": "Comptabilité Nationale",
-      "type": "indicator_group",
+      "name": "Person",
+      "path": "/person", 
+      "type": "person", 
       "children": [
         {
-            "path": "/france",
-            "name": "France",
-            "children": [
-                {
-                "path": "/pib",
-                "name": "PIB"
-                },
-                {
-                "path": "/consommation",
-                "name": "Consommation"
-                }
-            ]
+          "name": "Individu1", 
+          "path": "/individu-1",
+          "type": "person",
+          "children": null
         },
         {
-            "path": "/allemagne",
-            "name": "Allemagne",
-            "children": [
-                {
-                "path": "/pib",
-                "name": "PIB"
-                },
-                {
-                "path": "/consommation",
-                "name": "Consommation"
-                }
-            ]
+          "name": "Individu2", 
+          "path": "/individu-2",
+          "type": "person",
+          "children": null
         }
       ]
     },
     {
-      "path": "/finances-publiques",
-      "name": "Finances Publiques",
-      "type": "indicator_group",
+      "name": "Indicator",
+      "path": "/indicator", 
+      "type": "indicator", 
       "children": [
         {
-          "path": "/recettes-publiques",
-          "name": "Recettes Publiques"
+          "name": "Group1",
+          "path": "/group-1",
+          "type": "indicator",
+          "children": [
+            {
+              "name": "Indicator1-1",
+              "path": "/indicator-1-1",
+              "type": "indicator",
+              "children": null
+            },
+            {
+              "name": "Indicator1-2",
+              "path": "/indicator-1-2",
+              "type": "indicator",
+              "children": null
+            }
+          ]
         },
         {
-          "path": "/depenses-publiques",
-          "name": "Dépenses Publiques"
+          "name": "Group2",
+          "path": "/group-2",
+          "type": "indicator",
+          "children": [
+            {
+              "name": "Indicator2-1",
+              "path": "/indicator-2-1",
+              "type": "indicator",
+              "children": null
+            },
+            {
+              "name": "Indicator2-2",
+              "path": "/indicator-2-2",
+              "type": "indicator",
+              "children": null
+            }
+          ]
         }
       ]
     },
     {
+      "name": "About",
       "path": "/about",
-      "name": "À propos",
       "type": "about",
       "children": null
     }

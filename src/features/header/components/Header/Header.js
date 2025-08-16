@@ -2,10 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import NavigationTopBar from '../NavigationTopBar/NavigationTopBar';
+import Navigation from '../Navigation/Navigation';
 import SearchBar from '../SearchBar/SearchBar';
 import ThemeToggleButton from '../../../theme/components/ThemeToggleButton/ThemeToggleButton';
-import logo from '../../../../../assets/shared/logo.svg';
 import './Header.scss';
 
 /**
@@ -18,16 +17,16 @@ import './Header.scss';
  */
 const Header = ({ navigationData = [], onNavigationItemClick }) => {
     return (
-        <header className="primary-header">
+        <header className="primary-header flex">
             {/* Conteneur de gauche : Logo + Navigation */}
             <div className="left-container">
                 {/* Logo de l'application */}
-                <Link href="/" className="logo-link">
-                    <img src={logo} alt="Logo du site" className="logo" />
+                <Link href="/">
+                    <img src="/logo.svg" alt="website logo" className="logo"/>
                 </Link>
                 
                 {/* Navigation principale */}
-                <NavigationTopBar 
+                <Navigation 
                     navigationData={navigationData}
                     onItemClick={onNavigationItemClick}
                 />

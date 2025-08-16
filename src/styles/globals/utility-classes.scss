@@ -1,0 +1,29 @@
+// Utility classes
+$gap : 1rem;
+
+// Display
+.flex {
+    display: flex;
+    gap: var(--gap, $gap);
+}
+
+.grid {
+    display: grid;
+    gap: var(--gap, $gap);
+}
+
+.d-block {
+    display: block;
+    gap: var(--gap, $gap);
+}
+
+// Icon
+.icon {
+    height: 1em;
+    width: auto; 
+}
+
+.small-icon {
+    height: .5em;
+    width: auto; 
+}

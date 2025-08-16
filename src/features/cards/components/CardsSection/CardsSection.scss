@@ -1,0 +1,22 @@
+// Imports
+@use '../../../../styles/utils/breakpoints';
+@use '../../../../styles/globals/custom-properties';
+
+.cards-section {
+    display: grid;
+    grid-template-columns: repeat(var(--cards-per-row, 3), 1fr);
+    gap: 1rem;
+    padding: 1rem;
+}
+
+@include breakpoints.breakpoint-down(medium) {
+    .cards-section {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@include breakpoints.breakpoint-down(small) {
+    .cards-section {
+        grid-template-columns: 1fr; // Stack cards vertically on smaller screens
+    }
+}

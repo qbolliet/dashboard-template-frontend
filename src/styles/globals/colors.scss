@@ -1,0 +1,24 @@
+// // Importation des modules
+// @use 'custom-properties';
+
+// // Couleurs
+
+// // Couleurs de fond
+// .bg-dark { background-color: hsl( var(--clr-dark) );}
+// //.bg-accent { background-color: hsl( var(--clr-light) );}
+.bg-white { background-color: hsl( var(--clr-white) );}
+// .bg-dark-grey { background-color: hsl( var(--clr-dark-grey ) );}
+// .bg-medium-grey { background-color: hsl( var(--clr-medium-grey ) );}
+// .bg-light-grey { background-color: hsl( var(--clr-light-grey ) );}
+// .bg-ash { background-color: hsl( var(--clr-ash ) );}
+.bg-primary { background-color: hsl( var(--clr-primary ) );}
+
+// // Couleurs de texte
+// .text-dark { color: hsl( var(--clr-dark) );}
+// //.text-accent { color: hsl( var(--clr-light) );}
+.text-white { color: hsl( var(--clr-white) );}
+// .text-dark-grey { color: hsl( var(--clr-dark-grey ) );}
+// .text-medium-grey { color: hsl( var(--clr-medium-grey ) );}
+// .text-light-grey { color: hsl( var(--clr-light-grey ) );}
+// .text-ash { color: hsl( var(--clr-ash ) );}
+.text-primary { color: hsl( var(--clr-primary ) );}

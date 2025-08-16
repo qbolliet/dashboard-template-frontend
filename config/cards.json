@@ -1,0 +1,40 @@
+{
+  "cards": [
+    {
+      "image": "/images/card1.jpg",
+      "title": "Dashboard Analytics",
+      "description": "Analysez vos données en temps réel avec des graphiques interactifs et des métriques avancées.",
+      "link": "/analytics"
+    },
+    {
+      "image": "/images/card2.jpg",
+      "title": "Indicateurs de Performance",
+      "description": "Suivez les KPI les plus importants de votre organisation avec des tableaux de bord personnalisés.",
+      "link": "/kpi"
+    },
+    {
+      "image": "/images/card3.jpg",
+      "title": "Rapports Automatisés",
+      "description": "Générez des rapports détaillés automatiquement selon vos critères et planifications.",
+      "link": "/reports"
+    },
+    {
+      "image": "/images/card4.jpg",
+      "title": "Prédictions IA",
+      "description": "Utilisez l'intelligence artificielle pour anticiper les tendances et prendre de meilleures décisions.",
+      "link": "/predictions"
+    },
+    {
+      "image": "/images/card5.jpg",
+      "title": "Collaboration Teams",
+      "description": "Partagez vos analyses et collaborez en temps réel avec votre équipe sur les projets stratégiques.",
+      "link": "/collaboration"
+    },
+    {
+      "image": "/images/card6.jpg",
+      "title": "Export & Integration",
+      "description": "Exportez vos données dans tous les formats et intégrez facilement avec vos outils existants.",
+      "link": "/integration"
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+// Imports
+@use '../../../../styles/utils/breakpoints';
+@use '../../../../styles/globals/custom-properties';
+
+// Dropdown principal
+.dropdown {
+    display: flex;
+    flex-direction: initial;
+    background-color: hsl( var( --clr-background ) );
+    border-radius: 10px;
+    position: absolute;
+    top: 2rem;
+    z-index: 1;
+    visibility: hidden;
+    opacity: 0;
+    transform: scale(0.97) translateX(-5px);
+    transition: 0.1s ease-in-out;
+    box-shadow: hsl(0, 0%, 0%, 0.05) 0px 6px 24px 0px, hsl(0, 0%, 0%, 0.08) 0px 0px 0px 1px;
+}
+  
+.dropdown.dropdown-active {
+    visibility: visible;
+    opacity: 1;
+    transform: scale(1) translateX(5px);
+}
+
+.dropdown > ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.2rem;
+}
+
+.dropdown-head-link {
+    align-items: center;
+    justify-content: space-between;
+    --gap: 0.2rem;
+}
+  
+.dropdown-link {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    transition: 0.1s ease-in-out;
+}
+
+.dropdown-button {
+    width: .5rem;
+} 
+
+@include breakpoints.breakpoint-down(medium) {
+    .dropdown {
+        display: none;
+        border: none;
+        border-radius: 5px;
+        position: static;
+        top: 0;
+        left: 0;
+        visibility: visible;
+        opacity: 1;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .dropdown.dropdown-active {
+        display: block;
+        transform: scale(1) translateX(0px);
+    }
+    
+    .dropdown ul {
+        display: block;
+        padding: 0.5rem 0.3rem 0 0.3rem;
+    }
+
+    .dropdown-head-link {
+        width: 100%;
+        margin: 0;
+    }
+
+    .dropdown-link {
+        padding: 0.3rem 0;
+    }
+}
+
+@include breakpoints.breakpoint-down(small) {
+    .dropdown-head-link {
+        width: auto;
+    }
+
+    .dropdown-button {
+        position: absolute;
+        right: 1.5rem;
+    }
+}

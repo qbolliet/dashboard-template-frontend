@@ -1,284 +1,99 @@
-// ===== VARIABLES =====
-$button-size: 44px;
-$icon-size: 24px;
-$transition-duration: 0.3s;
-$hover-scale: 1.1;
-$click-scale: 0.95;
+@use '../../../../styles/globals/custom-properties';
 
-// ===== BOUTON PRINCIPAL =====
-.theme-toggle {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: $button-size;
-  height: $button-size;
-  padding: 0;
-  border: 2px solid var(--theme-toggle-border, transparent);
-  background-color: var(--theme-toggle-bg, rgba(255, 255, 255, 0.1));
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all $transition-duration ease;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  
-  // États d'interaction
-  &:hover {
-    transform: scale($hover-scale);
-    background-color: var(--theme-toggle-hover-bg, rgba(255, 255, 255, 0.2));
-    border-color: var(--theme-toggle-hover-border, rgba(255, 255, 255, 0.3));
-  }
-  
-  &:focus {
-    outline: none;
-    border-color: var(--theme-toggle-focus-border, #007acc);
-    box-shadow: 0 0 0 3px var(--theme-toggle-focus-shadow, rgba(0, 122, 204, 0.3));
-  }
-  
-  &:active,
-  &.theme-toggle--clicked {
-    transform: scale($click-scale);
-  }
-  
-  // État de transition
-  &.theme-toggle--transitioning {
-    pointer-events: none; // Désactiver les clics pendant la transition
-  }
-  
-  // Animation au survol
-  &:hover .theme-toggle__icon {
-    transform: rotate(15deg);
-  }
-}
+.theme-toggle { 
+    background: none;
+    border: none;
+    margin-right: clamp(1rem, 3vh, 2rem);
 
-// ===== CONTENEUR DE L'ICÔNE =====
-.theme-toggle__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: $icon-size;
-  height: $icon-size;
-  transition: transform $transition-duration ease;
-  
-  svg {
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-  }
-}
-
-// ===== ICÔNE SOLEIL/LUNE =====
-.sun-and-moon {
-  color: var(--theme-toggle-icon-color, #fbbf24);
-  
-  // Cercle principal (soleil/lune)
-  .sun {
-    transform-origin: center center;
-    transition: transform $transition-duration ease;
-  }
-  
-  // Rayons du soleil
-  .sun-beams {
-    stroke-linecap: round;
-    transform-origin: center center;
-    transition: all $transition-duration ease;
-    
-    line {
-      stroke-dasharray: 4px 6px;
-      stroke-dashoffset: 0;
-      animation: sunBeamsPulse 2s ease-in-out infinite;
-    }
-  }
-  
-  // Masque de la lune
-  .moon-mask-circle {
-    transition: transform $transition-duration ease;
-  }
-}
-
-// ===== ANIMATIONS DES RAYONS =====
-@keyframes sunBeamsPulse {
-  0%, 100% {
-    stroke-dashoffset: 0;
-    opacity: 1;
-  }
-  50% {
-    stroke-dashoffset: 2px;
-    opacity: 0.7;
-  }
-}
-
-// ===== INDICATEUR DE TRANSITION =====
-.theme-toggle__transition-indicator {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  
-  .spinner {
-    width: 16px;
-    height: 16px;
-    border: 2px solid var(--theme-toggle-spinner-bg, rgba(255, 255, 255, 0.3));
-    border-top: 2px solid var(--theme-toggle-spinner-fg, #ffffff);
+    inline-size: 2rem;
+    block-size: 2rem;
+    aspect-ratio: 1;
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-}
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 
-// ===== CLASSE UTILITAIRE POUR L'ACCESSIBILITÉ =====
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-// ===== ÉTATS DU THÈME =====
-
-// Thème clair (mode soleil)
-:root,
-[data-theme="light"] {
-  .sun-and-moon {
-    color: var(--theme-toggle-sun-color, #f59e0b);
-    
-    .sun {
-      transform: scale(1);
+    & > svg {
+        inline-size: 100%;
+        block-size: 100%;
+        stroke-linecap: round;
     }
-    
-    .sun-beams {
-      opacity: 1;
-      transform: scale(1);
+}
+
+// Propriétés de l'icône du theme toggle
+.sun-and-moon > :is(.moon, .sun, .sun-beams) {
+    transform-origin: center;
+}
+
+.sun-and-moon > :is(.moon, .sun) {
+    fill: hsl( var(--clr-dark-light-icon-fill) );
+}
+
+.theme-toggle:is(:hover, :focus-visible) > .sun-and-moon > :is(.moon, .sun) {
+    fill: hsl( var(--clr-dark-light-icon-fill-hover) );
+}
+
+.sun-and-moon > .sun-beams {
+    stroke: hsl( var(--clr-dark-light-icon-fill) );
+    stroke-width: 2px;
+}
+
+.theme-toggle:is(:hover, :focus-visible) .sun-and-moon > .sun-beams {
+    stroke: hsl( var(--clr-dark-light-icon-fill-hover) );
+}
+
+[data-theme="dark"] .sun-and-moon > .sun {
+    transform: scale(1.75);
+}
+
+[data-theme="dark"] .sun-and-moon > .sun-beams {
+    opacity: 0;
+}
+
+[data-theme="dark"] .sun-and-moon > .moon > circle {
+    transform: translateX(-7px);
+}
+
+@supports (cx: 1) {
+    [data-theme="dark"] .sun-and-moon > .moon > circle {
+        cx: 17;
+        transform: translateX(0);
     }
-    
-    .moon-mask-circle {
-      transform: translateX(0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .sun-and-moon > .sun {
+        transition: transform .5s cubic-bezier(.5, 1.25, .75, 1.25);
     }
-  }
-}
 
-// Thème sombre (mode lune)
-[data-theme="dark"] {
-  .sun-and-moon {
-    color: var(--theme-toggle-moon-color, #e5e7eb);
-    
-    .sun {
-      transform: scale(0.8);
+    .sun-and-moon > .sun-beams {
+        transition: transform .5s cubic-bezier(.5, 1.5, .75, 1.25), opacity .5s cubic-bezier(.25, 0, .3, 1);
     }
-    
-    .sun-beams {
-      opacity: 0;
-      transform: scale(0.5);
+
+    .sun-and-moon .moon > circle {
+        transition: transform .25s cubic-bezier(0, 0, 0, 1);
     }
-    
-    .moon-mask-circle {
-      transform: translateX(-12px);
+
+    @supports (cx: 1) {
+        .sun-and-moon .moon > circle {
+            transition: cx .25s cubic-bezier(0, 0, 0, 1);
+        }
     }
-  }
-}
 
-// ===== TRANSITION GLOBALE LORS DU CHANGEMENT DE THÈME =====
-.theme-transitioning {
-  .theme-toggle {
-    .sun-and-moon {
-      animation: themeChangeRotation $transition-duration ease;
+    [data-theme="dark"] .sun-and-moon > .sun {
+        transition-timing-function: cubic-bezier(.25, 0, .3, 1);
+        transition-duration: .25s;
+        transform: scale(1.75);
     }
-  }
-}
 
-@keyframes themeChangeRotation {
-  0% {
-    transform: rotate(0deg);
-  }
-  50% {
-    transform: rotate(180deg) scale(1.2);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-// ===== RESPONSIVE =====
-
-// Tablette
-@media (max-width: 768px) {
-  .theme-toggle {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .theme-toggle__icon {
-    width: 20px;
-    height: 20px;
-  }
-}
-
-// Mobile
-@media (max-width: 480px) {
-  .theme-toggle {
-    width: 36px;
-    height: 36px;
-    
-    &:hover {
-      transform: none; // Désactiver l'effet de survol sur mobile
+    [data-theme="dark"] .sun-and-moon > .sun-beams {
+        transition-duration: .15s;
+        transform: rotateZ(-25deg);
     }
-  }
-  
-  .theme-toggle__icon {
-    width: 18px;
-    height: 18px;
-  }
-}
 
-// ===== SUPPORT POUR REDUCED MOTION =====
-@media (prefers-reduced-motion: reduce) {
-  .theme-toggle,
-  .theme-toggle__icon,
-  .sun-and-moon,
-  .sun-and-moon .sun,
-  .sun-and-moon .sun-beams,
-  .sun-and-moon .moon-mask-circle {
-    transition: none;
-    animation: none;
-  }
-  
-  .sun-and-moon .sun-beams line {
-    animation: none;
-  }
-}
-
-// ===== VARIABLES CSS POUR LES THÈMES =====
-:root {
-  --theme-toggle-bg: rgba(0, 0, 0, 0.1);
-  --theme-toggle-hover-bg: rgba(0, 0, 0, 0.2);
-  --theme-toggle-border: transparent;
-  --theme-toggle-hover-border: rgba(0, 0, 0, 0.3);
-  --theme-toggle-focus-border: #007acc;
-  --theme-toggle-focus-shadow: rgba(0, 122, 204, 0.3);
-  --theme-toggle-icon-color: #f59e0b;
-  --theme-toggle-sun-color: #f59e0b;
-  --theme-toggle-moon-color: #e5e7eb;
-  --theme-toggle-spinner-bg: rgba(0, 0, 0, 0.3);
-  --theme-toggle-spinner-fg: #333333;
-}
-
-[data-theme="dark"] {
-  --theme-toggle-bg: rgba(255, 255, 255, 0.1);
-  --theme-toggle-hover-bg: rgba(255, 255, 255, 0.2);
-  --theme-toggle-border: transparent;
-  --theme-toggle-hover-border: rgba(255, 255, 255, 0.3);
-  --theme-toggle-focus-border: #66b3ff;
-  --theme-toggle-focus-shadow: rgba(102, 179, 255, 0.3);
-  --theme-toggle-icon-color: #e5e7eb;
-  --theme-toggle-spinner-bg: rgba(255, 255, 255, 0.3);
-  --theme-toggle-spinner-fg: #ffffff;
+    [data-theme="dark"] .sun-and-moon > .moon > circle {
+        transition-duration: .5s;
+        transition-delay: .25s;
+    }
 }

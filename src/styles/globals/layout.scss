@@ -1,0 +1,74 @@
+// Imports
+@use '../utils/breakpoints';
+
+// Layout
+$flow-space : 1rem;
+
+// Permet d'ajouter de l'espace (padding et margin) entre les éléments. 
+// On pourrait ajouter à la place des utility classes p-1, p-2 etc ... et m-1, m-2 
+.flow > *:where(:not(:first-child)) {
+    margin-top: $flow-space;
+}
+
+.flow--space-small {
+    --flow-space: .75rem;
+}
+
+// Container
+.container {
+    padding-inline: 2em;
+    margin-inline: auto;
+    max-width: 80rem;
+}
+
+// .container {
+//     display: flex;
+//     align-items: center;
+//     justify-content: space-between;
+//     max-width: 1600px;
+//     margin: 0 auto;
+//     column-gap: 2rem;
+//     height: 90px;
+//     padding: 1.2rem 3rem;
+//   }
+
+.grid-container {
+    text-align: center;
+    //border: 5px solid limegreen;
+    display: grid;
+    place-items: center;
+    padding-inline: 1rem;
+    padding-bottom: 4rem;
+}
+
+// Permet de majorer la largeur des paragraphes qui n'ont pas de classe pour les styliser (rend l'ensemble plus lisible)
+.grid-container p:not([class]) {
+    max-width: 50ch;
+}
+
+.grid-container--home {
+    min-height: calc(100vh - 5rem);
+}
+
+
+@include breakpoints.breakpoint (medium) {
+    .grid-container {
+        text-align: left;
+        column-gap: var(--container-gap, 2rem);
+        grid-template-columns: minmax(1rem, 1fr) repeat(2, minmax(0, 30rem)) minmax(1rem, 1fr);
+    }
+
+    .grid-container--home > *:first-child {
+        grid-column: 2;
+    }
+
+    .grid-container--home > *:last-child {
+        grid-column: 3;
+    }
+
+    // Classe additionnelle pour aligner en bas les éléments
+    .grid-container--home {
+        padding-bottom: max(6rem, 20vh);
+        align-items: end;
+    }
+}

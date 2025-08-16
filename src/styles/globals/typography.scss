@@ -1,0 +1,43 @@
+/* Imports */
+@use 'custom-properties';
+
+/* ------------------- */
+/* Typography          */
+/* ------------------- */
+
+// Font family
+.ff-sans { font-family: var(--ff-sans); } 
+.ff-sans-normal { font-family: var(--ff-sans-normal); } 
+
+// Letter spacing
+.letter-spacing-1 { letter-spacing: 4.75px; } 
+.letter-spacing-2 { letter-spacing: 2.7px; } 
+.letter-spacing-3 { letter-spacing: 2.35px; } 
+
+// Uppercase
+.uppercase { text-transform: uppercase; }
+
+// Font size
+.fs-900 { font-size: var(--fs-900); }
+.fs-800 { font-size: var(--fs-800); }
+.fs-700 { font-size: var(--fs-700); }
+.fs-600 { font-size: var(--fs-600); }
+.fs-500 { font-size: var(--fs-500); }
+.fs-400 { font-size: var(--fs-400); }
+.fs-300 { font-size: var(--fs-300); }
+.fs-200 { font-size: var(--fs-200); }
+
+.fs-900,
+.fs-800,
+.fs-700,
+.fs-600 {
+    line-height: 1.1;
+}
+
+// Font weight
+.fw-700 { font-weight: var(--fw-700); }
+.fw-600 { font-weight: var(--fw-600); }
+.fw-500 { font-weight: var(--fw-500); }
+.fw-400 { font-weight: var(--fw-400); }
+.fw-300 { font-weight: var(--fw-300); }
+.fw-200 { font-weight: var(--fw-200); }

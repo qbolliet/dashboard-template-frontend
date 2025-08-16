@@ -1,0 +1,127 @@
+@use "sass:meta";
+@use '../utils/breakpoints';
+// Import pour utiliser les variables de breakpoints
+//@use '../utils/breakpoints.scss' as * ;
+
+
+// Définition des custom properties
+//:root {
+    // Définition des breakpoints afin qu'ils soient accessibles pour designer la Navbar
+    //--breakpoints-up : #{meta.inspect($breakpoints-up)};
+    //--breakpoints-down : #{meta.inspect($breakpoints-down)};
+//}
+
+:root {
+    // Couleurs
+
+    // Couleurs de base
+    --clr-white: 0 0% 100%;
+    --clr-black: 0 0% 0%
+    --clr-background: 0 0% 100%;
+    //--clr-light: 231 77% 90%;
+
+    --clr-disabled: 0 0% 90%;
+    --clr-default: 0 0% 23%;
+    --clr-info: 210.4 100% 47.6%;
+    --clr-warning: 21.7 100% 42%;
+    --clr-error: 1.8 100% 48.2%;
+    --clr-success: 143 63.5% 33.8%;
+
+    // Nuances de gris
+    --clr-font: 0, 0%, 20%;
+    // --clr-medium-grey: 0, 0%, 39%;
+    --clr-light-grey: 0, 0%, 93%;
+    --clr-background-input: 0, 0%, 93%;
+    --clr-dark-light-icon-fill : 210 10% 30%;
+    --clr-dark-light-icon-fill-hover : 210 10% 15%;
+
+    // Couleurs
+    --clr-primary: 220, 57%, 28%;
+    
+
+    // Bordures
+    --border-light: 1px solid hsl( var( --clr-light-grey ) );
+
+    
+    /* font-sizes */
+    --fs-900: clamp(5rem, 8vw + 1rem, 9.375rem);
+    --fs-800: 3.5rem;
+    --fs-700: 1.5rem;
+    --fs-600: 1rem;
+    --fs-500: 1rem;
+    --fs-400: 0.9375rem;
+    --fs-300: 0.9375rem;
+    --fs-200: 0.875rem;
+
+    
+    /* font-families */
+    --ff-sans: "Inter", sans-serif;
+    --ff-sans-normal: "PT", sans-serif;
+
+    // Font weights
+    --fw-700: 700;
+    --fw-600: 600;
+    --fw-500: 500;
+    --fw-400: 400;
+    --fw-300: 300;
+    --fw-200: 200;
+
+
+    // Component based variables
+    --select-width: 300rem;
+    --cards-per-row: 3; // Default number of cards per row
+}
+
+[data-theme="dark"] {
+    // Couleurs
+    --clr-background: 230 35% 7%;
+    --clr-font: 210, 10%, 90%;
+    --clr-background-input: 210, 35%, 9%;
+    --clr-dark-light-icon-fill : 210 10% 70%;
+    --clr-dark-light-icon-fill-hover : 210 15% 90%;
+
+
+    // Couleurs
+    --clr-primary: 200, 80%, 50%;
+    --clr-black: 0 0% 100%;
+
+    --clr-disabled: 0 0% 90%;
+    --clr-default: 0 0% 23%;
+    --clr-info: 210.4 100% 47.6%;
+    --clr-warning: 21.7 100% 42%;
+    --clr-error: 1.8 100% 48.2%;
+    --clr-success: 143 63.5% 33.8%;
+}   
+
+@include breakpoints.breakpoint(medium) {
+    :root {
+        /* font-sizes */
+        --fs-800: 2.5rem;
+        --fs-700: 1.5rem;
+        --fs-600: 1.25rem;
+        --fs-500: 1rem;
+        --fs-400: 0.9375rem;
+    }
+}
+
+@include breakpoints.breakpoint(large) {
+    :root {
+        /* font-sizes */
+        --fs-800: 3.5rem;
+        --fs-700: 2rem;
+        --fs-600: 1.25rem;
+        --fs-500: 1.125rem;
+        --fs-400: 1rem;
+    }
+}
+
+@include breakpoints.breakpoint(xlarge) {
+    :root {
+        /* font-sizes */
+        --fs-800: 4rem;
+        --fs-700: 3.5rem;
+        --fs-600: 2rem;
+        --fs-500: 1.75rem;
+        --fs-400: 1.125rem;
+    }
+}
