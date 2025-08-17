@@ -18,7 +18,7 @@ export const ThemeProvider = ({ children }) => {
         if (typeof window === 'undefined') return 'light';
         
         // Récupérer le thème sauvegardé
-        const savedTheme = localStorage.getItem('dashboard-theme');
+        const savedTheme = localStorage.getItem('theme');
         if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
             return savedTheme;
         }
@@ -80,7 +80,7 @@ export const ThemeProvider = ({ children }) => {
     const syncWithSystemTheme = () => {
         if (typeof window === 'undefined') return;
         
-        const hasManualTheme = localStorage.getItem('dashboard-theme-manual');
+        const hasManualTheme = localStorage.getItem('theme-manual');
         if (!hasManualTheme) {
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             const systemTheme = prefersDark ? 'dark' : 'light';
@@ -99,10 +99,10 @@ export const ThemeProvider = ({ children }) => {
         document.body.setAttribute('data-theme', theme);
         
         // Sauvegarder le thème dans localStorage
-        localStorage.setItem('dashboard-theme', theme);
+        localStorage.setItem('theme', theme);
         
         // Marquer que l'utilisateur a fait un choix manuel
-        localStorage.setItem('dashboard-theme-manual', 'true');
+        localStorage.setItem('theme-manual', 'true');
         
         // Mettre à jour la meta tag pour la barre d'état sur mobile
         const metaThemeColor = document.querySelector('meta[name="theme-color"]');

@@ -1,0 +1,82 @@
+@use '../../../../styles/globals/custom-properties';
+
+// ===== PROPRIÉTÉS DE L'ICÔNE SOLEIL/LUNE =====
+.sun-and-moon > :is(.sun, .sun-beams) {
+    transform-origin: center;
+}
+
+.sun-and-moon > :is(.sun) {
+    fill: hsl(var(--clr-dark-light-icon-fill));
+}
+
+.theme-toggle:is(:hover, :focus-visible) > .sun-and-moon > :is(.sun) {
+    fill: hsl(var(--clr-dark-light-icon-fill-hover));
+}
+
+.sun-and-moon > .sun-beams {
+    stroke: hsl(var(--clr-dark-light-icon-fill));
+    stroke-width: 2px;
+}
+
+.theme-toggle:is(:hover, :focus-visible) .sun-and-moon > .sun-beams {
+    stroke: hsl(var(--clr-dark-light-icon-fill-hover));
+}
+
+// ===== ÉTATS DU THÈME =====
+
+// Thème sombre (mode lune)
+[data-theme="dark"] .sun-and-moon > .sun {
+    transform: scale(1.75);
+}
+
+[data-theme="dark"] .sun-and-moon > .sun-beams {
+    opacity: 0;
+}
+
+[data-theme="dark"] .sun-and-moon mask circle {
+    transform: translateX(-7px);
+}
+
+@supports (cx: 1) {
+    [data-theme="dark"] .sun-and-moon mask circle {
+        cx: 17;
+        transform: translateX(0);
+    }
+}
+
+// ===== ANIMATIONS ET TRANSITIONS =====
+@media (prefers-reduced-motion: no-preference) {
+    .sun-and-moon > .sun {
+        transition: transform .5s cubic-bezier(.5, 1.25, .75, 1.25);
+    }
+
+    .sun-and-moon > .sun-beams {
+        transition: transform .5s cubic-bezier(.5, 1.5, .75, 1.25), opacity .5s cubic-bezier(.25, 0, .3, 1);
+    }
+
+    .sun-and-moon mask circle {
+        transition: transform .25s cubic-bezier(0, 0, 0, 1);
+    }
+
+    @supports (cx: 1) {
+        .sun-and-moon mask circle {
+            transition: cx .25s cubic-bezier(0, 0, 0, 1);
+        }
+    }
+
+    [data-theme="dark"] .sun-and-moon > .sun {
+        transition-timing-function: cubic-bezier(.25, 0, .3, 1);
+        transition-duration: .25s;
+        transform: scale(1.75);
+    }
+
+    [data-theme="dark"] .sun-and-moon > .sun-beams {
+        transition-duration: .15s;
+        transform: rotateZ(-25deg);
+    }
+
+    [data-theme="dark"] .sun-and-moon mask circle {
+        transition-duration: .5s;
+        transition-delay: .25s;
+    }
+}

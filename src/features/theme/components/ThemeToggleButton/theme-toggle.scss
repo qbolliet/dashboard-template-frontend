@@ -1,0 +1,100 @@
+@use '../../../../styles/globals/custom-properties';
+@use '../../../../styles/utils/breakpoints';
+
+// ===== BOUTON PRINCIPAL =====
+.theme-toggle { 
+    // Reset des styles de bouton par défaut
+    background: none;
+    border: none;
+    margin: 0;
+    padding: 0;
+    margin-right: clamp(1rem, 3vh, 2rem);
+    
+    // Taille exacte avec box-sizing pour inclure la bordure
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    box-sizing: border-box;
+
+    // Curseur
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    
+    // Transition douce pour tous les états
+    transition: all 0.3s ease;
+    
+    // Positionnement pour centrer le SVG
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    // ===== ÉTATS D'INTERACTION =====
+    &:hover {
+        background-color: hsl(var(--clr-dark-light-icon-fill-hover) / 0.1);
+        border-color: hsl(var(--clr-dark-light-icon-fill-hover) / 0.3);
+        transform: scale(1.05);
+        
+        // Rotation au survol du SVG
+        .sun-and-moon {
+            transform: rotate(15deg);
+        }
+    }
+    
+    &:focus {
+        outline: none;
+        border-color: hsl(var(--clr-primary));
+        box-shadow: 0 0 0 2px hsl(var(--clr-primary) / 0.3);
+    }
+    
+    &:active,
+    &.theme-toggle--clicked {
+        transform: scale(0.95);
+    }
+    
+    // État de transition - désactiver les interactions
+    &.theme-toggle--transitioning {
+        pointer-events: none;
+    }
+    
+    // ===== SVG =====
+    & > svg {
+        inline-size: 100%;
+        block-size: 100%;
+        stroke-linecap: round;
+        transition: transform 0.3s ease;
+    }
+    
+    // ===== RESPONSIVE =====
+    @include breakpoints.breakpoint-down(small) {
+        inline-size: 1.3rem;
+        block-size: 1.3rem;
+        
+        &:hover {
+            transform: none; // Désactiver l'effet de survol sur mobile
+        }
+    }
+}
+
+// ===== INDICATEUR DE TRANSITION =====
+.theme-toggle__transition-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    .spinner {
+        width: 12px;
+        height: 12px;
+        border: 2px solid hsl(var(--clr-dark-light-icon-fill) / 0.3);
+        border-top: 2px solid hsl(var(--clr-dark-light-icon-fill));
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
