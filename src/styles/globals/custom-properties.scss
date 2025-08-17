@@ -1,0 +1,31 @@
+:root {
+    // ===== COULEURS DE BASE =====
+    --clr-background: 0 0% 100%;
+    --clr-font: 0, 0%, 20%;
+    --clr-light-grey: 0, 0%, 93%;
+    --clr-background-input: 0, 0%, 93%;
+    
+    // ===== COULEURS PRINCIPALES =====
+    --clr-primary: 220, 57%, 28%;
+    
+    // ===== COULEURS SPÉCIFIQUES AU THÈME TOGGLE =====
+    --clr-dark-light-icon-fill: 210 10% 30%;
+    --clr-dark-light-icon-fill-hover: 210 10% 15%;
+
+    // ===== BORDURES =====
+    --border-light: 1px solid hsl(var(--clr-light-grey));
+
+    // ===== TYPOGRAPHIE ESSENTIELLE =====
+    --fs-400: 0.9375rem;
+    --ff-sans-normal: "PT", sans-serif;
+}
+
+// ===== THÈME SOMBRE =====
+[data-theme="dark"] {
+    --clr-background: 230 35% 7%;
+    --clr-font: 210, 10%, 90%;
+    --clr-background-input: 210, 35%, 9%;
+    --clr-dark-light-icon-fill: 210 10% 70%;
+    --clr-dark-light-icon-fill-hover: 210 15% 90%;
+    --clr-primary: 200, 80%, 50%;
+}

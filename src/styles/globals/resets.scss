@@ -1,0 +1,104 @@
+/* Imports */
+@use 'custom-properties';
+
+/* ------------------- */
+/* Reset               */
+/* ------------------- */
+
+/* https://piccalil.li/blog/a-modern-css-reset/ */
+
+/* Box sizing */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Reset margins */
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+p,
+figure,
+picture {
+    margin: 0; 
+}
+
+/* set default font-weight (permet que par défaut rien ne soit en gras) */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+    font-weight: 400;
+}
+
+/* set up the body */
+body {
+    /* Application de différents styles par défaut pour être plus efficace */
+    font-family: var(--ff-sans-normal); 
+    font-size: var(--fs-400); 
+    color: hsl( var(--clr-font) ); 
+    background-color: hsl( var(--clr-background) ); 
+    line-height: 1.5; 
+    min-height: 100vh; 
+    // Permet de faire en sorte que les éléments occupent toute la hauteur de l'écran
+    display: grid; 
+    grid-template-rows: min-content 1fr; 
+    // Permet d'éviter la superposition des éléments avec la navigation qui apparait et disparait sur le coté
+    overflow-x: hidden; 
+}
+
+/* make images easier to work with */
+img,
+picture {
+    max-width: 100%;
+    display: block;
+}
+
+/* make form elements easier to work with */
+input,
+button,
+textarea,
+select {
+    font: inherit;
+}
+
+
+// Initialize button appearance
+button {
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    color: inherit;
+}
+
+// Remove text decoration from links
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+// Remove list style from ul
+ul {
+    list-style: none;
+}
+  
+  
+
+/* remove animations for people who've turned them off */
+@media (prefers-reduced-motion: reduce) {  
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

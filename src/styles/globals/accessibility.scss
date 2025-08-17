@@ -1,0 +1,31 @@
+// Imports
+@use 'custom-properties';
+
+// Screen readers
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap; /* added line */
+    border: 0;
+  }
+
+// Tab navigation
+.skip-to-content {
+    position: absolute;
+    z-index: 9999;
+    background: hsl( var(--clr-white) );
+    color: hsl( var(--clr-dark) );
+    padding: .5em 1em;
+    margin-inline: auto;
+    transform: translateY(-100%);
+    transition: transform 250ms ease-in;
+}
+  
+.skip-to-content:focus {
+    transform: translateY(0);
+}
