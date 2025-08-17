@@ -1,4 +1,6 @@
-// Breakpoints permettant la tansition entre les design écran d'ordinateur, tablette et téléphone portable
+@use 'sass:map';
+
+// Breakpoints permettant la transition entre les design écran d'ordinateur, tablette et téléphone portable
 // 640px, 1150px, 1400px
 $breakpoints-up: (
 	'medium': '40em',
@@ -14,13 +16,13 @@ $breakpoints-down: (
 );
 
 @mixin breakpoint($size) {
-	@media (min-width: map-get($breakpoints-up, $size)) {
+	@media (min-width: map.get($breakpoints-up, $size)) {
 		@content;
 	}
 }
 
 @mixin breakpoint-down($size) {
-	@media (max-width: map-get($breakpoints-down, $size)) {
+	@media (max-width: map.get($breakpoints-down, $size)) {
 		@content;
 	}
 }

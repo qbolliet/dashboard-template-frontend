@@ -50,7 +50,7 @@ body {
     // Permet de faire en sorte que les éléments occupent toute la hauteur de l'écran
     display: grid; 
     grid-template-rows: min-content 1fr; 
-    // Permet d'éviter la superposition des éléments avec la navigation qui apparait et disparait sur le coté
+    // Permet d'éviter la superposition des éléments avec la navigation qui apparait et disparait sur le côté
     overflow-x: hidden; 
 }
 
