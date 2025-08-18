@@ -28,7 +28,7 @@ export default function TestHeaderPage() {
             <div className="test-page">
                 {/* Header avec les données de navigation_new.json */}
                 <Header 
-                    navigationData={navigationData.architecture}
+                    navigationData={navigationData.main_menu}
                     onNavigationItemClick={handleNavigationClick}
                 />
                 

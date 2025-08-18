@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import NavigationTopBar from '../NavigationTopBar/NavigationTopBar';
 import SearchBar from '../SearchBar/SearchBar';
 import ThemeToggleButton from '../../../theme/components/ThemeToggleButton/ThemeToggleButton';
@@ -22,7 +23,7 @@ const Header = ({ navigationData = [], onNavigationItemClick }) => {
             <div className="left-container">
                 {/* Logo de l'application */}
                 <Link href="/" className="logo-link">
-                    <img src='/logo.svg' alt="Logo du site" className="logo" />
+                    <Image src='/logo.svg' alt="Logo du site" className="logo" width={40} height={40} />
                 </Link>
                 
                 {/* Navigation principale */}

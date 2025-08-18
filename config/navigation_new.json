@@ -1,5 +1,5 @@
 {
-  "architecture": [
+  "main_menu": [
     {
       "path": "/",
       "name": "Accueil",
@@ -16,12 +16,14 @@
             "name": "France",
             "children": [
                 {
-                "path": "/pib",
-                "name": "PIB"
+                  "path": "/pib",
+                  "name": "PIB",
+                  "children": null
                 },
                 {
-                "path": "/consommation",
-                "name": "Consommation"
+                  "path": "/consommation",
+                  "name": "Consommation",
+                  "children": null
                 }
             ]
         },
@@ -30,12 +32,14 @@
             "name": "Allemagne",
             "children": [
                 {
-                "path": "/pib",
-                "name": "PIB"
+                  "path": "/pib",
+                  "name": "PIB",
+                  "children": null
                 },
                 {
-                "path": "/consommation",
-                "name": "Consommation"
+                  "path": "/consommation",
+                  "name": "Consommation",
+                  "children": null
                 }
             ]
         }
@@ -48,11 +52,13 @@
       "children": [
         {
           "path": "/recettes-publiques",
-          "name": "Recettes Publiques"
+          "name": "Recettes Publiques",
+          "children": null
         },
         {
           "path": "/depenses-publiques",
-          "name": "Dépenses Publiques"
+          "name": "Dépenses Publiques",
+          "children": null
         }
       ]
     },

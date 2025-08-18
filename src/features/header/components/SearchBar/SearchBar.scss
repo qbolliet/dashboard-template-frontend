@@ -74,7 +74,7 @@ $transition-duration: var(--transition-normal);
   
   // Supprimer les styles par défaut du type search
   &[type="search"] {
-    -webkit-appearance: none;
+    appearance: none;
     
     // Supprimer le X sur Chrome
     &::-webkit-search-cancel-button,

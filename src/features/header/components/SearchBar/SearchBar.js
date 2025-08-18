@@ -209,7 +209,7 @@ const SearchBar = () => {
                     onBlur={handleBlur}
                     onKeyDown={handleKeyDown}
                     autoComplete="off"
-                    aria-expanded={suggestions.length > 0}
+                    //aria-expanded={suggestions.length > 0}
                     aria-haspopup="listbox"
                     aria-owns={suggestions.length > 0 ? "search-suggestions" : undefined}
                 />
