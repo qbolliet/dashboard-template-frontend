@@ -9,7 +9,7 @@
     border: none;
     margin: 0;
     padding: 0;
-    margin-right: clamp(var(--spacing-lg), 3vh, var(--spacing-3xl));
+    // margin-right: clamp(var(--spacing-lg), 3vh, var(--spacing-3xl));
     
     // Taille exacte avec box-sizing pour inclure la bordure
     inline-size: var(--spacing-2xl);

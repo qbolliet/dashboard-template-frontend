@@ -1,6 +1,9 @@
+// ===== IMPORTS =====
+@use '../../../../styles/utils/breakpoints';
+@use '../../../../styles/globals/typography';
+
 // ===== VARIABLES =====
-$mobile-breakpoint: 768px;
-$tablet-breakpoint: 1024px;
+$mobile-toggle-size: calc(var(--spacing-3xl) + var(--spacing-xs)); // Taille tactile recommandée : 44px (ici : 36 px pour être aligné avec les autres éléments)
 
 // ===== BOUTON TOGGLE MOBILE =====
 .mobile-nav-toggle {
@@ -113,12 +116,17 @@ $tablet-breakpoint: 1024px;
 
 // ===== RESPONSIVE =====
 
-// Tablette et mobile
-@media (max-width: $mobile-breakpoint) {
-  // Afficher le bouton toggle
+// Tablette et mobile - utilisation des breakpoints du projet
+@include breakpoints.breakpoint-down(medium) {
+  // Afficher le bouton toggle avec positionnement absolu à droite
   .mobile-nav-toggle {
     display: block;
-    order: -1; // Placer le bouton avant la navigation
+    position: fixed;
+    top: 0.75rem;
+    right: 1rem;
+    z-index: 1001; // Au-dessus du menu mobile et de l'overlay
+    width: $mobile-toggle-size;
+    height: $mobile-toggle-size;
   }
   
   // Transformer le menu en overlay mobile
@@ -149,7 +157,7 @@ $tablet-breakpoint: 1024px;
 }
 
 // Mobile uniquement
-@media (max-width: 480px) {
+@include breakpoints.breakpoint-down(small) {
   .nav-menu {
     width: 100vw; // Pleine largeur sur très petits écrans
     
