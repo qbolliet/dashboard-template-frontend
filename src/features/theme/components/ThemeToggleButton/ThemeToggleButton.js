@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../hooks/useTheme';
 import './ThemeToggleButton.scss';
 
@@ -14,9 +14,17 @@ const ThemeToggleButton = () => {
     // Récupération des fonctions et état du thème
     const { theme, toggleTheme, isTransitioning } = useTheme();
     
-    // Déterminer les labels d'accessibilité
-    const currentThemeLabel = theme === 'light' ? 'light' : 'dark';
-    const nextThemeLabel = theme === 'light' ? 'dark' : 'light';
+    // État pour éviter les erreurs d'hydration
+    const [isMounted, setIsMounted] = useState(false);
+    
+    // Effet pour marquer le composant comme monté
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+    
+    // Déterminer les labels d'accessibilité seulement après hydration
+    const currentThemeLabel = isMounted ? (theme === 'light' ? 'light' : 'dark') : 'light';
+    const nextThemeLabel = isMounted ? (theme === 'light' ? 'dark' : 'light') : 'dark';
 
     /**
      * Handle button click with visual feedback.
@@ -51,10 +59,10 @@ const ThemeToggleButton = () => {
             className={`theme-toggle ${isTransitioning ? 'theme-toggle--transitioning' : ''}`}
             onClick={handleClick}
             onKeyDown={handleKeyDown}
-            title={`Change to ${nextThemeLabel} theme`}
-            aria-label={`Change theme. Current theme : ${currentThemeLabel}. Click to activate the next theme ${nextThemeLabel}.`}
+            title={isMounted ? `Change to ${nextThemeLabel} theme` : "Toggle theme"}
+            aria-label={isMounted ? `Change theme. Current theme : ${currentThemeLabel}. Click to activate the next theme ${nextThemeLabel}.` : "Toggle theme"}
             aria-live="polite"
-            aria-pressed={theme === 'dark'}
+            aria-pressed={isMounted ? theme === 'dark' : false}
             type="button"
         >
             {/* SVG avec l'icône soleil/lune animée */}

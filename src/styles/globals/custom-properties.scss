@@ -2,19 +2,3 @@
 @use './typography';
 @use './colors';
 
-:root {
-    // ===== COULEURS DE BASE (LEGACY - À SUPPRIMER PROGRESSIVEMENT) =====
-    --clr-light-grey: 0, 0%, 93%;
-    --clr-background-input: 0, 0%, 93%;
-
-    // ===== BORDURES =====
-    --border-light: 1px solid hsl(var(--clr-light-grey));
-
-    // NOTE: Les nouvelles couleurs et la typographie sont maintenant définies 
-    // dans colors.scss et typography.scss pour une meilleure organisation
-}
-
-// ===== THÈME SOMBRE (LEGACY) =====
-[data-theme="dark"] {
-    // NOTE: Les variables de thème sont maintenant définies dans colors.scss
-}
