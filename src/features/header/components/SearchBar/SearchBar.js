@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import './SearchBar.scss';
+import './Searchbar.scss';
 
 /**
  * Search bar component for the application.
@@ -187,13 +187,12 @@ const SearchBar = () => {
                     <svg 
                         width="16" 
                         height="16" 
-                        viewBox="0 0 24 24" 
+                        viewBox="0 0 16 16" 
                         fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2"
+                        xmlns="http://www.w3.org/2000/svg"
                     >
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="M21 21l-4.35-4.35"></path>
+                        <path d="M6.5 12C9.53757 12 12 9.53757 12 6.5C12 3.46243 9.53757 1 6.5 1C3.46243 1 1 3.46243 1 6.5C1 9.53757 3.46243 12 6.5 12Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M15 15L10.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                 </div>
 
@@ -226,13 +225,12 @@ const SearchBar = () => {
                         <svg 
                             width="14" 
                             height="14" 
-                            viewBox="0 0 24 24" 
+                            viewBox="0 0 14 14" 
                             fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="2"
+                            xmlns="http://www.w3.org/2000/svg"
                         >
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                            <path d="M10.5 3.5L3.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M3.5 3.5L10.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                     </button>
                 )}
@@ -262,13 +260,12 @@ const SearchBar = () => {
                                 <svg 
                                     width="14" 
                                     height="14" 
-                                    viewBox="0 0 24 24" 
+                                    viewBox="0 0 16 16" 
                                     fill="none" 
-                                    stroke="currentColor" 
-                                    strokeWidth="1.5"
+                                    xmlns="http://www.w3.org/2000/svg"
                                 >
-                                    <circle cx="11" cy="11" r="8"></circle>
-                                    <path d="M21 21l-4.35-4.35"></path>
+                                    <path d="M6.5 12C9.53757 12 12 9.53757 12 6.5C12 3.46243 9.53757 1 6.5 1C3.46243 1 1 3.46243 1 6.5C1 9.53757 3.46243 12 6.5 12Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                    <path d="M15 15L10.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                                 </svg>
                             </div>
                             

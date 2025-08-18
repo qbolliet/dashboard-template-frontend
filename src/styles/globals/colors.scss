@@ -1,0 +1,149 @@
+// ===== SYSTÈME DE COULEURS HSL =====
+// Format: --color-name: hue saturation lightness (sans unités)
+// Utilisation: hsl(var(--color-name))
+
+:root {
+  // ===== COULEURS NEUTRES =====
+  // Blanc à noir avec nuances grises intermédiaires
+  --color-white: 0 0% 100%;
+  --color-gray-50: 210 40% 98%;       // #f8f9fa - Arrière-plans très clairs
+  --color-gray-100: 210 40% 96%;      // #f1f3f5 - Arrière-plans clairs
+  --color-gray-200: 212 33% 89%;      // #e1e5e9 - Bordures subtiles
+  --color-gray-300: 213 27% 84%;      // #c1c7cd - Bordures moyennes
+  --color-gray-400: 218 11% 65%;      // #9ca3af - Texte désactivé
+  --color-gray-500: 220 13% 46%;      // #6c757d - Icônes, texte secondaire
+  --color-gray-600: 215 16% 37%;      // #495057 - Texte tertiaire
+  --color-gray-700: 217 19% 27%;      // #374151 - Texte principal (clair)
+  --color-gray-800: 215 25% 17%;      // #1f2937 - Texte sur fond clair
+  --color-gray-900: 220 39% 11%;      // #111827 - Texte principal (sombre)
+  --color-black: 0 0% 0%;
+
+  // ===== COULEURS PRIMAIRES =====
+  // Bleu principal pour les actions et liens
+  --color-primary-50: 213 100% 97%;   // #e7f3ff - Très clair
+  --color-primary-100: 212 100% 91%;  // #ccebff - Clair  
+  --color-primary-200: 212 100% 82%;  // #99d6ff - Moyen clair
+  --color-primary-300: 211 100% 73%;  // #66c2ff - Moyen
+  --color-primary-400: 210 100% 64%;  // #33adff - Moyen sombre
+  --color-primary-500: 209 100% 50%;  // #007acc - Principal
+  --color-primary-600: 208 100% 43%;  // #0066a3 - Sombre
+  --color-primary-700: 207 100% 36%;  // #00527a - Très sombre
+  --color-primary-800: 206 100% 29%;  // #003d52 - Ultra sombre
+  --color-primary-900: 205 100% 22%;  // #002829
+
+  // ===== COULEURS SÉMANTIQUES =====
+  // Vert pour les succès
+  --color-success-50: 138 76% 97%;    // #f0fdf4
+  --color-success-500: 138 76% 47%;   // #22c55e - Principal
+  --color-success-600: 138 76% 40%;   // #16a34a - Sombre
+
+  // Rouge pour les erreurs  
+  --color-error-50: 0 86% 97%;        // #fef2f2
+  --color-error-500: 0 84% 60%;       // #ef4444 - Principal
+  --color-error-600: 0 84% 53%;       // #dc2626 - Sombre
+
+  // Jaune/Orange pour les avertissements
+  --color-warning-50: 48 100% 96%;    // #fffbeb
+  --color-warning-500: 38 92% 50%;    // #f59e0b - Principal
+  --color-warning-600: 32 95% 44%;    // #d97706 - Sombre
+
+  // Bleu pour les informations
+  --color-info-50: 204 100% 97%;      // #eff6ff
+  --color-info-500: 204 94% 59%;      // #3b82f6 - Principal
+  --color-info-600: 204 94% 52%;      // #2563eb - Sombre
+
+  // ===== ALIAS SÉMANTIQUES POUR L'APPLICATION =====
+  // Couleurs de base de l'interface
+  --color-background: var(--color-gray-50);
+  --color-surface: var(--color-white);
+  --color-border: var(--color-gray-200);
+  --color-border-hover: var(--color-gray-300);
+  
+  // Couleurs de texte
+  --color-text-primary: var(--color-gray-900);
+  --color-text-secondary: var(--color-gray-600);
+  --color-text-tertiary: var(--color-gray-500);
+  --color-text-disabled: var(--color-gray-400);
+  --color-text-on-primary: var(--color-white);
+
+  // Couleurs d'interaction
+  --color-focus: var(--color-primary-500);
+  --color-focus-shadow: var(--color-primary-200);
+
+  // ===== COULEURS POUR LES COMPOSANTS =====
+  // SearchBar
+  --search-bg: var(--color-gray-50);
+  --search-border: var(--color-gray-200);
+  --search-border-hover: var(--color-gray-300);
+  --search-border-focus: var(--color-primary-500);
+  --search-shadow-focus: var(--color-primary-200);
+  --search-text: var(--color-text-primary);
+  --search-placeholder: var(--color-text-tertiary);
+  --search-icon: var(--color-text-tertiary);
+  --search-clear: var(--color-text-tertiary);
+  --search-clear-hover-bg: var(--color-gray-100);
+  --search-clear-hover: var(--color-text-secondary);
+
+  // Suggestions
+  --suggestions-bg: var(--color-white);
+  --suggestions-border: var(--color-gray-200);
+  --suggestions-shadow: 0 0% 0%;  // Pour box-shadow avec alpha
+  --suggestion-separator: var(--color-gray-100);
+  --suggestion-hover-bg: var(--color-gray-50);
+  --suggestion-selected-bg: var(--color-primary-50);
+  --suggestion-icon: var(--color-text-tertiary);
+  --suggestion-text: var(--color-text-primary);
+
+  // Theme Toggle Button
+  --theme-toggle-icon: var(--color-text-secondary);
+  --theme-toggle-icon-hover: var(--color-text-primary);
+  --theme-toggle-bg-hover: var(--color-gray-100);
+  --theme-toggle-border-focus: var(--color-primary-500);
+  --theme-toggle-shadow-focus: var(--color-primary-200);
+}
+
+// ===== THÈME SOMBRE =====
+[data-theme="dark"] {
+  // ===== REDÉFINITION DES COULEURS NEUTRES =====
+  --color-gray-50: 222 84% 5%;        // #0a0a0b - Très sombre
+  --color-gray-100: 220 39% 11%;      // #1a1d23 - Sombre
+  --color-gray-200: 215 25% 17%;      // #2d3748 - Moyen sombre
+  --color-gray-300: 215 16% 25%;      // #4a5568 - Moyen
+  --color-gray-400: 218 11% 46%;      // #718096 - Clair moyen
+  --color-gray-500: 220 13% 65%;      // #a0aec0 - Clair
+  --color-gray-600: 213 27% 77%;      // #c7d2fe - Très clair
+  --color-gray-700: 212 33% 83%;      // #e2e8f0 - Ultra clair
+  --color-gray-800: 210 40% 89%;      // #f1f5f9 
+  --color-gray-900: 210 40% 96%;      // #f8fafc
+
+  // ===== REDÉFINITION DES COULEURS PRIMAIRES =====
+  --color-primary-500: 211 100% 73%;  // #66c2ff - Plus clair en mode sombre
+
+  // ===== ALIAS SÉMANTIQUES REDÉFINIS =====
+  --color-background: var(--color-gray-100);
+  --color-surface: var(--color-gray-200);
+  --color-border: var(--color-gray-300);
+  --color-border-hover: var(--color-gray-400);
+  
+  --color-text-primary: var(--color-white);
+  --color-text-secondary: var(--color-gray-500);
+  --color-text-tertiary: var(--color-gray-400);
+  --color-text-disabled: var(--color-gray-300);
+
+  // ===== COMPOSANTS REDÉFINIS =====
+  // SearchBar en mode sombre
+  --search-bg: var(--color-gray-200);
+  --search-border: var(--color-gray-300);
+  --search-border-hover: var(--color-gray-400);
+  --search-clear-hover-bg: var(--color-gray-300);
+
+  // Suggestions en mode sombre  
+  --suggestions-bg: var(--color-gray-50);
+  --suggestions-border: var(--color-gray-300);
+  --suggestion-separator: var(--color-gray-300);
+  --suggestion-hover-bg: var(--color-gray-200);
+  --suggestion-selected-bg: 211 80% 20%; // Bleu sombre pour la sélection
+
+  // Theme Toggle en mode sombre
+  --theme-toggle-bg-hover: var(--color-gray-300);
+}

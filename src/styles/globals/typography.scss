@@ -1,0 +1,63 @@
+// ===== SYSTÈME TYPOGRAPHIQUE =====
+// Base: 1rem = 16px
+
+:root {
+  // Tailles de police basées sur une échelle modulaire
+  --font-size-xs: 0.75rem;      // 12px
+  --font-size-sm: 0.875rem;     // 14px  
+  --font-size-base: 1rem;       // 16px
+  --font-size-lg: 1.125rem;     // 18px
+  --font-size-xl: 1.25rem;      // 20px
+  --font-size-2xl: 1.5rem;      // 24px
+  --font-size-3xl: 1.875rem;    // 30px
+  --font-size-4xl: 2.25rem;     // 36px
+
+  // Hauteurs de ligne pour une meilleure lisibilité  
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  // Espacement basé sur la grille de 4px
+  --spacing-0: 0;
+  --spacing-px: 1px;
+  --spacing-2px: 2px;
+  --spacing-xs: 0.25rem;         // 4px
+  --spacing-sm: 0.5rem;          // 8px
+  --spacing-md: 0.75rem;         // 12px
+  --spacing-lg: 1rem;            // 16px
+  --spacing-xl: 1.25rem;         // 20px
+  --spacing-2xl: 1.5rem;         // 24px
+  --spacing-3xl: 2rem;           // 32px
+  --spacing-4xl: 2.5rem;         // 40px
+  --spacing-5xl: 3rem;           // 48px
+
+  // Rayons de bordure cohérents
+  --border-radius-none: 0;
+  --border-radius-sm: 0.25rem;   // 4px
+  --border-radius-md: 0.375rem;  // 6px
+  --border-radius-lg: 0.5rem;    // 8px
+  --border-radius-xl: 0.75rem;   // 12px
+  --border-radius-2xl: 1rem;     // 16px
+  --border-radius-full: 50%;
+
+  // Ombres standardisées
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  // Transitions standardisées
+  --transition-fast: 0.15s;
+  --transition-normal: 0.2s;
+  --transition-slow: 0.3s;
+
+  // Z-index pour la superposition
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+}
