@@ -145,11 +145,14 @@ const NavigationTopBarItem = ({ item, index, onItemClick }) => {
 const renderDropdownContent = (item, onItemClick, isActivePath) => {
     const { children, path: basePath } = item;
 
-    // PRIORITÉ 1 : Vérifier d'abord la structure à deux niveaux (groupes avec sous-éléments)
-    // Condition : le premier enfant doit avoir une propriété 'children' (même si null)
-    // et la liste principale doit être un tableau non vide
+    // PRIORITÉ 1 : Vérifier d'abord la structure à deux niveaux (groupes avec sous-éléments réels)
+    // Condition : le premier enfant doit avoir des sous-enfants non-null et non-vides
+    // pour distinguer "Comptabilité Nationale" (qui a des vrais sous-enfants) de "Finances Publiques" (qui a children: null)
     if (children && Array.isArray(children) && children.length > 0 && 
-        children[0] && children[0].hasOwnProperty('children')) {
+        children[0] && children[0].hasOwnProperty('children') && 
+        children[0].children !== null && 
+        Array.isArray(children[0].children) && 
+        children[0].children.length > 0) {
         return (
             <div className="nav-dropdown__groups">
                 {children.map((group, groupIndex) => (

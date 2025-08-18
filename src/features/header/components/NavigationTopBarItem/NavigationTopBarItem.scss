@@ -267,6 +267,7 @@ $nav-item-border-radius: 6px;
     max-height: 0;
     overflow: hidden;
     transition: max-height $dropdown-transition ease;
+    padding: 0;
     
     &--open {
       max-height: 500px; // Hauteur suffisante pour le contenu
