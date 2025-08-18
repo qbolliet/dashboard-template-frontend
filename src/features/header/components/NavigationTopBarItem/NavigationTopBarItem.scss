@@ -1,3 +1,6 @@
+// ===== IMPORTS POUR LES BREAKPOINTS =====
+@use '../../../../styles/utils/breakpoints';
+
 // ===== VARIABLES =====
 $nav-item-padding: 0.75rem 1rem;
 $nav-item-mobile-padding: 1rem 1.5rem;
@@ -148,25 +151,33 @@ $nav-item-border-radius: 6px;
   
   // ===== GROUPES AVEC SOUS-ÉLÉMENTS =====
   &__groups {
-    // Styles pour les groupes multiples si nécessaire
+    display: flex;
+    flex-direction: row;
+    gap: 0;
   }
   
   &__group {
+    display: flex;
+    flex-direction: column;
+    padding: 1.2rem;
+    
     &:not(:last-child) {
-      border-bottom: 1px solid var(--nav-dropdown-separator, #f3f4f6);
-      margin-bottom: 0.5rem;
-      padding-bottom: 0.5rem;
+      border-right: 1px solid var(--nav-dropdown-separator, #f3f4f6);
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 1.2rem;
     }
   }
   
   &__group-header {
     display: block;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0;
     color: var(--nav-dropdown-group-header-color, #1f2937);
     text-decoration: none;
     font-size: 14px;
     font-weight: 600;
     transition: all 0.2s ease;
+    margin-bottom: 0.5rem;
     
     &:hover {
       background-color: var(--nav-dropdown-group-header-hover-bg, #f9fafb);
@@ -179,9 +190,12 @@ $nav-item-border-radius: 6px;
   }
   
   &__sublist {
+    display: flex;
+    flex-direction: column;
     list-style: none;
-    margin: 0.25rem 0 0 0;
+    margin: 0;
     padding: 0;
+    gap: 0.5rem;
   }
   
   &__subitem {
@@ -190,7 +204,7 @@ $nav-item-border-radius: 6px;
   
   &__sublink {
     display: block;
-    padding: 0.5rem 1rem 0.5rem 2rem; // Indentation pour les sous-éléments
+    padding: 0.5rem 0;
     color: var(--nav-dropdown-sublink-color, #6b7280);
     text-decoration: none;
     font-size: 13px;
@@ -211,9 +225,8 @@ $nav-item-border-radius: 6px;
 }
 
 // ===== RESPONSIVE =====
-
 // Tablette et mobile
-@media (max-width: 768px) {
+@include breakpoints.breakpoint-down(medium) {
   .nav-item {
     width: 100%;
     border-bottom: 1px solid var(--nav-mobile-separator, #f3f4f6);
@@ -259,11 +272,31 @@ $nav-item-border-radius: 6px;
       max-height: 500px; // Hauteur suffisante pour le contenu
     }
     
+    // Repasser en disposition verticale sur mobile
+    &__groups {
+      flex-direction: column;
+    }
+    
+    &__group {
+      padding: 0;
+      
+      &:not(:last-child) {
+        border-right: none;
+        border-bottom: 1px solid var(--nav-dropdown-separator, #f3f4f6);
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.5rem;
+      }
+    }
+    
     &__link,
     &__group-header,
     &__sublink {
       padding-left: 2rem; // Plus d'indentation sur mobile
       font-size: 15px;
+    }
+    
+    &__group-header {
+      padding: 0.5rem 2rem;
     }
     
     &__sublink {

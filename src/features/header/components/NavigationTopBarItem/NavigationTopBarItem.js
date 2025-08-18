@@ -145,8 +145,58 @@ const NavigationTopBarItem = ({ item, index, onItemClick }) => {
 const renderDropdownContent = (item, onItemClick, isActivePath) => {
     const { children, path: basePath } = item;
 
-    // Si children est un tableau simple
-    if (Array.isArray(children)) {
+    // PRIORITÉ 1 : Vérifier d'abord la structure à deux niveaux (groupes avec sous-éléments)
+    // Condition : le premier enfant doit avoir une propriété 'children' (même si null)
+    // et la liste principale doit être un tableau non vide
+    if (children && Array.isArray(children) && children.length > 0 && 
+        children[0] && children[0].hasOwnProperty('children')) {
+        return (
+            <div className="nav-dropdown__groups">
+                {children.map((group, groupIndex) => (
+                    <div key={`group-${groupIndex}`} className="nav-dropdown__group">
+                        {/* En-tête du groupe */}
+                        <Link
+                            href={basePath + group.path}
+                            className={`nav-dropdown__group-header ${
+                                isActivePath(basePath + group.path) ? 'nav-dropdown__group-header--active' : ''
+                            }`}
+                            onClick={onItemClick}
+                        >
+                            {group.name}
+                        </Link>
+                        
+                        {/* Sous-éléments du groupe - afficher seulement si le groupe a des enfants */}
+                        {group.children && Array.isArray(group.children) && group.children.length > 0 && (
+                            <ul className="nav-dropdown__sublist">
+                                {group.children.map((subChild, subIndex) => (
+                                    <li key={`sub-${subIndex}`} className="nav-dropdown__subitem">
+                                        <Link
+                                            href={basePath + group.path + subChild.path}
+                                            className={`nav-dropdown__sublink ${
+                                                isActivePath(basePath + group.path + subChild.path) 
+                                                    ? 'nav-dropdown__sublink--active' : ''
+                                            }`}
+                                            onClick={onItemClick}
+                                            aria-current={
+                                                isActivePath(basePath + group.path + subChild.path) 
+                                                    ? 'page' : undefined
+                                            }
+                                        >
+                                            {subChild.name}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                ))}
+            </div>
+        );
+    }
+
+    // PRIORITÉ 2 : Structure simple à un niveau (liste d'éléments sans sous-éléments)
+    // Condition : children doit être un tableau non vide
+    if (children && Array.isArray(children) && children.length > 0) {
         return (
             <ul className="nav-dropdown__list">
                 {children.map((child, childIndex) => (
@@ -167,51 +217,7 @@ const renderDropdownContent = (item, onItemClick, isActivePath) => {
         );
     }
 
-    // Si children a une structure plus complexe (avec des groupes)
-    if (children[0]?.children) {
-        return (
-            <div className="nav-dropdown__groups">
-                {children.map((group, groupIndex) => (
-                    <div key={`group-${groupIndex}`} className="nav-dropdown__group">
-                        {/* En-tête du groupe */}
-                        <Link
-                            href={basePath + group.path}
-                            className={`nav-dropdown__group-header ${
-                                isActivePath(basePath + group.path) ? 'nav-dropdown__group-header--active' : ''
-                            }`}
-                            onClick={onItemClick}
-                        >
-                            {group.name}
-                        </Link>
-                        
-                        {/* Sous-éléments du groupe */}
-                        <ul className="nav-dropdown__sublist">
-                            {group.children.map((subChild, subIndex) => (
-                                <li key={`sub-${subIndex}`} className="nav-dropdown__subitem">
-                                    <Link
-                                        href={basePath + group.path + subChild.path}
-                                        className={`nav-dropdown__sublink ${
-                                            isActivePath(basePath + group.path + subChild.path) 
-                                                ? 'nav-dropdown__sublink--active' : ''
-                                        }`}
-                                        onClick={onItemClick}
-                                        aria-current={
-                                            isActivePath(basePath + group.path + subChild.path) 
-                                                ? 'page' : undefined
-                                        }
-                                    >
-                                        {subChild.name}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                ))}
-            </div>
-        );
-    }
-
-    // Fallback si la structure n'est pas reconnue
+    // Fallback : si la structure children n'est pas reconnue ou est vide
     return null;
 };
 
