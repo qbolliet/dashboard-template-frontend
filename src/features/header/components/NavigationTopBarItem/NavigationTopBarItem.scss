@@ -1,11 +1,11 @@
-// ===== IMPORTS POUR LES BREAKPOINTS =====
+// ===== IMPORTS =====
 @use '../../../../styles/utils/breakpoints';
 
-// ===== VARIABLES =====
-$nav-item-padding: 0.75rem 1rem;
-$nav-item-mobile-padding: 1rem 1.5rem;
-$dropdown-transition: 0.3s ease;
-$nav-item-border-radius: 6px;
+// ===== VARIABLES LOCALES =====
+// Utilisation des variables système pour l'espacement et les transitions
+$nav-item-padding: var(--spacing-md) var(--spacing-lg); // 12px 16px
+$nav-item-mobile-padding: var(--spacing-lg) var(--spacing-2xl); // 16px 24px  
+$dropdown-transition: var(--transition-slow) ease; // 0.3s ease
 
 // ===== ÉLÉMENT DE NAVIGATION PRINCIPAL =====
 .nav-item {
@@ -23,51 +23,61 @@ $nav-item-border-radius: 6px;
 .nav-link {
   display: inline-flex;
   align-items: center;
+  
+  // Espacement avec variables système
   padding: $nav-item-padding;
-  color: var(--nav-link-color, #374151);
+  
+  // Couleurs depuis le système HSL
+  color: hsl(var(--nav-link-color));
   text-decoration: none;
+  
+  // Typographie avec variables système
   font-weight: 500;
-  font-size: 14px;
-  border-radius: $nav-item-border-radius;
-  transition: all 0.2s ease;
+  font-size: var(--font-size-sm); // 14px
+  
+  // Forme avec variables système
+  border-radius: var(--border-radius-md); // 6px
+  
+  // Transitions avec variables système
+  transition: all var(--transition-normal) ease;
   white-space: nowrap;
   position: relative;
   
   // États d'interaction
   &:hover {
-    color: var(--nav-link-hover-color, #1f2937);
-    background-color: var(--nav-link-hover-bg, rgba(0, 0, 0, 0.05));
+    color: hsl(var(--nav-link-hover-color));
+    background-color: hsl(var(--nav-link-hover-bg));
   }
   
   &:focus {
-    outline: 2px solid var(--nav-link-focus-color, #007acc);
-    outline-offset: 2px;
+    outline: var(--spacing-2px) solid hsl(var(--nav-link-focus-color));
+    outline-offset: var(--spacing-2px);
   }
   
   // État actif (page courante)
   &--active {
-    color: var(--nav-link-active-color, #007acc);
-    background-color: var(--nav-link-active-bg, rgba(0, 122, 204, 0.1));
+    color: hsl(var(--nav-link-active-color));
+    background-color: hsl(var(--nav-link-active-bg));
     font-weight: 600;
     
     // Indicateur visuel pour la page active
     &::after {
       content: '';
       position: absolute;
-      bottom: -2px;
+      bottom: calc(var(--spacing-2px) * -1); // -2px
       left: 50%;
       transform: translateX(-50%);
       width: 80%;
-      height: 2px;
-      background-color: var(--nav-link-active-color, #007acc);
+      height: var(--spacing-2px); // 2px
+      background-color: hsl(var(--nav-link-active-color));
       border-radius: 1px;
     }
   }
   
   // État avec enfant actif
   &--has-active-child {
-    color: var(--nav-link-active-child-color, #0056b3);
-    background-color: var(--nav-link-active-child-bg, rgba(0, 122, 204, 0.05));
+    color: hsl(var(--nav-link-active-child-color));
+    background-color: hsl(var(--nav-link-active-child-bg));
   }
 }
 
@@ -76,18 +86,19 @@ $nav-item-border-radius: 6px;
   // Élément avec dropdown
   &--has-dropdown {
     .nav-link {
-      padding-right: 0.5rem; // Moins d'espace car le bouton dropdown sera à côté
+      // Moins d'espace à droite car le bouton dropdown sera à côté
+      padding-right: var(--spacing-sm); // 8px
     }
   }
   
-  // Élément actif
+  // Élément actif - styles supplémentaires si nécessaire
   &--active {
-    // Styles supplémentaires pour l'élément actif si nécessaire
+    // Réservé pour les styles spécifiques à l'élément
   }
   
-  // Élément avec enfant actif
+  // Élément avec enfant actif - styles supplémentaires si nécessaire
   &--has-active-child {
-    // Styles supplémentaires si nécessaire
+    // Réservé pour les styles spécifiques à l'élément
   }
 }
 
@@ -96,16 +107,30 @@ $nav-item-border-radius: 6px;
   position: absolute;
   top: 100%;
   left: 0;
-  min-width: 220px;
-  background-color: var(--nav-dropdown-bg, #ffffff);
-  border: 1px solid var(--nav-dropdown-border, #e5e7eb);
-  border-radius: 8px;
-  box-shadow: var(--nav-dropdown-shadow, 0 4px 12px rgba(0, 0, 0, 0.1));
-  padding: 0.5rem 0;
-  z-index: 1000;
+  
+  // Largeur minimale avec variables système
+  min-width: calc(var(--spacing-5xl) * 4 + var(--spacing-3xl)); // ~220px
+  
+  // Couleurs depuis le système HSL
+  background-color: hsl(var(--nav-dropdown-bg));
+  border: 1px solid hsl(var(--nav-dropdown-border));
+  
+  // Forme avec variables système
+  border-radius: var(--border-radius-lg); // 8px
+  
+  // Ombre avec système de couleurs HSL
+  box-shadow: 0 var(--spacing-xs) var(--spacing-md) hsl(var(--nav-dropdown-shadow) / 0.1);
+  
+  // Espacement interne
+  padding: var(--spacing-sm) 0; // 8px vertical
+  
+  // Z-index depuis les variables système
+  z-index: var(--z-dropdown); // 1000
+  
+  // Animation d'apparition
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-8px);
+  transform: translateY(calc(var(--spacing-sm) * -1)); // -8px
   transition: all $dropdown-transition;
   
   // État ouvert
@@ -130,21 +155,29 @@ $nav-item-border-radius: 6px;
   // Lien du dropdown
   &__link {
     display: block;
-    padding: 0.75rem 1rem;
-    color: var(--nav-dropdown-link-color, #4b5563);
+    
+    // Espacement avec variables système
+    padding: var(--spacing-md) var(--spacing-lg); // 12px 16px
+    
+    // Couleurs depuis le système HSL
+    color: hsl(var(--nav-dropdown-link-color));
     text-decoration: none;
-    font-size: 14px;
+    
+    // Typographie avec variables système
+    font-size: var(--font-size-sm); // 14px
     font-weight: 400;
-    transition: all 0.2s ease;
+    
+    // Transition avec variables système
+    transition: all var(--transition-normal) ease;
     
     &:hover {
-      background-color: var(--nav-dropdown-link-hover-bg, #f9fafb);
-      color: var(--nav-dropdown-link-hover-color, #1f2937);
+      background-color: hsl(var(--nav-dropdown-link-hover-bg));
+      color: hsl(var(--nav-dropdown-link-hover-color));
     }
     
     &--active {
-      color: var(--nav-dropdown-link-active-color, #007acc);
-      background-color: var(--nav-dropdown-link-active-bg, rgba(0, 122, 204, 0.1));
+      color: hsl(var(--nav-dropdown-link-active-color));
+      background-color: hsl(var(--nav-dropdown-link-active-bg));
       font-weight: 500;
     }
   }
@@ -159,33 +192,43 @@ $nav-item-border-radius: 6px;
   &__group {
     display: flex;
     flex-direction: column;
-    padding: 1.2rem;
+    
+    // Espacement interne avec variables système
+    padding: calc(var(--spacing-lg) + var(--spacing-xs)); // ~20px
     
     &:not(:last-child) {
-      border-right: 1px solid var(--nav-dropdown-separator, #f3f4f6);
+      border-right: 1px solid hsl(var(--nav-dropdown-separator));
       border-bottom: none;
       margin-bottom: 0;
-      padding-bottom: 1.2rem;
+      padding-bottom: calc(var(--spacing-lg) + var(--spacing-xs)); // ~20px
     }
   }
   
   &__group-header {
     display: block;
-    padding: 0.5rem 0;
-    color: var(--nav-dropdown-group-header-color, #1f2937);
+    
+    // Espacement avec variables système
+    padding: var(--spacing-sm) 0; // 8px vertical
+    
+    // Couleurs depuis le système HSL
+    color: hsl(var(--nav-dropdown-group-header-color));
     text-decoration: none;
-    font-size: 14px;
+    
+    // Typographie avec variables système
+    font-size: var(--font-size-sm); // 14px
     font-weight: 600;
-    transition: all 0.2s ease;
-    margin-bottom: 0.5rem;
+    
+    // Transition et espacement
+    transition: all var(--transition-normal) ease;
+    margin-bottom: var(--spacing-sm); // 8px
     
     &:hover {
-      background-color: var(--nav-dropdown-group-header-hover-bg, #f9fafb);
+      background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
     }
     
     &--active {
-      color: var(--nav-dropdown-group-header-active-color, #007acc);
-      background-color: var(--nav-dropdown-group-header-active-bg, rgba(0, 122, 204, 0.1));
+      color: hsl(var(--nav-dropdown-group-header-active-color));
+      background-color: hsl(var(--nav-dropdown-group-header-active-bg));
     }
   }
   
@@ -195,7 +238,9 @@ $nav-item-border-radius: 6px;
     list-style: none;
     margin: 0;
     padding: 0;
-    gap: 0.5rem;
+    
+    // Espacement entre sous-éléments avec variables système
+    gap: var(--spacing-sm); // 8px
   }
   
   &__subitem {
@@ -204,21 +249,29 @@ $nav-item-border-radius: 6px;
   
   &__sublink {
     display: block;
-    padding: 0.5rem 0;
-    color: var(--nav-dropdown-sublink-color, #6b7280);
+    
+    // Espacement avec variables système
+    padding: var(--spacing-sm) 0; // 8px vertical
+    
+    // Couleurs depuis le système HSL
+    color: hsl(var(--nav-dropdown-sublink-color));
     text-decoration: none;
-    font-size: 13px;
+    
+    // Typographie avec variables système (plus petite pour les sous-liens)
+    font-size: var(--font-size-xs); // 12px
     font-weight: 400;
-    transition: all 0.2s ease;
+    
+    // Transition avec variables système
+    transition: all var(--transition-normal) ease;
     
     &:hover {
-      background-color: var(--nav-dropdown-sublink-hover-bg, #f9fafb);
-      color: var(--nav-dropdown-sublink-hover-color, #4b5563);
+      background-color: hsl(var(--nav-dropdown-sublink-hover-bg));
+      color: hsl(var(--nav-dropdown-sublink-hover-color));
     }
     
     &--active {
-      color: var(--nav-dropdown-sublink-active-color, #007acc);
-      background-color: var(--nav-dropdown-sublink-active-bg, rgba(0, 122, 204, 0.1));
+      color: hsl(var(--nav-dropdown-sublink-active-color));
+      background-color: hsl(var(--nav-dropdown-sublink-active-bg));
       font-weight: 500;
     }
   }
@@ -229,7 +282,9 @@ $nav-item-border-radius: 6px;
 @include breakpoints.breakpoint-down(medium) {
   .nav-item {
     width: 100%;
-    border-bottom: 1px solid var(--nav-mobile-separator, #f3f4f6);
+    
+    // Séparateur entre éléments mobiles avec couleurs système
+    border-bottom: 1px solid hsl(var(--nav-mobile-separator));
     
     &:last-child {
       border-bottom: none;
@@ -242,10 +297,19 @@ $nav-item-border-radius: 6px;
   }
   
   .nav-link {
+    // Espacement mobile plus généreux
     padding: $nav-item-mobile-padding;
     width: 100%;
     justify-content: space-between;
-    font-size: 16px;
+    
+    // Taille de police plus grande pour mobile
+    font-size: var(--font-size-base); // 16px
+    
+    // AMÉLIORATION HOVER MOBILE : background plus visible
+    &:hover {
+      // Couleur de fond plus prononcée sur mobile
+      background-color: hsl(var(--nav-link-hover-bg) / 0.15); // Opacité augmentée
+    }
     
     // Désactiver l'indicateur de page active sur mobile
     &--active::after {
@@ -260,17 +324,24 @@ $nav-item-border-radius: 6px;
     border: none;
     border-radius: 0;
     box-shadow: none;
-    background-color: var(--nav-dropdown-mobile-bg, #f8f9fa);
+    
+    // Couleur de fond spécifique mobile depuis le système
+    background-color: hsl(var(--nav-dropdown-mobile-bg));
+    
+    // Réinitialisation de l'animation desktop
     transform: none;
     opacity: 1;
     visibility: visible;
+    
+    // Animation par hauteur pour mobile
     max-height: 0;
     overflow: hidden;
     transition: max-height $dropdown-transition ease;
     padding: 0;
     
     &--open {
-      max-height: 500px; // Hauteur suffisante pour le contenu
+      // Hauteur suffisante pour le contenu (utilisation calc avec variables)
+      max-height: calc(var(--spacing-5xl) * 10); // ~500px
     }
     
     // Repasser en disposition verticale sur mobile
@@ -292,79 +363,32 @@ $nav-item-border-radius: 6px;
     &__link,
     &__group-header,
     &__sublink {
-      padding-left: 2rem; // Plus d'indentation sur mobile
-      font-size: 15px;
+      // Plus d'indentation sur mobile avec variables système
+      padding-left: var(--spacing-3xl); // 32px
+      font-size: var(--font-size-sm); // 14px
+      
+      // AMÉLIORATION HOVER MOBILE pour les dropdowns
+      &:hover {
+        background-color: hsl(var(--nav-dropdown-link-hover-bg) / 0.2); // Opacité augmentée
+      }
     }
     
     &__group-header {
-      padding: 0.5rem 2rem;
+      padding: var(--spacing-sm) var(--spacing-3xl); // 8px 32px
     }
     
     &__sublink {
-      padding-left: 3rem; // Encore plus d'indentation pour les sous-éléments
+      // Encore plus d'indentation pour les sous-éléments
+      padding-left: calc(var(--spacing-3xl) + var(--spacing-lg)); // 48px
     }
   }
 }
 
-// ===== VARIABLES CSS POUR LES THÈMES =====
-:root {
-  --nav-link-color: #374151;
-  --nav-link-hover-color: #1f2937;
-  --nav-link-hover-bg: rgba(0, 0, 0, 0.05);
-  --nav-link-focus-color: #007acc;
-  --nav-link-active-color: #007acc;
-  --nav-link-active-bg: rgba(0, 122, 204, 0.1);
-  --nav-link-active-child-color: #0056b3;
-  --nav-link-active-child-bg: rgba(0, 122, 204, 0.05);
-  --nav-dropdown-bg: #ffffff;
-  --nav-dropdown-border: #e5e7eb;
-  --nav-dropdown-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --nav-dropdown-link-color: #4b5563;
-  --nav-dropdown-link-hover-bg: #f9fafb;
-  --nav-dropdown-link-hover-color: #1f2937;
-  --nav-dropdown-link-active-color: #007acc;
-  --nav-dropdown-link-active-bg: rgba(0, 122, 204, 0.1);
-  --nav-dropdown-separator: #f3f4f6;
-  --nav-dropdown-group-header-color: #1f2937;
-  --nav-dropdown-group-header-hover-bg: #f9fafb;
-  --nav-dropdown-group-header-active-color: #007acc;
-  --nav-dropdown-group-header-active-bg: rgba(0, 122, 204, 0.1);
-  --nav-dropdown-sublink-color: #6b7280;
-  --nav-dropdown-sublink-hover-bg: #f9fafb;
-  --nav-dropdown-sublink-hover-color: #4b5563;
-  --nav-dropdown-sublink-active-color: #007acc;
-  --nav-dropdown-sublink-active-bg: rgba(0, 122, 204, 0.1);
-  --nav-mobile-separator: #f3f4f6;
-  --nav-dropdown-mobile-bg: #f8f9fa;
-}
-
-[data-theme="dark"] {
-  --nav-link-color: #d1d5db;
-  --nav-link-hover-color: #f9fafb;
-  --nav-link-hover-bg: rgba(255, 255, 255, 0.05);
-  --nav-link-focus-color: #66b3ff;
-  --nav-link-active-color: #66b3ff;
-  --nav-link-active-bg: rgba(102, 179, 255, 0.1);
-  --nav-link-active-child-color: #99ccff;
-  --nav-link-active-child-bg: rgba(102, 179, 255, 0.05);
-  --nav-dropdown-bg: #1f2937;
-  --nav-dropdown-border: #4b5563;
-  --nav-dropdown-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --nav-dropdown-link-color: #9ca3af;
-  --nav-dropdown-link-hover-bg: #374151;
-  --nav-dropdown-link-hover-color: #f3f4f6;
-  --nav-dropdown-link-active-color: #66b3ff;
-  --nav-dropdown-link-active-bg: rgba(102, 179, 255, 0.1);
-  --nav-dropdown-separator: #374151;
-  --nav-dropdown-group-header-color: #f3f4f6;
-  --nav-dropdown-group-header-hover-bg: #374151;
-  --nav-dropdown-group-header-active-color: #66b3ff;
-  --nav-dropdown-group-header-active-bg: rgba(102, 179, 255, 0.1);
-  --nav-dropdown-sublink-color: #6b7280;
-  --nav-dropdown-sublink-hover-bg: #374151;
-  --nav-dropdown-sublink-hover-color: #9ca3af;
-  --nav-dropdown-sublink-active-color: #66b3ff;
-  --nav-dropdown-sublink-active-bg: rgba(102, 179, 255, 0.1);
-  --nav-mobile-separator: #374151;
-  --nav-dropdown-mobile-bg: #111827;
-}
+// ===== STYLES TERMINÉS =====
+// Les couleurs et variables sont maintenant gérées dans le système de design global
+// Voir src/styles/globals/colors.scss pour les variables de couleurs de navigation
+// Améliorations apportées :
+// - Utilisation systématique des variables rem/variables système
+// - Couleurs HSL avec syntaxe hsl(var(--color-name)) pour flexibilité d'opacité
+// - Hover mobile amélioré avec background-color plus visible
+// - Structure claire avec commentaires en français

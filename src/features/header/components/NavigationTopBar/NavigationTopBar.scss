@@ -1,70 +1,75 @@
 // ===== IMPORTS =====
 @use '../../../../styles/utils/breakpoints';
-@use '../../../../styles/globals/typography';
 
-// ===== VARIABLES =====
-$mobile-toggle-size: calc(var(--spacing-3xl) + var(--spacing-xs)); // Taille tactile recommandée : 44px (ici : 36 px pour être aligné avec les autres éléments)
+// ===== VARIABLES LOCALES =====
+// Taille tactile recommandée pour le bouton mobile (44px minimum pour l'accessibilité)
+$mobile-toggle-size: calc(var(--spacing-3xl) + var(--spacing-xs)); // 32px + 4px = 36px
 
 // ===== BOUTON TOGGLE MOBILE =====
 .mobile-nav-toggle {
-  display: none; // Masqué par défaut sur desktop
+  // Masqué par défaut sur desktop
+  display: none;
+  
+  // Réinitialisation des styles de bouton
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 4px;
-  transition: background-color 0.3s ease;
   
+  // Espacement et forme en utilisant les variables système
+  padding: var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  
+  // Transitions fluides avec variables système
+  transition: background-color var(--transition-normal) ease;
+  
+  // Couleur des icônes depuis le système de couleurs
+  color: hsl(var(--nav-hamburger-color));
+  
+  // États d'interaction
   &:hover {
-    background-color: var(--nav-hover-bg, rgba(0, 0, 0, 0.1));
+    background-color: hsl(var(--nav-hamburger-bg-hover));
   }
   
   &:focus {
-    outline: 2px solid var(--focus-color, #007acc);
-    outline-offset: 2px;
+    outline: var(--spacing-2px) solid hsl(var(--nav-hamburger-border-focus));
+    outline-offset: var(--spacing-2px);
   }
   
-  // Icône hamburger
-  .hamburger-icon {
-    display: flex;
-    flex-direction: column;
-    width: 20px;
-    height: 16px;
-    position: relative;
+  // Conteneur pour les icônes SVG
+  .nav-icon {
+    display: block;
+    width: var(--spacing-xl); // 20px
+    height: var(--spacing-lg); // 16px pour hamburger
+    transition: opacity var(--transition-fast) ease;
     
-    .line {
+    // Assurer que les SVG utilisent la couleur du parent
+    svg {
       width: 100%;
-      height: 2px;
-      background-color: var(--nav-text-color, #333333);
-      transition: all 0.3s ease;
-      transform-origin: center;
-      
-      &:nth-child(1) {
-        margin-bottom: 5px;
-      }
-      
-      &:nth-child(2) {
-        margin-bottom: 5px;
-      }
+      height: 100%;
     }
   }
   
-  // Animation de l'icône hamburger quand le menu est ouvert
+  // Animation entre les icônes
+  .hamburger-icon {
+    opacity: 1;
+  }
+  
+  .close-icon {
+    opacity: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  // États quand le menu est ouvert
   &[aria-expanded="true"] {
     .hamburger-icon {
-      .line {
-        &:nth-child(1) {
-          transform: rotate(45deg) translate(5px, 5px);
-        }
-        
-        &:nth-child(2) {
-          opacity: 0;
-        }
-        
-        &:nth-child(3) {
-          transform: rotate(-45deg) translate(7px, -6px);
-        }
-      }
+      opacity: 0;
+    }
+    
+    .close-icon {
+      opacity: 1;
     }
   }
 }
@@ -77,7 +82,7 @@ $mobile-toggle-size: calc(var(--spacing-3xl) + var(--spacing-xs)); // Taille tac
     list-style: none;
     margin: 0;
     padding: 0;
-    gap: 1.5rem;
+    gap: var(--spacing-2xl); // 24px pour espacement entre éléments
     align-items: center;
   }
 }
@@ -89,10 +94,16 @@ $mobile-toggle-size: calc(var(--spacing-3xl) + var(--spacing-xs)); // Taille tac
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
+  
+  // Couleur d'overlay depuis le système de couleurs avec opacité
+  background-color: hsl(var(--nav-overlay-bg) / 0.5);
+  
+  // Z-index depuis les variables système
+  z-index: calc(var(--z-dropdown) - 1); // 999
+  
+  // Animation d'apparition
   opacity: 0;
-  animation: fadeIn 0.3s ease forwards;
+  animation: fadeIn var(--transition-slow) ease forwards;
   
   @keyframes fadeIn {
     to {
@@ -116,68 +127,75 @@ $mobile-toggle-size: calc(var(--spacing-3xl) + var(--spacing-xs)); // Taille tac
 
 // ===== RESPONSIVE =====
 
-// Tablette et mobile - utilisation des breakpoints du projet
+// Tablette et mobile - utilisation des breakpoints du projet  
 @include breakpoints.breakpoint-down(medium) {
-  // Afficher le bouton toggle avec positionnement absolu à droite
+  // Afficher le bouton toggle avec positionnement fixe à droite
   .mobile-nav-toggle {
     display: block;
     position: fixed;
-    top: 0.75rem;
-    right: 1rem;
-    z-index: 1001; // Au-dessus du menu mobile et de l'overlay
+    
+    // Positionnement avec variables système
+    top: var(--spacing-md); // 12px
+    right: var(--spacing-lg); // 16px
+    
+    // Z-index au-dessus du menu mobile et de l'overlay
+    z-index: calc(var(--z-dropdown) + 1); // 1001
+    
+    // Taille du bouton tactile
     width: $mobile-toggle-size;
     height: $mobile-toggle-size;
   }
   
-  // Transformer le menu en overlay mobile
+  // Transformer le menu en sidebar mobile
   .nav-menu {
     position: fixed;
     top: 0;
-    right: -100%;
-    width: 280px;
+    right: -100%; // Départ hors écran
+    
+    // Largeur en utilisant les variables système (approximation de 280px)
+    width: calc(var(--spacing-5xl) * 5 + var(--spacing-3xl)); // ~280px
     height: 100vh;
-    background-color: var(--nav-mobile-bg, #ffffff);
-    box-shadow: -4px 0 8px rgba(0, 0, 0, 0.1);
-    transition: right 0.3s ease;
-    z-index: 1000;
+    
+    // Couleurs depuis le système
+    background-color: hsl(var(--nav-mobile-bg));
+    box-shadow: calc(var(--spacing-xs) * -1) 0 var(--spacing-sm) hsl(var(--nav-mobile-shadow) / 0.1);
+    
+    // Transition avec variable système
+    transition: right var(--transition-slow) ease;
+    
+    // Z-index depuis les variables système
+    z-index: var(--z-dropdown); // 1000
     overflow-y: auto;
     
+    // État ouvert
     &.nav-menu--open {
       right: 0;
     }
     
+    // Réorganisation de la navigation en colonne
     .primary-navigation {
       flex-direction: column;
       align-items: stretch;
-      padding: 2rem 0;
+      padding: var(--spacing-3xl) 0; // 32px vertical
       gap: 0;
       height: 100%;
     }
   }
 }
 
-// Mobile uniquement
+// Mobile uniquement - très petits écrans
 @include breakpoints.breakpoint-down(small) {
   .nav-menu {
-    width: 100vw; // Pleine largeur sur très petits écrans
+    // Pleine largeur sur très petits écrans
+    width: 100vw;
     
     .primary-navigation {
-      padding: 1.5rem 0;
+      // Espacement réduit sur très petits écrans
+      padding: var(--spacing-2xl) 0; // 24px vertical
     }
   }
 }
 
-// ===== VARIABLES CSS POUR LES THÈMES =====
-:root {
-  --nav-text-color: #333333;
-  --nav-hover-bg: rgba(0, 0, 0, 0.1);
-  --nav-mobile-bg: #ffffff;
-  --focus-color: #007acc;
-}
-
-[data-theme="dark"] {
-  --nav-text-color: #ffffff;
-  --nav-hover-bg: rgba(255, 255, 255, 0.1);
-  --nav-mobile-bg: #1a1a1a;
-  --focus-color: #66b3ff;
-}
+// ===== STYLES TERMINÉS =====
+// Les couleurs et variables sont maintenant gérées dans le système de design global
+// Voir src/styles/globals/colors.scss pour les variables de couleurs de navigation

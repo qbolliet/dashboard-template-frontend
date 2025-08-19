@@ -3,6 +3,8 @@
 import React from 'react';
 import { useNavigation } from '../../hooks/useNavigation';
 import NavigationTopBarItem from '../NavigationTopBarItem/NavigationTopBarItem';
+import HamburgerIcon from '../../../../shared/components/HamburgerIcon/HamburgerIcon';
+import CloseIcon from '../../../../shared/components/CloseIcon/CloseIcon';
 import './NavigationTopBar.scss';
 
 /**
@@ -32,12 +34,15 @@ const NavigationTopBar = ({ navigationData = [], onItemClick }) => {
                 onClick={toggleMobileMenu}
                 type="button"
             >
-                {/* Icône hamburger animée */}
-                <span className="hamburger-icon">
-                    <span className="line"></span>
-                    <span className="line"></span>
-                    <span className="line"></span>
-                </span>
+                {/* Icône hamburger (visible quand le menu est fermé) */}
+                <div className="nav-icon hamburger-icon">
+                    <HamburgerIcon />
+                </div>
+                
+                {/* Icône X (visible quand le menu est ouvert) */}
+                <div className="nav-icon close-icon">
+                    <CloseIcon />
+                </div>
                 
                 {/* Texte accessible pour les lecteurs d'écran */}
                 <span className="sr-only">

@@ -100,6 +100,50 @@
   --theme-toggle-bg-hover: var(--color-gray-100);
   --theme-toggle-border-focus: var(--color-primary-500);
   --theme-toggle-shadow-focus: var(--color-primary-200);
+
+  // Navigation TopBar
+  --nav-hamburger-color: var(--color-text-primary);
+  --nav-hamburger-bg-hover: var(--color-gray-100);
+  --nav-hamburger-border-focus: var(--color-primary-500);
+  --nav-mobile-bg: var(--color-surface);
+  --nav-mobile-shadow: 0 0% 0%; // Pour box-shadow avec alpha
+  --nav-overlay-bg: 0 0% 0%; // Pour overlay avec alpha
+
+  // Navigation Items
+  --nav-link-color: var(--color-text-primary);
+  --nav-link-hover-color: var(--color-text-primary);
+  --nav-link-hover-bg: var(--color-gray-100);
+  --nav-link-focus-color: var(--color-primary-500);
+  --nav-link-active-color: var(--color-primary-500);
+  --nav-link-active-bg: var(--color-primary-50);
+  --nav-link-active-child-color: var(--color-primary-600);
+  --nav-link-active-child-bg: var(--color-primary-50);
+  
+  // Navigation Dropdown
+  --nav-dropdown-bg: var(--color-surface);
+  --nav-dropdown-border: var(--color-border);
+  --nav-dropdown-shadow: 0 0% 0%; // Pour box-shadow avec alpha
+  --nav-dropdown-link-color: var(--color-text-secondary);
+  --nav-dropdown-link-hover-color: var(--color-text-primary);
+  --nav-dropdown-link-hover-bg: var(--color-gray-50);
+  --nav-dropdown-link-active-color: var(--color-primary-500);
+  --nav-dropdown-link-active-bg: var(--color-primary-50);
+  
+  // Navigation Dropdown Groups
+  --nav-dropdown-separator: var(--color-border);
+  --nav-dropdown-group-header-color: var(--color-text-primary);
+  --nav-dropdown-group-header-hover-bg: var(--color-gray-50);
+  --nav-dropdown-group-header-active-color: var(--color-primary-500);
+  --nav-dropdown-group-header-active-bg: var(--color-primary-50);
+  --nav-dropdown-sublink-color: var(--color-text-tertiary);
+  --nav-dropdown-sublink-hover-color: var(--color-text-secondary);
+  --nav-dropdown-sublink-hover-bg: var(--color-gray-50);
+  --nav-dropdown-sublink-active-color: var(--color-primary-500);
+  --nav-dropdown-sublink-active-bg: var(--color-primary-50);
+  
+  // Navigation Mobile
+  --nav-mobile-separator: var(--color-border);
+  --nav-dropdown-mobile-bg: var(--color-gray-50);
 }
 
 // ===== THÈME SOMBRE =====
@@ -146,4 +190,32 @@
 
   // Theme Toggle en mode sombre
   --theme-toggle-bg-hover: var(--color-gray-300);
+
+  // Navigation en mode sombre
+  --nav-hamburger-color: var(--color-text-primary);
+  --nav-hamburger-bg-hover: var(--color-gray-300);
+  --nav-mobile-bg: var(--color-surface);
+  
+  // Navigation Items en mode sombre
+  --nav-link-color: var(--color-text-primary);
+  --nav-link-hover-bg: var(--color-gray-300);
+  --nav-link-active-bg: 211 80% 20%; // Bleu sombre pour l'état actif
+  --nav-link-active-child-bg: 211 80% 15%; // Encore plus sombre pour les enfants actifs
+  
+  // Navigation Dropdown en mode sombre
+  --nav-dropdown-bg: var(--color-gray-50);
+  --nav-dropdown-border: var(--color-gray-300);
+  --nav-dropdown-link-hover-bg: var(--color-gray-200);
+  --nav-dropdown-link-active-bg: 211 80% 20%;
+  
+  // Navigation Dropdown Groups en mode sombre
+  --nav-dropdown-separator: var(--color-gray-300);
+  --nav-dropdown-group-header-hover-bg: var(--color-gray-200);
+  --nav-dropdown-group-header-active-bg: 211 80% 20%;
+  --nav-dropdown-sublink-hover-bg: var(--color-gray-200);
+  --nav-dropdown-sublink-active-bg: 211 80% 20%;
+  
+  // Navigation Mobile en mode sombre
+  --nav-mobile-separator: var(--color-gray-300);
+  --nav-dropdown-mobile-bg: var(--color-gray-100);
 }
