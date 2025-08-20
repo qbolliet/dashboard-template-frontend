@@ -135,7 +135,7 @@ $mobile-toggle-size: calc(var(--spacing-3xl) + var(--spacing-xs)); // 32px + 4px
     position: fixed;
     
     // Positionnement avec variables système
-    top: var(--spacing-md); // 12px
+    top: 0; //var(--spacing-md); // 12px
     right: var(--spacing-lg); // 16px
     
     // Z-index au-dessus du menu mobile et de l'overlay
@@ -191,7 +191,7 @@ $mobile-toggle-size: calc(var(--spacing-3xl) + var(--spacing-xs)); // 32px + 4px
     
     .primary-navigation {
       // Espacement réduit sur très petits écrans
-      padding: var(--spacing-2xl) 0; // 24px vertical
+      padding: var(--spacing-4xl) 0; // 40px vertical
     }
   }
 }
