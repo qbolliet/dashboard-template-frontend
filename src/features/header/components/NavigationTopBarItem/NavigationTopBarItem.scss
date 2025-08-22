@@ -208,7 +208,9 @@ $dropdown-transition: var(--transition-slow) ease; // 0.3s ease
   &__group-header-wrapper {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    position: relative;
+    // Pas de justify-content: space-between sur desktop
+    // Le lien prendra toute la largeur disponible
   }
   
   &__group-chevron {
@@ -234,6 +236,7 @@ $dropdown-transition: var(--transition-slow) ease; // 0.3s ease
   
   &__group-header {
     display: block;
+    flex: 1; // Prend toute la largeur disponible sur desktop
     
     // Espacement avec variables système
     padding: var(--spacing-sm) 0; // 8px vertical
@@ -391,12 +394,32 @@ $dropdown-transition: var(--transition-slow) ease; // 0.3s ease
     &__group-header-wrapper {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      position: relative;
+      // Pas de justify-content: space-between pour permettre au lien d'occuper la largeur
+    }
+    
+    &__group-header {
+      // Sur mobile, le lien prend presque toute la largeur
+      flex: 1;
+      // Ajouter du padding à droite pour éviter la superposition avec le chevron
+      padding-right: var(--spacing-3xl); // 32px pour laisser la place au chevron
     }
     
     &__group-chevron {
       // Afficher le chevron sur mobile/tablette uniquement
       display: block;
+      // Positionnement absolu pour ne pas affecter la largeur du lien
+      position: absolute;
+      right: var(--spacing-sm); // 8px du bord droit
+      top: 50%;
+      transform: translateY(-50%);
+      // S'assurer que le chevron reste cliquable
+      z-index: 2;
+      
+      // Animation de rotation quand développé (doit rester même en absolu)
+      &--expanded {
+        transform: translateY(-50%) rotate(180deg);
+      }
     }
     
     &__sublist {
