@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import SearchIcon from '../../../shared/icons/SearchIcon/SearchIcon';
+import ClearIcon from '../../../shared/icons/ClearIcon/ClearIcon';
 import './Searchbar.scss';
 
 /**
@@ -183,18 +185,7 @@ const SearchBar = () => {
                 aria-label="Rechercher dans l'application"
             >
                 {/* Icône de recherche */}
-                <div className="search-icon" aria-hidden="true">
-                    <svg 
-                        width="16" 
-                        height="16" 
-                        viewBox="0 0 16 16" 
-                        fill="none" 
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <path d="M6.5 12C9.53757 12 12 9.53757 12 6.5C12 3.46243 9.53757 1 6.5 1C3.46243 1 1 3.46243 1 6.5C1 9.53757 3.46243 12 6.5 12Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M15 15L10.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                </div>
+                <SearchIcon />
 
                 {/* Champ de saisie */}
                 <input
@@ -222,16 +213,7 @@ const SearchBar = () => {
                         onClick={handleClear}
                         aria-label="Effacer la recherche"
                     >
-                        <svg 
-                            width="14" 
-                            height="14" 
-                            viewBox="0 0 14 14" 
-                            fill="none" 
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path d="M10.5 3.5L3.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M3.5 3.5L10.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                        <ClearIcon />
                     </button>
                 )}
             </form>
@@ -257,16 +239,7 @@ const SearchBar = () => {
                         >
                             {/* Icône de suggestion */}
                             <div className="search-suggestion__icon">
-                                <svg 
-                                    width="14" 
-                                    height="14" 
-                                    viewBox="0 0 16 16" 
-                                    fill="none" 
-                                    xmlns="http://www.w3.org/2000/svg"
-                                >
-                                    <path d="M6.5 12C9.53757 12 12 9.53757 12 6.5C12 3.46243 9.53757 1 6.5 1C3.46243 1 1 3.46243 1 6.5C1 9.53757 3.46243 12 6.5 12Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                    <path d="M15 15L10.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
+                                <SearchIcon width="14" height="14" />
                             </div>
                             
                             {/* Texte de la suggestion */}
