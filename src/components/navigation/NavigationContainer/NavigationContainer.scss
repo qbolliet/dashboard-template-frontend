@@ -1,0 +1,11 @@
+// ===== NAVIGATION CONTAINER =====
+// Conteneur principal pour la navigation
+
+.navigation-container {
+    // Le conteneur n'a pas de style spécifique
+    // Il sert uniquement de wrapper logique pour les sous-composants
+    position: relative;
+    
+    // Assure que l'overlay soit positionné relativement au conteneur
+    z-index: var(--z-fixed);
+}

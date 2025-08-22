@@ -132,8 +132,8 @@
   --nav-dropdown-bg: var(--color-surface);
   --nav-dropdown-border: var(--color-border);
   --nav-dropdown-shadow: 0 0% 0%; // Pour box-shadow avec alpha
-  --nav-dropdown-link-color: var(--color-text-secondary);
-  --nav-dropdown-link-hover-color: var(--color-text-primary);
+  --nav-dropdown-link-color: var(--color-text-tertiary);
+  --nav-dropdown-link-hover-color: var(--color-text-secondary);
   --nav-dropdown-link-hover-bg: var(--color-gray-50);
   --nav-dropdown-link-active-color: var(--color-primary-500);
   --nav-dropdown-link-active-bg: var(--color-primary-50);
@@ -220,20 +220,21 @@
   --nav-mobile-bg: var(--color-surface);
   
   // Navigation Items en mode sombre
-  --nav-link-color: var(--color-text-primary);
-  --nav-link-hover-bg: var(--color-gray-300);
+  --nav-link-color: var(--color-text-secondary);
+  --nav-link-hover-bg: var(--color-gray-200);
   --nav-link-active-bg: 211 80% 20%; // Bleu sombre pour l'état actif
   --nav-link-active-child-bg: 211 80% 15%; // Encore plus sombre pour les enfants actifs
   
   // Navigation Dropdown en mode sombre
   --nav-dropdown-bg: var(--color-gray-50);
   --nav-dropdown-border: var(--color-gray-300);
+  --nav-dropdown-link-hover-color: var(--color-text-secondary);
   --nav-dropdown-link-hover-bg: var(--color-gray-200);
   --nav-dropdown-link-active-bg: 211 80% 20%;
   
   // Navigation Dropdown Groups en mode sombre
   --nav-dropdown-separator: var(--color-gray-300);
-  --nav-dropdown-group-header-color: var(--color-text-primary);
+  --nav-dropdown-group-header-color: var(--color-white);
   --nav-dropdown-group-header-hover-bg: var(--color-gray-200);
   --nav-dropdown-group-header-active-bg: 211 80% 20%;
   --nav-dropdown-sublink-color: var(--color-text-tertiary);

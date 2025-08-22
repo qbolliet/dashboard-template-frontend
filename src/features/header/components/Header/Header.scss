@@ -43,6 +43,7 @@
     display: flex;
     align-items: center;
     gap: 1.5rem; // Espacement entre la recherche et le toggle
+    position: relative; // Pour le positionnement du toggle mobile
   }
 
   // ===== RESPONSIVE =====
@@ -61,8 +62,16 @@
     
     .right-container {
       gap: 1rem;
-      // Ajouter une marge à droite pour éviter le chevauchement avec le toggle mobile fixe
+      // Ajout d'une marge à droite pour éviter le chevauchement avec le toggle mobile fixe
       margin-right: calc(var(--spacing-3xl) + var(--spacing-xs)); // 36px (taille toggle) + 16px (espacement liés au padding)
+    }
+    
+    // Positionnement du toggle mobile - fixe à droite de l'écran
+    .mobile-nav-toggle {
+      position: fixed;
+      right: var(--spacing-lg);
+      //top: var(--spacing-lg);
+      z-index: calc(var(--z-modal) + 1);
     }
   }
   
@@ -80,7 +89,14 @@
     
     .right-container {
       gap: 0.75rem;
-      margin-right: calc(var(--spacing-3xl) + var(--spacing-xs)); // Même marge sur mobile
+    }
+    
+    // Positionnement du toggle mobile sur petits écrans
+    .mobile-nav-toggle {
+      position: fixed;
+      right: var(--spacing-md);
+      //top: var(--spacing-md);
+      z-index: calc(var(--z-modal) + 1);
     }
   }
 }

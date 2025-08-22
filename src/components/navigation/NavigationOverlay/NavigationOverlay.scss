@@ -1,0 +1,31 @@
+@use '../../../styles/utils/breakpoints' as *;
+
+// ===== NAVIGATION OVERLAY =====
+// Overlay semi-transparent pour fermer le menu mobile
+
+.nav-overlay {
+    // Positionnement en plein écran
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    
+    // Background semi-transparent
+    background-color: hsla(var(--nav-overlay-bg) / 0.5);
+    
+    // Z-index en dessous du menu mais au-dessus du contenu
+    z-index: calc(var(--z-modal) - 1);
+    
+    // Animation d'apparition
+    opacity: 1;
+    transition: opacity var(--transition-normal) ease;
+    
+    // Curseur pour indiquer qu'on peut cliquer
+    cursor: pointer;
+    
+    // Masquer sur les grands écrans où il n'y a pas de menu mobile
+    @include breakpoint('large') {
+        display: none;
+    }
+}

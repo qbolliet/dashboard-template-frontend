@@ -1,0 +1,80 @@
+@use '../../../styles/utils/breakpoints' as *;
+
+// ===== NAVIGATION ITEM SIMPLE =====
+// Élément de navigation simple (sans dropdown)
+
+.nav-item--simple {
+    // Reset des styles de base
+    position: relative;
+    
+    // Espacement pour mobile
+    margin: 0;
+    //width: 100%;
+    
+    // Sur les grands écrans
+    @include breakpoint('large') {
+        display: flex;
+        align-items: center;
+    }
+
+    // Sur les écrans de tablette et de téléphone
+    @include breakpoint-down('medium') {
+        width: 100%;
+    }
+}
+
+// ===== LIEN DE NAVIGATION =====
+// Styles pour les liens de navigation simples
+
+.nav-item--simple .nav-link {
+    // Affichage et positionnement
+    display: block;
+    position: relative;
+    text-decoration: none;
+    
+    // Espacement intérieur
+    padding: var(--spacing-md) var(--spacing-lg);
+    
+    // Styles de texte
+    color: hsl(var(--nav-link-color));
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-normal);
+    
+    // Transitions pour les animations
+    transition: all var(--transition-normal) ease;
+    
+    // Bordure arrondie
+    border-radius: var(--border-radius-md);
+    
+    // Sur les grands écrans
+    @include breakpoint('large') {
+        // Espacement plus compact
+        padding: var(--spacing-sm) var(--spacing-lg);
+        
+        // Alignement horizontal
+        display: flex;
+        align-items: center;
+    }
+    
+    // ===== ÉTATS D'INTERACTION =====
+    
+    // Survol
+    &:hover {
+        color: hsl(var(--nav-link-hover-color));
+        background-color: hsl(var(--nav-link-hover-bg));
+    }
+    
+    // Focus pour l'accessibilité
+    &:focus {
+        outline: 2px solid hsl(var(--nav-link-focus-color));
+        outline-offset: 2px;
+    }
+    
+    // État actif
+    &.nav-link--active {
+        color: hsl(var(--nav-link-active-color));
+        background-color: hsl(var(--nav-link-active-bg));
+        font-weight: 600;
+    }
+}

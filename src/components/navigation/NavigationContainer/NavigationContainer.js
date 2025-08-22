@@ -1,28 +1,28 @@
 'use client';
 
 import React from 'react';
-import { useNavigation } from '../../hooks/useNavigation';
-import MobileMenuToggle from '../../../../components/navigation/MobileMenuToggle/MobileMenuToggle';
-import NavigationMenu from '../../../../components/navigation/NavigationMenu/NavigationMenu';
-import NavigationOverlay from '../../../../components/navigation/NavigationOverlay/NavigationOverlay';
-import './NavigationTopBar.scss';
+import { useNavigation } from '../../../features/header/hooks/useNavigation';
+import MobileMenuToggle from '../MobileMenuToggle/MobileMenuToggle';
+import NavigationMenu from '../NavigationMenu/NavigationMenu';
+import NavigationOverlay from '../NavigationOverlay/NavigationOverlay';
+import './NavigationContainer.scss';
 
 /**
- * Main navigation top bar component for the application.
- * Manages mobile menu state and renders navigation components directly.
+ * Main navigation container component.
+ * Manages mobile menu state and orchestrates all navigation subcomponents.
  * 
  * @param {Array} navigationData - Array of navigation items to display
  * @param {Function} onItemClick - Optional callback when a navigation item is clicked
- * @param {string} className - Optional additional CSS class for styling
+ * @param {string} className - Optional additional CSS class for the container
  * @param {string} ariaLabel - Optional ARIA label for accessibility
  * @param {string} role - Optional ARIA role for accessibility
- * @returns {JSX.Element} The rendered navigation top bar component
+ * @returns {JSX.Element} The rendered navigation container
  */
-const NavigationTopBar = ({ 
+const NavigationContainer = ({ 
     navigationData = [], 
     onItemClick,
     className = '',
-    ariaLabel = 'Navigation principale',
+    ariaLabel = 'Menu de navigation',
     role = 'navigation'
 }) => {
     // Utilisation du hook personnalisé pour la navigation
@@ -42,7 +42,7 @@ const NavigationTopBar = ({
 
     // Classes CSS pour le conteneur
     const containerClasses = [
-        'navigation-top-bar',
+        'navigation-container',
         className
     ].filter(Boolean).join(' ');
 
@@ -70,4 +70,4 @@ const NavigationTopBar = ({
     );
 };
 
-export default NavigationTopBar;
+export default NavigationContainer;

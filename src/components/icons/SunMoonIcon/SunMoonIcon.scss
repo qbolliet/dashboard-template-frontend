@@ -1,0 +1,84 @@
+@use '../../../../styles/globals/typography';
+@use '../../../../styles/globals/colors';
+
+// ===== PROPRIÉTÉS DE L'ICÔNE SOLEIL/LUNE =====
+.sun-and-moon > :is(.sun, .sun-beams) {
+    transform-origin: center;
+}
+
+.sun-and-moon > :is(.sun) {
+    fill: hsl(var(--theme-toggle-icon));
+}
+
+// Styles pour les conteneurs parent (theme-toggle button)
+.theme-toggle:is(:hover, :focus-visible) > .sun-and-moon > :is(.sun) {
+    fill: hsl(var(--theme-toggle-icon-hover));
+}
+
+.sun-and-moon > .sun-beams {
+    stroke: hsl(var(--theme-toggle-icon));
+    stroke-width: 2px;
+}
+
+.theme-toggle:is(:hover, :focus-visible) .sun-and-moon > .sun-beams {
+    stroke: hsl(var(--theme-toggle-icon-hover));
+}
+
+// ===== ÉTATS DU THÈME =====
+
+// Thème sombre (mode lune)
+[data-theme="dark"] .sun-and-moon > .sun {
+    transform: scale(1.75);
+}
+
+[data-theme="dark"] .sun-and-moon > .sun-beams {
+    opacity: 0;
+}
+
+[data-theme="dark"] .sun-and-moon mask circle {
+    transform: translateX(-7px);
+}
+
+@supports (cx: 1) {
+    [data-theme="dark"] .sun-and-moon mask circle {
+        cx: 17;
+        transform: translateX(0);
+    }
+}
+
+// ===== ANIMATIONS ET TRANSITIONS =====
+@media (prefers-reduced-motion: no-preference) {
+    .sun-and-moon > .sun {
+        transition: transform var(--transition-slow) cubic-bezier(.5, 1.25, .75, 1.25);
+    }
+
+    .sun-and-moon > .sun-beams {
+        transition: transform var(--transition-slow) cubic-bezier(.5, 1.5, .75, 1.25), opacity var(--transition-slow) cubic-bezier(.25, 0, .3, 1);
+    }
+
+    .sun-and-moon mask circle {
+        transition: transform calc(var(--transition-normal) + 0.05s) cubic-bezier(0, 0, 0, 1);
+    }
+
+    @supports (cx: 1) {
+        .sun-and-moon mask circle {
+            transition: cx calc(var(--transition-normal) + 0.05s) cubic-bezier(0, 0, 0, 1);
+        }
+    }
+
+    [data-theme="dark"] .sun-and-moon > .sun {
+        transition-timing-function: cubic-bezier(.25, 0, .3, 1);
+        transition-duration: calc(var(--transition-normal) + 0.05s);
+        transform: scale(1.75);
+    }
+
+    [data-theme="dark"] .sun-and-moon > .sun-beams {
+        transition-duration: var(--transition-fast);
+        transform: rotateZ(-25deg);
+    }
+
+    [data-theme="dark"] .sun-and-moon mask circle {
+        transition-duration: var(--transition-slow);
+        transition-delay: calc(var(--transition-normal) + 0.05s);
+    }
+}
