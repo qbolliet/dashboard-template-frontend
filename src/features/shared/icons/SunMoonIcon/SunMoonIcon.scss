@@ -10,6 +10,7 @@
     fill: hsl(var(--theme-toggle-icon));
 }
 
+// Styles pour les conteneurs parent (theme-toggle button)
 .theme-toggle:is(:hover, :focus-visible) > .sun-and-moon > :is(.sun) {
     fill: hsl(var(--theme-toggle-icon-hover));
 }

@@ -3,12 +3,12 @@
 import React from 'react';
 
 /**
- * Icône hamburger avec border-radius subtils
- * Utilisée pour le bouton de menu mobile
+ * Hamburger icon with subtle border-radius.
+ * Used for mobile menu button.
  * 
- * @param {string} className - Classes CSS supplémentaires
- * @param {Object} props - Autres propriétés à passer au SVG
- * @returns {JSX.Element} L'icône hamburger SVG
+ * @param {string} className - Additional CSS classes
+ * @param {Object} props - Other properties to pass to the SVG
+ * @returns {JSX.Element} The rendered hamburger icon SVG
  */
 const HamburgerIcon = ({ className = '', ...props }) => {
     return (
