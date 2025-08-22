@@ -1,4 +1,5 @@
 // ===== IMPORTS =====
+@use '../../../../styles/globals/colors';
 @use '../../../../styles/utils/breakpoints';
 
 // ===== VARIABLES LOCALES =====
@@ -135,7 +136,7 @@ $mobile-toggle-size: calc(var(--spacing-3xl) + var(--spacing-xs)); // 32px + 4px
     position: fixed;
     
     // Positionnement avec variables système
-    top: 0; //var(--spacing-md); // 12px
+    //top: 0; //var(--spacing-md); // 12px
     right: var(--spacing-lg); // 16px
     
     // Z-index au-dessus du menu mobile et de l'overlay
@@ -176,7 +177,7 @@ $mobile-toggle-size: calc(var(--spacing-3xl) + var(--spacing-xs)); // 32px + 4px
     .primary-navigation {
       flex-direction: column;
       align-items: stretch;
-      padding: var(--spacing-3xl) 0; // 32px vertical
+      padding: var(--spacing-5xl) 0; // 32px vertical
       gap: 0;
       height: 100%;
     }

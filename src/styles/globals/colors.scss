@@ -59,6 +59,15 @@
   --color-border: var(--color-gray-200);
   --color-border-hover: var(--color-gray-300);
   
+  // ===== VARIABLES GLOBALES POUR LES PAGES =====
+  // Variables utilisées dans les pages et tests
+  --bg-color: var(--color-background);
+  --text-color: var(--color-text-primary);
+  --heading-color: var(--color-gray-900);
+  --card-bg: var(--color-gray-100);
+  --border-color: var(--color-border);
+  --code-bg: var(--color-gray-100);
+  
   // Couleurs de texte
   --color-text-primary: var(--color-gray-900);
   --color-text-secondary: var(--color-gray-600);
@@ -173,13 +182,27 @@
   --color-text-secondary: var(--color-gray-500);
   --color-text-tertiary: var(--color-gray-400);
   --color-text-disabled: var(--color-gray-300);
+  
+  // ===== VARIABLES GLOBALES POUR LES PAGES (MODE SOMBRE) =====
+  // Variables utilisées dans les pages et tests
+  --bg-color: var(--color-background);
+  --text-color: var(--color-text-primary);
+  --heading-color: var(--color-white);
+  --card-bg: var(--color-gray-200);
+  --border-color: var(--color-border);
+  --code-bg: var(--color-gray-100);
 
   // ===== COMPOSANTS REDÉFINIS =====
   // SearchBar en mode sombre
   --search-bg: var(--color-gray-200);
   --search-border: var(--color-gray-300);
   --search-border-hover: var(--color-gray-400);
+  --search-text: var(--color-text-primary);
+  --search-placeholder: var(--color-text-tertiary);
+  --search-icon: var(--color-text-tertiary);
+  --search-clear: var(--color-text-tertiary);
   --search-clear-hover-bg: var(--color-gray-300);
+  --search-clear-hover: var(--color-text-secondary);
 
   // Suggestions en mode sombre  
   --suggestions-bg: var(--color-gray-50);

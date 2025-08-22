@@ -1,4 +1,5 @@
 // ===== IMPORTS =====
+@use '../../../../styles/globals/colors';
 @use '../../../../styles/utils/breakpoints';
 
 // ===== VARIABLES LOCALES =====
@@ -204,6 +205,33 @@ $dropdown-transition: var(--transition-slow) ease; // 0.3s ease
     }
   }
   
+  &__group-header-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  &__group-chevron {
+    // Masqué par défaut sur desktop
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: hsl(var(--nav-dropdown-group-header-color));
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    transition: all var(--transition-normal) ease;
+    
+    &:hover {
+      background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
+    }
+    
+    // Rotation du chevron quand développé
+    &--expanded {
+      transform: rotate(180deg);
+    }
+  }
+  
   &__group-header {
     display: block;
     
@@ -357,6 +385,29 @@ $dropdown-transition: var(--transition-slow) ease; // 0.3s ease
         border-bottom: 1px solid var(--nav-dropdown-separator, #f3f4f6);
         margin-bottom: 0.5rem;
         padding-bottom: 0.5rem;
+      }
+    }
+    
+    &__group-header-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    &__group-chevron {
+      // Afficher le chevron sur mobile/tablette uniquement
+      display: block;
+    }
+    
+    &__sublist {
+      // Masqué par défaut sur mobile
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height var(--transition-slow) ease;
+      
+      // Développé quand la classe --expanded est ajoutée
+      &--expanded {
+        max-height: calc(var(--spacing-5xl) * 6); // ~300px pour les sous-éléments
       }
     }
     

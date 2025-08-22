@@ -144,24 +144,8 @@ export default function TestHeaderPage() {
                     font-size: 0.875rem;
                 }
                 
-                /* Variables CSS pour les thèmes */
-                :root {
-                    --bg-color: #ffffff;
-                    --text-color: #333333;
-                    --heading-color: #1a1a1a;
-                    --card-bg: #f8f9fa;
-                    --border-color: #e5e5e5;
-                    --code-bg: #f1f3f4;
-                }
-                
-                [data-theme="dark"] {
-                    --bg-color: #1a1a1a;
-                    --text-color: #e5e5e5;
-                    --heading-color: #ffffff;
-                    --card-bg: #2d2d2d;
-                    --border-color: #404040;
-                    --code-bg: #262626;
-                }
+                /* Les variables CSS sont maintenant gérées par le système global de couleurs
+                   Voir src/styles/globals/colors.scss pour --bg-color, --text-color, etc. */
                 
                 @media (max-width: 768px) {
                     .container {

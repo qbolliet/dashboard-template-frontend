@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useNavigation } from '../../hooks/useNavigation';
 import DropdownToggleButton from '../../../../shared/components/DropdownToggleButton/DropdownToggleButton';
+import ChevronDownIcon from '../../../shared/icons/ChevronDownIcon/ChevronDownIcon';
 import './NavigationTopBarItem.scss';
 
 /**
@@ -18,6 +19,9 @@ import './NavigationTopBarItem.scss';
 const NavigationTopBarItem = ({ item, index, onItemClick }) => {
     // État local pour gérer l'ouverture du dropdown
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    
+    // État pour gérer l'ouverture des groupes individuels sur mobile
+    const [expandedGroups, setExpandedGroups] = useState(new Set());
     
     // Référence pour gérer les clics à l'extérieur du dropdown
     const dropdownRef = useRef(null);
@@ -49,6 +53,23 @@ const NavigationTopBarItem = ({ item, index, onItemClick }) => {
      */
     const toggleDropdown = () => {
         setIsDropdownOpen(prev => !prev);
+    };
+
+    /**
+     * Toggle individual group expansion on mobile.
+     * 
+     * @param {number} groupIndex - Index of the group to toggle
+     */
+    const toggleGroupExpansion = (groupIndex) => {
+        setExpandedGroups(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(groupIndex)) {
+                newSet.delete(groupIndex);
+            } else {
+                newSet.add(groupIndex);
+            }
+            return newSet;
+        });
     };
 
     /**
@@ -126,7 +147,7 @@ const NavigationTopBarItem = ({ item, index, onItemClick }) => {
                     className={`nav-dropdown ${isDropdownOpen ? 'nav-dropdown--open' : ''}`}
                     aria-hidden={!isDropdownOpen}
                 >
-                    {renderDropdownContent(item, handleItemClick, isActivePath)}
+                    {renderDropdownContent(item, handleItemClick, isActivePath, expandedGroups, toggleGroupExpansion)}
                 </div>
             )}
         </li>
@@ -140,9 +161,11 @@ const NavigationTopBarItem = ({ item, index, onItemClick }) => {
  * @param {Object} item - The parent item
  * @param {Function} onItemClick - Click handler function
  * @param {Function} isActivePath - Function to check if a path is active
+ * @param {Set} expandedGroups - Set of expanded group indices for mobile
+ * @param {Function} toggleGroupExpansion - Function to toggle group expansion on mobile
  * @returns {JSX.Element} The rendered dropdown content
  */
-const renderDropdownContent = (item, onItemClick, isActivePath) => {
+const renderDropdownContent = (item, onItemClick, isActivePath, expandedGroups, toggleGroupExpansion) => {
     const { children, path: basePath } = item;
 
     // PRIORITÉ 1 : Vérifier d'abord la structure à deux niveaux (groupes avec sous-éléments réels)
@@ -155,22 +178,43 @@ const renderDropdownContent = (item, onItemClick, isActivePath) => {
         children[0].children.length > 0) {
         return (
             <div className="nav-dropdown__groups">
-                {children.map((group, groupIndex) => (
-                    <div key={`group-${groupIndex}`} className="nav-dropdown__group">
-                        {/* En-tête du groupe */}
-                        <Link
-                            href={basePath + group.path}
-                            className={`nav-dropdown__group-header ${
-                                isActivePath(basePath + group.path) ? 'nav-dropdown__group-header--active' : ''
-                            }`}
-                            onClick={onItemClick}
-                        >
-                            {group.name}
-                        </Link>
+                {children.map((group, groupIndex) => {
+                    const isGroupExpanded = expandedGroups.has(groupIndex);
+                    return (
+                        <div key={`group-${groupIndex}`} className={`nav-dropdown__group ${isGroupExpanded ? 'nav-dropdown__group--expanded' : ''}`}>
+                            {/* En-tête du groupe avec chevron mobile */}
+                            <div className="nav-dropdown__group-header-wrapper">
+                                <Link
+                                    href={basePath + group.path}
+                                    className={`nav-dropdown__group-header ${
+                                        isActivePath(basePath + group.path) ? 'nav-dropdown__group-header--active' : ''
+                                    }`}
+                                    onClick={onItemClick}
+                                >
+                                    {group.name}
+                                </Link>
+                                
+                                {/* Chevron pour mobile uniquement - géré par CSS */}
+                                {group.children && Array.isArray(group.children) && group.children.length > 0 && (
+                                    <button
+                                        className={`nav-dropdown__group-chevron ${isGroupExpanded ? 'nav-dropdown__group-chevron--expanded' : ''}`}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            toggleGroupExpansion(groupIndex);
+                                        }}
+                                        aria-expanded={isGroupExpanded}
+                                        aria-label={`${isGroupExpanded ? 'Réduire' : 'Développer'} le groupe ${group.name}`}
+                                        type="button"
+                                    >
+                                        <ChevronDownIcon width="12" height="12" />
+                                    </button>
+                                )}
+                            </div>
                         
-                        {/* Sous-éléments du groupe - afficher seulement si le groupe a des enfants */}
-                        {group.children && Array.isArray(group.children) && group.children.length > 0 && (
-                            <ul className="nav-dropdown__sublist">
+                            {/* Sous-éléments du groupe - afficher seulement si le groupe a des enfants */}
+                            {group.children && Array.isArray(group.children) && group.children.length > 0 && (
+                                <ul className={`nav-dropdown__sublist ${isGroupExpanded ? 'nav-dropdown__sublist--expanded' : ''}`}>
                                 {group.children.map((subChild, subIndex) => (
                                     <li key={`sub-${subIndex}`} className="nav-dropdown__subitem">
                                         <Link
@@ -192,7 +236,7 @@ const renderDropdownContent = (item, onItemClick, isActivePath) => {
                             </ul>
                         )}
                     </div>
-                ))}
+                )})}
             </div>
         );
     }
