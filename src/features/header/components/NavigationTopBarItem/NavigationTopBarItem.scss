@@ -216,13 +216,28 @@ $dropdown-transition: var(--transition-slow) ease; // 0.3s ease
   &__group-chevron {
     // Masqué par défaut sur desktop
     display: none;
+    
+    // Reset complet comme DropdownToggleButton
     background: none;
     border: none;
+    margin: 0;
+    padding: 0;
     cursor: pointer;
+    
+    // Dimensions fixes et centrage parfait comme DropdownToggleButton
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    // Couleurs et styles
     color: hsl(var(--nav-dropdown-group-header-color));
-    padding: var(--spacing-sm);
     border-radius: var(--border-radius-sm);
     transition: all var(--transition-normal) ease;
+    
+    // Transform-origin au centre pour rotation stable
+    transform-origin: center center;
     
     &:hover {
       background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
@@ -231,6 +246,12 @@ $dropdown-transition: var(--transition-slow) ease; // 0.3s ease
     // Rotation du chevron quand développé
     &--expanded {
       transform: rotate(180deg);
+    }
+    
+    // S'assurer que l'icône SVG reste stable
+    svg {
+      display: block;
+      flex-shrink: 0;
     }
   }
   
@@ -402,21 +423,23 @@ $dropdown-transition: var(--transition-slow) ease; // 0.3s ease
       // Sur mobile, le lien prend presque toute la largeur
       flex: 1;
       // Ajouter du padding à droite pour éviter la superposition avec le chevron
-      padding-right: var(--spacing-3xl); // 32px pour laisser la place au chevron
+      padding-right: 32px; // Espace pour le bouton de 24px + marge
     }
     
     &__group-chevron {
       // Afficher le chevron sur mobile/tablette uniquement
-      display: block;
+      display: flex;
+      
       // Positionnement absolu pour ne pas affecter la largeur du lien
       position: absolute;
-      right: var(--spacing-sm); // 8px du bord droit
+      right: var(--spacing-xs); // 4px du bord droit
       top: 50%;
       transform: translateY(-50%);
+      
       // S'assurer que le chevron reste cliquable
       z-index: 2;
       
-      // Animation de rotation quand développé (doit rester même en absolu)
+      // Animation de rotation quand développé (combiner translateY et rotate)
       &--expanded {
         transform: translateY(-50%) rotate(180deg);
       }
