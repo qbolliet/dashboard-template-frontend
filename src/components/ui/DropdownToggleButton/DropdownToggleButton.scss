@@ -1,214 +1,113 @@
-// ===== VARIABLES =====
-$button-size: 24px;
-$transition-duration: 0.2s;
-$hover-scale: 1.05;
+@use '../../../styles/utils/breakpoints' as *;
 
-// ===== BOUTON PRINCIPAL =====
+// ===== DROPDOWN TOGGLE BUTTON =====
+// Bouton de basculement utilisant le système de design global
+
 .dropdown-toggle-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: $button-size;
-  height: $button-size;
-  padding: 0;
-  border: none;
-  background: transparent;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all $transition-duration ease;
-  color: var(--dropdown-toggle-color, #6b7280);
-  
-  // États d'interaction
-  &:hover {
-    background-color: var(--dropdown-toggle-hover-bg, rgba(0, 0, 0, 0.1));
-    color: var(--dropdown-toggle-hover-color, #374151);
-    transform: scale($hover-scale);
-  }
-  
-  &:focus {
-    outline: 2px solid var(--dropdown-toggle-focus-color, #007acc);
-    outline-offset: 2px;
-  }
-  
-  &:active {
-    transform: scale(0.95);
-  }
-  
-  // État ouvert
-  &.dropdown-toggle-button--open {
-    color: var(--dropdown-toggle-active-color, #1f2937);
-    background-color: var(--dropdown-toggle-active-bg, rgba(0, 0, 0, 0.05));
+    // Reset et positionnement
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
     
-    .dropdown-arrow {
-      transform: rotate(180deg);
-    }
-  }
-  
-  // Désactiver les effets de survol sur mobile
-  @media (max-width: 768px) {
+    // Dimensions avec variables système
+    width: calc(var(--spacing-xl) + var(--spacing-xs)); // 24px
+    height: calc(var(--spacing-xl) + var(--spacing-xs)); // 24px
+    
+    // Forme avec variables système
+    border-radius: var(--border-radius-sm);
+    
+    // Couleurs depuis le système HSL
+    color: hsl(var(--nav-dropdown-group-header-color));
+    
+    // Transitions avec variables système
+    transition: all var(--transition-normal) ease;
+    transform-origin: center center;
+    
+    // ===== ÉTATS D'INTERACTION =====
+    
     &:hover {
-      transform: none;
-      background-color: transparent;
+        background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
+        transform: scale(1.05);
     }
-  }
+    
+    &:focus {
+        outline: 2px solid hsl(var(--nav-link-focus-color));
+        outline-offset: 2px;
+    }
+    
+    &:active {
+        transform: scale(0.95);
+    }
+    
+    // ===== ÉTAT OUVERT =====
+    &--open {
+        color: hsl(var(--nav-dropdown-group-header-active-color));
+        background-color: hsl(var(--nav-dropdown-group-header-active-bg));
+        
+        .dropdown-toggle-button__icon {
+            transform: rotate(180deg);
+        }
+    }
+    
+    // ===== RESPONSIVE =====
+    
+    // Tablette - taille légèrement plus grande
+    @include breakpoint-down('medium') {
+        width: calc(var(--spacing-2xl) + var(--spacing-xs)); // 28px
+        height: calc(var(--spacing-2xl) + var(--spacing-xs)); // 28px
+        
+        // Désactiver les effets de survol sur mobile/tablette
+        &:hover {
+            transform: none;
+            background-color: transparent;
+        }
+    }
+    
+    // Mobile - encore plus grand pour l'accessibilité tactile
+    @include breakpoint-down('small') {
+        width: var(--spacing-4xl); // 32px
+        height: var(--spacing-4xl); // 32px
+    }
 }
 
-// ===== CONTENEUR DE L'ICÔNE =====
+// ===== ICÔNE DU BOUTON =====
 .dropdown-toggle-button__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 12px;
-  height: 12px;
-  
-  svg {
-    width: 100%;
-    height: 100%;
-  }
-}
-
-// ===== FLÈCHE ANIMÉE =====
-.dropdown-arrow {
-  transform-origin: center;
-  transition: transform $transition-duration ease;
+    display: block;
+    flex-shrink: 0;
+    
+    // Transition pour la rotation
+    transition: transform var(--transition-normal) ease;
+    transform-origin: center center;
+    
+    // S'assurer que l'icône SVG hérite des styles
+    svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
 }
 
 // ===== CLASSE UTILITAIRE POUR L'ACCESSIBILITÉ =====
 .sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-// ===== VARIATIONS DE TAILLE =====
-.dropdown-toggle-button {
-  // Taille small
-  &.dropdown-toggle-button--small {
-    width: 20px;
-    height: 20px;
-    
-    .dropdown-toggle-button__icon {
-      width: 10px;
-      height: 10px;
-    }
-  }
-  
-  // Taille large
-  &.dropdown-toggle-button--large {
-    width: 28px;
-    height: 28px;
-    
-    .dropdown-toggle-button__icon {
-      width: 14px;
-      height: 14px;
-    }
-  }
-}
-
-// ===== VARIATIONS DE STYLE =====
-.dropdown-toggle-button {
-  // Style bordure
-  &.dropdown-toggle-button--bordered {
-    border: 1px solid var(--dropdown-toggle-border, #d1d5db);
-    
-    &:hover {
-      border-color: var(--dropdown-toggle-hover-border, #9ca3af);
-    }
-    
-    &.dropdown-toggle-button--open {
-      border-color: var(--dropdown-toggle-active-border, #6b7280);
-    }
-  }
-  
-  // Style coloré
-  &.dropdown-toggle-button--primary {
-    color: var(--dropdown-toggle-primary-color, #007acc);
-    
-    &:hover {
-      background-color: var(--dropdown-toggle-primary-hover-bg, rgba(0, 122, 204, 0.1));
-      color: var(--dropdown-toggle-primary-hover-color, #0056b3);
-    }
-    
-    &.dropdown-toggle-button--open {
-      color: var(--dropdown-toggle-primary-active-color, #0056b3);
-      background-color: var(--dropdown-toggle-primary-active-bg, rgba(0, 122, 204, 0.15));
-    }
-  }
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 // ===== SUPPORT POUR REDUCED MOTION =====
 @media (prefers-reduced-motion: reduce) {
-  .dropdown-toggle-button,
-  .dropdown-arrow {
-    transition: none;
-  }
-}
-
-// ===== RESPONSIVE =====
-
-// Tablette
-@media (max-width: 768px) {
-  .dropdown-toggle-button {
-    width: 28px;
-    height: 28px; // Taille légèrement plus grande pour mobile
-    
+    .dropdown-toggle-button,
     .dropdown-toggle-button__icon {
-      width: 14px;
-      height: 14px;
+        transition: none;
     }
-  }
-}
-
-// Mobile
-@media (max-width: 480px) {
-  .dropdown-toggle-button {
-    width: 32px;
-    height: 32px; // Encore plus grand sur très petits écrans
-    
-    .dropdown-toggle-button__icon {
-      width: 16px;
-      height: 16px;
-    }
-  }
-}
-
-// ===== VARIABLES CSS POUR LES THÈMES =====
-:root {
-  --dropdown-toggle-color: #6b7280;
-  --dropdown-toggle-hover-bg: rgba(0, 0, 0, 0.1);
-  --dropdown-toggle-hover-color: #374151;
-  --dropdown-toggle-active-color: #1f2937;
-  --dropdown-toggle-active-bg: rgba(0, 0, 0, 0.05);
-  --dropdown-toggle-focus-color: #007acc;
-  --dropdown-toggle-border: #d1d5db;
-  --dropdown-toggle-hover-border: #9ca3af;
-  --dropdown-toggle-active-border: #6b7280;
-  --dropdown-toggle-primary-color: #007acc;
-  --dropdown-toggle-primary-hover-bg: rgba(0, 122, 204, 0.1);
-  --dropdown-toggle-primary-hover-color: #0056b3;
-  --dropdown-toggle-primary-active-color: #0056b3;
-  --dropdown-toggle-primary-active-bg: rgba(0, 122, 204, 0.15);
-}
-
-[data-theme="dark"] {
-  --dropdown-toggle-color: #9ca3af;
-  --dropdown-toggle-hover-bg: rgba(255, 255, 255, 0.1);
-  --dropdown-toggle-hover-color: #d1d5db;
-  --dropdown-toggle-active-color: #f3f4f6;
-  --dropdown-toggle-active-bg: rgba(255, 255, 255, 0.05);
-  --dropdown-toggle-focus-color: #66b3ff;
-  --dropdown-toggle-border: #4b5563;
-  --dropdown-toggle-hover-border: #6b7280;
-  --dropdown-toggle-active-border: #9ca3af;
-  --dropdown-toggle-primary-color: #66b3ff;
-  --dropdown-toggle-primary-hover-bg: rgba(102, 179, 255, 0.1);
-  --dropdown-toggle-primary-hover-color: #99ccff;
-  --dropdown-toggle-primary-active-color: #99ccff;
-  --dropdown-toggle-primary-active-bg: rgba(102, 179, 255, 0.15);
 }

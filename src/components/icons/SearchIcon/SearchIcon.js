@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import './SearchIcon.scss';
 
 /**
  * Search icon component.

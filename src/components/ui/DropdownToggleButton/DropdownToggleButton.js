@@ -1,11 +1,12 @@
 'use client';
 
 import React from 'react';
+import ChevronDownIcon from '../../icons/ChevronDownIcon/ChevronDownIcon';
 import './DropdownToggleButton.scss';
 
 /**
  * Dropdown toggle button component for opening/closing dropdowns.
- * Displays an arrow that transforms according to dropdown state.
+ * Uses ChevronDownIcon and global design system styles.
  * 
  * @param {boolean} isOpen - State of the dropdown (open/closed)
  * @param {Function} onClick - Function called on click
@@ -13,6 +14,7 @@ import './DropdownToggleButton.scss';
  * @param {string} ariaControls - ID of the element controlled by this button
  * @param {string} ariaLabel - Accessibility label for the button
  * @param {string} className - Additional CSS classes
+ * @param {string|number} size - Size of the icon (default: 12)
  * @returns {JSX.Element} The rendered dropdown toggle button component
  */
 const DropdownToggleButton = ({ 
@@ -21,7 +23,8 @@ const DropdownToggleButton = ({
     onKeyDown,
     ariaControls,
     ariaLabel,
-    className = '' 
+    className = '',
+    size = 12
 }) => {
     /**
      * Handle keyboard events with default behavior if no custom handler provided.
@@ -36,15 +39,24 @@ const DropdownToggleButton = ({
             // Comportement par défaut
             if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
-                onClick && onClick();
+                if (onClick) {
+                    onClick();
+                }
             }
         }
     };
 
+    // Classes CSS dynamiques
+    const buttonClasses = [
+        'dropdown-toggle-button',
+        isOpen && 'dropdown-toggle-button--open',
+        className
+    ].filter(Boolean).join(' ');
+
     return (
         <button
             type="button"
-            className={`dropdown-toggle-button ${isOpen ? 'dropdown-toggle-button--open' : ''} ${className}`.trim()}
+            className={buttonClasses}
             onClick={onClick}
             onKeyDown={handleKeyDown}
             aria-expanded={isOpen}
@@ -52,25 +64,12 @@ const DropdownToggleButton = ({
             aria-label={ariaLabel || `${isOpen ? 'Fermer' : 'Ouvrir'} le menu déroulant`}
             tabIndex={0}
         >
-            {/* Icône de flèche SVG */}
-            <div className="dropdown-toggle-button__icon">
-                <svg 
-                    width="12" 
-                    height="12" 
-                    viewBox="0 0 12 12" 
-                    fill="none" 
-                    aria-hidden="true"
-                >
-                    <path 
-                        className="dropdown-arrow"
-                        d="M3 4.5L6 7.5L9 4.5" 
-                        stroke="currentColor" 
-                        strokeWidth="1.5" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round"
-                    />
-                </svg>
-            </div>
+            {/* Icône chevron utilisant le composant centralisé */}
+            <ChevronDownIcon 
+                width={size} 
+                height={size}
+                className="dropdown-toggle-button__icon"
+            />
 
             {/* Texte accessible pour les lecteurs d'écran */}
             <span className="sr-only">

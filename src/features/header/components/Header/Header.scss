@@ -63,14 +63,17 @@
     .right-container {
       gap: 1rem;
       // Ajout d'une marge à droite pour éviter le chevauchement avec le toggle mobile fixe
-      margin-right: calc(var(--spacing-3xl) + var(--spacing-xs)); // 36px (taille toggle) + 16px (espacement liés au padding)
+      margin-right: var(--spacing-4xl); // 40px (taille toggle)
     }
     
-    // Positionnement du toggle mobile - fixe à droite de l'écran
+    // Positionnement du toggle mobile - absolu dans le header
     .mobile-nav-toggle {
-      position: fixed;
+      position: absolute;
       right: var(--spacing-lg);
-      //top: var(--spacing-lg);
+      top: 50%;
+      display: block;
+      right: 1rem;
+      transform: translateY(-50%);
       z-index: calc(var(--z-modal) + 1);
     }
   }
@@ -93,9 +96,10 @@
     
     // Positionnement du toggle mobile sur petits écrans
     .mobile-nav-toggle {
-      position: fixed;
+      position: absolute;
       right: var(--spacing-md);
-      //top: var(--spacing-md);
+      top: 50%;
+      transform: translateY(-50%);
       z-index: calc(var(--z-modal) + 1);
     }
   }
