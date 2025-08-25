@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../hooks/useTheme';
-import SunMoonIcon from '../../../shared/icons/SunMoonIcon/SunMoonIcon';
+import SunMoonIcon from '../../../../components/icons/SunMoonIcon/SunMoonIcon';
 import './ThemeToggleButton.scss';
 
 /**

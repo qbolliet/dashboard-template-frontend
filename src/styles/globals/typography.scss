@@ -52,6 +52,7 @@
   --transition-slow: 0.3s;
 
   // Z-index pour la superposition
+  --z-behind: -1000;
   --z-dropdown: 1000;
   --z-sticky: 1020;
   --z-fixed: 1030;

@@ -43,11 +43,12 @@ const NavigationContainer = ({
     // Classes CSS pour le conteneur
     const containerClasses = [
         'navigation-container',
+        'nav-menu',
         className
     ].filter(Boolean).join(' ');
 
     return (
-        <div className={containerClasses} role={role} aria-label={ariaLabel}>
+        <nav className={containerClasses} role={role} aria-label={ariaLabel}>
             {/* Bouton toggle pour le menu mobile */}
             <MobileMenuToggle
                 isOpen={isMobileMenuOpen}
@@ -66,7 +67,7 @@ const NavigationContainer = ({
                 isVisible={isMobileMenuOpen}
                 onClose={closeMobileMenu}
             />
-        </div>
+        </nav>
     );
 };
 

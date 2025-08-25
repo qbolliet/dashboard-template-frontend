@@ -1,11 +1,87 @@
-// ===== NAVIGATION CONTAINER =====
-// Conteneur principal pour la navigation
+@use '../../../styles/utils/breakpoints' as *;
+@use '../../../styles/globals/typography';
 
+// ===== NAVIGATION CONTAINER =====
 .navigation-container {
-    // Le conteneur n'a pas de style spécifique
-    // Il sert uniquement de wrapper logique pour les sous-composants
     position: relative;
+    z-index: var(--z-behind);
     
-    // Assure que l'overlay soit positionné relativement au conteneur
-    z-index: var(--z-fixed);
+    // Positionnement du mobile toggle - aligné avec les éléments du header
+    .mobile-nav-toggle {
+        // Sur desktop, masquer le toggle
+        @include breakpoint('large') {
+            display: none;
+        }
+        
+        // Sur mobile/tablet, positionner de façon absolue par rapport au viewport
+        // Aligné avec la hauteur du header et les autres éléments (SearchBar, ThemeToggle)
+        @include breakpoint-down('medium') {
+            position: fixed;
+            top: 50%;
+            right: var(--spacing-lg);
+            transform: translateY(-50%);
+            z-index: calc(var(--z-modal) + 1);
+            
+            // Calculer la position pour s'aligner avec le header
+            // Header padding + la moitié de la hauteur d'un élément du header
+            top: calc(var(--spacing-md) + 1.25rem); // Centré avec les autres éléments du header
+        }
+        
+        // Sur très petits écrans, ajuster la position
+        @include breakpoint-down('small') {
+            top: calc(var(--spacing-sm) + 1rem); // Ajusté pour les petits écrans
+            right: var(--spacing-md);
+        }
+    }
+}
+
+// ===== MENU DE NAVIGATION =====
+.nav-menu {
+    // Sur desktop - navigation horizontale inline
+    @include breakpoint('large') {
+        position: static;
+        width: auto;
+        height: auto;
+        background: transparent;
+        box-shadow: none;
+        padding: 0;
+        overflow: visible;
+        transform: none;
+        transition: none;
+    }
+    
+    // Sur mobile/tablet - menu overlay fixe
+    @include breakpoint-down('medium') {
+        position: fixed;
+        top: 0;
+        right: 0;
+        
+        
+
+        .primary-navigation {
+            position: fixed;
+            z-index: var(--z-modal);
+            box-shadow: -4px 0 20px hsla(var(--nav-mobile-shadow) / 0.1);
+            padding: var(--spacing-3xl) var(--spacing-lg) var(--spacing-xl) var(--spacing-lg);
+            overflow-y: auto;
+            width: 280px;
+            height: 100vh;
+            background-color: hsl(var(--nav-mobile-bg));
+            // Animation depuis la droite
+            transform: translateX(100%);
+            transition: transform var(--transition-normal) ease;
+        }
+        
+        
+        // État ouvert
+        .primary-navigation--open {
+            transform: translateX(0);
+        }
+    }
+    
+    // Sur très petits écrans - pleine largeur
+    @include breakpoint-down('small') {
+        width: 100vw;
+        right: 0;
+    }
 }

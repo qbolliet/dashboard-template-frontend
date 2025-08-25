@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import SearchIcon from '../../../shared/icons/SearchIcon/SearchIcon';
-import ClearIcon from '../../../shared/icons/ClearIcon/ClearIcon';
+import SearchIcon from '../../../../components/icons/SearchIcon/SearchIcon';
+import ClearIcon from '../../../../components/icons/ClearIcon/ClearIcon';
 import './Searchbar.scss';
 
 /**

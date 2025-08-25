@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import NavigationTopBar from '../NavigationTopBar/NavigationTopBar';
+import NavigationContainer from '../../../../components/navigation/NavigationContainer/NavigationContainer';
 import SearchBar from '../SearchBar/SearchBar';
 import ThemeToggleButton from '../../../theme/components/ThemeToggleButton/ThemeToggleButton';
 import './Header.scss';
@@ -27,7 +27,7 @@ const Header = ({ navigationData = [], onNavigationItemClick }) => {
                 </Link>
                 
                 {/* Navigation principale */}
-                <NavigationTopBar 
+                <NavigationContainer 
                     navigationData={navigationData}
                     onItemClick={onNavigationItemClick}
                 />

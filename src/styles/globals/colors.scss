@@ -128,22 +128,23 @@
   --nav-link-active-child-color: var(--color-primary-600);
   --nav-link-active-child-bg: var(--color-primary-50);
   
-  // Navigation Dropdown
-  --nav-dropdown-bg: var(--color-surface);
+  // Navigation Dropdown - matching primary-navigation background
+  --nav-dropdown-bg: var(--nav-mobile-bg); // Same as primary navigation
   --nav-dropdown-border: var(--color-border);
   --nav-dropdown-shadow: 0 0% 0%; // Pour box-shadow avec alpha
-  --nav-dropdown-link-color: var(--color-text-tertiary);
-  --nav-dropdown-link-hover-color: var(--color-text-secondary);
-  --nav-dropdown-link-hover-bg: var(--color-gray-50);
-  --nav-dropdown-link-active-color: var(--color-primary-500);
-  --nav-dropdown-link-active-bg: var(--color-primary-50);
+  --nav-dropdown-link-color: var(--nav-dropdown-sublink-color);
+  --nav-dropdown-link-hover-color: var(--nav-dropdown-sublink-hover-color);
+  --nav-dropdown-link-hover-bg: var(--nav-dropdown-sublink-hover-bg);
+  --nav-dropdown-link-active-color: var(--nav-dropdown-sublink-active-color);
+  --nav-dropdown-link-active-bg: var(--nav-dropdown-sublink-active-bg);
   
-  // Navigation Dropdown Groups
+  // Navigation Dropdown Groups - consistent with sublink approach
   --nav-dropdown-separator: var(--color-border);
-  --nav-dropdown-group-header-color: var(--color-text-primary);
-  --nav-dropdown-group-header-hover-bg: var(--color-gray-50);
-  --nav-dropdown-group-header-active-color: var(--color-primary-500);
-  --nav-dropdown-group-header-active-bg: var(--color-primary-50);
+  --nav-dropdown-group-header-color: var(--nav-dropdown-sublink-color);
+  --nav-dropdown-group-header-hover-color: var(--nav-dropdown-sublink-hover-color);
+  --nav-dropdown-group-header-hover-bg: var(--nav-dropdown-sublink-hover-bg);
+  --nav-dropdown-group-header-active-color: var(--nav-dropdown-sublink-active-color);
+  --nav-dropdown-group-header-active-bg: var(--nav-dropdown-sublink-active-bg);
   --nav-dropdown-sublink-color: var(--color-text-tertiary);
   --nav-dropdown-sublink-hover-color: var(--color-text-secondary);
   --nav-dropdown-sublink-hover-bg: var(--color-gray-50);
@@ -225,18 +226,22 @@
   --nav-link-active-bg: 211 80% 20%; // Bleu sombre pour l'état actif
   --nav-link-active-child-bg: 211 80% 15%; // Encore plus sombre pour les enfants actifs
   
-  // Navigation Dropdown en mode sombre
-  --nav-dropdown-bg: var(--color-gray-50);
+  // Navigation Dropdown en mode sombre - matching primary navigation
+  --nav-dropdown-bg: var(--nav-mobile-bg); // Same as primary navigation
   --nav-dropdown-border: var(--color-gray-300);
-  --nav-dropdown-link-hover-color: var(--color-text-secondary);
-  --nav-dropdown-link-hover-bg: var(--color-gray-200);
-  --nav-dropdown-link-active-bg: 211 80% 20%;
+  --nav-dropdown-link-color: var(--nav-dropdown-sublink-color);
+  --nav-dropdown-link-hover-color: var(--nav-dropdown-sublink-hover-color);
+  --nav-dropdown-link-hover-bg: var(--nav-dropdown-sublink-hover-bg);
+  --nav-dropdown-link-active-color: var(--nav-dropdown-sublink-active-color);
+  --nav-dropdown-link-active-bg: var(--nav-dropdown-sublink-active-bg);
   
-  // Navigation Dropdown Groups en mode sombre
+  // Navigation Dropdown Groups en mode sombre - consistent with sublink approach
   --nav-dropdown-separator: var(--color-gray-300);
-  --nav-dropdown-group-header-color: var(--color-white);
-  --nav-dropdown-group-header-hover-bg: var(--color-gray-200);
-  --nav-dropdown-group-header-active-bg: 211 80% 20%;
+  --nav-dropdown-group-header-color: var(--nav-dropdown-sublink-color);
+  --nav-dropdown-group-header-hover-color: var(--nav-dropdown-sublink-hover-color);
+  --nav-dropdown-group-header-hover-bg: var(--nav-dropdown-sublink-hover-bg);
+  --nav-dropdown-group-header-active-color: var(--nav-dropdown-sublink-active-color);
+  --nav-dropdown-group-header-active-bg: var(--nav-dropdown-sublink-active-bg);
   --nav-dropdown-sublink-color: var(--color-text-tertiary);
   --nav-dropdown-sublink-hover-color: var(--color-text-secondary);
   --nav-dropdown-sublink-hover-bg: var(--color-gray-200);

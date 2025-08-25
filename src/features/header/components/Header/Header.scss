@@ -1,37 +1,39 @@
 // ===== IMPORTS =====
-@use '../../../../styles/utils/breakpoints';
+@use '../../../../styles/utils/breakpoints' as *;
+@use '../../../../styles/globals/colors';
+@use '../../../../styles/globals/typography';
 
 // ===== HEADER PRINCIPAL =====
 .primary-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 2rem;
-  background-color: var(--header-bg, #ffffff);
-  border-bottom: 1px solid var(--border-color, #e5e5e5);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: var(--spacing-lg) var(--spacing-3xl);
+  background-color: hsl(var(--color-surface));
+  border-bottom: 1px solid hsl(var(--color-border));
+  box-shadow: var(--shadow-sm);
   position: relative;
-  z-index: 1000;
+  z-index: var(--z-fixed);
 
   // ===== CONTENEUR DE GAUCHE =====
   .left-container {
     display: flex;
     align-items: center;
-    gap: 2rem; // Espacement entre le logo et la navigation
+    gap: var(--spacing-3xl); // Espacement entre le logo et la navigation
     
     // ===== LOGO =====
     .logo-link {
       display: flex;
       align-items: center;
       text-decoration: none;
-      transition: opacity 0.3s ease;
+      transition: opacity var(--transition-normal) ease;
       
       &:hover {
         opacity: 0.8;
       }
       
       .logo {
-        height: 40px;
+        height: 40px; // Garde la taille en px pour la cohérence d'affichage
         width: auto;
         object-fit: contain;
       }
@@ -42,76 +44,49 @@
   .right-container {
     display: flex;
     align-items: center;
-    gap: 1.5rem; // Espacement entre la recherche et le toggle
-    position: relative; // Pour le positionnement du toggle mobile
+    gap: var(--spacing-2xl); // Espacement entre la recherche et le toggle
   }
 
   // ===== RESPONSIVE =====
   
   // Tablette et mobile - utilisation des breakpoints du projet
-  @include breakpoints.breakpoint-down(medium) {
-    padding: 0.75rem 1rem;
+  @include breakpoint-down(medium) {
+    padding: var(--spacing-md) var(--spacing-lg);
     
     .left-container {
-      gap: 1rem;
+      gap: var(--spacing-lg);
       
       .logo {
-        height: 32px;
+        height: 32px; // Garde en px pour la cohérence
       }
     }
     
     .right-container {
-      gap: 1rem;
-      // Ajout d'une marge à droite pour éviter le chevauchement avec le toggle mobile fixe
-      margin-right: var(--spacing-4xl); // 40px (taille toggle)
-    }
-    
-    // Positionnement du toggle mobile - absolu dans le header
-    .mobile-nav-toggle {
-      position: absolute;
-      right: var(--spacing-lg);
-      top: 50%;
-      display: block;
-      right: 1rem;
-      transform: translateY(-50%);
-      z-index: calc(var(--z-modal) + 1);
+      gap: var(--spacing-lg);
+      // Ajout d'une marge à droite pour éviter le chevauchement avec le toggle 
+      margin-right: var(--spacing-4xl); // Taille toggle
     }
   }
   
   // Mobile uniquement
-  @include breakpoints.breakpoint-down(small) {
-    padding: 0.5rem 0.75rem;
+  @include breakpoint-down(small) {
+    padding: var(--spacing-sm) var(--spacing-md);
     
     .left-container {
-      gap: 0.5rem;
+      gap: var(--spacing-sm);
       
       .logo {
-        height: 28px;
+        height: 28px; // Garde en px pour la cohérence
       }
     }
     
     .right-container {
-      gap: 0.75rem;
-    }
-    
-    // Positionnement du toggle mobile sur petits écrans
-    .mobile-nav-toggle {
-      position: absolute;
-      right: var(--spacing-md);
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: calc(var(--z-modal) + 1);
+      gap: var(--spacing-md);
+      // Ajout d'une marge à droite pour éviter le chevauchement avec le toggle 
+      margin-right: calc(2.5rem + var(--spacing-md)); // Taille toggle + espacement
     }
   }
 }
 
-// ===== VARIABLES CSS POUR LES THÈMES =====
-:root {
-  --header-bg: #ffffff;
-  --border-color: #e5e5e5;
-}
-
-[data-theme="dark"] {
-  --header-bg: #1a1a1a;
-  --border-color: #333333;
-}
+// Les couleurs du header sont maintenant gérées par le système de couleurs global
+// Voir src/styles/globals/colors.scss pour les définitions des couleurs

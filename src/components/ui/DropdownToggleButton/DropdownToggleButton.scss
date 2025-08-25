@@ -4,24 +4,27 @@
 // Bouton de basculement utilisant le système de design global
 
 .dropdown-toggle-button {
-    // Reset et positionnement
+    // Reset et positionnement - suivre le pattern ThemeToggleButton
     display: flex;
     align-items: center;
     justify-content: center;
     background: none;
-    border: none;
+    border: 1px solid transparent; // Bordure fine transparente par défaut
     cursor: pointer;
     padding: 0;
+    box-sizing: border-box;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     
     // Dimensions avec variables système
     width: calc(var(--spacing-xl) + var(--spacing-xs)); // 24px
     height: calc(var(--spacing-xl) + var(--spacing-xs)); // 24px
     
     // Forme avec variables système
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius-md);
     
     // Couleurs depuis le système HSL
-    color: hsl(var(--nav-dropdown-group-header-color));
+    color: hsl(var(--theme-toggle-icon));
     
     // Transitions avec variables système
     transition: all var(--transition-normal) ease;
@@ -30,13 +33,16 @@
     // ===== ÉTATS D'INTERACTION =====
     
     &:hover {
-        background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
-        transform: scale(1.05);
+        background-color: hsl(var(--theme-toggle-bg-hover));
+        border-color: hsl(var(--theme-toggle-icon-hover) / 0.2);
+        color: hsl(var(--theme-toggle-icon-hover));
+        transform: scale(1.02);
     }
     
     &:focus {
-        outline: 2px solid hsl(var(--nav-link-focus-color));
-        outline-offset: 2px;
+        outline: none;
+        border-color: hsl(var(--theme-toggle-border-focus));
+        box-shadow: 0 0 0 var(--spacing-2px) hsl(var(--theme-toggle-shadow-focus) / 0.3);
     }
     
     &:active {
@@ -45,8 +51,9 @@
     
     // ===== ÉTAT OUVERT =====
     &--open {
-        color: hsl(var(--nav-dropdown-group-header-active-color));
-        background-color: hsl(var(--nav-dropdown-group-header-active-bg));
+        // Pas de couleur bleue - garder le style subtil du ThemeToggleButton
+        background-color: hsl(var(--theme-toggle-bg-hover));
+        border-color: hsl(var(--theme-toggle-icon) / 0.2);
         
         .dropdown-toggle-button__icon {
             transform: rotate(180deg);
@@ -60,10 +67,9 @@
         width: calc(var(--spacing-2xl) + var(--spacing-xs)); // 28px
         height: calc(var(--spacing-2xl) + var(--spacing-xs)); // 28px
         
-        // Désactiver les effets de survol sur mobile/tablette
+        // Désactiver uniquement l'effet de scale sur mobile/tablette
         &:hover {
             transform: none;
-            background-color: transparent;
         }
     }
     

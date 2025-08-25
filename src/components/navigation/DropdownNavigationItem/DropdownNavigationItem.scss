@@ -128,8 +128,8 @@
         border-radius: var(--border-radius-md);
         
         &:hover {
-            background-color: hsl(var(--nav-dropdown-link-hover-bg));
             color: hsl(var(--nav-dropdown-link-hover-color));
+            background-color: hsl(var(--nav-dropdown-link-hover-bg));
         }
         
         &--active {
@@ -205,6 +205,7 @@
         margin-bottom: var(--spacing-sm);
         
         &:hover {
+            color: hsl(var(--nav-dropdown-group-header-hover-color));
             background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
         }
         

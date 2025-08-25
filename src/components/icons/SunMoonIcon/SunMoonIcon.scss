@@ -1,5 +1,5 @@
-@use '../../../../styles/globals/typography';
-@use '../../../../styles/globals/colors';
+@use '../../../styles/globals/typography';
+@use '../../../styles/globals/colors';
 
 // ===== PROPRIÉTÉS DE L'ICÔNE SOLEIL/LUNE =====
 .sun-and-moon > :is(.sun, .sun-beams) {
