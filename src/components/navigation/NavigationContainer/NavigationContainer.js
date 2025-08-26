@@ -43,7 +43,6 @@ const NavigationContainer = ({
     // Classes CSS pour le conteneur
     const containerClasses = [
         'navigation-container',
-        'nav-menu',
         className
     ].filter(Boolean).join(' ');
 
