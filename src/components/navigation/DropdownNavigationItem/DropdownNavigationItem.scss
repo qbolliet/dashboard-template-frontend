@@ -271,7 +271,7 @@
                     text-align: center;
                     flex: 1;
                     justify-content: center;
-                    padding-left: calc(28px + 1rem);
+                    padding-left: var(--spacing-4xl) ;
                 }
             }
         }
@@ -317,7 +317,7 @@
         
         &__group-header {
             flex: 1;
-            padding-right: 40px; // Espace pour le chevron
+            padding-right: var(--spacing-4xl); // Espace pour le chevron
         }
         
         &__group-chevron {
@@ -347,7 +347,7 @@
         &__link,
         &__group-header,
         &__sublink {
-            padding-left: var(--spacing-3xl);
+            padding-left: calc(var(--spacing-3xl) + var(--spacing-lg));
             font-size: var(--font-size-sm);
             
             &:hover {
@@ -358,9 +358,11 @@
         &__group-header {
             padding: var(--spacing-sm) var(--spacing-3xl);
         }
-        
-        &__sublink {
-            padding-left: calc(var(--spacing-3xl) + var(--spacing-lg));
+
+        @include breakpoint-down('small') {
+            &__sublink {
+            padding-left: var(--spacing-md);
+        }
         }
     }
 }
