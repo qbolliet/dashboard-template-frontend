@@ -16,14 +16,14 @@
         // Sur mobile/tablet, positionner de façon absolue par rapport au viewport
         @include breakpoint-down('medium') {
             position: fixed;
-            top: calc(var(--spacing-md) + 1.25rem); // Centré avec les autres éléments du header
+            top: var(--spacing-xl); // Centré avec les autres éléments du header
             right: var(--spacing-lg);
             z-index: calc(var(--z-modal) + 1);
         }
         
         // Sur très petits écrans, ajuster la position
         @include breakpoint-down('small') {
-            top: calc(var(--spacing-sm) + 1rem); // Ajusté pour les petits écrans
+            top: var(--spacing-lg); // Ajusté pour les petits écrans
             right: var(--spacing-md);
         }
     }
@@ -54,7 +54,7 @@
             background-color: hsl(var(--nav-mobile-bg));
             z-index: var(--z-modal);
             box-shadow: -4px 0 20px hsla(var(--nav-mobile-shadow) / 0.1);
-            padding: var(--spacing-3xl) var(--spacing-lg) var(--spacing-xl) var(--spacing-lg);
+            padding: var(--spacing-6xl) var(--spacing-lg) var(--spacing-xl) var(--spacing-lg);
             overflow-y: auto;
             
             // Animation depuis la droite - fermé par défaut
