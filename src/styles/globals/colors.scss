@@ -107,8 +107,8 @@
   --theme-toggle-icon: var(--color-text-secondary);
   --theme-toggle-icon-hover: var(--color-text-primary);
   --theme-toggle-bg-hover: var(--color-gray-100);
-  --theme-toggle-border-focus: var(--color-primary-500);
-  --theme-toggle-shadow-focus: var(--color-primary-200);
+  --theme-toggle-border-focus: var(--color-gray-400);
+  --theme-toggle-shadow-focus: var(--color-gray-200);
 
   // Navigation TopBar
   --nav-hamburger-color: var(--color-text-primary);
@@ -138,9 +138,9 @@
   --nav-dropdown-link-active-color: var(--nav-dropdown-sublink-active-color);
   --nav-dropdown-link-active-bg: var(--nav-dropdown-sublink-active-bg);
   
-  // Navigation Dropdown Groups - consistent with sublink approach
+  // Navigation Dropdown Groups - slightly darker in light mode
   --nav-dropdown-separator: var(--color-border);
-  --nav-dropdown-group-header-color: var(--nav-dropdown-sublink-color);
+  --nav-dropdown-group-header-color: var(--color-text-secondary);
   --nav-dropdown-group-header-hover-color: var(--nav-dropdown-sublink-hover-color);
   --nav-dropdown-group-header-hover-bg: var(--nav-dropdown-sublink-hover-bg);
   --nav-dropdown-group-header-active-color: var(--nav-dropdown-sublink-active-color);
@@ -223,6 +223,7 @@
   
   // Navigation Items en mode sombre
   --nav-link-color: var(--color-text-secondary);
+  --nav-link-hover-color: var(--color-white);
   --nav-link-hover-bg: var(--color-gray-200);
   --nav-link-active-bg: 211 80% 20%; // Bleu sombre pour l'état actif
   --nav-link-active-child-bg: 211 80% 15%; // Encore plus sombre pour les enfants actifs
@@ -236,10 +237,10 @@
   --nav-dropdown-link-active-color: var(--nav-dropdown-sublink-active-color);
   --nav-dropdown-link-active-bg: var(--nav-dropdown-sublink-active-bg);
   
-  // Navigation Dropdown Groups en mode sombre - consistent with sublink approach
+  // Navigation Dropdown Groups en mode sombre - white on hover
   --nav-dropdown-separator: var(--color-gray-300);
   --nav-dropdown-group-header-color: var(--nav-dropdown-sublink-color);
-  --nav-dropdown-group-header-hover-color: var(--nav-dropdown-sublink-hover-color);
+  --nav-dropdown-group-header-hover-color: var(--color-white);
   --nav-dropdown-group-header-hover-bg: var(--nav-dropdown-sublink-hover-bg);
   --nav-dropdown-group-header-active-color: var(--nav-dropdown-sublink-active-color);
   --nav-dropdown-group-header-active-bg: var(--nav-dropdown-sublink-active-bg);

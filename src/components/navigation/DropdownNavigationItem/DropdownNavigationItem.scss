@@ -360,9 +360,12 @@
         }
 
         @include breakpoint-down('small') {
+            &__link {
+                padding-left: var(--spacing-lg);
+            }
             &__sublink {
-            padding-left: var(--spacing-md);
-        }
+                padding-left: var(--spacing-md);
+            }
         }
     }
 }
