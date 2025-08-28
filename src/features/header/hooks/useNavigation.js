@@ -7,10 +7,9 @@ import { usePathname } from 'next/navigation';
  * Custom hook for managing navigation state and utilities.
  * Provides mobile menu state and useful functions for navigation components.
  * 
- * @param {Array} navigationData - Optional navigation data array, if not provided returns hook utilities only
  * @returns {Object} Object containing navigation data and functions
  */
-export const useNavigation = (navigationData = null) => {
+export const useNavigation = () => {
     // État pour gérer l'affichage du menu mobile
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     
