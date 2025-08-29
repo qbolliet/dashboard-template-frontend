@@ -4,14 +4,6 @@
 // Bouton hamburger/fermeture pour le menu mobile
 
 .mobile-nav-toggle {
-    // Positionnement et visibilité
-    display: block;
-    
-    // Masquer sur les grands écrans
-    @include breakpoint('large') {
-        display: none;
-    }
-    
     // Styling du bouton
     background: none;
     border: none;
@@ -23,6 +15,18 @@
     color: hsl(var(--nav-hamburger-color));
     transition: all var(--transition-normal) ease;
     
+    // Dimensions et alignement
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    // Masquer sur les grands écrans
+    @include breakpoint('large') {
+        display: none;
+    }
+    
     &:hover {
         background-color: hsl(var(--nav-hamburger-bg-hover));
     }
@@ -31,13 +35,6 @@
         outline: 2px solid hsl(var(--nav-hamburger-border-focus));
         outline-offset: 2px;
     }
-    
-    // Dimensions et alignement
-    width: 2.5rem;
-    height: 2.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 // ===== ICÔNES DE NAVIGATION =====

@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import SearchIcon from '../../../../components/icons/SearchIcon/SearchIcon';
 import ClearIcon from '../../../../components/icons/ClearIcon/ClearIcon';
-import './Searchbar.scss';
+import './SearchBar.scss';
 
 /**
  * Search bar component for the application.

@@ -6,30 +6,44 @@
     position: relative;
     z-index: var(--z-fixed);
     
+    // Sur mobile/tablet, étendre sur toute la largeur pour positionner le toggle
+    @include breakpoint-down('medium') {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100%;
+        pointer-events: none; // Permet aux autres éléments du header d'être cliquables
+    }
+    
     // Positionnement du mobile toggle - aligné avec les éléments du header
     .mobile-nav-toggle {
+        pointer-events: auto; // Réactive les clics pour le toggle
+        
         // Sur desktop, masquer le toggle
         @include breakpoint('large') {
             display: none;
         }
         
-        // Sur mobile/tablet, positionner de façon absolue par rapport au viewport
+        // Sur mobile/tablet, positionner de façon absolue par rapport au header
         @include breakpoint-down('medium') {
-            position: fixed;
-            top: var(--spacing-xl); // Centré avec les autres éléments du header
-            right: var(--spacing-lg);
+            position: absolute;
+            top: 50%;
+            right: var(--spacing-lg); // Aligné avec le padding du header
+            transform: translateY(-50%);
             z-index: calc(var(--z-modal) + 1);
         }
         
-        // Sur très petits écrans, ajuster la position
+        // Sur très petits écrans, ajuster la position pour le padding réduit
         @include breakpoint-down('small') {
-            top: var(--spacing-lg); // Ajusté pour les petits écrans
-            right: var(--spacing-md);
+            right: var(--spacing-md); // Aligné avec le padding mobile du header
         }
     }
     
     // ===== MENU DE NAVIGATION =====
     .primary-navigation {
+        pointer-events: auto; // Réactive les clics pour le menu
+        
         // Sur desktop - navigation horizontale inline
         @include breakpoint('large') {
             position: static;
