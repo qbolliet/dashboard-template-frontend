@@ -84,6 +84,22 @@ export const useNavigation = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    // Gestion du défilement du body - empêche le défilement de la page quand le menu mobile est ouvert
+    useEffect(() => {
+        if (isMobileMenuOpen) {
+            // Sauvegarder le style de défilement actuel
+            const originalStyle = window.getComputedStyle(document.body).overflow;
+            
+            // Empêcher le défilement de la page
+            document.body.style.overflow = 'hidden';
+            
+            // Nettoyer au démontage ou à la fermeture du menu
+            return () => {
+                document.body.style.overflow = originalStyle;
+            };
+        }
+    }, [isMobileMenuOpen]);
+
     return {
         // Données
         currentPath: pathname,
