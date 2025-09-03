@@ -85,17 +85,24 @@ export const useNavigation = () => {
     }, []);
 
     // Gestion du défilement du body - empêche le défilement de la page quand le menu mobile est ouvert
+    // Compense la disparition de la scrollbar pour éviter le décalage horizontal du bouton toggle
     useEffect(() => {
         if (isMobileMenuOpen) {
-            // Sauvegarder le style de défilement actuel
-            const originalStyle = window.getComputedStyle(document.body).overflow;
+            // Calculer la largeur de la scrollbar avant de la masquer
+            const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
             
-            // Empêcher le défilement de la page
+            // Sauvegarder les styles actuels
+            const originalOverflow = window.getComputedStyle(document.body).overflow;
+            const originalPaddingRight = window.getComputedStyle(document.body).paddingRight;
+            
+            // Empêcher le défilement et compenser la largeur de la scrollbar
             document.body.style.overflow = 'hidden';
+            document.body.style.paddingRight = `${scrollbarWidth}px`;
             
             // Nettoyer au démontage ou à la fermeture du menu
             return () => {
-                document.body.style.overflow = originalStyle;
+                document.body.style.overflow = originalOverflow;
+                document.body.style.paddingRight = originalPaddingRight;
             };
         }
     }, [isMobileMenuOpen]);

@@ -164,31 +164,63 @@
     }
     
     &__group-chevron {
-        // Masqué par défaut sur desktop
+        // Masqué par défaut sur desktop - suit le pattern dropdown-toggle-button
         display: none;
-        background: none;
-        border: none;
-        cursor: pointer;
-        width: 24px;
-        height: 24px;
         align-items: center;
         justify-content: center;
+        background: none;
+        border: 1px solid transparent; // Bordure fine transparente par défaut
+        cursor: pointer;
+        padding: 0;
+        box-sizing: border-box;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        
+        // Dimensions avec variables système - suivre le pattern responsive
+        width: calc(var(--spacing-xl) + var(--spacing-xs)); // 24px
+        height: calc(var(--spacing-xl) + var(--spacing-xs)); // 24px
+        
+        // Forme avec variables système
+        border-radius: var(--border-radius-md);
+        
+        // Couleurs depuis le système HSL
         color: hsl(var(--nav-dropdown-group-header-color));
-        border-radius: var(--border-radius-sm);
+        
+        // Transitions avec variables système
         transition: all var(--transition-normal) ease;
         transform-origin: center center;
         
+        // États d'interaction améliorés
         &:hover {
             background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
+            border-color: hsl(var(--nav-dropdown-group-header-hover-color) / 0.2);
+            color: hsl(var(--nav-dropdown-group-header-hover-color));
+        }
+        
+        &:focus {
+            outline: none;
+            border-color: hsl(var(--nav-dropdown-group-header-active-color));
+            box-shadow: 0 0 0 var(--spacing-2px) hsl(var(--nav-dropdown-group-header-active-bg) / 0.3);
+        }
+        
+        &:active {
+            transform: scale(0.95);
         }
         
         &--expanded {
-            transform: rotate(180deg);
+            background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
+            border-color: hsl(var(--nav-dropdown-group-header-color) / 0.2);
+            
+            svg {
+                transform: rotate(180deg);
+            }
         }
         
         svg {
             display: block;
             flex-shrink: 0;
+            transition: transform var(--transition-normal) ease;
+            transform-origin: center center;
         }
     }
     
@@ -317,20 +349,46 @@
         
         &__group-header {
             flex: 1;
+            justify-content: space-between;
             padding-right: var(--spacing-4xl); // Espace pour le chevron
         }
         
         &__group-chevron {
-            // Afficher le chevron sur mobile
+            // Afficher le chevron sur mobile - taille responsive
             display: flex;
-            position: absolute;
-            right: var(--spacing-lg);
-            top: 50%;
-            transform: translateY(-50%);
+            //position: absolute;
+            //right: var(--spacing-lg);
+            //top: 50%;
+            //transform: translateY(-50%);
             z-index: 2;
             
+            // Taille tablette - légèrement plus grande pour touch
+            width: calc(var(--spacing-2xl) + var(--spacing-xs)); // 28px
+            height: calc(var(--spacing-2xl) + var(--spacing-xs)); // 28px
+            
+            // Désactiver l'effet de scale sur mobile/tablette pour éviter les problèmes tactiles
+            // &:hover {
+            //     transform: translateY(-50%);
+            // }
+            
+            // &:active {
+            //     transform: translateY(-50%) scale(0.95);
+            // }
+            
             &--expanded {
-                transform: translateY(-50%) rotate(180deg);
+                //transform: translateY(-50%);
+                
+                svg {
+                    transform: rotate(180deg);
+                }
+                
+                // &:hover {
+                //     transform: translateY(-50%);
+                // }
+                
+                // &:active {
+                //     transform: translateY(-50%) scale(0.95);
+                // }
             }
         }
         
@@ -372,6 +430,12 @@
             }
             &__sublink {
                 padding-left: var(--spacing-md);
+            }
+            
+            // Chevron encore plus grand sur très petits écrans pour l'accessibilité tactile
+            &__group-chevron {
+                width: var(--spacing-4xl); // 32px
+                height: var(--spacing-4xl); // 32px
             }
         }
     }
