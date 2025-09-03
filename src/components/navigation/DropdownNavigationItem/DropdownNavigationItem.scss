@@ -344,7 +344,14 @@
             }
         }
         
-        &__link,
+        &__link {
+            font-size: var(--font-size-sm);
+            
+            &:hover {
+                background-color: hsl(var(--nav-dropdown-link-hover-bg) / 0.2);
+            }
+        }
+        
         &__group-header,
         &__sublink {
             padding-left: calc(var(--spacing-3xl) + var(--spacing-lg));
