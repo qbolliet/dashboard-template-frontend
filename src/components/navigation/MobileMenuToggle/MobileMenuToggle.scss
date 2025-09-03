@@ -1,6 +1,26 @@
 @use '../../../styles/utils/breakpoints' as *;
 @use '../../../styles/globals/colors';
 
+// ===== VARIABLES DE PERSONNALISATION =====
+// Variables essentielles pour modifier l'apparence du bouton mobile toggle
+
+// Dimensions du bouton
+$toggle-button-size: 2.5rem !default;
+$toggle-button-padding: var(--spacing-sm) !default;
+$toggle-border-radius: var(--border-radius-md) !default;
+
+// Dimensions des icônes
+$toggle-icon-size: 1.25rem !default;
+
+// Transitions
+$toggle-transition-duration: var(--transition-normal) !default;
+$toggle-transition-easing: ease !default;
+$toggle-icon-transition-duration: var(--transition-normal) !default;
+
+// Focus
+$toggle-focus-outline-width: 2px !default;
+$toggle-focus-outline-offset: 2px !default;
+
 // ===== MOBILE MENU TOGGLE =====
 // Bouton hamburger/fermeture pour le menu mobile
 
@@ -9,16 +29,16 @@
     background: none;
     border: none;
     cursor: pointer;
-    padding: var(--spacing-sm);
-    border-radius: var(--border-radius-md);
+    padding: $toggle-button-padding;
+    border-radius: $toggle-border-radius;
     
     // Couleurs et interactions
     color: hsl(var(--nav-hamburger-color));
-    transition: all var(--transition-normal) ease;
+    transition: all $toggle-transition-duration $toggle-transition-easing;
     
     // Dimensions et alignement
-    width: 2.5rem;
-    height: 2.5rem;
+    width: $toggle-button-size;
+    height: $toggle-button-size;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -33,8 +53,8 @@
     }
     
     &:focus {
-        outline: 2px solid hsl(var(--nav-hamburger-border-focus));
-        outline-offset: 2px;
+        outline: $toggle-focus-outline-width solid hsl(var(--nav-hamburger-border-focus));
+        outline-offset: $toggle-focus-outline-offset;
     }
 }
 
@@ -50,12 +70,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity var(--transition-normal) ease;
+    transition: opacity $toggle-icon-transition-duration $toggle-transition-easing;
     
     // Taille des icônes SVG
     svg {
-        width: 1.25rem;
-        height: 1.25rem;
+        width: $toggle-icon-size;
+        height: $toggle-icon-size;
     }
 }
 

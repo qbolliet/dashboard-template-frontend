@@ -1,5 +1,16 @@
 @use '../../../styles/utils/breakpoints' as *;
 
+// ===== VARIABLES DE PERSONNALISATION =====
+// Variables essentielles pour modifier l'apparence du menu de navigation
+
+// Espacement entre les éléments
+$nav-menu-gap-mobile: var(--spacing-sm) !default;
+$nav-menu-gap-desktop: var(--spacing-md) !default;
+
+// Alignement
+$nav-menu-align-mobile: center !default;
+$nav-menu-text-align-mobile: center !default;
+
 // ===== LISTE DE NAVIGATION =====
 // Liste principale des éléments de navigation
 
@@ -12,18 +23,18 @@
     // Layout sur mobile - vertical
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: $nav-menu-gap-mobile;
     
     // Sur les très petits écrans, centrer les éléments
     @include breakpoint-down('small') {
-        align-items: center;
-        text-align: center;
+        align-items: $nav-menu-align-mobile;
+        text-align: $nav-menu-text-align-mobile;
     }
     
     // Sur les grands écrans - horizontal
     @include breakpoint('large') {
         flex-direction: row;
         align-items: center;
-        gap: var(--spacing-md);
+        gap: $nav-menu-gap-desktop;
     }
 }

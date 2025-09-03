@@ -1,5 +1,17 @@
 @use '../../../styles/utils/breakpoints' as *;
 
+// ===== VARIABLES DE PERSONNALISATION =====
+// Variables essentielles pour modifier l'apparence de l'overlay de navigation
+
+// Transparence du background
+$nav-overlay-opacity: 0.5 !default;
+
+// Z-index
+$nav-overlay-z-index: calc(var(--z-modal) - 1) !default;
+
+// Transitions
+$nav-overlay-transition: opacity var(--transition-normal) ease !default;
+
 // ===== NAVIGATION OVERLAY =====
 // Overlay semi-transparent pour fermer le menu mobile
 
@@ -12,14 +24,14 @@
     bottom: 0;
     
     // Background semi-transparent
-    background-color: hsla(var(--nav-overlay-bg) / 0.5);
+    background-color: hsla(var(--nav-overlay-bg) / #{$nav-overlay-opacity});
     
     // Z-index en dessous du menu mais au-dessus du contenu
-    z-index: calc(var(--z-modal) - 1);
+    z-index: $nav-overlay-z-index;
     
     // Animation d'apparition
     opacity: 1;
-    transition: opacity var(--transition-normal) ease;
+    transition: $nav-overlay-transition;
     
     // Curseur pour indiquer qu'on peut cliquer
     cursor: pointer;
