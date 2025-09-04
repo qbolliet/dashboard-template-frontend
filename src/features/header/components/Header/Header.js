@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import NavigationContainer from '../../../../components/navigation/NavigationContainer/NavigationContainer';
+import NavigationContainer from '../NavigationTopBar/NavigationContainer/NavigationContainer';
 import SearchBar from '../SearchBar/SearchBar';
 import ThemeToggleButton from '../../../theme/components/ThemeToggleButton/ThemeToggleButton';
 import './Header.scss';

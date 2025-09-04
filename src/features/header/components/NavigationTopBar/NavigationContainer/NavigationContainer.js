@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useNavigation } from '../../../features/header/hooks/useNavigation';
+import { useNavigation } from '../../../hooks/useNavigation';
 import MobileMenuToggle from '../MobileMenuToggle/MobileMenuToggle';
 import NavigationMenu from '../NavigationMenu/NavigationMenu';
 import NavigationOverlay from '../NavigationOverlay/NavigationOverlay';

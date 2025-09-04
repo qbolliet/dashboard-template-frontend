@@ -2,9 +2,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { useNavigation } from '../../../features/header/hooks/useNavigation';
-import DropdownToggleButton from '../../ui/DropdownToggleButton/DropdownToggleButton';
-import ChevronDownIcon from '../../icons/ChevronDownIcon/ChevronDownIcon';
+import { useNavigation } from '../../../hooks/useNavigation';
+import DropdownToggleButton from '../../../../../components/ui/DropdownToggleButton/DropdownToggleButton';
+import ChevronDownIcon from '../../../../../components/icons/ChevronDownIcon/ChevronDownIcon';
 import { renderDropdownContent } from './DropdownContentRenderer';
 import './DropdownNavigationItem.scss';
 

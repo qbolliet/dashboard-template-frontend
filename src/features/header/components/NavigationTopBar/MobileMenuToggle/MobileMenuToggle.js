@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import HamburgerIcon from '../../icons/HamburgerIcon/HamburgerIcon';
-import CloseIcon from '../../icons/CloseIcon/CloseIcon';
+import HamburgerIcon from'../../../../../components/icons/HamburgerIcon/HamburgerIcon';
+import CloseIcon from '../../../../../components/icons/CloseIcon/CloseIcon';
 import './MobileMenuToggle.scss';
 
 /**

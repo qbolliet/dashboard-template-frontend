@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useNavigation } from '../../../features/header/hooks/useNavigation';
+import { useNavigation } from '../../../hooks/useNavigation';
 import './NavigationItem.scss';
 
 /**
