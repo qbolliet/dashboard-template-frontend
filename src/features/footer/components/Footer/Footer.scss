@@ -1,0 +1,71 @@
+// Imports des utilitaires et styles globaux
+@use '../../../../styles/utils/breakpoints';
+@use '../../../../styles/globals/colors';
+@use '../../../../styles//globals/typography';
+
+.footer {
+  // Disposition en grille avec deux colonnes égales
+  display: grid;
+  grid-template-columns: 1fr 1fr;  
+  align-items: center;
+  
+  // Espacement utilisant les variables globales
+  padding: var(--spacing-lg);
+  
+  // Bordure supérieure utilisant le système de couleurs
+  border-top: 1px solid hsl(var(--color-border));
+  
+  // Couleur du fond
+  background-color: hsl(var(--color-surface));
+
+  // Couleur de texte principale
+  color: hsl(var(--color-text-secondary));
+
+  // Section copyright centrée
+  &__copyright {
+    display: flex;
+    justify-content: center;  
+    align-items: center;
+    
+    // Taille de la police
+    font-size: var(--font-size-sm);
+  }
+
+  // Logo centré avec styles d'image
+  &__logo {
+    display: flex;
+    justify-content: center;  
+    align-items: center;
+    
+    // Styles pour l'élément de lien
+    text-decoration: none;
+    transition: opacity var(--transition-normal) ease;
+    
+    &:hover {
+      opacity: 0.8;
+    }
+
+    img {
+      // Inversion pour compatibilité avec les thèmes sombres
+      filter: invert(100%);
+      height: var(--spacing-5xl); // 3rem équivalent
+      width: auto;
+      object-fit: contain;
+    }
+  }
+}
+
+// Vue mobile : empilement vertical et centrage
+@include breakpoints.breakpoint-down(small) {
+  .footer {
+    // Une seule colonne pour mobile
+    grid-template-columns: 1fr;   
+    justify-items: center;
+    gap: var(--spacing-lg); // Utilisation de l'espacement global
+    
+    &__copyright {
+      // Suppression du margin-top redondant grâce au gap
+      margin-top: 0;
+    }
+  } 
+}
