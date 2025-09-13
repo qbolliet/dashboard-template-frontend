@@ -8,9 +8,9 @@
 .hero {
     // Position et structure
     position: relative;
-    display: grid;
-    grid-template-areas: "content";
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     
     // Dimensions
     min-height: calc(100vh - 2*var(--spacing-lg) - 40px);
@@ -22,31 +22,29 @@
     
     // Isolation pour le z-index
     isolation: isolate;
-}
-
-// Arrière-plan avec motif SVG
-.hero__background {
-    // Positionnement en arrière-plan
-    grid-area: content;
-    z-index: -1;
     
-    // Dimensions complètes
-    width: 100%;
-    height: 100%;
-    
-    // Configuration de l'image de fond
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    
-    // Opacité pour ne pas concurrencer le contenu
-    opacity: 0.4;
+    // Arrière-plan avec motif SVG via pseudo-élément
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        
+        // Configuration de l'image de fond dynamique
+        background-image: var(--hero-bg-image);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        
+        // Opacité pour ne pas concurrencer le contenu
+        opacity: 0.4;
+    }
 }
 
 // Container principal du contenu
 .hero__container {
-    // Positionnement dans la grille
-    grid-area: content;
+    // Positionnement relatif pour le z-index
+    position: relative;
     z-index: 1;
     
     // Structure flexible pour un meilleur centrage
@@ -59,29 +57,18 @@
     width: 100%;
     max-width: 1200px;
     padding: var(--spacing-2xl) var(--spacing-lg);
-    
-    // Centrage
-    margin: 0 auto;
 }
 
-// Contenu textuel du héro
-.hero__content {
-    // Espacement et organisation
+// En-tête avec titre et description (maintenant enfant direct du container)
+.hero__header {
+    // Structure et organisation
     display: flex;
     flex-direction: column;
     justify-content: center;
+    gap: var(--spacing-xl);
     
     // Contrainte de largeur pour la lisibilité avec centrage
     max-width: 600px;
-    //margin: 0 auto; // Centre le contenu même avec max-width
-}
-
-// En-tête avec titre et description
-.hero__header {
-    // Espacement des éléments
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xl);
 }
 
 // Titre principal du héro
@@ -116,15 +103,7 @@
     max-width: 500px;
 }
 
-// Container de l'action principale
-.hero__action {
-    // Alignement et positionnement
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-// Bouton CTA spécifique au héro
+// Bouton CTA (maintenant enfant direct du container)
 .hero__cta-button {
     // Taille optimisée pour le héro
     min-width: 180px;
@@ -133,6 +112,7 @@
     // Style spécifique si nécessaire
     font-size: var(--font-size-xl);
 }
+
 
 // Responsive : adaptation pour tablettes
 @include breakpoints.breakpoint-down(medium) {
@@ -147,7 +127,7 @@
         padding: var(--spacing-xl) var(--spacing-md);
     }
     
-    .hero__content {
+    .hero__header {
         // Retire max-width sur tablette pour éviter le décalage à gauche
         max-width: none;
     }
@@ -200,11 +180,11 @@
 
 // Animation d'entrée pour le contenu
 @media (prefers-reduced-motion: no-preference) {
-    .hero__content {
+    .hero__header {
         animation: fadeInLeft 0.8s ease-out;
     }
     
-    .hero__action {
+    .hero__cta-button {
         animation: fadeInRight 0.8s ease-out 0.2s both;
     }
 }

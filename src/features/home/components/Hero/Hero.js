@@ -22,36 +22,27 @@ const Hero = ({
   ...props 
 }) => {
   return (
-    <section className={`hero ${className}`} {...props}>
-      {/* Arrière-plan avec motif SVG */}
-      {backgroundImage && (
-        <div 
-          className="hero__background"
-          style={{
-            backgroundImage: `url(${backgroundImage})`
-          }}
-          aria-hidden="true"
-        />
-      )}
-      
+    <section 
+      className={`hero ${className}`} 
+      style={{
+        '--hero-bg-image': backgroundImage ? `url(${backgroundImage})` : 'none'
+      }}
+      {...props}
+    >
       {/* Container principal du contenu */}
       <div className="hero__container">
-        {/* Contenu textuel */}
-        <div className="hero__content">
-          <header className="hero__header">
-            <h1 className="hero__title">{title}</h1>
-            <p className="hero__description">{description}</p>
-          </header>
-        </div>
+        {/* En-tête avec titre et description */}
+        <header className="hero__header">
+          <h1 className="hero__title">{title}</h1>
+          <p className="hero__description">{description}</p>
+        </header>
         
-        {/* Action principale */}
-        <div className="hero__action">
-          <LargeButton
-            href={ctaButton.link}
-            text={ctaButton.text}
-            className="hero__cta-button"
-          />
-        </div>
+        {/* Bouton d'action principale */}
+        <LargeButton
+          href={ctaButton.link}
+          text={ctaButton.text}
+          className="hero__cta-button"
+        />
       </div>
     </section>
   );
