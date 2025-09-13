@@ -1,0 +1,154 @@
+// ===== CARDS SECTION - SECTION GRILLE DE CARTES =====
+// Import des variables du système de design
+@use '../../../styles/globals/colors';
+@use '../../../styles/globals/typography';
+@use '../../../styles/utils/breakpoints';
+
+// Container principal de la section
+.cards-section {
+    // Espacement général de la section
+    padding: var(--spacing-4xl) 0;
+    
+    // Espacement interne
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-left: var(--spacing-lg);
+    padding-right: var(--spacing-lg);
+}
+
+// En-tête de section avec titre et description
+.cards-section__header {
+    // Centrage du contenu
+    text-align: center;
+    
+    // Espacement avec la grille
+    margin-bottom: var(--spacing-4xl);
+    
+    // Espacement maximal pour la lisibilité
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+// Titre de la section
+.cards-section__title {
+    // Reset des marges par défaut
+    margin: 0;
+    margin-bottom: var(--spacing-lg);
+    
+    // Typographie
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+    line-height: var(--line-height-tight);
+    color: hsl(var(--color-text-primary));
+}
+
+// Description de la section
+.cards-section__description {
+    // Reset des marges par défaut
+    margin: 0;
+    
+    // Typographie
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-relaxed);
+    color: hsl(var(--color-text-secondary));
+}
+
+// Grille responsive des cartes
+.cards-section__grid {
+    // CSS Grid avec nombre de colonnes configurables
+    display: grid;
+    grid-template-columns: repeat(var(--cards-per-row), 1fr);
+    gap: var(--spacing-xl);
+    
+    // Alignement et distribution
+    align-items: start;
+    justify-items: stretch;
+}
+
+// Responsive : adaptation pour tablettes
+@include breakpoints.breakpoint-down(medium) {
+    .cards-section {
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
+    }
+    
+    .cards-section__grid {
+        // 2 colonnes sur tablette
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-lg);
+    }
+    
+    .cards-section__title {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .cards-section__description {
+        font-size: var(--font-size-base);
+    }
+}
+
+// Responsive : adaptation pour mobiles
+@include breakpoints.breakpoint-down(small) {
+    .cards-section {
+        padding: var(--spacing-3xl) var(--spacing-sm);
+    }
+    
+    .cards-section__header {
+        margin-bottom: var(--spacing-3xl);
+    }
+    
+    .cards-section__grid {
+        // 1 seule colonne sur mobile
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+    
+    .cards-section__title {
+        font-size: var(--font-size-xl);
+    }
+    
+    .cards-section__description {
+        font-size: var(--font-size-sm);
+    }
+}
+
+// Variante : grille compacte pour plus de cartes
+.cards-section--compact {
+    .cards-section__grid {
+        gap: var(--spacing-md);
+    }
+    
+    @include breakpoints.breakpoint-down(medium) {
+        .cards-section__grid {
+            gap: var(--spacing-sm);
+        }
+    }
+}
+
+// Animation d'entrée optionnelle pour les cartes
+@media (prefers-reduced-motion: no-preference) {
+    .cards-section__grid .card {
+        // Animation d'apparition en cascade
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp var(--transition-slow) ease-out forwards;
+        
+        // Délai en cascade pour chaque carte
+        &:nth-child(1) { animation-delay: 0.1s; }
+        &:nth-child(2) { animation-delay: 0.2s; }
+        &:nth-child(3) { animation-delay: 0.3s; }
+        &:nth-child(4) { animation-delay: 0.4s; }
+        &:nth-child(5) { animation-delay: 0.5s; }
+        &:nth-child(6) { animation-delay: 0.6s; }
+    }
+}
+
+// Animation keyframes pour l'apparition
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
