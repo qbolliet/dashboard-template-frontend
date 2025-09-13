@@ -46,8 +46,8 @@
     }
 
     img {
-      // Inversion pour compatibilité avec les thèmes sombres
-      filter: invert(100%);
+      // Filtre conditionnel basé sur le thème (invert en clair, none en sombre)
+      filter: var(--logo-filter);
       height: var(--spacing-5xl); // 3rem équivalent
       width: auto;
       object-fit: contain;

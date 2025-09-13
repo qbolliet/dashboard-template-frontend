@@ -159,6 +159,9 @@
   // Navigation Mobile
   --nav-mobile-separator: var(--color-border);
   --nav-dropdown-mobile-bg: var(--color-gray-50);
+
+  // Logo Filter - invert en mode clair pour les logos sombres
+  --logo-filter: invert(100%);
 }
 
 // ===== THÈME SOMBRE =====
@@ -261,4 +264,7 @@
   // Navigation Mobile en mode sombre
   --nav-mobile-separator: var(--color-gray-300);
   --nav-dropdown-mobile-bg: var(--color-gray-200);
+
+  // Logo Filter - pas de filtre en mode sombre
+  --logo-filter: none;
 }
