@@ -17,8 +17,8 @@
     width: 100%;
     overflow: hidden;
     
-    // Apparence de base
-    background: hsl(var(--color-background));
+    // Apparence de base - couleur neutre sans teinte bleue
+    background: hsl(var(--color-hero-bg));
     
     // Isolation pour le z-index
     isolation: isolate;
@@ -49,11 +49,11 @@
     grid-area: content;
     z-index: 1;
     
-    // Structure en grille
-    display: grid;
-    grid-template-columns: 1fr auto;
+    // Structure flexible pour un meilleur centrage
+    display: flex;
     align-items: center;
-    gap: var(--spacing-5xl);
+    justify-content: center;
+    gap: var(--spacing-9xl);
     
     // Contraintes et espacement
     width: 100%;
@@ -71,8 +71,9 @@
     flex-direction: column;
     justify-content: center;
     
-    // Contrainte de largeur pour la lisibilité
+    // Contrainte de largeur pour la lisibilité avec centrage
     max-width: 600px;
+    //margin: 0 auto; // Centre le contenu même avec max-width
 }
 
 // En-tête avec titre et description
@@ -140,10 +141,15 @@
     }
     
     .hero__container {
-        grid-template-columns: 1fr;
+        flex-direction: column;
         gap: var(--spacing-4xl);
         text-align: center;
         padding: var(--spacing-xl) var(--spacing-md);
+    }
+    
+    .hero__content {
+        // Retire max-width sur tablette pour éviter le décalage à gauche
+        max-width: none;
     }
     
     .hero__title {
@@ -152,7 +158,8 @@
     
     .hero__description {
         font-size: var(--font-size-base);
-        max-width: none;
+        max-width: 500px; // Garde une contrainte de largeur mais plus centrée
+        margin: 0 auto;   // Centre la description
     }
     
     .hero__cta-button {

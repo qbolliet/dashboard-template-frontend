@@ -25,7 +25,8 @@
   --color-primary-200: 212 100% 82%;  // #99d6ff - Moyen clair
   --color-primary-300: 211 100% 73%;  // #66c2ff - Moyen
   --color-primary-400: 210 100% 64%;  // #33adff - Moyen sombre
-  --color-primary-500: 209 100% 50%;  // #007acc - Principal
+  --color-primary-500: 209 79% 24%;  // #007acc - Principal
+  //--color-primary-500: 209 100% 50%;  // #007acc - Principal
   --color-primary-600: 208 100% 43%;  // #0066a3 - Sombre
   --color-primary-700: 207 100% 36%;  // #00527a - Très sombre
   --color-primary-800: 206 100% 29%;  // #003d52 - Ultra sombre
@@ -58,6 +59,10 @@
   --color-surface: var(--color-white);
   --color-border: var(--color-gray-200);
   --color-border-hover: var(--color-gray-300);
+  
+  // Couleurs de fond spécifiques aux sections
+  --color-hero-bg: 0 0% 99%;           // Gris très très clair en mode light
+  --color-cards-section-bg: 0 0% 98%;  // Gris très clair pour les sections de cartes
   
   // ===== VARIABLES GLOBALES POUR LES PAGES =====
   // Variables utilisées dans les pages et tests
@@ -159,7 +164,7 @@
 // ===== THÈME SOMBRE =====
 [data-theme="dark"] {
   // ===== REDÉFINITION DES COULEURS NEUTRES =====
-  --color-gray-50: 222 84% 5%;        // #0a0a0b - Très sombre
+  --color-gray-50: 222 20% 7%;        // #0a0a0b - Très sombre
   --color-gray-100: 220 39% 11%;      // #1a1d23 - Sombre
   --color-gray-200: 215 25% 17%;      // #2d3748 - Moyen sombre
   --color-gray-300: 215 16% 25%;      // #4a5568 - Moyen
@@ -175,9 +180,13 @@
 
   // ===== ALIAS SÉMANTIQUES REDÉFINIS =====
   --color-background: var(--color-gray-100);
-  --color-surface: var(--color-gray-200);
+  --color-surface: var(--color-gray-50);
   --color-border: var(--color-gray-300);
   --color-border-hover: var(--color-gray-400);
+  
+  // Couleurs de fond spécifiques aux sections en mode sombre
+  --color-hero-bg: 0 0% 20%;           // Gris sombre neutre (sans bleu)
+  --color-cards-section-bg: 0 0% 18%;  // Gris sombre pour les sections (plus clair que les cartes)
   
   --color-text-primary: var(--color-white);
   --color-text-secondary: var(--color-gray-500);

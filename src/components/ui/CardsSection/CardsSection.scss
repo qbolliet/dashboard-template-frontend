@@ -11,10 +11,13 @@
     
     // Espacement interne
     width: 100%;
-    max-width: 1200px;
+    //max-width: 1200px;
     margin: 0 auto;
     padding-left: var(--spacing-lg);
     padding-right: var(--spacing-lg);
+    
+    // Arrière-plan adapté au thème
+    background: hsl(var(--color-cards-section-bg));
 }
 
 // En-tête de section avec titre et description
