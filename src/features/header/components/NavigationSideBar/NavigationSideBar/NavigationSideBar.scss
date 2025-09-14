@@ -1,0 +1,185 @@
+// ===== IMPORTS =====
+@use '../../../../../styles/utils/breakpoints' as *;
+@use '../../../../../styles/globals/colors';
+@use '../../../../../styles/globals/typography';
+
+// ===== NAVIGATION SIDEBAR =====
+.navigation-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background-color: hsl(var(--color-surface));
+  border-right: 1px solid hsl(var(--color-border));
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-fixed);
+  transition: width var(--transition-normal) ease;
+  display: flex;
+  flex-direction: column;
+
+  // ===== ÉTATS DE LA SIDEBAR =====
+
+  // État ouvert
+  &--open {
+    width: 280px; // Largeur standard de la sidebar ouverte
+  }
+
+  // État fermé/collapsé
+  &--collapsed {
+    width: 64px; // Largeur minimale pour les icônes
+  }
+
+  // ===== HEADER DE LA SIDEBAR =====
+  .sidebar-header {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid hsl(var(--color-border));
+    flex-shrink: 0; // Empêche le header de rétrécir
+
+    // Ajustement du padding en mode collapsé
+    .navigation-sidebar--collapsed & {
+      padding: var(--spacing-md);
+    }
+  }
+
+  // ===== CONTENU DE LA SIDEBAR =====
+  .sidebar-content {
+    flex: 1; // Prend tout l'espace restant
+    overflow-y: auto; // Scroll si contenu déborde
+    overflow-x: hidden; // Pas de scroll horizontal
+    padding: var(--spacing-md) 0;
+
+    // Scrollbar personnalisée
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background-color: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: hsl(var(--color-gray-300));
+      border-radius: var(--border-radius-sm);
+
+      &:hover {
+        background-color: hsl(var(--color-gray-400));
+      }
+    }
+  }
+
+  // ===== RAIL DE REDIMENSIONNEMENT =====
+  .sidebar-rail {
+    position: absolute;
+    top: 0;
+    right: -2px;
+    width: 4px;
+    height: 100%;
+    cursor: col-resize;
+    opacity: 0;
+    background-color: hsl(var(--color-primary-500));
+    transition: opacity var(--transition-fast) ease;
+
+    // Visible au survol de la sidebar
+    .navigation-sidebar:hover & {
+      opacity: 1;
+    }
+
+    // Toujours visible pendant le redimensionnement
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  // ===== RESPONSIVE =====
+
+  // Tablette - réduire la largeur
+  @include breakpoint-down(medium) {
+    &--open {
+      width: 240px;
+    }
+
+    &--collapsed {
+      width: 56px;
+    }
+  }
+
+  // Mobile - overlay par défaut
+  @include breakpoint-down(small) {
+    &--open {
+      width: 100vw;
+      max-width: 320px;
+    }
+
+    // Overlay sombre sur mobile
+    &::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 100%;
+      width: 100vw;
+      height: 100vh;
+      background-color: hsl(var(--nav-overlay-bg) / 0.5);
+      z-index: -1;
+      opacity: 0;
+      transition: opacity var(--transition-normal) ease;
+    }
+
+    &--open::before {
+      opacity: 1;
+      left: 0;
+    }
+  }
+}
+
+// ===== AJUSTEMENTS GLOBAUX POUR LE CONTENU =====
+// Ces styles s'appliquent globalement quand une sidebar est présente
+// :global(body:has(.navigation-sidebar)) {
+//   // Empêcher le scroll horizontal
+//   overflow-x: hidden;
+// }
+
+// // Ajustements pour le contenu principal et le header quand la sidebar est présente
+// ::global(body:has(.navigation-sidebar--open)) {
+//   // Décalage pour le contenu principal (sur desktop seulement)
+//   @include breakpoint(medium) {
+//     .main-content,
+//     .primary-header:not(.primary-header--sidebar-mode) {
+//       margin-left: 280px;
+//     }
+//   }
+
+//   // Sur tablette, moins de décalage
+//   @include breakpoint-down(medium) {
+//     .main-content,
+//     .primary-header:not(.primary-header--sidebar-mode) {
+//       margin-left: 240px;
+//     }
+//   }
+// }
+
+// ::global(body:has(.navigation-sidebar--collapsed)) {
+//   // Décalage réduit quand sidebar collapsée
+//   @include breakpoint(medium) {
+//     .main-content,
+//     .primary-header:not(.primary-header--sidebar-mode) {
+//       margin-left: 64px;
+//     }
+//   }
+
+//   @include breakpoint-down(medium) {
+//     .main-content,
+//     .primary-header:not(.primary-header--sidebar-mode) {
+//       margin-left: 56px;
+//     }
+//   }
+// }
+
+// // Sur mobile, pas de décalage (mode overlay)
+// @include breakpoint-down(small) {
+//   ::global(body:has(.navigation-sidebar)) {
+//     .main-content,
+//     .primary-header:not(.primary-header--sidebar-mode) {
+//       margin-left: 0 !important;
+//     }
+//   }
+// }

@@ -50,6 +50,48 @@
     gap: var(--spacing-2xl); // Espacement entre la recherche et le toggle
   }
 
+  // ===== MODE SIDEBAR =====
+  &--sidebar-mode {
+    // Ajustements pour le mode sidebar
+    .left-container {
+      gap: var(--spacing-2xl); // Plus d'espace entre trigger et breadcrumb
+    }
+  }
+
+  // ===== TITRE DE LA PAGE COURANTE (BREADCRUMB) =====
+  .current-page-title {
+    display: flex;
+    align-items: center;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: hsl(var(--color-text-primary));
+    line-height: var(--line-height-tight);
+
+    span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 300px; // Limite la largeur pour éviter les débordements
+    }
+
+    // Responsive pour le breadcrumb
+    @include breakpoint-down(medium) {
+      font-size: var(--font-size-base);
+
+      span {
+        max-width: 200px;
+      }
+    }
+
+    @include breakpoint-down(small) {
+      font-size: var(--font-size-sm);
+
+      span {
+        max-width: 150px;
+      }
+    }
+  }
+
   // ===== RESPONSIVE =====
   
   // Tablette et mobile - utilisation des breakpoints du projet

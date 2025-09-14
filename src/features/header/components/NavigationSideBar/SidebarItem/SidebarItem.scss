@@ -1,0 +1,282 @@
+// ===== IMPORTS =====
+@use '../../../../../styles/utils/breakpoints' as *;
+@use '../../../../../styles/globals/colors';
+@use '../../../../../styles/globals/typography';
+
+// ===== SIDEBAR ITEM =====
+.sidebar-item {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--spacing-xs);
+
+  // ===== LIEN DE L'ITEM =====
+  &-link,
+  &-span {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius-md);
+    text-decoration: none;
+    color: hsl(var(--nav-dropdown-sublink-color));
+    font-size: var(--font-size-sm);
+    font-weight: 400;
+    line-height: var(--line-height-tight);
+    transition: all var(--transition-normal) ease;
+    cursor: pointer;
+
+    // États d'interaction pour les liens
+    &:hover {
+      background-color: hsl(var(--nav-dropdown-sublink-hover-bg));
+      color: hsl(var(--nav-dropdown-sublink-hover-color));
+      border-color: hsl(var(--color-border-hover));
+    }
+
+    &:focus {
+      outline: none;
+      border-color: hsl(var(--color-focus));
+      box-shadow: 0 0 0 2px hsl(var(--color-focus-shadow) / 0.2);
+    }
+
+    // État actif
+    &--active {
+      background-color: hsl(var(--nav-dropdown-sublink-active-bg));
+      color: hsl(var(--nav-dropdown-sublink-active-color));
+      border-color: hsl(var(--color-primary-500) / 0.3);
+      font-weight: 500;
+    }
+  }
+
+  // Styles spécifiques pour les spans (éléments non-cliquables)
+  &-span {
+    cursor: default;
+    opacity: 0.7;
+
+    &:hover {
+      background-color: transparent;
+      color: hsl(var(--nav-dropdown-sublink-color));
+      border-color: transparent;
+    }
+  }
+
+  // ===== ICÔNE DE L'ITEM =====
+  &-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--spacing-lg); // 16px
+    height: var(--spacing-lg); // 16px
+    margin-right: var(--spacing-sm);
+    flex-shrink: 0;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: hsl(var(--logo-filter)); // Appliquer le filtre du thème
+    }
+
+    // Quand sidebar collapsée, centrer l'icône et l'agrandir
+    .sidebar-item--sidebar-collapsed & {
+      margin-right: 0;
+      width: var(--spacing-xl); // 20px - plus grande quand seule
+      height: var(--spacing-xl); // 20px
+    }
+  }
+
+  // ===== TEXTE DE L'ITEM =====
+  &-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0; // Permet la troncature
+
+    // Caché quand sidebar collapsée
+    .sidebar-item--sidebar-collapsed & {
+      display: none;
+    }
+  }
+
+  // ===== INDICATEUR DE LIEN EXTERNE =====
+  &-external-indicator {
+    margin-left: var(--spacing-sm);
+    color: hsl(var(--color-text-tertiary));
+    flex-shrink: 0;
+    opacity: 0.6;
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    // Caché quand sidebar collapsée
+    .sidebar-item--sidebar-collapsed & {
+      display: none;
+    }
+
+    // Hover effect
+    .sidebar-item-link:hover & {
+      opacity: 1;
+    }
+  }
+
+  // ===== NIVEAUX D'ITEMS =====
+
+  // Niveau 0 - Items de premier niveau
+  &--level-0 {
+    .sidebar-item-link,
+    .sidebar-item-span {
+      font-weight: 500;
+      color: hsl(var(--nav-link-color));
+
+      &:hover {
+        color: hsl(var(--nav-link-hover-color));
+        background-color: hsl(var(--nav-link-hover-bg));
+      }
+
+      &--active {
+        color: hsl(var(--nav-link-active-color));
+        background-color: hsl(var(--nav-link-active-bg));
+      }
+    }
+  }
+
+  // Niveau 1 - Items de second niveau
+  &--level-1 {
+    .sidebar-item-link,
+    .sidebar-item-span {
+      padding-left: var(--spacing-lg); // Indentation réduite pour les sous-éléments
+      font-size: var(--font-size-xs);
+    }
+  }
+
+  // Niveau 2+ - Items de niveau supérieur
+  &--level-2,
+  &--level-3 {
+    .sidebar-item-link,
+    .sidebar-item-span {
+      padding-left: var(--spacing-xl);
+      font-size: var(--font-size-xs);
+      font-weight: 400;
+    }
+  }
+
+  // ===== RESPONSIVE =====
+
+  // Tablette - ajustements des tailles
+  @include breakpoint-down(medium) {
+    &-link,
+    &-span {
+      padding: var(--spacing-xs) var(--spacing-sm);
+      font-size: var(--font-size-xs);
+    }
+
+    &-icon {
+      width: var(--spacing-sm); // 8px
+      height: var(--spacing-sm); // 8px
+
+      .sidebar-item--sidebar-collapsed & {
+        width: var(--spacing-lg); // 16px
+        height: var(--spacing-lg); // 16px
+      }
+    }
+
+    // Ajustements pour les niveaux imbriqués
+    &--level-1 {
+      .sidebar-item-link,
+      .sidebar-item-span {
+        padding-left: var(--spacing-md);
+      }
+    }
+
+    &--level-2,
+    &--level-3 {
+      .sidebar-item-link,
+      .sidebar-item-span {
+        padding-left: var(--spacing-lg);
+      }
+    }
+  }
+
+  // Mobile - ajustements supplémentaires
+  @include breakpoint-down(small) {
+    &-link,
+    &-span {
+      padding: var(--spacing-xs) var(--spacing-sm);
+    }
+
+    // Sur mobile, la sidebar n'est jamais vraiment collapsée en mode overlay
+    &--sidebar-collapsed {
+      .sidebar-item-text,
+      .sidebar-item-external-indicator {
+        display: block;
+      }
+
+      .sidebar-item-icon {
+        margin-right: var(--spacing-sm);
+        width: var(--spacing-lg);
+        height: var(--spacing-lg);
+      }
+    }
+
+    // Ajustements pour les niveaux imbriqués sur mobile
+    &--level-1 {
+      .sidebar-item-link,
+      .sidebar-item-span {
+        padding-left: var(--spacing-sm);
+      }
+    }
+
+    &--level-2,
+    &--level-3 {
+      .sidebar-item-link,
+      .sidebar-item-span {
+        padding-left: var(--spacing-md);
+      }
+    }
+  }
+}
+
+// ===== TOOLTIP POUR SIDEBAR COLLAPSÉE =====
+.sidebar-item--sidebar-collapsed {
+  position: relative;
+
+  // Tooltip au survol (uniquement sur desktop)
+  @include breakpoint(medium) {
+    .sidebar-item-link:hover::after,
+    .sidebar-item-span:hover::after {
+      content: attr(title);
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      margin-left: var(--spacing-sm);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      background-color: hsl(var(--color-gray-900));
+      color: hsl(var(--color-white));
+      font-size: var(--font-size-xs);
+      font-weight: 400;
+      border-radius: var(--border-radius-sm);
+      white-space: nowrap;
+      z-index: var(--z-tooltip);
+      pointer-events: none;
+      opacity: 0;
+      animation: tooltip-in var(--transition-fast) ease forwards;
+    }
+  }
+}
+
+// ===== ANIMATION POUR LE TOOLTIP =====
+@keyframes tooltip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}

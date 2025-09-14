@@ -1,0 +1,73 @@
+'use client';
+
+import React from 'react';
+import SidebarGroup from '../SidebarGroup/SidebarGroup';
+import SidebarItem from '../SidebarItem/SidebarItem';
+import './SidebarMenu.scss';
+
+/**
+ * Sidebar menu component that renders navigation items.
+ * Handles both grouped and individual navigation items.
+ *
+ * @param {Array} navigationData - Array of navigation items to display
+ * @param {Function} onItemClick - Callback when a navigation item is clicked
+ * @param {number} level - Current nesting level (for styling purposes)
+ * @returns {JSX.Element} The rendered sidebar menu
+ */
+const SidebarMenu = ({
+    navigationData = [],
+    onItemClick,
+    level = 0
+}) => {
+    // Vérification des données de navigation
+    if (!navigationData || navigationData.length === 0) {
+        return null;
+    }
+
+    // Classes CSS pour le menu
+    const menuClasses = [
+        'sidebar-menu',
+        `sidebar-menu--level-${level}`
+    ].filter(Boolean).join(' ');
+
+    // Fonction pour déterminer si un item doit être rendu comme groupe
+    const shouldRenderAsGroup = (item) => {
+        return item.children && item.children.length > 0 && item.type === 'indicator_group';
+    };
+
+    // Fonction pour déterminer si un item doit être rendu comme lien simple
+    const shouldRenderAsItem = (item) => {
+        return !shouldRenderAsGroup(item);
+    };
+
+    return (
+        <div className={menuClasses}>
+            {navigationData.map((item, index) => {
+                // Rendu conditionnel basé sur le type d'item
+                if (shouldRenderAsGroup(item)) {
+                    return (
+                        <SidebarGroup
+                            key={item.id || index}
+                            item={item}
+                            onItemClick={onItemClick}
+                            level={level}
+                        />
+                    );
+                } else if (shouldRenderAsItem(item)) {
+                    return (
+                        <SidebarItem
+                            key={item.id || index}
+                            item={item}
+                            onItemClick={onItemClick}
+                            level={level}
+                        />
+                    );
+                }
+
+                return null;
+            })}
+        </div>
+    );
+};
+
+export default SidebarMenu;

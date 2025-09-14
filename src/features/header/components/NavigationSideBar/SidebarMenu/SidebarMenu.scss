@@ -1,0 +1,157 @@
+// ===== IMPORTS =====
+@use '../../../../../styles/utils/breakpoints' as *;
+@use '../../../../../styles/globals/colors';
+@use '../../../../../styles/globals/typography';
+
+// ===== SIDEBAR MENU =====
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: 0 var(--spacing-lg);
+
+  // ===== NIVEAUX DE MENU =====
+
+  // Niveau 0 - Items de premier niveau
+  &--level-0 {
+    // Styles par défaut
+  }
+
+  // Niveau 1 - Items de second niveau
+  &--level-1 {
+    padding-left: var(--spacing-2xl); // Indentation pour les sous-éléments
+    gap: var(--spacing-2px); // Espacement plus serré pour les sous-éléments
+
+    // Bordure à gauche pour indiquer la hiérarchie
+    &::before {
+      content: '';
+      position: absolute;
+      left: var(--spacing-xl);
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background-color: hsl(var(--color-border));
+      opacity: 0.5;
+    }
+  }
+
+  // Niveau 2 - Items de troisième niveau
+  &--level-2 {
+    padding-left: var(--spacing-3xl); // Indentation encore plus importante
+    gap: var(--spacing-2px);
+
+    &::before {
+      left: var(--spacing-2xl);
+    }
+  }
+
+  // Niveau 3+ - Items de niveau supérieur
+  &--level-3 {
+    padding-left: var(--spacing-4xl);
+    gap: var(--spacing-2px);
+
+    &::before {
+      left: var(--spacing-3xl);
+    }
+  }
+
+  // ===== ÉTATS GÉNÉRAUX =====
+
+  // Menu vide
+  &:empty {
+    display: none;
+  }
+
+  // ===== RESPONSIVE =====
+
+  // Tablette - réduire les paddings
+  @include breakpoint-down(medium) {
+    padding: 0 var(--spacing-md);
+
+    &--level-1 {
+      padding-left: var(--spacing-xl);
+
+      &::before {
+        left: var(--spacing-lg);
+      }
+    }
+
+    &--level-2 {
+      padding-left: var(--spacing-2xl);
+
+      &::before {
+        left: var(--spacing-xl);
+      }
+    }
+
+    &--level-3 {
+      padding-left: var(--spacing-3xl);
+
+      &::before {
+        left: var(--spacing-2xl);
+      }
+    }
+  }
+
+  // Mobile - paddings encore plus réduits
+  @include breakpoint-down(small) {
+    padding: 0 var(--spacing-sm);
+
+    &--level-1 {
+      padding-left: var(--spacing-lg);
+
+      &::before {
+        left: var(--spacing-md);
+      }
+    }
+
+    &--level-2 {
+      padding-left: var(--spacing-xl);
+
+      &::before {
+        left: var(--spacing-lg);
+      }
+    }
+
+    &--level-3 {
+      padding-left: var(--spacing-2xl);
+
+      &::before {
+        left: var(--spacing-xl);
+      }
+    }
+  }
+}
+
+// ===== SÉPARATEURS ENTRE GROUPES =====
+.sidebar-menu + .sidebar-menu {
+  margin-top: var(--spacing-lg);
+  position: relative;
+
+  // Ligne de séparation
+  &::before {
+    content: '';
+    position: absolute;
+    top: calc(-1 * var(--spacing-md));
+    left: var(--spacing-lg);
+    right: var(--spacing-lg);
+    height: 1px;
+    background-color: hsl(var(--nav-mobile-separator));
+    opacity: 0.3;
+  }
+
+  // Responsive pour les séparateurs
+  @include breakpoint-down(medium) {
+    &::before {
+      left: var(--spacing-md);
+      right: var(--spacing-md);
+    }
+  }
+
+  @include breakpoint-down(small) {
+    &::before {
+      left: var(--spacing-sm);
+      right: var(--spacing-sm);
+    }
+  }
+}
