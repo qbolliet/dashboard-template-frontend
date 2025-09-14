@@ -46,5 +46,6 @@ CLAUDE.md
 
 # old repository
 old_src/*
-sidebar-example/*
+shadcn-ui-sidebar-02-example/*
+shadcn-ui-sidebar-07-example/*
 old_components/*
