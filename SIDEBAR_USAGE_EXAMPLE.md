@@ -103,10 +103,16 @@ The sidebar works with your existing `navigation_new2.json` structure:
 
 ## Key Features
 
+### ✅ **Fixed Issues**
+- **Header Positioning**: Header and content now properly shift right when sidebar opens (like shadcn examples)
+- **Chevron Click Behavior**: Clicking chevron toggles dropdown instead of navigating to page
+- **Smart Icon Handling**: Sidebar hides completely when collapsed if no icons are defined
+
 ### Icon Support
 - Add `"icon": "/path/to/icon.svg"` to navigation items
-- Icons display when sidebar is collapsed
-- Falls back gracefully if icons are missing
+- Icons display when sidebar is collapsed (64px width)
+- **NEW**: When no icons exist in navigation data, collapsed sidebar disappears completely (0px width)
+- Falls back gracefully if some items have icons and others don't
 
 ### Switcher Mode
 - When `useSwitcher={true}`, first level items become switcher options
@@ -114,9 +120,15 @@ The sidebar works with your existing `navigation_new2.json` structure:
 - Automatically navigates to first available path when switching
 
 ### Collapsible Behavior
-- Sidebar can be collapsed to show only icons
+- **Fixed**: Sidebar can be collapsed to show only icons (when icons exist)
+- **Fixed**: When no icons exist, sidebar hides completely when collapsed
 - SidebarTrigger in header controls open/close state
 - Tooltips show on collapsed items (desktop only)
+
+### Navigation Interaction
+- **Fixed**: Clicking on group/item text navigates to page (if path exists)
+- **Fixed**: Clicking on chevron arrow toggles dropdown (doesn't navigate)
+- Separate click handlers for main content vs chevron
 
 ### Current Page Display
 - Header shows current page title as breadcrumb

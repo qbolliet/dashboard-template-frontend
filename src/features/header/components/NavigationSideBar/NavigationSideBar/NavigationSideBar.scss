@@ -27,6 +27,13 @@
   // État fermé/collapsé
   &--collapsed {
     width: 64px; // Largeur minimale pour les icônes
+
+    // Quand il n'y a pas d'icônes, cacher complètement la sidebar
+    &.navigation-sidebar--no-icons {
+      width: 0;
+      border-right: none;
+      box-shadow: none;
+    }
   }
 
   // ===== HEADER DE LA SIDEBAR =====
@@ -131,52 +138,74 @@
   }
 }
 
-// ===== AJUSTEMENTS GLOBAUX POUR LE CONTENU =====
-// Ces styles s'appliquent globalement quand une sidebar est présente
-// :global(body:has(.navigation-sidebar)) {
-//   // Empêcher le scroll horizontal
+// ===== STYLES GLOBAUX POUR LE DÉCALAGE DU CONTENU =====
+// Ces styles s'appliquent globalement via les classes du body
+
+// Empêcher le scroll horizontal quand la sidebar est présente
+// :global(body.sidebar-open),
+// :global(body.sidebar-collapsed) {
 //   overflow-x: hidden;
 // }
 
-// // Ajustements pour le contenu principal et le header quand la sidebar est présente
-// ::global(body:has(.navigation-sidebar--open)) {
-//   // Décalage pour le contenu principal (sur desktop seulement)
+// // Décalage pour le contenu quand la sidebar est ouverte
+// :global(body.sidebar-open) {
+//   // Desktop - décalage complet
 //   @include breakpoint(medium) {
 //     .main-content,
 //     .primary-header:not(.primary-header--sidebar-mode) {
 //       margin-left: 280px;
+//       transition: margin-left var(--transition-normal) ease;
 //     }
 //   }
 
-//   // Sur tablette, moins de décalage
+//   // Tablette - décalage réduit
 //   @include breakpoint-down(medium) {
 //     .main-content,
 //     .primary-header:not(.primary-header--sidebar-mode) {
 //       margin-left: 240px;
+//       transition: margin-left var(--transition-normal) ease;
+//     }
+//   }
+
+//   // Mobile - pas de décalage (mode overlay)
+//   @include breakpoint-down(small) {
+//     .main-content,
+//     .primary-header:not(.primary-header--sidebar-mode) {
+//       margin-left: 0;
 //     }
 //   }
 // }
 
-// ::global(body:has(.navigation-sidebar--collapsed)) {
-//   // Décalage réduit quand sidebar collapsée
+// // Décalage réduit quand la sidebar est collapsée
+// :global(body.sidebar-collapsed) {
+//   // Desktop - petit décalage pour les icônes
 //   @include breakpoint(medium) {
 //     .main-content,
 //     .primary-header:not(.primary-header--sidebar-mode) {
 //       margin-left: 64px;
+//       transition: margin-left var(--transition-normal) ease;
 //     }
 //   }
 
+//   // Tablette - petit décalage adapté
 //   @include breakpoint-down(medium) {
 //     .main-content,
 //     .primary-header:not(.primary-header--sidebar-mode) {
 //       margin-left: 56px;
+//       transition: margin-left var(--transition-normal) ease;
 //     }
 //   }
-// }
 
-// // Sur mobile, pas de décalage (mode overlay)
-// @include breakpoint-down(small) {
-//   ::global(body:has(.navigation-sidebar)) {
+//   // Mobile - pas de décalage
+//   @include breakpoint-down(small) {
+//     .main-content,
+//     .primary-header:not(.primary-header--sidebar-mode) {
+//       margin-left: 0;
+//     }
+//   }
+
+//   // Cas spécial : quand il n'y a pas d'icônes, pas de décalage du tout
+//   &:has(.navigation-sidebar--no-icons) {
 //     .main-content,
 //     .primary-header:not(.primary-header--sidebar-mode) {
 //       margin-left: 0 !important;

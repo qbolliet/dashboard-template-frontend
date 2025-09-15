@@ -21,7 +21,7 @@ const SidebarItem = ({
     level = 0
 }) => {
     // Contexte de la sidebar
-    const { isOpen: sidebarIsOpen, isActivePath } = useSidebar();
+    const { isOpen: sidebarIsOpen, hasIcons, isActivePath } = useSidebar();
 
     // Vérifier si l'item est actif
     const isActive = isActivePath(item.path);
@@ -66,15 +66,20 @@ const SidebarItem = ({
     // Contenu du lien
     const linkContent = (
         <>
-            {/* Icône de l'item (si disponible) */}
-            {item.icon && (
+            {/* Icône de l'item (si des icônes existent dans la navigation) */}
+            {hasIcons && (
                 <div className="sidebar-item-icon">
-                    <Image
-                        src={item.icon}
-                        alt=""
-                        width={20}
-                        height={20}
-                    />
+                    {item.icon ? (
+                        <Image
+                            src={item.icon}
+                            alt=""
+                            width={20}
+                            height={20}
+                        />
+                    ) : (
+                        // Espace réservé pour maintenir l'alignement quand certains items n'ont pas d'icône
+                        <div className="sidebar-item-icon-placeholder" />
+                    )}
                 </div>
             )}
 

@@ -17,6 +17,33 @@ export const useSidebar = () => {
     return context;
 };
 
+// Utilitaire pour détecter si des icônes sont présentes dans les données de navigation
+const hasIconsInNavigationData = (navigationData) => {
+    if (!navigationData || !Array.isArray(navigationData)) {
+        return false;
+    }
+
+    // Fonction récursive pour parcourir tous les niveaux
+    const checkForIcons = (items) => {
+        for (const item of items) {
+            // Si l'item a une icône, on a trouvé au moins une icône
+            if (item.icon) {
+                return true;
+            }
+
+            // Vérifier récursivement les enfants
+            if (item.children && Array.isArray(item.children)) {
+                if (checkForIcons(item.children)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    return checkForIcons(navigationData);
+};
+
 /**
  * Main sidebar navigation component.
  * Provides collapsible sidebar with navigation menu and optional switcher.
@@ -43,6 +70,26 @@ const NavigationSideBar = ({
         setIsOpen(defaultOpen);
     }, [defaultOpen]);
 
+    // Gérer les classes CSS du body pour le décalage du contenu
+    React.useEffect(() => {
+        const body = document.body;
+
+        // Nettoyer les classes existantes
+        body.classList.remove('sidebar-open', 'sidebar-collapsed');
+
+        // Ajouter la classe appropriée
+        if (isOpen) {
+            body.classList.add('sidebar-open');
+        } else {
+            body.classList.add('sidebar-collapsed');
+        }
+
+        // Nettoyer au démontage
+        return () => {
+            body.classList.remove('sidebar-open', 'sidebar-collapsed');
+        };
+    }, [isOpen]);
+
     // État pour gérer l'item sélectionné dans le switcher
     const [selectedSwitcherItem, setSelectedSwitcherItem] = useState(
         useSwitcher && navigationData.length > 0 ? navigationData[0] : null
@@ -50,6 +97,16 @@ const NavigationSideBar = ({
 
     // Hook de navigation existant
     const navigationHook = useNavigation();
+
+    // Détecter si des icônes sont présentes dans les données de navigation
+    const hasIcons = React.useMemo(() => {
+        if (useSwitcher && selectedSwitcherItem) {
+            // Si on utilise le switcher, vérifier les icônes dans l'item sélectionné
+            return hasIconsInNavigationData(selectedSwitcherItem.children || []);
+        }
+        // Sinon, vérifier dans toutes les données de navigation
+        return hasIconsInNavigationData(navigationData);
+    }, [navigationData, useSwitcher, selectedSwitcherItem]);
 
     // Toggle de la sidebar
     const toggleSidebar = () => {
@@ -93,12 +150,14 @@ const NavigationSideBar = ({
     const sidebarClasses = [
         'navigation-sidebar',
         isOpen ? 'navigation-sidebar--open' : 'navigation-sidebar--collapsed',
+        hasIcons ? 'navigation-sidebar--has-icons' : 'navigation-sidebar--no-icons',
         className
     ].filter(Boolean).join(' ');
 
     // Valeur du contexte de la sidebar
     const sidebarContextValue = {
         isOpen,
+        hasIcons,
         toggleSidebar,
         ...navigationHook
     };

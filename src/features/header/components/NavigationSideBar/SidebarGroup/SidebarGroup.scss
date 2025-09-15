@@ -9,15 +9,38 @@
   flex-direction: column;
   margin-bottom: var(--spacing-xs);
 
-  // ===== TRIGGER DU GROUPE =====
-  &-trigger {
+  // ===== CONTAINER DU TRIGGER =====
+  &-trigger-container {
     display: flex;
     align-items: center;
     width: 100%;
+    border-radius: var(--border-radius-md);
+    position: relative;
+
+    // Hover sur le container entier
+    &:hover {
+      .sidebar-group-trigger {
+        background-color: hsl(var(--nav-link-hover-bg));
+        color: hsl(var(--nav-link-hover-color));
+        border-color: hsl(var(--color-border-hover));
+      }
+
+      .sidebar-group-chevron-button {
+        background-color: hsl(var(--nav-link-hover-bg));
+        color: hsl(var(--nav-link-hover-color));
+      }
+    }
+  }
+
+  // ===== TRIGGER PRINCIPAL DU GROUPE =====
+  &-trigger {
+    display: flex;
+    align-items: center;
+    flex: 1; // Prend tout l'espace disponible
     padding: var(--spacing-sm) var(--spacing-md);
     background-color: transparent;
     border: 1px solid transparent;
-    border-radius: var(--border-radius-md);
+    border-radius: var(--border-radius-md) 0 0 var(--border-radius-md); // Arrondi seulement à gauche
     cursor: pointer;
     text-decoration: none;
     color: hsl(var(--nav-link-color));
@@ -28,12 +51,6 @@
     text-align: left;
 
     // États d'interaction
-    &:hover {
-      background-color: hsl(var(--nav-link-hover-bg));
-      color: hsl(var(--nav-link-hover-color));
-      border-color: hsl(var(--color-border-hover));
-    }
-
     &:focus {
       outline: none;
       border-color: hsl(var(--color-focus));
@@ -50,6 +67,11 @@
     // Ajustements pour les liens (balise a)
     &[href] {
       text-decoration: none;
+    }
+
+    // Quand il n'y a pas de chevron, arrondir aussi à droite
+    .sidebar-group-trigger-container:not(:has(.sidebar-group-chevron-button)) & {
+      border-radius: var(--border-radius-md);
     }
   }
 
@@ -78,6 +100,19 @@
     }
   }
 
+  // ===== PLACEHOLDER POUR ICÔNE MANQUANTE =====
+  &-icon-placeholder {
+    width: var(--spacing-lg); // 16px - même taille que l'icône
+    height: var(--spacing-lg); // 16px
+    flex-shrink: 0;
+
+    // Quand sidebar collapsée, même taille que l'icône
+    .sidebar-group--sidebar-collapsed & {
+      width: var(--spacing-xl); // 20px
+      height: var(--spacing-xl); // 20px
+    }
+  }
+
   // ===== TEXTE DU GROUPE =====
   &-text {
     flex: 1;
@@ -92,11 +127,42 @@
     }
   }
 
+  // ===== BOUTON CHEVRON SÉPARÉ =====
+  &-chevron-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-sm);
+    margin: 0;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-left: none; // Pas de bordure à gauche pour fusionner avec le trigger
+    border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; // Arrondi seulement à droite
+    cursor: pointer;
+    color: hsl(var(--color-text-tertiary));
+    transition: all var(--transition-normal) ease;
+    flex-shrink: 0;
+
+    &:focus {
+      outline: none;
+      border-color: hsl(var(--color-focus));
+      box-shadow: 0 0 0 2px hsl(var(--color-focus-shadow) / 0.2);
+    }
+
+    &:hover {
+      color: hsl(var(--color-text-secondary));
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
   // ===== CHEVRON D'EXPANSION =====
   &-chevron {
-    margin-left: var(--spacing-sm);
-    color: hsl(var(--color-text-tertiary));
-    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: transform var(--transition-normal) ease;
 
     &-icon {
@@ -107,11 +173,6 @@
     // Rotation quand groupe expanded
     .sidebar-group--expanded & {
       transform: rotate(90deg);
-    }
-
-    // Caché quand sidebar collapsée
-    .sidebar-group--sidebar-collapsed & {
-      display: none;
     }
   }
 
