@@ -103,7 +103,11 @@ The sidebar works with your existing `navigation_new2.json` structure:
 
 ## Key Features
 
-### ✅ **Fixed Issues**
+### ✅ **Fixed Issues & New Features**
+- **Header Integration**: Sidebar now integrated into header left-container with automatic spacing
+- **Logo Placement**: Logo appears in sidebar header (when useSwitcher=false) or main header (topbar mode)
+- **Multi-level Dropdowns**: Now supports unlimited nested navigation levels like TopBar
+- **Rounded Borders**: Seamless visual integration between trigger and chevron areas
 - **Header Positioning**: Header and content now properly shift right when sidebar opens (like shadcn examples)
 - **Chevron Click Behavior**: Clicking chevron toggles dropdown instead of navigating to page
 - **Smart Icon Handling**: Sidebar hides completely when collapsed if no icons are defined
@@ -126,8 +130,10 @@ The sidebar works with your existing `navigation_new2.json` structure:
 - Tooltips show on collapsed items (desktop only)
 
 ### Navigation Interaction
+- **Enhanced**: Now supports unlimited nesting levels (previously limited to 2 levels)
 - **Fixed**: Clicking on group/item text navigates to page (if path exists)
 - **Fixed**: Clicking on chevron arrow toggles dropdown (doesn't navigate)
+- **Improved**: Seamless rounded borders throughout the interface
 - Separate click handlers for main content vs chevron
 
 ### Current Page Display

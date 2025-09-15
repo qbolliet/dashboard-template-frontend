@@ -5,17 +5,15 @@
 
 // ===== NAVIGATION SIDEBAR =====
 .navigation-sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
+  position: relative; // Changé de fixed à relative pour intégration dans le header
   height: 100vh;
   background-color: hsl(var(--color-surface));
   border-right: 1px solid hsl(var(--color-border));
   box-shadow: var(--shadow-md);
-  z-index: var(--z-fixed);
   transition: width var(--transition-normal) ease;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0; // Empêche la sidebar de rétrécir
 
   // ===== ÉTATS DE LA SIDEBAR =====
 
@@ -45,6 +43,40 @@
     // Ajustement du padding en mode collapsé
     .navigation-sidebar--collapsed & {
       padding: var(--spacing-md);
+    }
+  }
+
+  // ===== CONTAINER LOGO SIMPLE =====
+  .sidebar-logo-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+
+    .sidebar-logo {
+      width: var(--spacing-3xl); // 32px
+      height: var(--spacing-3xl); // 32px
+      object-fit: contain;
+      filter: var(--logo-filter);
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo-text {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      color: hsl(var(--color-text-primary));
+      white-space: nowrap;
+
+      // Caché quand sidebar collapsée
+      .navigation-sidebar--collapsed & {
+        display: none;
+      }
+    }
+
+    // Centrer le logo quand sidebar collapsée
+    .navigation-sidebar--collapsed & {
+      justify-content: center;
+      padding: var(--spacing-sm);
     }
   }
 

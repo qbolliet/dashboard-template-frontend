@@ -40,7 +40,7 @@
     padding: var(--spacing-sm) var(--spacing-md);
     background-color: transparent;
     border: 1px solid transparent;
-    border-radius: var(--border-radius-md) 0 0 var(--border-radius-md); // Arrondi seulement à gauche
+    border-radius: var(--border-radius-md); // Arrondi partout par défaut
     cursor: pointer;
     text-decoration: none;
     color: hsl(var(--nav-link-color));
@@ -69,9 +69,11 @@
       text-decoration: none;
     }
 
-    // Quand il n'y a pas de chevron, arrondir aussi à droite
-    .sidebar-group-trigger-container:not(:has(.sidebar-group-chevron-button)) & {
-      border-radius: var(--border-radius-md);
+    // Quand il y a un chevron, ajuster le border-radius à droite
+    .sidebar-group-trigger-container:has(.sidebar-group-chevron-button) & {
+      border-top-right-radius: 0;
+      border-bottom-right-radius: 0;
+      margin-right: -1px; // Éviter la double bordure
     }
   }
 
@@ -136,7 +138,6 @@
     margin: 0;
     background-color: transparent;
     border: 1px solid transparent;
-    border-left: none; // Pas de bordure à gauche pour fusionner avec le trigger
     border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; // Arrondi seulement à droite
     cursor: pointer;
     color: hsl(var(--color-text-tertiary));

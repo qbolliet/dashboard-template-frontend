@@ -32,7 +32,8 @@ const SidebarMenu = ({
 
     // Fonction pour déterminer si un item doit être rendu comme groupe
     const shouldRenderAsGroup = (item) => {
-        return item.children && item.children.length > 0 && item.type === 'indicator_group';
+        // Un item est un groupe s'il a des enfants, peu importe son type
+        return item.children && Array.isArray(item.children) && item.children.length > 0;
     };
 
     // Fonction pour déterminer si un item doit être rendu comme lien simple

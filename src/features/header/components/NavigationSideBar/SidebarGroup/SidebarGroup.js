@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSidebar } from '../NavigationSideBar/NavigationSideBar';
-import SidebarMenu from '../SidebarMenu/SidebarMenu';
+import SidebarItem from '../SidebarItem/SidebarItem';
 import './SidebarGroup.scss';
 
 /**
@@ -95,6 +95,37 @@ const SidebarGroup = ({
     // Déterminer si on a des enfants à afficher
     const hasChildren = item.children && item.children.length > 0;
 
+    // Fonction récursive pour rendre le contenu imbriqué (inspirée de DropdownContentRenderer)
+    const renderNestedContent = (children, currentLevel) => {
+        if (!children || !Array.isArray(children) || children.length === 0) {
+            return null;
+        }
+
+        return children.map((child, index) => {
+            // Si l'enfant a des sous-enfants, créer un groupe imbriqué
+            if (child.children && Array.isArray(child.children) && child.children.length > 0) {
+                return (
+                    <SidebarGroup
+                        key={child.id || index}
+                        item={child}
+                        onItemClick={onItemClick}
+                        level={currentLevel}
+                    />
+                );
+            } else {
+                // Sinon, créer un item simple
+                return (
+                    <SidebarItem
+                        key={child.id || index}
+                        item={child}
+                        onItemClick={onItemClick}
+                        level={currentLevel}
+                    />
+                );
+            }
+        });
+    };
+
     // Déterminer le composant wrapper (Link, button ou div)
     const TriggerComponent = item.path && item.path !== '#' ? Link : 'button';
     const triggerProps = item.path && item.path !== '#'
@@ -164,14 +195,10 @@ const SidebarGroup = ({
                 )}
             </div>
 
-            {/* Contenu collapsible */}
-            {isExpanded && item.children && item.children.length > 0 && sidebarIsOpen && (
+            {/* Contenu collapsible - supportant plusieurs niveaux */}
+            {isExpanded && hasChildren && sidebarIsOpen && (
                 <div className="sidebar-group-content">
-                    <SidebarMenu
-                        navigationData={item.children}
-                        onItemClick={onItemClick}
-                        level={level + 1}
-                    />
+                    {renderNestedContent(item.children, level + 1)}
                 </div>
             )}
         </div>

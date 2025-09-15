@@ -54,7 +54,17 @@
   &--sidebar-mode {
     // Ajustements pour le mode sidebar
     .left-container {
-      gap: var(--spacing-2xl); // Plus d'espace entre trigger et breadcrumb
+      gap: 0; // Pas de gap, la sidebar gère son propre espacement
+      padding-left: 0; // Pas de padding à gauche car la sidebar commence au bord
+    }
+
+    // Container pour le contenu du header après la sidebar
+    .header-content-container {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-2xl);
+      padding-left: var(--spacing-lg); // Espace après la sidebar
+      flex: 1; // Prend le reste de l'espace
     }
   }
 

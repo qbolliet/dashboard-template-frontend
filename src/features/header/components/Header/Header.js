@@ -70,32 +70,35 @@ const Header = ({
 
     return (
         <>
-            {/* Sidebar de navigation (si mode sidebar) */}
-            {isSidebarMode && (
-                <NavigationSideBar
-                    navigationData={navigationData}
-                    onItemClick={onNavigationItemClick}
-                    useSwitcher={useSwitcher}
-                    defaultOpen={sidebarOpen}
-                    key={`sidebar-${sidebarOpen}`} // Force re-render on state change
-                />
-            )}
-
             {/* Header principal */}
             <header className={`primary-header ${isSidebarMode ? 'primary-header--sidebar-mode' : ''}`}>
-                {/* Conteneur de gauche : Logo/Trigger + Navigation/Breadcrumb */}
-                <div className="left-container">
+                {/* Conteneur de gauche : Sidebar/Logo + Trigger/Navigation + Breadcrumb */}
+                <div className="left-container" style={{
+                    '--sidebar-width': sidebarOpen ? '280px' : '64px'
+                }}>
                     {isSidebarMode ? (
                         <>
-                            {/* Trigger pour ouvrir/fermer la sidebar */}
-                            <SidebarTrigger
-                                isOpen={sidebarOpen}
-                                onToggle={handleSidebarToggle}
+                            {/* Sidebar de navigation intégrée */}
+                            <NavigationSideBar
+                                navigationData={navigationData}
+                                onItemClick={onNavigationItemClick}
+                                useSwitcher={useSwitcher}
+                                defaultOpen={sidebarOpen}
+                                key={`sidebar-${sidebarOpen}`} // Force re-render on state change
                             />
 
-                            {/* Titre de la page courante (breadcrumb) */}
-                            <div className="current-page-title">
-                                <span>{getCurrentPageTitle()}</span>
+                            {/* Container pour trigger et breadcrumb */}
+                            <div className="header-content-container">
+                                {/* Trigger pour ouvrir/fermer la sidebar */}
+                                <SidebarTrigger
+                                    isOpen={sidebarOpen}
+                                    onToggle={handleSidebarToggle}
+                                />
+
+                                {/* Titre de la page courante (breadcrumb) */}
+                                <div className="current-page-title">
+                                    <span>{getCurrentPageTitle()}</span>
+                                </div>
                             </div>
                         </>
                     ) : (

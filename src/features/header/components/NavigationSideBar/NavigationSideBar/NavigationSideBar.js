@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, createContext, useContext } from 'react';
+import Image from 'next/image';
 import { useNavigation } from '../../../hooks/useNavigation';
 import SidebarSwitcher from '../SidebarSwitcher/SidebarSwitcher';
 import SidebarMenu from '../SidebarMenu/SidebarMenu';
@@ -70,25 +71,7 @@ const NavigationSideBar = ({
         setIsOpen(defaultOpen);
     }, [defaultOpen]);
 
-    // Gérer les classes CSS du body pour le décalage du contenu
-    React.useEffect(() => {
-        const body = document.body;
-
-        // Nettoyer les classes existantes
-        body.classList.remove('sidebar-open', 'sidebar-collapsed');
-
-        // Ajouter la classe appropriée
-        if (isOpen) {
-            body.classList.add('sidebar-open');
-        } else {
-            body.classList.add('sidebar-collapsed');
-        }
-
-        // Nettoyer au démontage
-        return () => {
-            body.classList.remove('sidebar-open', 'sidebar-collapsed');
-        };
-    }, [isOpen]);
+    // Plus besoin de gérer les classes CSS du body car la sidebar est maintenant intégrée dans le header
 
     // État pour gérer l'item sélectionné dans le switcher
     const [selectedSwitcherItem, setSelectedSwitcherItem] = useState(
@@ -165,14 +148,31 @@ const NavigationSideBar = ({
     return (
         <SidebarContext.Provider value={sidebarContextValue}>
             <aside className={sidebarClasses} data-sidebar-open={isOpen}>
-                {/* Header de la sidebar avec switcher optionnel */}
+                {/* Header de la sidebar avec logo ou switcher */}
                 <div className="sidebar-header">
-                    {useSwitcher && navigationData.length > 0 && (
+                    {useSwitcher && navigationData.length > 0 ? (
+                        // Mode switcher : afficher le switcher avec logo intégré
                         <SidebarSwitcher
                             items={navigationData}
                             selectedItem={selectedSwitcherItem}
                             onSelectionChange={handleSwitcherChange}
                         />
+                    ) : (
+                        // Mode normal : afficher seulement le logo
+                        <div className="sidebar-logo-container">
+                            <Image
+                                src='/logo.svg'
+                                alt="Logo du site"
+                                width={40}
+                                height={40}
+                                className="sidebar-logo"
+                            />
+                            {isOpen && (
+                                <span className="sidebar-logo-text">
+                                    Mon Site
+                                </span>
+                            )}
+                        </div>
                     )}
                 </div>
 
