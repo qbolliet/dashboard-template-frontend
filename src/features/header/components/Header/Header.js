@@ -69,7 +69,17 @@ const Header = ({
     const isSidebarMode = navigationType === 'sidebar';
 
     return (
-        <>
+        <>   
+            {/* Sidebar de navigation intégrée */}
+            {isSidebarMode && (
+                <NavigationSideBar
+                    navigationData={navigationData}
+                    onItemClick={onNavigationItemClick}
+                    useSwitcher={useSwitcher}
+                    defaultOpen={sidebarOpen}
+                    key={`sidebar-${sidebarOpen}`}
+                />
+            )}
             {/* Header principal */}
             <header className={`primary-header ${isSidebarMode ? 'primary-header--sidebar-mode' : ''}`}>
                 {/* Conteneur de gauche : Sidebar/Logo + Trigger/Navigation + Breadcrumb */}
@@ -77,30 +87,18 @@ const Header = ({
                     '--sidebar-width': sidebarOpen ? '280px' : '64px'
                 }}>
                     {isSidebarMode ? (
-                        <>
-                            {/* Sidebar de navigation intégrée */}
-                            <NavigationSideBar
-                                navigationData={navigationData}
-                                onItemClick={onNavigationItemClick}
-                                useSwitcher={useSwitcher}
-                                defaultOpen={sidebarOpen}
-                                key={`sidebar-${sidebarOpen}`} // Force re-render on state change
+                        <div className="header-content-container">
+                            {/* Trigger pour ouvrir/fermer la sidebar */}
+                            <SidebarTrigger
+                                isOpen={sidebarOpen}
+                                onToggle={handleSidebarToggle}
                             />
 
-                            {/* Container pour trigger et breadcrumb */}
-                            <div className="header-content-container">
-                                {/* Trigger pour ouvrir/fermer la sidebar */}
-                                <SidebarTrigger
-                                    isOpen={sidebarOpen}
-                                    onToggle={handleSidebarToggle}
-                                />
-
-                                {/* Titre de la page courante (breadcrumb) */}
-                                <div className="current-page-title">
-                                    <span>{getCurrentPageTitle()}</span>
-                                </div>
+                            {/* Titre de la page courante (breadcrumb) */}
+                            <div className="current-page-title">
+                                <span>{getCurrentPageTitle()}</span>
                             </div>
-                        </>
+                        </div>
                     ) : (
                         <>
                             {/* Logo de l'application */}
