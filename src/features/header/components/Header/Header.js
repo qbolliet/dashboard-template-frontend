@@ -68,8 +68,40 @@ const Header = ({
 
     const isSidebarMode = navigationType === 'sidebar';
 
+    // Fonction pour détecter si des icônes sont présentes dans les données de navigation
+    const hasIconsInNavigationData = React.useMemo(() => {
+        if (!navigationData || !Array.isArray(navigationData)) {
+            return false;
+        }
+
+        const checkForIcons = (items) => {
+            for (const item of items) {
+                if (item.icon) {
+                    return true;
+                }
+                if (item.children && Array.isArray(item.children)) {
+                    if (checkForIcons(item.children)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
+
+        return checkForIcons(navigationData);
+    }, [navigationData]);
+
+    // Calculer la largeur de la sidebar pour la variable CSS
+    const getSidebarWidth = () => {
+        if (sidebarOpen) {
+            return '280px';
+        }
+        // Quand fermée, vérifier s'il y a des icônes
+        return hasIconsInNavigationData ? '64px' : '0px';
+    };
+
     return (
-        <>   
+        <>
             {/* Sidebar de navigation intégrée */}
             {isSidebarMode && (
                 <NavigationSideBar
@@ -84,7 +116,8 @@ const Header = ({
             <header className={`primary-header ${isSidebarMode ? 'primary-header--sidebar-mode' : ''}`}>
                 {/* Conteneur de gauche : Sidebar/Logo + Trigger/Navigation + Breadcrumb */}
                 <div className="left-container" style={{
-                    '--sidebar-width': sidebarOpen ? '280px' : '32px'
+                    '--sidebar-width': getSidebarWidth(),
+                    '--sidebar-spacing': getSidebarWidth() === '0px' ? '0px' : 'var(--spacing-lg)'
                 }}>
                     {isSidebarMode ? (
                         <>

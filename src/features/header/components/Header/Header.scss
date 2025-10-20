@@ -55,9 +55,9 @@
     // Ajustements pour le mode sidebar
     .left-container {
       gap: var(--spacing-2xl); // Gap entre le trigger et le breadcrumb
-      padding-left: var(--spacing-lg); // Espace après la sidebar
-      margin-left: calc(var(--sidebar-width, 280px) - var(--spacing-3xl)); // Décalage pour la sidebar fixe - padding du header
-      transition: margin-left var(--transition-normal) ease; // Transition fluide lors de l'ouverture/fermeture
+      margin-left: max(0px, calc(var(--sidebar-width, 280px) - var(--spacing-3xl))); // Décalage pour la sidebar fixe (jamais négatif)
+      padding-left: var(--sidebar-spacing, var(--spacing-lg)); // Espace après la sidebar (0 si sidebar width = 0, var(--spacing-lg) sinon)
+      transition: margin-left var(--transition-normal) ease, padding-left var(--transition-normal) ease; // Transition fluide lors de l'ouverture/fermeture
       flex: 1; // Prend le reste de l'espace
     }
   }

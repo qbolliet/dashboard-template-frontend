@@ -53,6 +53,11 @@
     transition: all var(--transition-normal) ease;
     text-align: left;
 
+    // Hover discret sur le trigger seul
+    &:hover {
+      border-color: hsl(var(--color-border) / 0.5);
+    }
+
     // États d'interaction
     &:focus {
       outline: none;
@@ -70,13 +75,6 @@
     // Ajustements pour les liens (balise a)
     &[href] {
       text-decoration: none;
-    }
-
-    // Quand il y a un chevron, ajuster le border-radius à droite
-    .sidebar-group-trigger-container:has(.sidebar-group-chevron-button) & {
-      //border-top-right-radius: 0;
-      //border-bottom-right-radius: 0;
-      margin-right: -1px; // Éviter la double bordure
     }
   }
 
@@ -154,8 +152,11 @@
       box-shadow: 0 0 0 2px hsl(var(--color-focus-shadow) / 0.2);
     }
 
+    // Hover discret sur le chevron - fond légèrement plus sombre
     &:hover {
+      border-color: hsl(var(--color-border) / 0.5);
       color: hsl(var(--color-text-secondary));
+      background-color: hsl(var(--color-gray-200) / 0.5);
     }
 
     &:active {
@@ -207,7 +208,7 @@
     &::before {
       content: '';
       position: absolute;
-      left: var(--spacing-2xl);
+      //left: var(--spacing-2xl);
       top: 0;
       bottom: 0;
       width: 1px;
@@ -220,7 +221,35 @@
 
   // Niveau 0 - Groupes de premier niveau
   &--level-0 {
-    // Styles par défaut
+    // Harmonisation avec sidebar-item--level-0
+    .sidebar-group-trigger {
+      font-weight: 500;
+      color: hsl(var(--nav-link-color));
+
+      &:hover {
+        color: hsl(var(--nav-link-hover-color));
+        background-color: hsl(var(--nav-link-hover-bg));
+      }
+
+      &--active {
+        color: hsl(var(--nav-link-active-color));
+        background-color: hsl(var(--nav-link-active-bg));
+      }
+    }
+
+    // Harmoniser le container hover avec le niveau 0
+    .sidebar-group-trigger-container:hover {
+      background-color: hsl(var(--nav-link-hover-bg));
+
+      .sidebar-group-trigger {
+        color: hsl(var(--nav-link-hover-color));
+        background-color: hsl(var(--nav-link-hover-bg));
+      }
+
+      .sidebar-group-chevron-button {
+        color: hsl(var(--nav-link-hover-color));
+      }
+    }
   }
 
   // Niveau 1+ - Groupes imbriqués
@@ -235,9 +264,9 @@
     .sidebar-group-content {
       padding-left: var(--spacing-lg);
 
-      &::before {
-        left: var(--spacing-xl);
-      }
+      // &::before {
+      //   left: var(--spacing-xl);
+      // }
     }
   }
 
@@ -263,9 +292,9 @@
     &-content {
       padding-left: var(--spacing-lg);
 
-      &::before {
-        left: var(--spacing-lg);
-      }
+      // &::before {
+      //   left: var(--spacing-lg);
+      // }
     }
   }
 
@@ -278,9 +307,9 @@
     &-content {
       padding-left: var(--spacing-md);
 
-      &::before {
-        left: var(--spacing-md);
-      }
+      // &::before {
+      //   left: var(--spacing-md);
+      // }
     }
 
     // Sur mobile, la sidebar n'est jamais vraiment collapsée en mode overlay
