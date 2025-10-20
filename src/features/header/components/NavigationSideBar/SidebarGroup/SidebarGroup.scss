@@ -62,7 +62,7 @@
     &:focus {
       outline: none;
       border-color: hsl(var(--color-focus));
-      box-shadow: 0 0 0 2px hsl(var(--color-focus-shadow) / 0.2);
+      //box-shadow: 0 0 0 2px hsl(var(--color-focus-shadow) / 0.2);
     }
 
     // État actif
@@ -149,7 +149,7 @@
     &:focus {
       outline: none;
       border-color: hsl(var(--color-focus));
-      box-shadow: 0 0 0 2px hsl(var(--color-focus-shadow) / 0.2);
+      //box-shadow: 0 0 0 2px hsl(var(--color-focus-shadow) / 0.2);
     }
 
     // Hover discret sur le chevron - fond légèrement plus sombre
