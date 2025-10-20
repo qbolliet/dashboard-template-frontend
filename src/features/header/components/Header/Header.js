@@ -87,7 +87,7 @@ const Header = ({
                     '--sidebar-width': sidebarOpen ? '280px' : '32px'
                 }}>
                     {isSidebarMode ? (
-                        <div className="header-content-container">
+                        <>
                             {/* Trigger pour ouvrir/fermer la sidebar */}
                             <SidebarTrigger
                                 isOpen={sidebarOpen}
@@ -98,7 +98,7 @@ const Header = ({
                             <div className="current-page-title">
                                 <span>{getCurrentPageTitle()}</span>
                             </div>
-                        </div>
+                        </>
                     ) : (
                         <>
                             {/* Logo de l'application */}

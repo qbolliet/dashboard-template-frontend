@@ -19,10 +19,13 @@
 
     // Hover sur le container entier
     &:hover {
+      background-color: hsl(var(--nav-link-hover-bg));
+      color: hsl(var(--nav-link-hover-color));
+      border-color: hsl(var(--color-border-hover));
+
       .sidebar-group-trigger {
         background-color: hsl(var(--nav-link-hover-bg));
         color: hsl(var(--nav-link-hover-color));
-        border-color: hsl(var(--color-border-hover));
       }
 
       .sidebar-group-chevron-button {
@@ -71,8 +74,8 @@
 
     // Quand il y a un chevron, ajuster le border-radius à droite
     .sidebar-group-trigger-container:has(.sidebar-group-chevron-button) & {
-      border-top-right-radius: 0;
-      border-bottom-right-radius: 0;
+      //border-top-right-radius: 0;
+      //border-bottom-right-radius: 0;
       margin-right: -1px; // Éviter la double bordure
     }
   }
@@ -138,7 +141,8 @@
     margin: 0;
     background-color: transparent;
     border: 1px solid transparent;
-    border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; // Arrondi seulement à droite
+    border-radius: var(--border-radius-md);
+    //border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; // Arrondi seulement à droite
     cursor: pointer;
     color: hsl(var(--color-text-tertiary));
     transition: all var(--transition-normal) ease;
