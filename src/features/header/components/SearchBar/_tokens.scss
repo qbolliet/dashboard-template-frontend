@@ -1,0 +1,46 @@
+// ===== TOKENS DU COMPOSANT SEARCHBAR =====
+// Dimensions et spacing spécifiques à la SearchBar
+//
+// Pour les couleurs, voir _colors.scss dans ce même dossier
+
+// Importation des breakpoints
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  // ===== DIMENSIONS =====
+  --search-height: 2.25rem;
+  --search-min-width: 12rem;
+  --search-max-width: 20rem;
+
+  // ===== SPACING =====
+  --search-padding-x: var(--spacing-md);  // 0.75rem
+  --search-padding-y: var(--spacing-sm);  // 0.5rem
+  --search-gap: var(--spacing-sm);        // 0.5rem : Gap entre icône et input
+
+  // ===== ICÔNES =====
+  --search-icon-size: 1.25rem;            // 1.25rem : Taille des icônes (search et clear)
+
+  // ===== BORDER =====
+  --search-border-width: 1px;
+  --search-border-radius: var(--border-radius-md);  // 0.375rem
+
+  // ===== TRANSITIONS =====
+  --search-transition: var(--transition-normal);  // 0.2s
+
+  // ===== SUGGESTIONS DROPDOWN =====
+  --suggestions-max-height: 20rem;
+  --suggestions-item-padding-y: var(--spacing-sm);   // 0.5rem
+  --suggestions-item-padding-x: var(--spacing-md);   // 0.75rem
+  --suggestions-gap: var(--spacing-sm);              // Gap entre icône et texte
+  --suggestions-icon-size: 1.125rem;                 // Taille de l'icône dans les suggestions
+  --suggestions-border-radius: var(--border-radius-md);
+}
+
+// ===== RESPONSIVE =====
+@include breakpoint-down('small') {
+  :root {
+    // Réduction de la largeur minimale sur mobile
+    --search-min-width: 8rem;
+    --search-padding-x: var(--spacing-sm);  // Padding réduit sur mobile
+  }
+}

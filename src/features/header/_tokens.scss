@@ -1,0 +1,44 @@
+// ===== TOKENS DE LA FEATURE HEADER =====
+// Variables partagées entre tous les composants du header
+// (NavigationTopBar, NavigationSideBar, SearchBar, ThemeToggle, etc.)
+//
+// ⚠️ RÈGLE : Si une variable n'est utilisée que dans UN composant, la mettre dans
+// features/header/components/[Composant]/_tokens.scss
+
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  // ===== DIMENSIONS PRINCIPALES =====
+  --header-height: 4rem;
+  --header-padding-x: var(--spacing-lg);  // 1rem
+  --header-padding-y: var(--spacing-md);  // 0.75rem
+
+  // ===== SYNCHRONISATION AVEC AUTRES FEATURES =====
+  // La sidebar utilise cette variable pour aligner son header avec le topbar
+  --sidebar-header-height: var(--header-height);
+
+  // ===== SPACING INTERNE =====
+  --header-gap: var(--spacing-md);        // Gap entre les éléments principaux
+  --header-logo-gap: var(--spacing-sm);   // Gap autour du logo
+
+  // ===== DIMENSIONS CALCULÉES =====
+  // Hauteur du contenu interne (en tenant compte du padding vertical)
+  --header-content-height: calc(var(--header-height) - (var(--header-padding-y) * 2));
+
+  // ===== Z-INDEX =====
+  --header-z-index: var(--z-sticky);
+
+  // ===== LOGO =====
+  // Hauteur maximale du logo (80% de la hauteur du contenu)
+  --header-logo-max-height: calc(var(--header-content-height) * 0.8);
+}
+
+// ===== RESPONSIVE =====
+@include breakpoint-down('small') {
+  :root {
+    // Réduction de la hauteur sur mobile
+    --header-height: 3.5rem;
+    --header-padding-x: var(--spacing-md);  // 0.75rem
+    --header-gap: var(--spacing-sm);        // Gap réduit sur mobile
+  }
+}

@@ -1,0 +1,16 @@
+// ===== TOKENS DU COMPOSANT THEMETOGGLE =====
+// Dimensions et spacing spécifiques au bouton de changement de thème
+//
+// Pour les couleurs, voir _colors.scss dans ce même dossier
+
+:root {
+  // ===== DIMENSIONS =====
+  --theme-toggle-size: 2.5rem;          // Taille du bouton carré
+  --theme-toggle-icon-size: 1.25rem;    // Taille de l'icône (lune/soleil)
+
+  // ===== BORDER =====
+  --theme-toggle-border-radius: var(--border-radius-md);  // 0.375rem
+
+  // ===== TRANSITIONS =====
+  --theme-toggle-transition: var(--transition-normal);  // 0.2s
+}

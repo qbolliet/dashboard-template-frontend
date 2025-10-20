@@ -1,0 +1,65 @@
+// ===== TOKENS SÉMANTIQUES GLOBAUX =====
+// Ce fichier contient les alias de couleurs utilisés par PLUSIEURS features
+// Ces tokens référencent les primitives de styles/globals/primitives/colors.scss
+//
+// ⚠️ RÈGLE : Si un token n'est utilisé que dans UNE feature, le mettre dans features/[feature]/_colors.scss
+
+// Importation des couleurs primitives
+@use '../primitives/colors' as *;
+
+:root {
+  // ===== COULEURS DE BASE DE L'INTERFACE =====
+  --color-background: var(--color-gray-50);
+  --color-surface: var(--color-white);
+  --color-border: var(--color-gray-200);
+  --color-border-hover: var(--color-gray-300);
+
+  // Couleurs de fond spécifiques aux sections
+  --color-hero-bg: 0 0% 99%;           // Gris très très clair en mode light
+  --color-cards-section-bg: 0 0% 98%;  // Gris très clair pour les sections de cartes
+
+  // ===== COULEURS DE TEXTE =====
+  --color-text-primary: var(--color-gray-900);
+  --color-text-secondary: var(--color-gray-600);
+  --color-text-tertiary: var(--color-gray-500);
+  --color-text-disabled: var(--color-gray-400);
+  --color-text-on-primary: var(--color-white);
+
+  // ===== COULEURS D'INTERACTION =====
+  --color-focus: var(--color-primary-500);
+  --color-focus-shadow: var(--color-primary-200);
+
+  // ===== VARIABLES GLOBALES POUR LES PAGES =====
+  // /!\ Variables utilisées dans les pages et tests (legacy - à migrer progressivement)
+  --bg-color: var(--color-background);
+  --text-color: var(--color-text-primary);
+  --heading-color: var(--color-gray-900);
+  --card-bg: var(--color-gray-100);
+  --border-color: var(--color-border);
+  --code-bg: var(--color-gray-100);
+}
+
+// ===== THÈME SOMBRE =====
+[data-theme="dark"] {
+  // ===== COULEURS DE BASE =====
+  --color-background: var(--color-gray-100);
+  --color-surface: var(--color-gray-50);
+  --color-border: var(--color-gray-300);
+  --color-border-hover: var(--color-gray-400);
+
+  // Couleurs de fond spécifiques aux sections en mode sombre
+  --color-hero-bg: 0 0% 20%;           // Gris sombre neutre (sans bleu)
+  --color-cards-section-bg: 0 0% 18%;  // Gris sombre pour les sections (plus clair que les cartes)
+
+  // ===== COULEURS DE TEXTE =====
+  --color-text-primary: var(--color-white);
+  --color-text-secondary: var(--color-gray-500);
+  --color-text-tertiary: var(--color-gray-400);
+  --color-text-disabled: var(--color-gray-300);
+
+  // ===== VARIABLES GLOBALES (MODE SOMBRE) ===== /!\
+  --text-color: var(--color-text-primary);
+  --heading-color: var(--color-white);
+  --card-bg: var(--color-gray-200);
+  --code-bg: var(--color-gray-100);
+}

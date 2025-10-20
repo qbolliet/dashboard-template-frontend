@@ -1,0 +1,64 @@
+// ===== COULEURS DU COMPOSANT SEARCHBAR =====
+// Couleurs spécifiques à la SearchBar et ses suggestions
+//
+// Pour les dimensions, voir _tokens.scss dans ce même dossier
+
+// Importation des couleurs
+@use '@/styles/globals/tokens/semantic-colors' as *;
+
+:root {
+  // ===== SEARCHBAR - ÉTATS DE BASE =====
+  --search-bg: var(--color-gray-50);
+  --search-border: var(--color-gray-200);
+  --search-text: var(--color-text-primary);
+  --search-placeholder: var(--color-text-tertiary);
+
+  // ===== SEARCHBAR - ÉTATS INTERACTIFS =====
+  --search-border-hover: var(--color-gray-300);
+  --search-border-focus: var(--color-primary-500);
+  --search-shadow-focus: var(--color-primary-200);
+
+  // ===== SEARCHBAR - ICÔNES =====
+  --search-icon: var(--color-text-tertiary);
+  --search-clear: var(--color-text-tertiary);
+  --search-clear-hover: var(--color-text-secondary);
+  --search-clear-hover-bg: var(--color-gray-100);
+
+  // ===== SUGGESTIONS DROPDOWN =====
+  --suggestions-bg: var(--color-white);
+  --suggestions-border: var(--color-gray-200);
+  --suggestions-shadow: var(--color-white);
+
+  // ===== SUGGESTIONS - ITEMS =====
+  --suggestion-text: var(--color-text-primary);
+  --suggestion-icon: var(--color-text-tertiary);
+  --suggestion-separator: var(--color-gray-100);
+
+  // ===== SUGGESTIONS - ÉTATS INTERACTIFS =====
+  --suggestion-hover-bg: var(--color-gray-50);
+  --suggestion-selected-bg: var(--color-primary-50);
+}
+
+// ===== THÈME SOMBRE =====
+[data-theme="dark"] {
+  // ===== SEARCHBAR - ÉTATS DE BASE =====
+  --search-bg: var(--color-gray-200);
+  --search-border: var(--color-gray-300);
+  --search-text: var(--color-text-primary);
+  --search-placeholder: var(--color-text-tertiary);
+
+  // ===== SEARCHBAR - ÉTATS INTERACTIFS =====
+  --search-border-hover: var(--color-gray-400);
+
+  // ===== SEARCHBAR - ICÔNES =====
+  --search-clear-hover-bg: var(--color-gray-300);
+
+  // ===== SUGGESTIONS DROPDOWN =====
+  --suggestions-bg: var(--color-gray-50);
+  --suggestions-border: var(--color-gray-300);
+  --suggestion-separator: var(--color-gray-300);
+
+  // ===== SUGGESTIONS - ÉTATS INTERACTIFS =====
+  --suggestion-hover-bg: var(--color-gray-200);
+  --suggestion-selected-bg: 211 80% 20%;  // Bleu sombre pour la sélection
+}

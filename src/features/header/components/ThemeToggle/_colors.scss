@@ -1,0 +1,24 @@
+// ===== COULEURS DU COMPOSANT THEMETOGGLE =====
+// Couleurs spécifiques au bouton de changement de thème
+//
+// Pour les dimensions, voir _tokens.scss dans ce même dossier
+
+:root {
+  // ===== THEME TOGGLE - ÉTATS DE BASE =====
+  --theme-toggle-icon: var(--color-text-secondary);
+
+  // ===== THEME TOGGLE - ÉTATS INTERACTIFS =====
+  --theme-toggle-icon-hover: var(--color-text-primary);
+  --theme-toggle-bg-hover: var(--color-gray-100);
+
+  // ===== THEME TOGGLE - FOCUS =====
+  --theme-toggle-border-focus: var(--color-gray-400);
+  --theme-toggle-shadow-focus: var(--color-gray-200);
+}
+
+// ===== THÈME SOMBRE =====
+[data-theme="dark"] {
+  // ===== THEME TOGGLE - ÉTATS INTERACTIFS =====
+  --theme-toggle-bg-hover: var(--color-gray-300);
+  --theme-toggle-icon-hover: var(--color-gray-500);
+}
