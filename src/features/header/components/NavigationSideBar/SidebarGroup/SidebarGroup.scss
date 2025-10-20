@@ -176,8 +176,8 @@
       height: var(--spacing-lg);
     }
 
-    // Rotation quand groupe expanded
-    .sidebar-group--expanded & {
+    // Rotation quand groupe expanded - seulement pour l'enfant direct
+    .sidebar-group--expanded > .sidebar-group-trigger-container > .sidebar-group-chevron-button & {
       transform: rotate(90deg);
     }
   }
