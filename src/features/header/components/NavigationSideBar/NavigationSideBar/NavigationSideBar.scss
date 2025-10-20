@@ -5,7 +5,9 @@
 
 // ===== NAVIGATION SIDEBAR =====
 .navigation-sidebar {
-  position: relative; // Changé de fixed à relative pour intégration dans le header
+  position: fixed; // Position fixed pour rester collée à gauche lors du scroll
+  top: 0;
+  left: 0;
   height: 100vh;
   background-color: hsl(var(--color-surface));
   border-right: 1px solid hsl(var(--color-border));
@@ -14,6 +16,7 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0; // Empêche la sidebar de rétrécir
+  z-index: calc(var(--z-fixed) + 1); // Au-dessus du header
 
   // ===== ÉTATS DE LA SIDEBAR =====
 
@@ -36,7 +39,7 @@
 
   // ===== HEADER DE LA SIDEBAR =====
   .sidebar-header {
-    padding: var(--spacing-lg);
+    padding: var(--spacing-md);
     border-bottom: 1px solid hsl(var(--color-border));
     flex-shrink: 0; // Empêche le header de rétrécir
 

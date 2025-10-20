@@ -84,7 +84,7 @@ const Header = ({
             <header className={`primary-header ${isSidebarMode ? 'primary-header--sidebar-mode' : ''}`}>
                 {/* Conteneur de gauche : Sidebar/Logo + Trigger/Navigation + Breadcrumb */}
                 <div className="left-container" style={{
-                    '--sidebar-width': sidebarOpen ? '280px' : '64px'
+                    '--sidebar-width': sidebarOpen ? '280px' : '32px'
                 }}>
                     {isSidebarMode ? (
                         <div className="header-content-container">

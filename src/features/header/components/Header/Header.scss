@@ -56,6 +56,8 @@
     .left-container {
       gap: 0; // Pas de gap, la sidebar gère son propre espacement
       padding-left: 0; // Pas de padding à gauche car la sidebar commence au bord
+      margin-left: calc(var(--sidebar-width, 280px) - var(--spacing-3xl)); // Décalage pour la sidebar fixe - padding du header
+      transition: margin-left var(--transition-normal) ease; // Transition fluide lors de l'ouverture/fermeture
     }
 
     // Container pour le contenu du header après la sidebar

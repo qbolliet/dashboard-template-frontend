@@ -179,6 +179,7 @@
 
   // ===== CONTENU COLLAPSIBLE =====
   &-content {
+    position: relative; // Nécessaire pour le positionnement du ::before
     overflow: hidden;
     transition: all var(--transition-normal) ease;
     padding-left: var(--spacing-xl); // Indentation pour les éléments enfants
