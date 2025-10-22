@@ -57,7 +57,7 @@
   width: 100%;
   height: 100%;
   // Padding: droite pour le bouton clear, gauche pour l'icône + sa position
-  padding: var(--search-padding-y) calc(var(--search-icon-x) + var(--search-icon-size) + var(--search-gap)) var(--search-padding-y) calc(var(--search-icon-left) + var(--search-icon-size) + var(--search-gap));
+  padding: var(--search-padding-y) calc(var(--search-icon-x) + var(--search-icon-size) + var(--search-gap)) var(--search-padding-y) calc(var(--search-icon-x) + var(--search-icon-size) + var(--search-gap));
   border: none;
   background: transparent;
   color: hsl(var(--search-text));
@@ -198,7 +198,7 @@
 // Seules les modifications spécifiques au composant sont ici
 
 // Tablette
-@include breakpoints.breakpoint-down(medium)  {
+@include breakpoint-down(medium)  {
   .search-input {
     font-size: var(--font-size-base); // Éviter le zoom sur iOS
 
@@ -209,7 +209,7 @@
 }
 
 // Mobile
-@include breakpoints.breakpoint-down(small)  {
+@include breakpoint-down(small)  {
   .search-input {
     // Calcul du padding pour mobile avec icône plus petite
     padding: var(--search-padding-y) var(--spacing-3xl) var(--search-padding-y) var(--spacing-3xl);
