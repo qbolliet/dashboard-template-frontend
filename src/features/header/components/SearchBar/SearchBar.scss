@@ -1,6 +1,11 @@
-@use '../../../../styles/globals/typography';
-@use '../../../../styles/globals/colors';
-@use '../../../../styles/utils/breakpoints';
+// Importation des modules
+@use '_colors' as *;
+@use '_tokens' as *;
+@use '../../../../styles/globals/typography' as *;
+@use '../../../../styles/utils/breakpoints' as *;
+
+// @use '../../../../styles/globals/colors';
+
 
 // ===== VARIABLES LOCALES =====
 $search-height: calc(var(--spacing-3xl) + var(--spacing-xs)); // ~36px
@@ -10,13 +15,13 @@ $transition-duration: var(--transition-normal);
 .search-container {
   position: relative;
   width: 100%;
-  max-width: 20rem; // 320px
+  max-width: var(--search-max-width);
   
   // État focus du conteneur
   &.search-container--focused {
     .search-form {
       border-color: hsl(var(--search-border-focus));
-      box-shadow: 0 0 0 var(--spacing-2px) hsl(var(--search-shadow-focus) / 0.2);
+      box-shadow: 0 0 0 var(--search-shadow-with) hsl(var(--search-shadow-focus) / 0.2);
     }
   }
 }
@@ -27,11 +32,11 @@ $transition-duration: var(--transition-normal);
   display: flex;
   align-items: center;
   width: 100%;
-  height: $search-height;
+  height: var(--search-height);
   background-color: hsl(var(--search-bg));
-  border: 1px solid hsl(var(--search-border));
+  border: var(--search-border-width) solid hsl(var(--search-border));
   border-radius: var(--border-radius-md);
-  transition: all $transition-duration ease;
+  transition: all var(--search-transition) ease;
   
   &:hover {
     border-color: hsl(var(--search-border-hover));
@@ -49,8 +54,8 @@ $transition-duration: var(--transition-normal);
   z-index: 2;
   
   svg {
-    width: 1rem;
-    height: 1rem;
+    width: var(--search-icon-size);
+    height: var(--search-icon-size);
   }
 }
 
@@ -58,7 +63,7 @@ $transition-duration: var(--transition-normal);
 .search-input {
   width: 100%;
   height: 100%;
-  padding: 0 var(--spacing-4xl) 0 calc(var(--spacing-3xl) + var(--spacing-xs));
+  padding: 0 var(--spacing-4xl) 0 var(--search-height);
   border: none;
   background: transparent;
   color: hsl(var(--search-text));
