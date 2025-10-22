@@ -1,30 +1,30 @@
-@use '../../../../styles/globals/typography';
-@use '../../../../styles/globals/colors';
-@use '../../../../styles/utils/breakpoints';
+// Importation des modules
+@use './tokens' as *;
+@use './colors' as *;
+@use '@/styles/utils/breakpoints' as *;
 
 // ===== BOUTON PRINCIPAL =====
-.theme-toggle { 
+.theme-toggle {
     // Reset des styles de bouton par défaut
     background: none;
     border: none;
     margin: 0;
     padding: 0;
-    // margin-right: clamp(var(--spacing-lg), 3vh, var(--spacing-3xl));
-    
+
     // Taille exacte avec box-sizing pour inclure la bordure
-    inline-size: var(--spacing-2xl);
-    block-size: var(--spacing-2xl);
+    inline-size: var(--theme-toggle-size);
+    block-size: var(--theme-toggle-size);
     aspect-ratio: 1;
-    border-radius: var(--border-radius-full);
+    border-radius: var(--theme-toggle-border-radius);
     box-sizing: border-box;
 
     // Curseur
     cursor: pointer;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
-    
+
     // Transition douce pour tous les états
-    transition: all var(--transition-slow) ease;
+    transition: all var(--theme-toggle-transition) ease;
     
     // Positionnement pour centrer le SVG
     display: flex;
@@ -35,23 +35,23 @@
     &:hover {
         background-color: hsl(var(--theme-toggle-bg-hover));
         border-color: hsl(var(--theme-toggle-icon-hover) / 0.3);
-        transform: scale(1.05);
-        
+        transform: scale(var(--theme-toggle-scale-hover));
+
         // Rotation au survol du SVG
         .sun-and-moon {
-            transform: rotate(15deg);
+            transform: rotate(var(--theme-toggle-rotate-hover));
         }
     }
     
     &:focus {
         outline: none;
         border-color: hsl(var(--theme-toggle-border-focus));
-        box-shadow: 0 0 0 var(--spacing-2px) hsl(var(--theme-toggle-shadow-focus) / 0.3);
+        box-shadow: 0 0 0 var(--theme-toggle-focus-ring-width) hsl(var(--theme-toggle-shadow-focus) / 0.3);
     }
-    
+
     &:active,
     &.theme-toggle--clicked {
-        transform: scale(0.95);
+        transform: scale(var(--theme-toggle-scale-active));
     }
     
     // État de transition - désactiver les interactions
@@ -64,14 +64,11 @@
         inline-size: 100%;
         block-size: 100%;
         stroke-linecap: round;
-        transition: transform var(--transition-slow) ease;
+        transition: transform var(--theme-toggle-transition) ease;
     }
     
     // ===== RESPONSIVE =====
-    @include breakpoints.breakpoint-down(small) {
-        inline-size: var(--spacing-xl);
-        block-size: var(--spacing-xl);
-        
+    @include breakpoint-down(small) {
         &:hover {
             transform: none; // Désactiver l'effet de survol sur mobile
         }
@@ -84,14 +81,14 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    
+
     .spinner {
-        width: var(--font-size-xs);
-        height: var(--font-size-xs);
-        border: 2px solid hsl(var(--theme-toggle-icon) / 0.3);
-        border-top: 2px solid hsl(var(--theme-toggle-icon));
-        border-radius: var(--border-radius-full);
-        animation: spin 0.8s linear infinite;
+        width: var(--theme-toggle-spinner-size);
+        height: var(--theme-toggle-spinner-size);
+        border: var(--theme-toggle-border-width) solid hsl(var(--theme-toggle-icon) / 0.3);
+        border-top: var(--theme-toggle-border-width) solid hsl(var(--theme-toggle-icon));
+        border-radius: var(--theme-toggle-border-radius);
+        animation: spin var(--theme-toggle-spinner-transition) linear infinite;
     }
 }
 

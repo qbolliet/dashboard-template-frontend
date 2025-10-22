@@ -1,6 +1,6 @@
 // Importation des modules
-@use '_colors' as *;
-@use '_tokens' as *;
+@use './colors' as *;
+@use './tokens' as *;
 @use '../../../../styles/globals/typography' as *;
 @use '../../../../styles/utils/breakpoints' as *;
 
