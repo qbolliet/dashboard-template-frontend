@@ -4,13 +4,6 @@
 @use '../../../../styles/globals/typography' as *;
 @use '../../../../styles/utils/breakpoints' as *;
 
-// @use '../../../../styles/globals/colors';
-
-
-// ===== VARIABLES LOCALES =====
-$search-height: calc(var(--spacing-3xl) + var(--spacing-xs)); // ~36px
-$transition-duration: var(--transition-normal);
-
 // ===== CONTENEUR PRINCIPAL =====
 .search-container {
   position: relative;
@@ -21,7 +14,7 @@ $transition-duration: var(--transition-normal);
   &.search-container--focused {
     .search-form {
       border-color: hsl(var(--search-border-focus));
-      box-shadow: 0 0 0 var(--search-shadow-with) hsl(var(--search-shadow-focus) / 0.2);
+      box-shadow: 0 0 0 var(--search-shadow-width) hsl(var(--search-shadow-focus) / 0.2);
     }
   }
 }
@@ -46,7 +39,7 @@ $transition-duration: var(--transition-normal);
 // ===== ICÔNE DE RECHERCHE =====
 .search-icon {
   position: absolute;
-  left: var(--spacing-md);
+  left: var(--search-icon-x);
   display: flex;
   align-items: center;
   color: hsl(var(--search-icon));
@@ -63,13 +56,14 @@ $transition-duration: var(--transition-normal);
 .search-input {
   width: 100%;
   height: 100%;
-  padding: 0 var(--spacing-4xl) 0 var(--search-height);
+  // Padding: droite pour le bouton clear, gauche pour l'icône + sa position
+  padding: var(--search-padding-y) calc(var(--search-icon-x) + var(--search-icon-size) + var(--search-gap)) var(--search-padding-y) calc(var(--search-icon-left) + var(--search-icon-size) + var(--search-gap));
   border: none;
   background: transparent;
   color: hsl(var(--search-text));
   font-size: var(--font-size-sm);
   font-family: inherit;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--search-border-radius);
   outline: none;
   
   &::placeholder {
@@ -99,34 +93,32 @@ $transition-duration: var(--transition-normal);
 // ===== BOUTON D'EFFACEMENT =====
 .search-clear {
   position: absolute;
-  right: var(--spacing-sm);
+  right: var(--search-icon-x);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--spacing-xl);
-  height: var(--spacing-xl);
   padding: 0;
   border: none;
   background: transparent;
   color: hsl(var(--search-clear));
   border-radius: var(--border-radius-sm);
   cursor: pointer;
-  transition: all $transition-duration ease;
+  transition: all var(--search-transition) ease;
   z-index: 2;
-  
+
   &:hover {
     background-color: hsl(var(--search-clear-hover-bg));
     color: hsl(var(--search-clear-hover));
   }
-  
+
   &:focus {
-    outline: 2px solid hsl(var(--search-border-focus));
-    outline-offset: 1px;
+    outline: var(--search-shadow-width) solid hsl(var(--search-border-focus));
+    outline-offset: var(--spacing-px);
   }
   
   svg {
-    width: var(--font-size-sm);
-    height: var(--font-size-sm);
+    width: var(--search-icon-size);
+    height: var(--search-icon-size);
   }
 }
 
@@ -137,15 +129,15 @@ $transition-duration: var(--transition-normal);
   left: 0;
   right: 0;
   background-color: hsl(var(--suggestions-bg));
-  border: 1px solid hsl(var(--suggestions-border));
-  border-radius: var(--border-radius-md);
+  border: var(--search-border-width) solid hsl(var(--suggestions-border));
+  border-radius: var(--suggestions-border-radius);
   box-shadow: var(--shadow-lg);
-  max-height: 18.75rem;
+  max-height: var(--suggestions-max-height);
   overflow-y: auto;
-  z-index: 1000;
+  z-index: var(--z-dropdown);
   
   // Animation d'apparition
-  animation: slideDown var(--transition-normal) ease;
+  animation: slideDown var(--search-transition) ease;
   
   @keyframes slideDown {
     from {
@@ -163,10 +155,10 @@ $transition-duration: var(--transition-normal);
 .search-suggestion {
   display: flex;
   align-items: center;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--suggestions-item-padding-y) var(--suggestions-item-padding-x);
   cursor: pointer;
-  transition: background-color $transition-duration ease;
-  border-bottom: 1px solid hsl(var(--suggestion-separator));
+  transition: background-color var(--search-transition) ease;
+  border-bottom: var(--search-border-width) solid hsl(var(--suggestion-separator));
   
   &:last-child {
     border-bottom: none;
@@ -182,13 +174,13 @@ $transition-duration: var(--transition-normal);
   
   // Icône de la suggestion
   &__icon {
-    margin-right: var(--spacing-sm);
+    margin-right: var(--suggestions-gap);
     color: hsl(var(--suggestion-icon));
     flex-shrink: 0;
-    
+
     svg {
-      width: var(--font-size-sm);
-      height: var(--font-size-sm);
+      width: var(--suggestions-icon-size);
+      height: var(--suggestions-icon-size);
     }
   }
   
@@ -202,16 +194,14 @@ $transition-duration: var(--transition-normal);
 }
 
 // ===== RESPONSIVE =====
+// Les breakpoints modifient les tokens via _tokens.scss
+// Seules les modifications spécifiques au composant sont ici
 
 // Tablette
 @include breakpoints.breakpoint-down(medium)  {
-  .search-container {
-    max-width: 17.5rem; // 280px
-  }
-  
   .search-input {
     font-size: var(--font-size-base); // Éviter le zoom sur iOS
-    
+
     &::placeholder {
       font-size: var(--font-size-sm);
     }
@@ -220,40 +210,13 @@ $transition-duration: var(--transition-normal);
 
 // Mobile
 @include breakpoints.breakpoint-down(small)  {
-  .search-container {
-    max-width: 12.5rem; // 200px
-  }
-  
-  .search-form {
-    height: var(--spacing-3xl); // ~32px
-  }
-  
   .search-input {
-    padding: 0 var(--spacing-3xl) 0 var(--spacing-3xl);
+    // Calcul du padding pour mobile avec icône plus petite
+    padding: var(--search-padding-y) var(--spacing-3xl) var(--search-padding-y) var(--spacing-3xl);
     font-size: var(--font-size-sm);
-    
+
     &::placeholder {
       font-size: var(--font-size-xs);
-    }
-  }
-  
-  .search-icon {
-    left: var(--spacing-sm);
-    
-    svg {
-      width: var(--font-size-sm);
-      height: var(--font-size-sm);
-    }
-  }
-  
-  .search-clear {
-    right: calc(var(--spacing-sm) + var(--spacing-2px));
-    width: calc(var(--spacing-lg) + var(--spacing-2px));
-    height: calc(var(--spacing-lg) + var(--spacing-2px));
-    
-    svg {
-      width: var(--font-size-xs);
-      height: var(--font-size-xs);
     }
   }
 }
