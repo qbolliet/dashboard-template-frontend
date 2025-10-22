@@ -12,19 +12,19 @@
   --search-max-width: 20rem;
 
   // ===== SPACING =====
-  --search-padding-y: 0rem ;  // 0rem
+  --search-padding-y: 0;       // 0rem
   --search-gap: var(--spacing-sm); // 0.5rem : Gap entre icône et input
 
   // ===== ICÔNES =====
-  --search-icon-x: var(--spacing-md); // 0.75rem
-  --search-icon-size: 1rem;           // 1rem : Taille des icones search et clear
+  --search-icon-x: var(--spacing-md);          // 0.75rem
+  --search-icon-size: var(--font-size-base);   // 1rem : Taille des icones search et clear
 
   // ===== BORDER =====
-  --search-border-width: var(--spacing-px);  // 1px
+  --search-border-width: 1px;                       // 1px
   --search-border-radius: var(--border-radius-md);  // 0.375rem
 
   // ===== SHADOW =====
-  --search-shadow-width: var(--spacing-2px);  // 2px
+  --search-shadow-width: 2px;  // 2px
 
   // ===== TRANSITIONS =====
   --search-transition: var(--transition-normal);  // 0.2s
@@ -34,25 +34,27 @@
   --suggestions-item-padding-y: var(--spacing-sm);   // 0.5rem
   --suggestions-item-padding-x: var(--spacing-md);   // 0.75rem
   --suggestions-gap: var(--spacing-sm);              // Gap entre icône et texte
-  --suggestions-icon-size: 0.875rem;                 // Taille de l'icône dans les suggestions
+  --suggestions-icon-size: var(--font-size-sm);      // Taille de l'icône dans les suggestions
   --suggestions-border-radius: var(--border-radius-md);
 }
 
 // ===== RESPONSIVE =====
+// Tablette
 @include breakpoint-down('medium') {
   :root {
-    // Tablette
-    --search-max-width: 17.5rem;  // 280px
+    // ===== DIMENSIONS =====
+    --search-max-width: 17.5rem;
   }
 }
 
+// Mobile
 @include breakpoint-down('small') {
   :root {
-    // Mobile
-    --search-max-width: 12.5rem;  // 200px
-    --search-height: 2rem;  // ~32px (réduit sur mobile)
+    // ===== DIMENSIONS =====
+    --search-max-width: 12.5rem;
+    --search-height: 2rem;
     // ===== ICÔNES =====
-    --search-icon-x: var(--spacing-sm); // 0.5rem
-    --search-icon-size: 0.875rem;       // 0.875rem : Taille des icones search et clear
+    --search-icon-x: var(--spacing-sm);            // 0.5rem
+    --search-icon-size: var(--font-size-sm);       // 0.875rem : Taille des icones search et clear
   }
 }
