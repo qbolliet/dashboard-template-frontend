@@ -31,10 +31,6 @@
 @use '../../../../../styles/utils/breakpoints' as *;
 @use '../../../../../styles/globals/typography' as *;
 
-// ----- Variables SCSS locales -----
-// Utilisées pour les animations responsive (max-height)
-$dropdown-mobile-max-height: 500px;            // Hauteur max du dropdown sur mobile
-$dropdown-mobile-sublist-max-height: 300px;    // Hauteur max des sublists sur mobile
 
 // =================================================================
 // ÉLÉMENT DE NAVIGATION AVEC DROPDOWN
@@ -441,7 +437,7 @@ $dropdown-mobile-sublist-max-height: 300px;    // Hauteur max des sublists sur m
 
         // État ouvert : hauteur maximale
         &--open {
-            max-height: $dropdown-mobile-max-height;
+            max-height: var(--nav-dropdown-max-height);
         }
 
         // === Structure des groupes ===
@@ -494,7 +490,7 @@ $dropdown-mobile-sublist-max-height: 300px;    // Hauteur max des sublists sur m
 
             // État expanded
             &--expanded {
-                max-height: $dropdown-mobile-sublist-max-height;
+                max-height: var(--nav-dropdown-sublist-max-height);
             }
         }
 

@@ -31,9 +31,7 @@
   --nav-dropdown-translate-y: calc(var(--spacing-sm) * -1);  // -0.5rem (-8px)
 
   // ----- Dropdown Mobile -----
-  // Hauteurs maximales pour les animations d'expansion sur mobile
-  --nav-dropdown-mobile-max-height: 500px;      // Hauteur max du dropdown principal
-  --nav-dropdown-sublist-max-height: 300px;     // Hauteur max des sous-listes
+  
 
   // =================================================================
   // SPACING (ESPACEMENTS)
@@ -165,6 +163,10 @@
     // ----- Chevrons -----
     // Taille légèrement augmentée pour faciliter l'interaction tactile
     --nav-dropdown-chevron-size: var(--font-size-3xl);  // 1.75rem (28px)
+
+    // Hauteurs maximales pour les animations d'expansion sur mobile
+    --nav-dropdown-max-height: 500px;      // Hauteur max du dropdown principal
+    --nav-dropdown-sublist-max-height: 300px;     // Hauteur max des sous-listes
   }
 }
 
