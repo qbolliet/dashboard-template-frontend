@@ -1,70 +1,109 @@
-// Importation des modules
+// =================================================================
+// DROPDOWN NAVIGATION ITEM
+// =================================================================
+//
+// Composant d'élément de navigation avec menu dropdown complexe
+//
+// Structure du composant :
+// - .nav-item--dropdown : Conteneur principal de l'élément
+//   - .nav-item__header : En-tête contenant le lien et le bouton toggle
+//     - .nav-link : Lien principal de navigation
+//     - .dropdown-toggle-button : Bouton pour ouvrir/fermer le dropdown (dans NavigationItem.jsx)
+//   - .nav-dropdown : Menu dropdown (simple ou avec groupes)
+//     - Mode simple : .nav-dropdown__list > .nav-dropdown__item > .nav-dropdown__link
+//     - Mode groupes : .nav-dropdown__groups > .nav-dropdown__group
+//       - .nav-dropdown__group-header-wrapper
+//         - .nav-dropdown__group-header : En-tête/lien du groupe
+//         - .nav-dropdown__group-chevron : Bouton pour expand/collapse (mobile)
+//       - .nav-dropdown__sublist > .nav-dropdown__subitem > .nav-dropdown__sublink
+//
+// Comportement responsive :
+// - Desktop : Dropdown en position absolute sous l'élément, animation fade + translate
+// - Mobile/Tablette : Dropdown en position static, animation height avec accordéon
+//
+// Pour les tokens (dimensions, spacing, etc.), voir ./_tokens.scss
+// Pour les couleurs, voir ../../../_colors.scss
+
+// ----- Importation des modules -----
 @use '../../../colors' as *;
 @use '../tokens' as *;
 @use './tokens' as *;
 @use '../../../../../styles/utils/breakpoints' as *;
 @use '../../../../../styles/globals/typography' as *;
 
+// ----- Variables SCSS locales -----
+// Utilisées pour les animations responsive (max-height)
+$dropdown-mobile-max-height: 500px;            // Hauteur max du dropdown sur mobile
+$dropdown-mobile-sublist-max-height: 300px;    // Hauteur max des sublists sur mobile
 
-// ===== DROPDOWN NAVIGATION ITEM =====
-// Élément de navigation avec dropdown complexe
+// =================================================================
+// ÉLÉMENT DE NAVIGATION AVEC DROPDOWN
+// =================================================================
 .nav-item--dropdown {
-    // Reset des styles de base
+    // Positionnement de base pour permettre le dropdown en absolute (desktop)
     position: relative;
-    
-    // En-tête de l'élément avec lien et bouton dropdown
+
+    // ----- En-tête de l'élément -----
+    // Conteneur du lien principal et du bouton toggle dropdown
     .nav-item__header {
         display: flex;
         align-items: center;
-        
-        // Sur mobile, justifier l'espace entre le lien et le bouton
+
+        // Sur mobile/tablette : placer le lien et le bouton aux extrémités
         @include breakpoint-down('medium') {
             justify-content: space-between;
             width: 100%;
         }
     }
-    
-    // Lien principal 
+
+    // ----- Lien principal de navigation -----
     .nav-link {
-        // Disposition
+        // === Disposition ===
         display: inline-flex;
         align-items: center;
-        padding: var(--nav-dropdown-link-padding-y) var(--nav-dropdown-link-padding-right) var(--nav-dropdown-link-padding-y) var(--nav-dropdown-link-padding-left); // Moins d'espacement à droite pour le bouton dropdown
-        
-        // Couleurs et styles
+        // Padding avec moins d'espace à droite pour le bouton dropdown
+        padding: var(--nav-dropdown-link-padding-y) var(--nav-dropdown-link-padding-right) var(--nav-dropdown-link-padding-y) var(--nav-dropdown-link-padding-left);
+
+        // === Apparence ===
         color: hsl(var(--nav-link-color));
+        background-color: transparent;
         text-decoration: none;
         font-weight: var(--nav-link-font-weight);
         font-size: var(--nav-dropdown-link-font-size);
         border-radius: var(--nav-dropdown-link-border-radius);
+        white-space: nowrap;  // Empêcher le retour à la ligne
+
+        // Transition douce pour tous les changements
         transition: all var(--nav-dropdown-link-transition) ease;
-        white-space: nowrap;
-        
-        // États d'interaction
+
+        // === États d'interaction ===
+
+        // Hover : survol de la souris
         &:hover {
             color: hsl(var(--nav-link-hover-color));
             background-color: hsl(var(--nav-link-hover-bg));
         }
-        
+
+        // Focus : navigation au clavier
         &:focus {
             outline: var(--nav-focus-outline-width) solid hsl(var(--nav-link-focus-color));
             outline-offset: var(--nav-focus-outline-width);
         }
-        
-        // État actif
+
+        // Active : page actuellement affichée
         &--active {
             color: hsl(var(--nav-link-active-color));
             background-color: hsl(var(--nav-link-active-bg));
             font-weight: var(--nav-link-font-weight-active);
         }
-        
-        // État avec enfant actif
+
+        // Has active child : une page enfant est actuellement affichée
         &--has-active-child {
             color: hsl(var(--nav-link-active-child-color));
             background-color: hsl(var(--nav-link-active-child-bg));
         }
 
-        // Sur mobile, prendre toute la largeur disponible
+        // === Responsive Mobile/Tablette ===
         @include breakpoint-down('medium') {
             width: 100%;
             padding: var(--nav-dropdown-link-padding-y) var(--nav-dropdown-link-padding-right) var(--nav-dropdown-link-padding-y) var(--nav-dropdown-link-padding-left);
@@ -72,64 +111,84 @@
     }
 }
 
-// ===== DROPDOWN MENU =====
+// =================================================================
+// MENU DROPDOWN
+// =================================================================
 .nav-dropdown {
-    // Positionnement desktop
+    // === Positionnement Desktop ===
+    // Positionné sous l'élément parent
     position: absolute;
     top: 100%;
     left: 0;
     min-width: var(--nav-dropdown-min-width);
-    
-    // Couleurs et forme
+    z-index: var(--z-dropdown);
+
+    // === Apparence ===
     background-color: hsl(var(--nav-dropdown-bg));
     border: 1px solid hsl(var(--nav-dropdown-border));
     border-radius: var(--nav-dropdown-border-radius);
     box-shadow: 0 var(--spacing-xs) var(--spacing-md) hsla(var(--nav-dropdown-shadow) / 0.1);
     padding: var(--nav-dropdown-padding-y) var(--nav-dropdown-padding-x);
-    z-index: var(--z-dropdown);
-    
-    // Animation d'apparition
+
+    // === Animation d'apparition (Desktop) ===
+    // Par défaut : masqué et décalé vers le haut
     opacity: 0;
     visibility: hidden;
     transform: translateY(var(--nav-dropdown-translate-y));
     transition: all var(--nav-dropdown-transition-duration) ease;
-    
-    // État ouvert
+
+    // État ouvert : visible et en position normale
     &--open {
         opacity: 1;
         visibility: visible;
         transform: translateY(0);
     }
     
-    // ===== LISTE SIMPLE =====
+    // -----------------------------------------------------------------
+    // LISTE SIMPLE (sans groupes)
+    // -----------------------------------------------------------------
+    // Liste de liens simples, sans hiérarchie ni groupes
+
     &__list {
+        // Reset des styles de liste par défaut
         list-style: none;
         margin: 0;
         padding: var(--nav-dropdown-item-padding);
+
+        // Disposition en colonne avec espacement
         display: flex;
         flex-direction: column;
         gap: var(--nav-dropdown-item-gap);
     }
-    
+
     &__item {
         margin: 0;
     }
-    
+
     &__link {
+        // === Disposition ===
         display: block;
         padding: var(--nav-dropdown-link-simple-padding-y) var(--nav-dropdown-link-simple-padding-x);
+
+        // === Apparence ===
         color: hsl(var(--nav-dropdown-link-color));
         text-decoration: none;
         font-size: var(--nav-dropdown-link-font-size);
         font-weight: var(--nav-dropdown-link-weight);
-        transition: all var(--nav-dropdown-link-transition) ease;
         border-radius: var(--nav-dropdown-link-border-radius);
-        
+
+        // Transition douce
+        transition: all var(--nav-dropdown-link-transition) ease;
+
+        // === États ===
+
+        // Hover
         &:hover {
             color: hsl(var(--nav-dropdown-link-hover-color));
             background-color: hsl(var(--nav-dropdown-link-hover-bg));
         }
-        
+
+        // Active : lien de la page actuelle
         &--active {
             color: hsl(var(--nav-dropdown-link-active-color));
             background-color: hsl(var(--nav-dropdown-link-active-bg));
@@ -137,83 +196,100 @@
         }
     }
     
-    // ===== GROUPES AVEC SOUS-ÉLÉMENTS =====
+    // -----------------------------------------------------------------
+    // GROUPES AVEC SOUS-ÉLÉMENTS (structure hiérarchique)
+    // -----------------------------------------------------------------
+    // Container des groupes avec séparateurs verticaux (desktop)
+
     &__groups {
         display: flex;
         flex-direction: row;
-        gap: 0;
+        gap: 0;  // Pas d'espace, les séparateurs sont gérés par border
     }
-    
+
     &__group {
         display: flex;
         flex-direction: column;
         padding: var(--nav-dropdown-group-padding);
-        
+
+        // Séparateur vertical entre groupes (desktop uniquement)
         &:not(:last-child) {
             border-right: 1px solid hsl(var(--nav-dropdown-separator));
         }
     }
-    
+
+    // Wrapper contenant l'en-tête et le chevron (mobile)
     &__group-header-wrapper {
         display: flex;
         align-items: center;
         position: relative;
-        width: 100%; // Assure que le wrapper prend toute la largeur
+        width: 100%;  // Prend toute la largeur disponible
     }
-    
+
+    // ----- Bouton Chevron (expand/collapse) -----
+    // Visible uniquement sur mobile/tablette pour collapse les sous-listes
     &__group-chevron {
-        // Masqué par défaut sur desktop - suit le pattern dropdown-toggle-button
+        // === Layout ===
+        // Masqué par défaut sur desktop
         display: none;
         align-items: center;
         justify-content: center;
-        background: none;
-        border: 1px solid transparent; // Bordure fine transparente par défaut
-        cursor: pointer;
         padding: 0;
         box-sizing: border-box;
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
-        
-        // Dimensions avec variables système - suivre le pattern responsive
+
+        // === Dimensions ===
+        // Taille responsive (augmente sur mobile pour le touch)
         width: var(--nav-dropdown-chevron-size);
         height: var(--nav-dropdown-chevron-size);
-        
-        // Forme avec variables système
+
+        // === Apparence ===
+        background: none;
+        border: 1px solid transparent;
         border-radius: var(--nav-dropdown-chevron-border-radius);
-        
-        // Couleurs depuis le système HSL
         color: hsl(var(--nav-dropdown-group-header-color));
-        
-        // Transitions avec variables système
+        cursor: pointer;
+
+        // Optimisations tactiles
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+
+        // === Transitions ===
         transition: all var(--nav-dropdown-chevron-transition) ease;
         transform-origin: center center;
-        
-        // États d'interaction améliorés
+
+        // === États d'interaction ===
+
+        // Hover
         &:hover {
             background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
             border-color: hsl(var(--nav-dropdown-group-header-hover-color) / 0.2);
             color: hsl(var(--nav-dropdown-group-header-hover-color));
         }
-        
+
+        // Focus (navigation clavier)
         &:focus {
             outline: none;
             border-color: hsl(var(--nav-dropdown-group-header-active-color));
             box-shadow: 0 0 0 2px hsl(var(--nav-dropdown-group-header-active-bg) / 0.3);
         }
-        
+
+        // Active (clic/touch)
         &:active {
-            transform: scale(0.95);
+            transform: scale(0.95);  // Léger effet de pression
         }
-        
+
+        // État expanded : sous-liste visible
         &--expanded {
             background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
             border-color: hsl(var(--nav-dropdown-group-header-color) / 0.2);
-            
+
+            // Rotation du chevron vers le haut
             svg {
                 transform: rotate(180deg);
             }
         }
-        
+
+        // Icône SVG du chevron
         svg {
             display: block;
             flex-shrink: 0;
@@ -222,57 +298,83 @@
         }
     }
     
+    // ----- En-tête de Groupe -----
+    // Titre ou lien principal du groupe
     &__group-header {
+        // === Disposition ===
         display: block;
-        flex: 1;
+        flex: 1;  // Prend tout l'espace disponible
         padding: var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-right) var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-left);
-        border-radius: var(--nav-dropdown-link-border-radius);
+        margin-bottom: var(--nav-dropdown-group-header-margin-bottom);
+
+        // === Apparence ===
         color: hsl(var(--nav-dropdown-group-header-color));
         text-decoration: none;
         font-size: var(--nav-dropdown-header-font-size);
         font-weight: var(--nav-dropdown-header-weight);
+        border-radius: var(--nav-dropdown-link-border-radius);
+
+        // Transition douce
         transition: all var(--nav-dropdown-link-transition) ease;
-        margin-bottom: var(--nav-dropdown-group-header-margin-bottom);
-        
+
+        // === États ===
+
+        // Hover
         &:hover {
             color: hsl(var(--nav-dropdown-group-header-hover-color));
             background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
         }
-        
+
+        // Active : page actuelle
         &--active {
             color: hsl(var(--nav-dropdown-group-header-active-color));
             background-color: hsl(var(--nav-dropdown-group-header-active-bg));
         }
     }
-    
+
+    // ----- Sous-liste (dans un groupe) -----
     &__sublist {
-        display: flex;
-        flex-direction: column;
+        // Reset des styles de liste
         list-style: none;
         margin: 0;
         padding: 0;
+
+        // Disposition en colonne avec espacement
+        display: flex;
+        flex-direction: column;
         gap: var(--nav-dropdown-sublink-gap);
     }
-    
+
     &__subitem {
         margin: 0;
     }
-    
+
+    // ----- Sous-liens -----
+    // Liens de second niveau dans les groupes
     &__sublink {
+        // === Disposition ===
         display: block;
         padding: var(--nav-dropdown-sublink-padding-y) var(--nav-dropdown-sublink-padding-right) var(--nav-dropdown-sublink-padding-y) var(--nav-dropdown-sublink-padding-left);
+
+        // === Apparence ===
         color: hsl(var(--nav-dropdown-sublink-color));
         text-decoration: none;
-        font-size: var(--nav-dropdown-sublink-font-siz);
+        font-size: var(--nav-dropdown-sublink-font-size);
         font-weight: var(--nav-dropdown-sublink-weight);
-        transition: all var(--nav-dropdown-link-transition) ease;
         border-radius: var(--nav-dropdown-link-border-radius);
-        
+
+        // Transition douce
+        transition: all var(--nav-dropdown-link-transition) ease;
+
+        // === États ===
+
+        // Hover
         &:hover {
             background-color: hsl(var(--nav-dropdown-sublink-hover-bg));
             color: hsl(var(--nav-dropdown-sublink-hover-color));
         }
-        
+
+        // Active : page actuelle
         &--active {
             color: hsl(var(--nav-dropdown-sublink-active-color));
             background-color: hsl(var(--nav-dropdown-sublink-active-bg));
@@ -281,17 +383,26 @@
     }
 }
 
-// ===== RESPONSIVE MOBILE =====
+// =================================================================
+// RESPONSIVE - MOBILE / TABLETTE (medium et moins)
+// =================================================================
+// Adaptations pour écrans tactiles : accordéon au lieu de dropdown
+
 @include breakpoint-down('medium') {
+    // ----- Élément de Navigation -----
     .nav-item--dropdown {
         width: 100%;
+
+        // Séparateur entre éléments de navigation
         border-bottom: 1px solid hsl(var(--nav-mobile-separator));
-        
+
+        // Pas de séparateur après le dernier élément
         &:last-child {
             border-bottom: none;
         }
-        
-        // Sur très petits écrans, centrer mais garder le toggle à droite
+
+        // === Très petits écrans (small et moins) ===
+        // Centrer le lien avec le toggle à droite
         @include breakpoint-down('small') {
             .nav-item__header {
                 justify-content: center;
@@ -301,133 +412,124 @@
                     text-align: center;
                     flex: 1;
                     justify-content: center;
-                    padding: var(--spacing-md) 0 var(--spacing-md) var(--spacing-4xl) ;
+                    // Padding asymétrique pour compenser le bouton toggle à droite
+                    padding: var(--spacing-md) 0 var(--spacing-md) var(--spacing-4xl);
                 }
             }
         }
     }
     
+    // ----- Menu Dropdown (mode accordéon mobile) -----
     .nav-dropdown {
-        // Reset du positionnement desktop
-        position: static;
+        // === Reset du positionnement desktop ===
+        position: static;  // Pas de positionnement absolu
         width: 100%;
         border: none;
         border-radius: 0;
         box-shadow: none;
         background-color: hsl(var(--nav-dropdown-mobile-bg));
-        
-        // Animation par hauteur sur mobile
+        padding: 0;
+
+        // === Animation par hauteur (accordéon) ===
+        // Remplace l'animation fade/translate du desktop
         transform: none;
         opacity: 1;
         visibility: visible;
-        max-height: 0;
+        max-height: 0;  // Masqué par défaut
         overflow: hidden;
         transition: max-height var(--nav-dropdown-transition-duration) ease;
-        padding: 0;
-        
+
+        // État ouvert : hauteur maximale
         &--open {
             max-height: $dropdown-mobile-max-height;
         }
-        
-        // Groupes en colonne sur mobile
+
+        // === Structure des groupes ===
+
+        // Groupes en colonne (au lieu de ligne sur desktop)
         &__groups {
             flex-direction: column;
         }
-        
+
+        // Groupe individuel
         &__group {
-            padding: 0;
-            
+            padding: 0;  // Reset du padding desktop
+
+            // Séparateur horizontal entre groupes (au lieu de vertical)
             &:not(:last-child) {
-                border-right: none;
+                border-right: none;  // Supprime le séparateur vertical desktop
                 border-bottom: 1px solid hsl(var(--nav-dropdown-separator));
                 margin-bottom: var(--spacing-sm);
                 padding-bottom: var(--spacing-sm);
             }
         }
-        
+
+        // En-tête de groupe
         &__group-header {
             flex: 1;
             justify-content: space-between;
-            padding-right: var(--spacing-4xl); // Espace pour le chevron
+            padding: var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-right) var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-left);
         }
-        
+
+        // Bouton chevron (visible sur mobile)
         &__group-chevron {
-            // Afficher le chevron sur mobile - taille responsive
-            display: flex;
-            //position: absolute;
-            //right: var(--spacing-lg);
-            //top: 50%;
-            //transform: translateY(-50%);
+            display: flex;  // Afficher le chevron sur mobile
             z-index: 2;
-            
-            // Taille tablette - légèrement plus grande pour touch
-            width: var(--nav-dropdown-chevron-size);
+            width: var(--nav-dropdown-chevron-size);   // Taille responsive (tokens)
             height: var(--nav-dropdown-chevron-size);
-            
-            // Désactiver l'effet de scale sur mobile/tablette pour éviter les problèmes tactiles
-            // &:hover {
-            //     transform: translateY(-50%);
-            // }
-            
-            // &:active {
-            //     transform: translateY(-50%) scale(0.95);
-            // }
-            
+
+            // État expanded
             &--expanded {
-                //transform: translateY(-50%);
-                
                 svg {
                     transform: rotate(180deg);
                 }
-                
-                // &:hover {
-                //     transform: translateY(-50%);
-                // }
-                
-                // &:active {
-                //     transform: translateY(-50%) scale(0.95);
-                // }
             }
         }
-        
+
+        // Sous-liste (accordéon dans accordéon)
         &__sublist {
-            max-height: 0;
+            max-height: 0;  // Masqué par défaut
             overflow: hidden;
             transition: max-height var(--nav-dropdown-transition-duration) ease;
-            
+
+            // État expanded
             &--expanded {
                 max-height: $dropdown-mobile-sublist-max-height;
             }
         }
-        
+
+        // === Ajustements des liens ===
+
+        // Liens simples
         &__link {
             font-size: var(--nav-dropdown-link-font-size);
-            
+
+            // Hover plus subtil sur mobile (éviter les états persistants)
             &:hover {
                 background-color: hsl(var(--nav-dropdown-link-hover-bg) / 0.2);
             }
         }
-        
+
+        // En-têtes de groupe et sous-liens
         &__group-header,
         &__sublink {
             font-size: var(--nav-dropdown-link-font-size);
-            
+
+            // Hover plus subtil sur mobile
             &:hover {
                 background-color: hsl(var(--nav-dropdown-link-hover-bg) / 0.2);
             }
         }
-        
-        &__group-header {
-            padding: var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-right) var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-left);
-        }
 
-        @include breakpoint-down('small') {            
-            // Chevron encore plus grand sur très petits écrans pour l'accessibilité tactile
+        // === Très petits écrans (small et moins) ===
+        @include breakpoint-down('small') {
+            // Chevron encore plus grand pour l'accessibilité tactile
             &__group-chevron {
-                width: var(--nav-dropdown-chevron-size);
+                width: var(--nav-dropdown-chevron-size);   // Valeur ajustée dans _tokens.scss
                 height: var(--nav-dropdown-chevron-size);
             }
 
+            // Padding ajusté pour les petits écrans
             &__group-header {
                 padding: var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-right) var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-left);
             }
