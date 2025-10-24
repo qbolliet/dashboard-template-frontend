@@ -1,0 +1,118 @@
+// ===== TOKENS DE DROPDOWNNAVIGATIONITEM =====
+// Variables spécifiques aux éléments de navigation avec dropdown
+//
+// Pour les couleurs, voir features/header/_colors.scss
+
+// Importation des breakpoints
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  // ===== DIMENSIONS - DROPDOWN DESKTOP =====
+  --nav-dropdown-min-width: 220px;
+  --nav-dropdown-translate-y: calc(var(--spacing-sm) * -1);  // -0.25rem pour animation
+
+  // ===== DIMENSIONS - DROPDOWN MOBILE =====
+  --nav-dropdown-mobile-max-height: 500px;
+  --nav-dropdown-sublist-max-height: 300px;
+
+  // ===== SPACING - DROPDOWN =====
+  --nav-dropdown-padding-x: 0;                  // 0
+  --nav-dropdown-padding-y: var(--spacing-sm);  // 0.5rem
+
+  --nav-dropdown-item-padding: var(--spacing-md);  // 0.75rem
+  --nav-dropdown-item-gap: var(--spacing-xs);      // 0.25rem
+
+  // ===== SPACING - LIENS PRINCIPAUX =====
+  --nav-dropdown-link-padding-y: var(--spacing-sm);     // 0.5rem
+  --nav-dropdown-link-padding-left: var(--spacing-lg);  // 1rem
+  --nav-dropdown-link-padding-right: var(--spacing-sm)  // 0.5rem (réduit pour laisser de la place au bouton - chevron)
+  
+  --nav-dropdown-link-padding-mobile: var(--spacing-md) var(--spacing-lg);  // 0.75rem 1rem
+  // ===== SPACING - LIENS SIMPLES =====
+  --nav-dropdown-link-simple-padding-y: var(--spacing-md);  // 0.75rem
+  --nav-dropdown-link-simple-padding-x: var(--spacing-lg);  // 1rem
+
+  // ===== SPACING - GROUP HEADERS =====
+  --nav-dropdown-group-padding: var(--spacing-md);               // 0.75rem
+  --nav-dropdown-group-header-padding-right: var(--spacing-sm);  // 0.5rem
+  --nav-dropdown-group-header-padding-left: var(--spacing-sm);   // 0.5rem
+  --nav-dropdown-group-header-padding-y: var(--spacing-sm);      // 0.5rem
+
+  --nav-dropdown-group-header-margin-bottom: var(--spacing-sm);  // 0.5rem
+
+  // ===== SPACING - SUBLINKS =====
+  --nav-dropdown-sublink-padding-left: var(--spacing-md);   // 0.75rem
+  --nav-dropdown-sublink-padding-right: var(--spacing-md);  // 0.75rem
+  --nav-dropdown-sublink-padding-y: var(--spacing-sm);  // 0.5rem 
+  --nav-dropdown-sublink-gap: var(--spacing-sm);  // 0.5rem
+
+  // ===== TYPOGRAPHIE - LIENS PRINCIPAUX =====
+  --nav-dropdown-link-font-size: var(--font-size-sm);  // 0.875rem
+
+  // ===== TYPOGRAPHIE - LIENS SIMPLES =====
+  --nav-dropdown-link-weight: 400;
+  --nav-dropdown-link-weight-active: 500;
+  
+
+  // ===== TYPOGRAPHIE - GROUP HEADERS =====
+  --nav-dropdown-header-font-size: var(--font-size-sm);  // 0.875rem
+  --nav-dropdown-header-weight: 600;
+
+  // ===== TYPOGRAPHIE - SUBLINKS =====
+  --nav-dropdown-sublink-font-size: var(--font-size-xs);  // 0.75rem
+  --nav-dropdown-sublink-weight: 400;
+  --nav-dropdown-sublink-weight-active: 500;
+
+  // ===== CHEVRONS =====
+  --nav-dropdown-chevron-size: var(--font-size-2xl);              // 1.5rem (24px)
+  --nav-dropdown-chevron-border-radius: var(--border-radius-md);  // 0.375rem
+
+  // ===== BORDER =====
+  --nav-dropdown-border-radius: var(--border-radius-lg);  // 0.5rem
+  --nav-dropdown-link-border-radius: var(--border-radius-md);  // 0.375rem
+
+  // ===== TRANSITIONS =====
+  --nav-dropdown-chevron-transition: var(--transition-normal): // 0.2s
+  --nav-dropdown-link-transition: var(--transition-normal):    // 0.2s
+  --nav-dropdown-transition-duration: var(--transition-slow);  // 0.3s
+
+  --nav-dropdown-link-transition: all var(--transition-normal) ease;  // 0.2s
+
+  // ===== FOCUS =====
+  --nav-dropdown-focus-shadow-size: var(--spacing-2px);  // 2px
+
+  // ===== Z-INDEX =====
+  --nav-dropdown-z-index: var(--z-dropdown);
+}
+
+// ===== RESPONSIVE - TABLETTE =====
+@include breakpoint-down('medium') {
+  :root {
+    // ===== SPACING - LIENS PRINCIPAUX =====
+    --nav-dropdown-link-padding-y: var(--spacing-md);                         // 0.75rem
+    --nav-dropdown-link-padding-right: var(--nav-dropdown-link-padding-left)  // 1rem
+    
+    --nav-dropdown-sublink-padding-left: calc(var(--spacing-3xl) + var(--spacing-lg));  
+
+    --nav-dropdown-group-header-padding-right: var(--spacing-3xl);
+    --nav-dropdown-group-header-padding-left: var(--spacing-3xl);
+
+    // ===== CHEVRONS - TAILLE TABLETTE =====
+    // Légèrement plus grand pour faciliter le touch
+    --nav-dropdown-chevron-size: var(--font-size-3xl);  // 28px (1.5rem + 0.25rem)
+  }
+}
+
+// ===== RESPONSIVE - MOBILE =====
+@include breakpoint-down('small') {
+  :root {
+    // ===== CHEVRONS - TAILLE MOBILE =====
+    // Encore plus grand pour l'accessibilité tactile
+    --nav-dropdown-chevron-size: var(--font-size-4xl);  // 32px (2rem)
+
+    --nav-dropdown-sublink-padding-left: var(--spacing-md);
+
+    --nav-dropdown-group-header-padding-right: 0;
+    --nav-dropdown-group-header-padding-left: var(--spacing-4xl);
+  }
+}
