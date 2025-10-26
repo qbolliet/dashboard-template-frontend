@@ -38,17 +38,17 @@
     // Utilise directement les custom properties
     width: var(--mobile-toggle-size);
     height: var(--mobile-toggle-size);
-    padding: var(--spacing-sm);
+    padding: var(--mobile-padding);
 
     // === Apparence ===
     background: none;
     border: none;
-    border-radius: var(--border-radius-md);
+    border-radius: var(--mobile-border-radius);
     color: hsl(var(--nav-hamburger-color));
     cursor: pointer;
 
     // Transition douce pour tous les changements
-    transition: all var(--transition-normal) ease;
+    transition: all var(--mobile-transition) ease;
 
     // === Responsive ===
     // Masquer sur les grands écrans (navigation desktop toujours visible)
@@ -92,7 +92,7 @@
 
     // === Animation ===
     // Transition douce de l'opacité pour le changement d'icône
-    transition: opacity var(--transition-normal) ease;
+    transition: opacity var(--mobile-transition) ease;
 
     // ----- Taille des icônes SVG -----
     svg {

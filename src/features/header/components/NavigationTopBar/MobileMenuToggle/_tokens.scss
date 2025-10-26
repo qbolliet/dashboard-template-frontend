@@ -21,7 +21,10 @@
   // ----- Bouton Toggle -----
   // Taille du bouton toggle (carré, cliquable sur mobile)
   --mobile-toggle-size: 2.5rem;  // 40px - Zone de touch optimale pour mobile
-
+  // Apparence
+  --mobile-border-radius: var(--border-radius-md);
+  --mobile-padding: var(--spacing-sm);
+  --mobile-transition: var(--transition-normal);
   // ----- Icônes -----
   // Taille des icônes SVG (hamburger et fermeture)
   --mobile-toggle-icon-size: 1.25rem;  // 20px - Visible sans être trop imposant
