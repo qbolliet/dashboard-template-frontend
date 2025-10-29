@@ -1,104 +1,111 @@
+// =================================================================
+// NAVIGATION ITEM
+// =================================================================
+//
+// Composant d'élément de navigation simple (sans dropdown)
+//
+// Structure du composant :
+// - .nav-item--simple : Conteneur de l'élément de navigation
+//   - .nav-link : Lien de navigation
+//     - .nav-link--active : État actif du lien
+//
+// Comportement :
+// - Desktop (large et plus) : Affichage horizontal avec padding compact
+// - Mobile/Tablette : Affichage pleine largeur avec padding confortable
+// - États interactifs : hover, focus (accessibilité), active
+//
+// Pour les tokens (dimensions, spacing, typographie), voir ./_tokens.scss
+// Pour les font-weights et focus communs, voir ../_tokens.scss
+// Pour les couleurs, voir ../../../_colors.scss
+
+// ----- Importation des modules -----
 @use '../../../../../styles/utils/breakpoints' as *;
-@use '../../../../../styles/globals/colors';
+@use '../tokens' as *;
+@use './tokens' as *;
 
-// ===== VARIABLES DE PERSONNALISATION =====
-// Variables essentielles pour modifier l'apparence des éléments de navigation
 
-// Espacement interne des liens
-$nav-link-padding-mobile: var(--spacing-md) var(--spacing-lg) !default;
-$nav-link-padding-desktop: var(--spacing-sm) var(--spacing-lg) !default;
-
-// Typographie
-$nav-link-font-weight: 500 !default;
-$nav-link-font-weight-active: 600 !default;
-$nav-link-font-size: var(--font-size-sm) !default;
-$nav-link-line-height: var(--line-height-normal) !default;
-
-// Forme
-$nav-link-border-radius: var(--border-radius-md) !default;
-
-// Transitions
-$nav-link-transition: all var(--transition-normal) ease !default;
-
-// Focus
-$nav-link-focus-outline-width: 2px !default;
-$nav-link-focus-outline-offset: 2px !default;
-
-// ===== NAVIGATION ITEM SIMPLE =====
-// Élément de navigation simple (sans dropdown)
-
+// =================================================================
+// CONTENEUR DE L'ÉLÉMENT DE NAVIGATION
+// =================================================================
 .nav-item--simple {
-    // Reset des styles de base
+    // === Positionnement ===
     position: relative;
-    
-    // Espacement pour mobile
+
+    // === Reset des styles de base ===
     margin: 0;
-    //width: 100%;
-    
-    // Sur les grands écrans
+
+    // === Responsive - Desktop ===
+    // Layout flexbox horizontal pour aligner le lien
     @include breakpoint('large') {
         display: flex;
         align-items: center;
     }
 
-    // Sur les écrans de tablette et de téléphone
+    // === Responsive - Mobile/Tablette ===
+    // Largeur complète pour faciliter le touch
     @include breakpoint-down('medium') {
         width: 100%;
     }
 }
 
-// ===== LIEN DE NAVIGATION =====
-// Styles pour les liens de navigation simples
 
+// =================================================================
+// LIEN DE NAVIGATION
+// =================================================================
 .nav-item--simple .nav-link {
-    // Affichage et positionnement
+    // === Layout & Positionnement ===
     display: block;
     position: relative;
+
+    // === Reset des styles de liens ===
     text-decoration: none;
-    
-    // Espacement intérieur
-    padding: $nav-link-padding-mobile;
-    
-    // Styles de texte
+
+    // === Espacement interne ===
+    // Utilise les custom properties définies dans _tokens.scss
+    // Varie automatiquement selon la taille d'écran
+    padding: var(--nav-item-link-padding);
+
+    // === Typographie ===
     color: hsl(var(--nav-link-color));
-    font-weight: $nav-link-font-weight;
-    font-size: $nav-link-font-size;
-    line-height: $nav-link-line-height;
-    
-    // Transitions pour les animations
-    transition: $nav-link-transition;
-    
-    // Bordure arrondie
-    border-radius: $nav-link-border-radius;
-    
-    // Sur les grands écrans
+    font-weight: var(--nav-link-font-weight);
+    font-size: var(--nav-item-link-font-size);
+    line-height: var(--nav-item-link-line-height);
+
+    // === Apparence ===
+    border-radius: var(--nav-item-link-border-radius);
+
+    // === Animation ===
+    // Transition douce pour tous les changements (couleur, background, etc.)
+    transition: all var(--nav-item-link-transition) ease;
+
+    // === Responsive - Desktop ===
     @include breakpoint('large') {
-        // Espacement plus compact
-        padding: $nav-link-padding-desktop;
-        
-        // Alignement horizontal
+        // Layout flexbox pour centrer le contenu verticalement
         display: flex;
         align-items: center;
     }
-    
-    // ===== ÉTATS D'INTERACTION =====
-    
-    // Survol
+
+
+    // =================================================================
+    // ÉTATS D'INTERACTION
+    // =================================================================
+
+    // ----- Hover : survol de la souris -----
     &:hover {
         color: hsl(var(--nav-link-hover-color));
         background-color: hsl(var(--nav-link-hover-bg));
     }
-    
-    // Focus pour l'accessibilité
+
+    // ----- Focus : navigation au clavier (accessibilité) -----
     &:focus {
-        outline: $nav-link-focus-outline-width solid hsl(var(--nav-link-focus-color));
-        outline-offset: $nav-link-focus-outline-offset;
+        outline: var(--nav-focus-outline-width) solid hsl(var(--nav-link-focus-color));
+        outline-offset: var(--nav-focus-outline-offset);
     }
-    
-    // État actif
+
+    // ----- Active : lien de la page courante -----
     &.nav-link--active {
         color: hsl(var(--nav-link-active-color));
         background-color: hsl(var(--nav-link-active-bg));
-        font-weight: $nav-link-font-weight-active;
+        font-weight: var(--nav-link-font-weight-active);
     }
 }

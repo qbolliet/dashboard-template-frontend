@@ -1,0 +1,66 @@
+// ===== TOKENS DE NAVIGATIONITEM =====
+// Variables spécifiques aux éléments de navigation simples
+//
+// Architecture des tokens :
+// - Spacing : espacements internes (padding) des liens de navigation
+// - Typographie : tailles de police, hauteurs de ligne
+// - Apparence : bordures, transitions et effets visuels
+//
+// Pour les couleurs, voir features/header/_colors.scss
+// Pour les font-weights et propriétés de focus communes, voir ../tokens.scss
+//
+// Notes d'organisation :
+// - Les tokens sont organisés par catégorie fonctionnelle
+// - Tous les espacements utilisent les tokens globaux de typography.scss
+// - Les valeurs responsive sont gérées via media queries pour éviter la duplication
+
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  // =================================================================
+  // SPACING - ESPACEMENT INTERNE DES LIENS
+  // =================================================================
+
+  // ----- Padding des liens de navigation -----
+  // Padding par défaut (desktop)
+  // Format: top/bottom left/right
+  --nav-item-link-padding: var(--spacing-sm) var(--spacing-lg);
+
+
+  // =================================================================
+  // TYPOGRAPHIE
+  // =================================================================
+
+  // ----- Taille de police -----
+  --nav-item-link-font-size: var(--font-size-sm);
+
+  // ----- Hauteur de ligne -----
+  --nav-item-link-line-height: var(--line-height-normal);
+
+
+  // =================================================================
+  // APPARENCE
+  // =================================================================
+
+  // ----- Bordure -----
+  // Rayon de bordure pour les coins arrondis
+  --nav-item-link-border-radius: var(--border-radius-md);
+
+  // ----- Transitions -----
+  // Durée de transition pour les animations (hover, focus, etc.)
+  --nav-item-link-transition: var(--transition-normal);
+}
+
+
+// =================================================================
+// RESPONSIVE - MOBILE/TABLETTE (medium et moins)
+// =================================================================
+// Ajustements pour les petits et moyens écrans :
+// - Padding plus confortable pour faciliter le touch
+
+@include breakpoint-down('medium') {
+  :root {
+    // ----- Padding augmenté sur mobile/tablette -----
+    --nav-item-link-padding: var(--spacing-md) var(--spacing-lg);
+  }
+}
