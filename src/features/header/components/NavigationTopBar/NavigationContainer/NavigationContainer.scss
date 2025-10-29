@@ -1,42 +1,48 @@
+// =================================================================
+// NAVIGATION CONTAINER
+// =================================================================
+//
+// Conteneur principal gérant le layout de la navigation topbar
+//
+// Structure du composant :
+// - .navigation-container : Conteneur principal
+//   - .mobile-nav-toggle : Bouton hamburger/fermeture (mobile uniquement)
+//   - .primary-navigation : Menu de navigation
+//     - Sur desktop : Navigation horizontale inline
+//     - Sur mobile/tablette : Menu overlay fixe glissant depuis la droite
+//
+// Comportements responsifs :
+// - Desktop (large et plus) :
+//   - Le toggle est masqué
+//   - La navigation est inline et toujours visible
+// - Mobile/Tablette (medium et moins) :
+//   - Le conteneur s'étend en absolute pour positionner le toggle
+//   - Le toggle est visible et positionné en haut à droite
+//   - La navigation est un overlay fixe qui slide depuis la droite
+//
+// Animations :
+// - Menu mobile : slide in/out avec translateX
+// - Toggle : transition de position entre état fermé/ouvert
+//
+// Pour les tokens (dimensions, spacing, z-index, etc.), voir ./_tokens.scss
+// Pour les couleurs, voir ../../../_colors.scss
+
+// ----- Importation des modules -----
 @use '../../../../../styles/utils/breakpoints' as *;
 @use '../../../../../styles/globals/typography';
+@use '../tokens' as *;        // Tokens partagés NavigationTopBar
+@use './tokens' as *;          // Tokens spécifiques NavigationContainer
 
-// ===== VARIABLES DE PERSONNALISATION =====
-// Variables essentielles pour modifier l'apparence du conteneur de navigation
 
-// Espacement
-$nav-container-padding-mobile: var(--spacing-md) !default;
-$nav-container-padding-desktop: var(--spacing-lg) !default;
-
-// Mobile toggle positioning
-$nav-toggle-position-top: 50% !default;
-$nav-toggle-position-right-mobile: var(--spacing-md) !default;
-$nav-toggle-position-right-tablet: var(--spacing-lg) !default;
-
-// Menu mobile
-$nav-mobile-width: 280px !default;
-$nav-mobile-width-small: 100vw !default;
-$nav-mobile-padding-top: calc(var(--spacing-6xl) + var(--spacing-lg)) !default;
-$nav-mobile-padding-sides: var(--spacing-lg) !default;
-$nav-mobile-padding-bottom: var(--spacing-xl) !default;
-
-// Animations
-$nav-transition-duration: var(--transition-normal) !default;
-$nav-transition-easing: ease !default;
-
-// Z-index
-$nav-container-z-index: var(--z-fixed) !default;
-$nav-mobile-z-index: var(--z-modal) !default;
-$nav-toggle-z-index: calc(var(--z-modal) + 1) !default;
-$nav-toggle-open-z-index: calc(var(--z-modal) + 2) !default;
-
-// ===== NAVIGATION CONTAINER =====
+// =================================================================
+// CONTENEUR PRINCIPAL DE NAVIGATION
+// =================================================================
 .navigation-container {
+    // === Positionnement ===
     position: relative;
-    z-index: $nav-container-z-index;
-    
-    // ===== RESPONSIVE LAYOUT =====
-    
+    z-index: var(--nav-container-z-index);
+
+    // === Responsive Layout ===
     // Sur mobile/tablet, étendre sur toute la largeur pour positionner le toggle
     @include breakpoint-down('medium') {
         position: absolute;
@@ -44,60 +50,68 @@ $nav-toggle-open-z-index: calc(var(--z-modal) + 2) !default;
         left: 0;
         right: 0;
         height: 100%;
-        pointer-events: none; // Permet aux autres éléments du header d'être cliquables
+
+        // Permet aux autres éléments du header d'être cliquables
+        // (seul le toggle et le menu auront pointer-events: auto)
+        pointer-events: none;
     }
-    
-    // ===== MOBILE TOGGLE POSITIONING =====
-    
+
+
+    // =================================================================
+    // BOUTON TOGGLE MOBILE
+    // =================================================================
+
     .mobile-nav-toggle {
-        pointer-events: auto; // Réactive les clics pour le toggle
-        
-        // Sur desktop, masquer le toggle
+        // Réactive les clics pour le toggle
+        pointer-events: auto;
+
+        // ----- Masquage sur desktop -----
+        // Sur desktop, masquer le toggle (navigation toujours visible)
         @include breakpoint('large') {
             display: none;
         }
 
-        // Sur mobile/tablet, positionnement initial (menu fermé)
+        // ----- Positionnement sur mobile/tablet (menu fermé) -----
         @include breakpoint-down('medium') {
+            // Positionnement absolu dans le conteneur
             position: absolute;
-            top: $nav-toggle-position-top;
-            right: $nav-toggle-position-right-tablet;
-            transform: translateY(-50%);
-            z-index: $nav-toggle-z-index;
+            top: var(--nav-toggle-position-top);
+            right: var(--nav-toggle-position-right);
+            transform: translateY(-50%);  // Centrage vertical
+            z-index: var(--nav-toggle-z-index);
         }
-        
+
         // Ajustement pour très petits écrans
         @include breakpoint-down('small') {
-            right: $nav-toggle-position-right-mobile;
+            right: var(--nav-toggle-position-right);
         }
     }
 
-    // Positionnement du toggle quand le menu est ouvert
+    // ----- Positionnement du toggle quand le menu est ouvert -----
     &.primary-navigation--open .mobile-nav-toggle {
         // Sur mobile/tablet, positionner de façon fixe pour rester visible pendant le scroll
         @include breakpoint-down('medium') {
             position: fixed;
-            top: $nav-toggle-position-right-tablet;
-            right: $nav-toggle-position-right-tablet;
-            transform: none; // Reset du translateY
-            z-index: $nav-toggle-open-z-index;
-            transition: opacity var(--transition-fast) ease;
-        }
-        
-        // Ajustement pour très petits écrans
-        @include breakpoint-down('small') {
-            top: $nav-toggle-position-right-mobile;
-            right: $nav-toggle-position-right-mobile;
+            top: var(--nav-toggle-position-top);
+            right: var(--nav-toggle-position-right);
+            transform: none;  // Reset du translateY pour le centrage
+            z-index: var(--nav-toggle-open-z-index);
+            transition: opacity var(--nav-toggle-transition-duration) ease;
         }
     }
-    
-    
-    // ===== MENU DE NAVIGATION =====
+
+
+    // =================================================================
+    // MENU DE NAVIGATION
+    // =================================================================
+
     .primary-navigation {
-        pointer-events: auto; // Réactive les clics pour le menu
-        
-        // Sur desktop - navigation horizontale inline
+        // Réactive les clics pour le menu
+        pointer-events: auto;
+
+        // ----- Desktop : Navigation horizontale inline -----
         @include breakpoint('large') {
+            // Reset de tous les styles mobile
             position: static;
             width: auto;
             height: auto;
@@ -109,38 +123,42 @@ $nav-toggle-open-z-index: calc(var(--z-modal) + 2) !default;
             transition: none;
             z-index: auto;
         }
-        
-        // Sur mobile/tablet - menu overlay fixe
+
+        // ----- Mobile/Tablet : Menu overlay fixe -----
         @include breakpoint-down('medium') {
+            // === Positionnement fixe ===
             position: fixed;
             top: 0;
             right: 0;
-            width: $nav-mobile-width;
+            width: var(--nav-mobile-width);
             height: 100vh;
+            z-index: var(--nav-mobile-z-index);
+
+            // === Apparence ===
             background-color: hsl(var(--nav-mobile-bg));
-            z-index: $nav-mobile-z-index;
             box-shadow: -4px 0 20px hsla(var(--nav-mobile-shadow) / 0.1);
+
+            // === Padding ===
             // Padding ajusté pour éviter le chevauchement avec le bouton de fermeture fixe
-            padding: $nav-mobile-padding-top $nav-mobile-padding-sides $nav-mobile-padding-bottom $nav-mobile-padding-sides;
-            
-            // Gestion du défilement - seulement pour la navigation
+            padding: var(--nav-mobile-padding-top)
+                     var(--nav-mobile-padding-x)
+                     var(--nav-mobile-padding-bottom)
+                     var(--nav-mobile-padding-x);
+
+            // === Gestion du défilement ===
+            // Permettre le scroll vertical si le contenu dépasse
             overflow-y: auto;
             overflow-x: hidden;
-            
-            // Animation depuis la droite - fermé par défaut
+
+            // === Animation de slide ===
+            // État fermé par défaut - menu hors de l'écran à droite
             transform: translateX(100%);
-            transition: transform $nav-transition-duration $nav-transition-easing;
-            
-            // État ouvert - slide in from right
+            transition: transform var(--nav-transition-duration) ease;
+
+            // État ouvert - menu glisse dans l'écran
             &.primary-navigation--open {
                 transform: translateX(0);
             }
-        }
-        
-        // Sur très petits écrans - pleine largeur
-        @include breakpoint-down('small') {
-            width: $nav-mobile-width-small;
-            right: 0;
         }
     }
 }

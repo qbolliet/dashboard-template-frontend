@@ -1,7 +1,9 @@
 // ===== IMPORTS =====
 @use '../../../../styles/utils/breakpoints' as *;
-@use '../../../../styles/globals/colors';
+//@use '../../../../styles/globals/colors';
 @use '../../../../styles/globals/typography';
+@use '../../_colors';
+@use '../../_tokens';
 
 // ===== HEADER PRINCIPAL =====
 .primary-header {

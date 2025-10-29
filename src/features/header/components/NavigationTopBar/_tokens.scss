@@ -1,0 +1,37 @@
+// ===== TOKENS DE NAVIGATIONTOPBAR =====
+// Variables partagées entre tous les sous-composants de NavigationTopBar
+// (NavigationContainer, NavigationMenu, NavigationItem, DropdownNavigationItem, MobileMenuToggle, NavigationOverlay)
+//
+// ⚠️ RÈGLE : Si une variable n'est utilisée que dans UN sous-composant, la mettre dans
+// features/header/components/NavigationTopBar/[SousComposant]/_tokens.scss
+
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  // ===== DIMENSIONS PRINCIPALES =====
+  // Largeur du menu mobile sur tablette /!\ peut-être le même pour la sidebar
+  --nav-topbar-mobile-width: 280px;
+
+  // ===== FOCUS =====
+  // Propriétés de focus partagées entre tous les éléments interactifs de la navigation
+  --nav-focus-outline-width: 2px;
+  --nav-focus-outline-offset: 2px;
+
+  // ===== TYPOGRAPHIE =====
+  // Font weights partagés entre NavigationItem et DropdownNavigationItem
+  --nav-link-font-weight: 500;
+  --nav-link-font-weight-active: 600;
+}
+
+// =================================================================
+// RESPONSIVE - MOBILE (small et moins)
+// =================================================================
+// Ajustements pour écrans mobiles :
+// - Largeur du composant
+
+@include breakpoint-down('small') {
+  :root {
+    // Position horizontale selon le viewport
+    --nav-topbar-mobile-width: 100vw; // Occupe tout l'écran sur mobile
+  }
+}
