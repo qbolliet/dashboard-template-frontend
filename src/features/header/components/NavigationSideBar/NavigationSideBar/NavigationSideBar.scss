@@ -3,6 +3,29 @@
 @use '../../../../../styles/globals/colors';
 @use '../../../../../styles/globals/typography';
 
+// ===== VARIABLES CSS POUR LA SIDEBAR =====
+// Variables par défaut (desktop/large)
+:root {
+  --sidebar-width-open: 280px;
+  --sidebar-width-collapsed: 64px;
+}
+
+// Responsive - Écran moyen (tablette)
+@include breakpoint-down(medium) {
+  :root {
+    --sidebar-width-open: 240px;
+    --sidebar-width-collapsed: 56px;
+  }
+}
+
+// Responsive - Petit écran (mobile)
+@include breakpoint-down(small) {
+  :root {
+    --sidebar-width-open: 100vw;
+    --sidebar-width-collapsed: 0px;
+  }
+}
+
 // ===== NAVIGATION SIDEBAR =====
 .navigation-sidebar {
   position: fixed; // Position fixed pour rester collée à gauche lors du scroll
@@ -22,12 +45,12 @@
 
   // État ouvert
   &--open {
-    width: 280px; // Largeur standard de la sidebar ouverte
+    width: var(--sidebar-width-open); // Utilise la variable CSS responsive
   }
 
   // État fermé/collapsé
   &--collapsed {
-    width: 64px; // Largeur minimale pour les icônes
+    width: var(--sidebar-width-collapsed); // Utilise la variable CSS responsive
 
     // Quand il n'y a pas d'icônes, cacher complètement la sidebar
     &.navigation-sidebar--no-icons {
@@ -39,13 +62,18 @@
 
   // ===== HEADER DE LA SIDEBAR =====
   .sidebar-header {
-    padding: var(--spacing-md);
+    // Hauteur fixe égale au header principal pour alignement parfait
+    height: var(--header-height);
+    display: flex;
+    align-items: center; // Centre le contenu verticalement
+    padding: 0 var(--spacing-md); // Padding horizontal seulement
     border-bottom: 1px solid hsl(var(--color-border));
     flex-shrink: 0; // Empêche le header de rétrécir
 
-    // Ajustement du padding en mode collapsé
+    // En mode collapsé, centrer le contenu
     .navigation-sidebar--collapsed & {
-      padding: var(--spacing-md);
+      justify-content: center;
+      padding: 0 var(--spacing-sm);
     }
   }
 
@@ -134,21 +162,21 @@
 
   // ===== RESPONSIVE =====
 
-  // Tablette - réduire la largeur
+  // Tablette - utilise les variables CSS
   @include breakpoint-down(medium) {
     &--open {
-      width: 240px;
+      width: var(--sidebar-width-open);
     }
 
     &--collapsed {
-      width: 56px;
+      width: var(--sidebar-width-collapsed);
     }
   }
 
-  // Mobile - overlay par défaut
+  // Mobile - overlay par défaut avec largeur maximale
   @include breakpoint-down(small) {
     &--open {
-      width: 100vw;
+      width: var(--sidebar-width-open);
       max-width: 320px;
     }
 

@@ -10,8 +10,13 @@
 :root {
   // ===== DIMENSIONS PRINCIPALES =====
   --header-height: 4rem;
-  --header-padding-x: var(--spacing-lg);  // 1rem
-  --header-padding-y: var(--spacing-md);  // 0.75rem
+  --header-padding-x: var(--spacing-3xl);  // 2rem - padding horizontal appliqué au header
+
+  // Note: --header-padding-y est utilisé uniquement pour les calculs (comme --header-content-height)
+  // Le header utilise height: var(--header-height) et centre le contenu avec flexbox
+  --header-padding-y: var(--spacing-md);  // 0.75rem - pour calculs uniquement
+
+  --right-container-gap: var(--spacing-2xl);
 
   // ===== SYNCHRONISATION AVEC AUTRES FEATURES =====
   // La sidebar utilise cette variable pour aligner son header avec le topbar
@@ -38,11 +43,22 @@
 }
 
 // ===== RESPONSIVE =====
+
+// Tablette - écran moyen
+@include breakpoint-down('medium') {
+  :root {
+    --header-padding-x: var(--spacing-lg);  // 1rem (même qu'en desktop)
+    --header-padding-y: var(--spacing-md);  // 0.75rem
+  }
+}
+
+// Mobile - petit écran
 @include breakpoint-down('small') {
   :root {
     // Réduction de la hauteur sur mobile
     --header-height: 3.5rem;
     --header-padding-x: var(--spacing-md);  // 0.75rem
+    --header-padding-y: var(--spacing-sm);  // 0.5rem
     --header-gap: var(--spacing-sm);        // Gap réduit sur mobile
   }
 }

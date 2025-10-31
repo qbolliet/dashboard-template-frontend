@@ -50,7 +50,7 @@ export default function RootLayout({
           <Header 
               navigationData={navigationData.main_menu}
               onNavigationItemClick={handleNavigationClick}
-              navigationType='topbar'//'sidebar'
+              navigationType='sidebar'//'topbar'
           />
           {children}
           <Footer copyrightText="© 2025 Dashboard Template" />

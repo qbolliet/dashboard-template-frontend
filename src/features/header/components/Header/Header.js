@@ -91,13 +91,21 @@ const Header = ({
         return checkForIcons(navigationData);
     }, [navigationData]);
 
-    // Calculer la largeur de la sidebar pour la variable CSS
-    const getSidebarWidth = () => {
-        if (sidebarOpen) {
-            return '280px';
+    // Calculer les classes CSS pour le header selon l'état de la sidebar
+    const getHeaderClasses = () => {
+        const classes = ['primary-header'];
+        if (isSidebarMode) {
+            classes.push('primary-header--sidebar-mode');
+            if (sidebarOpen) {
+                classes.push('primary-header--sidebar-open');
+            } else {
+                classes.push('primary-header--sidebar-collapsed');
+                if (!hasIconsInNavigationData) {
+                    classes.push('primary-header--sidebar-no-icons');
+                }
+            }
         }
-        // Quand fermée, vérifier s'il y a des icônes
-        return hasIconsInNavigationData ? '64px' : '0px';
+        return classes.join(' ');
     };
 
     return (
@@ -113,12 +121,9 @@ const Header = ({
                 />
             )}
             {/* Header principal */}
-            <header className={`primary-header ${isSidebarMode ? 'primary-header--sidebar-mode' : ''}`}>
+            <header className={getHeaderClasses()}>
                 {/* Conteneur de gauche : Sidebar/Logo + Trigger/Navigation + Breadcrumb */}
-                <div className="left-container" style={{
-                    '--sidebar-width': getSidebarWidth(),
-                    '--sidebar-spacing': getSidebarWidth() === '0px' ? '0px' : 'var(--spacing-lg)'
-                }}>
+                <div className="left-container">
                     {isSidebarMode ? (
                         <>
                             {/* Trigger pour ouvrir/fermer la sidebar */}

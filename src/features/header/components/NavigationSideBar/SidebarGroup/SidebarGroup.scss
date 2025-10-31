@@ -14,6 +14,7 @@
     display: flex;
     align-items: center;
     width: 100%;
+    min-height: var(--spacing-4xl); // Hauteur minimum pour harmoniser avec les items
     border-radius: var(--border-radius-md);
     position: relative;
 
@@ -40,6 +41,7 @@
     display: flex;
     align-items: center;
     flex: 1; // Prend tout l'espace disponible
+    min-height: inherit; // Hérite de la hauteur minimum du container
     padding: var(--spacing-sm) var(--spacing-md);
     background-color: transparent;
     border: 1px solid transparent;
@@ -135,6 +137,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    min-height: inherit; // Hérite de la hauteur minimum du container
     padding: var(--spacing-sm);
     margin: 0;
     background-color: transparent;
@@ -274,6 +277,10 @@
 
   // Tablette - ajustements des tailles
   @include breakpoint-down(medium) {
+    &-trigger-container {
+      min-height: var(--spacing-3xl); // Hauteur minimum réduite pour tablette
+    }
+
     &-trigger {
       padding: var(--spacing-xs) var(--spacing-sm);
       font-size: var(--font-size-xs);
@@ -300,6 +307,10 @@
 
   // Mobile - ajustements supplémentaires
   @include breakpoint-down(small) {
+    &-trigger-container {
+      min-height: var(--spacing-3xl); // Même hauteur que tablette
+    }
+
     &-trigger {
       padding: var(--spacing-xs) var(--spacing-sm);
     }
