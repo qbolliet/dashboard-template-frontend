@@ -1,40 +1,54 @@
+// =================================================================
+// NAVIGATION MENU
+// =================================================================
+//
+// Composant de liste de navigation principale
+//
+// Structure du composant :
+// - .primary-navigation : Liste <ul> contenant les éléments de navigation
+//
+// Comportement :
+// - Desktop (large et plus) : Disposition horizontale avec espacement moyen
+// - Mobile/Tablette : Disposition verticale avec espacement compact et centrage
+//
+// Pour les tokens (dimensions, spacing, alignement), voir ./_tokens.scss
+// Pour les couleurs, voir ../../../_colors.scss
+
+// ----- Importation des modules -----
 @use '../../../../../styles/utils/breakpoints' as *;
+@use './tokens' as *;
 
-// ===== VARIABLES DE PERSONNALISATION =====
-// Variables essentielles pour modifier l'apparence du menu de navigation
 
-// Espacement entre les éléments
-$nav-menu-gap-mobile: var(--spacing-sm) !default;
-$nav-menu-gap-desktop: var(--spacing-md) !default;
-
-// Alignement
-$nav-menu-align-mobile: center !default;
-$nav-menu-text-align-mobile: center !default;
-
-// ===== LISTE DE NAVIGATION =====
-// Liste principale des éléments de navigation
-
+// =================================================================
+// LISTE DE NAVIGATION PRINCIPALE
+// =================================================================
 .primary-navigation {
-    // Reset des styles de liste
+    // === Reset des styles de liste ===
     list-style: none;
     margin: 0;
     padding: 0;
-    
-    // Layout sur mobile - vertical
+
+    // === Layout Flexbox ===
+    // Disposition verticale par défaut (mobile)
     display: flex;
     flex-direction: column;
-    gap: $nav-menu-gap-mobile;
-    
-    // Sur les très petits écrans, centrer les éléments
+
+    // === Espacement entre les éléments ===
+    // Utilise les custom properties définies dans _tokens.scss
+    // Varie automatiquement selon la taille d'écran
+    gap: var(--nav-menu-gap);
+
+    // === Responsive - Mobile (small et moins) ===
+    // Centrage des éléments sur les très petits écrans
     @include breakpoint-down('small') {
-        align-items: $nav-menu-align-mobile;
-        text-align: $nav-menu-text-align-mobile;
+        align-items: var(--nav-menu-align);
+        text-align: var(--nav-menu-text-align);
     }
-    
-    // Sur les grands écrans - horizontal
+
+    // === Responsive - Desktop ===
+    // Disposition horizontale sur les grands écrans
     @include breakpoint('large') {
         flex-direction: row;
         align-items: center;
-        gap: $nav-menu-gap-desktop;
     }
 }
