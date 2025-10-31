@@ -15,8 +15,8 @@
 
   // ===== Z-INDEX =====
   // Positionnement en couches : en dessous du menu mobile mais au-dessus du contenu
-  // Calculé à partir de --z-modal défini dans styles/globals/typography.scss
-  --nav-overlay-z-index: calc(var(--z-modal) - 1);
+  // Calculé à partir de --nav-mobile-z-index défini dans features/header/_tokens.scss
+  --nav-overlay-z-index: calc(var(--nav-mobile-z-index) - 1);
 
   // ===== TRANSITIONS =====
   // Animation d'apparition/disparition de l'overlay

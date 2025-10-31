@@ -67,14 +67,11 @@
   // Conteneur principal de navigation
   --nav-container-z-index: var(--z-fixed);  // 1030
 
-  // Menu mobile overlay
-  --nav-mobile-z-index: var(--z-modal);  // 1050
-
-  // Toggle mobile (menu fermé)
-  --nav-toggle-z-index: calc(var(--z-modal) + 1);  // 1051
+  // Toggle mobile (menu fermé) - au-dessus du menu mobile
+  --nav-toggle-z-index: calc(var(--nav-mobile-z-index) + 1);  // 1051
 
   // Toggle mobile (menu ouvert) - doit être au-dessus de tout
-  --nav-toggle-open-z-index: calc(var(--z-modal) + 2);  // 1052
+  --nav-toggle-open-z-index: calc(var(--nav-mobile-z-index) + 2);  // 1052
 }
 
 // =================================================================

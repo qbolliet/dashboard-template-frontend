@@ -28,6 +28,10 @@
   // ===== Z-INDEX =====
   --header-z-index: var(--z-sticky);
 
+  // Z-index du menu mobile de navigation (topbar et sidebar)
+  // Utilisé comme référence pour calculer les z-index des éléments associés
+  --nav-mobile-z-index: var(--z-modal);  // 1050
+
   // ===== LOGO =====
   // Hauteur maximale du logo (80% de la hauteur du contenu)
   --header-logo-max-height: calc(var(--header-content-height) * 0.8);
