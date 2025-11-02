@@ -6,42 +6,46 @@
 
 // ===== SIDEBAR GROUP =====
 .sidebar-group {
-  display: flex;
-  flex-direction: column;
+  // Le groupe est maintenant un <li>, donc reset des styles de liste
+  list-style: none;
+
+  // Utilisation de grid pour aligner trigger et chevron horizontalement
+  // et placer le content en dessous
+  display: grid;
+  grid-template-columns: 1fr auto; // Trigger prend l'espace, chevron auto-sized
+  grid-template-rows: auto auto; // Ligne header + ligne content
+  align-items: center;
   margin-bottom: var(--spacing-xs);
+  min-height: var(--spacing-4xl); // Hauteur minimum pour harmoniser avec les items
+  border-radius: var(--border-radius-md);
+  position: relative;
 
-  // ===== CONTAINER DU TRIGGER =====
-  &-trigger-container {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    min-height: var(--spacing-4xl); // Hauteur minimum pour harmoniser avec les items
-    border-radius: var(--border-radius-md);
-    position: relative;
+  // Hover sur le groupe entier
+  &:hover {
+    background-color: hsl(var(--nav-link-hover-bg));
+    color: hsl(var(--nav-link-hover-color));
+    border-color: hsl(var(--color-border-hover));
 
-    // Hover sur le container entier
-    &:hover {
+    .sidebar-group-trigger {
       background-color: hsl(var(--nav-link-hover-bg));
       color: hsl(var(--nav-link-hover-color));
-      border-color: hsl(var(--color-border-hover));
+    }
 
-      .sidebar-group-trigger {
-        background-color: hsl(var(--nav-link-hover-bg));
-        color: hsl(var(--nav-link-hover-color));
-      }
-
-      .sidebar-group-chevron-button {
-        background-color: hsl(var(--nav-link-hover-bg));
-        color: hsl(var(--nav-link-hover-color));
-      }
+    .sidebar-group-chevron-button {
+      background-color: hsl(var(--nav-link-hover-bg));
+      color: hsl(var(--nav-link-hover-color));
     }
   }
 
   // ===== TRIGGER PRINCIPAL DU GROUPE =====
   &-trigger {
+    // Positionnement dans la grille
+    grid-column: 1;
+    grid-row: 1;
+
     display: flex;
     align-items: center;
-    flex: 1; // Prend tout l'espace disponible
+    gap: var(--spacing-sm); // Espacement entre icône et texte
     min-height: inherit; // Hérite de la hauteur minimum du container
     padding: var(--sidebar-item-padding) var(--spacing-md);
     background-color: transparent;
@@ -50,7 +54,7 @@
     cursor: pointer;
     text-decoration: none;
     color: hsl(var(--nav-link-color));
-    font-size: var(--font-size-sm); 
+    font-size: var(--font-size-sm);
     font-weight: 500;
     line-height: var(--line-height-tight);
     transition: all var(--transition-normal) ease;
@@ -83,38 +87,16 @@
 
   // ===== ICÔNE DU GROUPE =====
   &-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    // L'icône est maintenant directement sur l'élément Image
     width: var(--spacing-lg); // 16px
     height: var(--spacing-lg); // 16px
-    margin-right: var(--spacing-sm);
     flex-shrink: 0;
+    object-fit: contain;
+    filter: hsl(var(--logo-filter)); // Appliquer le filtre du thème
 
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      filter: hsl(var(--logo-filter)); // Appliquer le filtre du thème
-    }
-
-    // Quand sidebar collapsée, centrer l'icône
+    // Quand sidebar collapsée, agrandir l'icône
     .sidebar-group--sidebar-collapsed & {
-      margin-right: 0;
       width: var(--spacing-xl); // 20px - plus grande quand seule
-      height: var(--spacing-xl); // 20px
-    }
-  }
-
-  // ===== PLACEHOLDER POUR ICÔNE MANQUANTE =====
-  &-icon-placeholder {
-    width: var(--spacing-lg); // 16px - même taille que l'icône
-    height: var(--spacing-lg); // 16px
-    flex-shrink: 0;
-
-    // Quand sidebar collapsée, même taille que l'icône
-    .sidebar-group--sidebar-collapsed & {
-      width: var(--spacing-xl); // 20px
       height: var(--spacing-xl); // 20px
     }
   }
@@ -135,6 +117,10 @@
 
   // ===== BOUTON CHEVRON SÉPARÉ =====
   &-chevron-button {
+    // Positionnement dans la grille
+    grid-column: 2;
+    grid-row: 1;
+
     display: flex;
     align-items: center;
     justify-content: center;
@@ -169,32 +155,33 @@
     }
   }
 
-  // ===== CHEVRON D'EXPANSION =====
-  &-chevron {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  // ===== ICÔNE DU CHEVRON =====
+  &-chevron-icon {
+    // Le SVG est maintenant directement stylé, pas de wrapper
+    // Taille de l'icône proportionnelle au bouton (environ 60-70% du bouton)
+    width: calc(var(--nav-chevron-size) * 0.67);
+    height: calc(var(--nav-chevron-size) * 0.67);
     transition: transform var(--transition-normal) ease;
 
-    &-icon {
-      // Taille de l'icône proportionnelle au bouton (environ 60-70% du bouton)
-      width: calc(var(--nav-chevron-size) * 0.67);
-      height: calc(var(--nav-chevron-size) * 0.67);
-    }
-
-    // Rotation quand groupe expanded - seulement pour l'enfant direct
-    .sidebar-group--expanded > .sidebar-group-trigger-container > .sidebar-group-chevron-button & {
+    // Rotation quand groupe expanded
+    .sidebar-group--expanded > .sidebar-group-chevron-button & {
       transform: rotate(90deg);
     }
   }
 
   // ===== CONTENU COLLAPSIBLE =====
   &-content {
+    // Positionnement dans la grille - span all columns
+    grid-column: 1 / -1;
+    grid-row: 2;
+
+    // Le content est maintenant un <ul>, donc reset des styles de liste
+    list-style: none;
+    padding-left: var(--spacing-xl); // Indentation pour les éléments enfants
+    margin: 0;
     position: relative; // Nécessaire pour le positionnement du ::before
     overflow: hidden;
     transition: all var(--transition-normal) ease;
-    padding-left: var(--spacing-xl); // Indentation pour les éléments enfants
-    margin-top: var(--spacing-xs);
 
     // Animation d'entrée/sortie
     .sidebar-group--collapsed & {
@@ -208,6 +195,7 @@
     .sidebar-group--expanded & {
       max-height: 1000px; // Valeur suffisamment grande
       opacity: 1;
+      margin-top: var(--spacing-xs);
     }
 
     // Bordure à gauche pour indiquer la hiérarchie

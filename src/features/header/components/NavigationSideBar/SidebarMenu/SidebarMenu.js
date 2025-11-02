@@ -42,7 +42,7 @@ const SidebarMenu = ({
     };
 
     return (
-        <div className={menuClasses}>
+        <nav className={menuClasses} aria-label="Navigation latérale principale">
             {navigationData.map((item, index) => {
                 // Rendu conditionnel basé sur le type d'item
                 if (shouldRenderAsGroup(item)) {
@@ -67,7 +67,7 @@ const SidebarMenu = ({
 
                 return null;
             })}
-        </div>
+        </nav>
     );
 };
 

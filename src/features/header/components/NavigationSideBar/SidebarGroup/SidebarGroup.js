@@ -133,75 +133,64 @@ const SidebarGroup = ({
         : { type: 'button', onClick: handleItemClick };
 
     return (
-        <div className={groupClasses}>
-            {/* Container du trigger */}
-            <div className="sidebar-group-trigger-container">
-                {/* Trigger principal du groupe */}
-                <TriggerComponent
-                    {...triggerProps}
-                    className={triggerClasses}
-                    onKeyDown={handleKeyDown}
-                    aria-expanded={isExpanded}
-                    aria-label={item.name}
-                    title={!sidebarIsOpen ? item.name : undefined} // Tooltip quand sidebar fermée
-                >
-                    {/* Icône de l'item (si disponible et si des icônes existent dans la navigation) */}
-                    {hasIcons && (
-                        <div className="sidebar-group-icon">
-                            {item.icon ? (
-                                <Image
-                                    src={item.icon}
-                                    alt=""
-                                    width={20}
-                                    height={20}
-                                />
-                            ) : (
-                                // Espace réservé pour maintenir l'alignement quand certains items n'ont pas d'icône
-                                <div className="sidebar-group-icon-placeholder" />
-                            )}
-                        </div>
-                    )}
-
-                    {/* Texte du groupe (visible quand sidebar ouverte) */}
-                    {sidebarIsOpen && (
-                        <span className="sidebar-group-text">
-                            {item.name}
-                        </span>
-                    )}
-                </TriggerComponent>
-
-                {/* Indicateur d'expansion (chevron) - clickable séparément */}
-                {sidebarIsOpen && hasChildren && (
-                    <button
-                        type="button"
-                        className="sidebar-group-chevron-button"
-                        onClick={handleChevronClick}
-                        aria-label={isExpanded ? 'Fermer le groupe' : 'Ouvrir le groupe'}
-                    >
-                        <div className="sidebar-group-chevron">
-                            <svg
-                                className="sidebar-group-chevron-icon"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                            >
-                                <path d="m9 18 6-6-6-6" />
-                            </svg>
-                        </div>
-                    </button>
+        <li className={groupClasses}>
+            {/* Trigger principal du groupe */}
+            <TriggerComponent
+                {...triggerProps}
+                className={triggerClasses}
+                onKeyDown={handleKeyDown}
+                aria-expanded={isExpanded}
+                aria-label={item.name}
+                title={!sidebarIsOpen ? item.name : undefined} // Tooltip quand sidebar fermée
+            >
+                {/* Icône de l'item (si disponible et si des icônes existent dans la navigation) */}
+                {hasIcons && item.icon && (
+                    <Image
+                        src={item.icon}
+                        alt=""
+                        width={20}
+                        height={20}
+                        className="sidebar-group-icon"
+                    />
                 )}
-            </div>
+
+                {/* Texte du groupe (visible quand sidebar ouverte) */}
+                {sidebarIsOpen && (
+                    <span className="sidebar-group-text">
+                        {item.name}
+                    </span>
+                )}
+            </TriggerComponent>
+
+            {/* Indicateur d'expansion (chevron) - clickable séparément */}
+            {sidebarIsOpen && hasChildren && (
+                <button
+                    type="button"
+                    className="sidebar-group-chevron-button"
+                    onClick={handleChevronClick}
+                    aria-label={isExpanded ? 'Fermer le groupe' : 'Ouvrir le groupe'}
+                >
+                    <svg
+                        className="sidebar-group-chevron-icon"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                    >
+                        <path d="m9 18 6-6-6-6" />
+                    </svg>
+                </button>
+            )}
 
             {/* Contenu collapsible - supportant plusieurs niveaux */}
             {isExpanded && hasChildren && sidebarIsOpen && (
-                <div className="sidebar-group-content">
+                <ul className="sidebar-group-content">
                     {renderNestedContent(item.children, level + 1)}
-                </div>
+                </ul>
             )}
-        </div>
+        </li>
     );
 };
 

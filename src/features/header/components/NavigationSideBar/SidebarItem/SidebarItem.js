@@ -67,20 +67,14 @@ const SidebarItem = ({
     const linkContent = (
         <>
             {/* Icône de l'item (si des icônes existent dans la navigation) */}
-            {hasIcons && (
-                <div className="sidebar-item-icon">
-                    {item.icon ? (
-                        <Image
-                            src={item.icon}
-                            alt=""
-                            width={20}
-                            height={20}
-                        />
-                    ) : (
-                        // Espace réservé pour maintenir l'alignement quand certains items n'ont pas d'icône
-                        <div className="sidebar-item-icon-placeholder" />
-                    )}
-                </div>
+            {hasIcons && item.icon && (
+                <Image
+                    src={item.icon}
+                    alt=""
+                    width={20}
+                    height={20}
+                    className="sidebar-item-icon"
+                />
             )}
 
             {/* Texte de l'item (visible quand sidebar ouverte) */}
@@ -92,19 +86,18 @@ const SidebarItem = ({
 
             {/* Indicateur de lien externe */}
             {isExternalLink && sidebarIsOpen && (
-                <div className="sidebar-item-external-indicator">
-                    <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                    >
-                        <path d="M7 17L17 7" />
-                        <path d="M7 7h10v10" />
-                    </svg>
-                </div>
+                <svg
+                    className="sidebar-item-external-indicator"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                >
+                    <path d="M7 17L17 7" />
+                    <path d="M7 7h10v10" />
+                </svg>
             )}
         </>
     );
@@ -113,16 +106,16 @@ const SidebarItem = ({
     if (!item.path || item.path === '#') {
         // Pas de lien - rendu comme span
         return (
-            <div className={itemClasses}>
+            <li className={itemClasses}>
                 <span className="sidebar-item-span">
                     {linkContent}
                 </span>
-            </div>
+            </li>
         );
     } else if (isExternalLink) {
         // Lien externe - utiliser un tag <a>
         return (
-            <div className={itemClasses}>
+            <li className={itemClasses}>
                 <a
                     href={item.path}
                     target="_blank"
@@ -131,16 +124,16 @@ const SidebarItem = ({
                 >
                     {linkContent}
                 </a>
-            </div>
+            </li>
         );
     } else {
         // Lien interne - utiliser Next.js Link
         return (
-            <div className={itemClasses}>
+            <li className={itemClasses}>
                 <Link href={item.path} {...commonLinkProps}>
                     {linkContent}
                 </Link>
-            </div>
+            </li>
         );
     }
 };
