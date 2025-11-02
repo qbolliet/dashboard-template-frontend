@@ -2,6 +2,7 @@
 @use '../../../../../styles/utils/breakpoints' as *;
 @use '../../../../../styles/globals/colors';
 @use '../../../../../styles/globals/typography';
+@use './../tokens';
 
 // ===== SIDEBAR GROUP =====
 .sidebar-group {
@@ -42,14 +43,14 @@
     align-items: center;
     flex: 1; // Prend tout l'espace disponible
     min-height: inherit; // Hérite de la hauteur minimum du container
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: var(--sidebar-item-padding) var(--spacing-md);
     background-color: transparent;
     border: 1px solid transparent;
     border-radius: var(--border-radius-md); // Arrondi partout par défaut
     cursor: pointer;
     text-decoration: none;
     color: hsl(var(--nav-link-color));
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-sm); 
     font-weight: 500;
     line-height: var(--line-height-tight);
     transition: all var(--transition-normal) ease;
@@ -137,13 +138,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: inherit; // Hérite de la hauteur minimum du container
-    padding: var(--spacing-sm);
+    // Dimensions carrées basées sur la taille du chevron partagée
+    width: var(--nav-chevron-size);
+    height: var(--nav-chevron-size);
+    padding: 0;
     margin: 0;
     background-color: transparent;
     border: 1px solid transparent;
     border-radius: var(--border-radius-md);
-    //border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; // Arrondi seulement à droite
     cursor: pointer;
     color: hsl(var(--color-text-tertiary));
     transition: all var(--transition-normal) ease;
@@ -175,8 +177,9 @@
     transition: transform var(--transition-normal) ease;
 
     &-icon {
-      width: var(--spacing-lg);
-      height: var(--spacing-lg);
+      // Taille de l'icône proportionnelle au bouton (environ 60-70% du bouton)
+      width: calc(var(--nav-chevron-size) * 0.67);
+      height: calc(var(--nav-chevron-size) * 0.67);
     }
 
     // Rotation quand groupe expanded - seulement pour l'enfant direct
@@ -309,10 +312,24 @@
   @include breakpoint-down(small) {
     &-trigger-container {
       min-height: var(--spacing-3xl); // Même hauteur que tablette
+      // Centrage des éléments avec chevron à droite (comme dans DropdownNavigationItem)
+      justify-content: center;
+      position: relative;
     }
 
     &-trigger {
-      padding: var(--spacing-xs) var(--spacing-sm);
+      // Centrer le texte tout en compensant le chevron à droite
+      text-align: center;
+      flex: 1;
+      justify-content: center;
+      // Padding asymétrique pour compenser le bouton chevron à droite
+      padding: var(--spacing-xs) 0 var(--spacing-xs) var(--nav-chevron-size);
+    }
+
+    &-chevron-button {
+      // Positionner le chevron à droite de manière absolue
+      position: absolute;
+      right: 0;
     }
 
     &-content {

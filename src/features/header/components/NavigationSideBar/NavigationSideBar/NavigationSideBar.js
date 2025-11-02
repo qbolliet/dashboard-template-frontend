@@ -60,7 +60,7 @@ const NavigationSideBar = ({
     navigationData = [],
     onItemClick,
     useSwitcher = false,
-    defaultOpen = true,
+    defaultOpen = false,
     className = ''
 }) => {
     // État pour gérer l'ouverture/fermeture de la sidebar
@@ -158,21 +158,21 @@ const NavigationSideBar = ({
                             onSelectionChange={handleSwitcherChange}
                         />
                     ) : (
-                        // Mode normal : afficher seulement le logo
-                        <div className="sidebar-logo-container">
-                            <Image
-                                src='/logo.svg'
-                                alt="Logo du site"
-                                width={40}
-                                height={40}
-                                className="sidebar-logo"
-                            />
-                            {isOpen && (
+                        // Mode normal : afficher seulement le logo quand la sidebar est ouverte
+                        isOpen && (
+                            <div className="sidebar-logo-container">
+                                <Image
+                                    src='/logo.svg'
+                                    alt="Logo du site"
+                                    width={40}
+                                    height={40}
+                                    className="sidebar-logo"
+                                />
                                 <span className="sidebar-logo-text">
                                     Mon Site
                                 </span>
-                            )}
-                        </div>
+                            </div>
+                        )
                     )}
                 </div>
 

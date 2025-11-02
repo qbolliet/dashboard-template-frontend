@@ -173,11 +173,10 @@
     }
   }
 
-  // Mobile - overlay par défaut avec largeur maximale
+  // Mobile - overlay par défaut avec pleine largeur
   @include breakpoint-down(small) {
     &--open {
       width: var(--sidebar-width-open);
-      max-width: 320px;
     }
 
     // Overlay sombre sur mobile

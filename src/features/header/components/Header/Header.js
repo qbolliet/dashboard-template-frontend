@@ -30,7 +30,7 @@ const Header = ({
     currentPageTitle
 }) => {
     // État pour la sidebar (si mode sidebar)
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     // Hook de navigation
     const navigationHook = useNavigation();
