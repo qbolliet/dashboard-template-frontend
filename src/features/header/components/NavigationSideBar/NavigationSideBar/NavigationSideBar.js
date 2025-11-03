@@ -184,7 +184,13 @@ const NavigationSideBar = ({
                 />
 
                 {/* Rail pour le redimensionnement (optionnel) */}
-                <div className="sidebar-rail" />
+                <div
+                    className="sidebar-rail"
+                    role="separator"
+                    aria-orientation="vertical"
+                    aria-label="Redimensionner la barre latérale"
+                    tabIndex={0}
+                />
             </aside>
         </SidebarContext.Provider>
     );
