@@ -43,30 +43,32 @@ const SidebarMenu = ({
 
     return (
         <nav className={menuClasses} aria-label="Navigation latérale principale">
-            {navigationData.map((item, index) => {
-                // Rendu conditionnel basé sur le type d'item
-                if (shouldRenderAsGroup(item)) {
-                    return (
-                        <SidebarGroup
-                            key={item.id || index}
-                            item={item}
-                            onItemClick={onItemClick}
-                            level={level}
-                        />
-                    );
-                } else if (shouldRenderAsItem(item)) {
-                    return (
-                        <SidebarItem
-                            key={item.id || index}
-                            item={item}
-                            onItemClick={onItemClick}
-                            level={level}
-                        />
-                    );
-                }
+            <ul className="sidebar-menu-list">
+                {navigationData.map((item, index) => {
+                    // Rendu conditionnel basé sur le type d'item
+                    if (shouldRenderAsGroup(item)) {
+                        return (
+                            <SidebarGroup
+                                key={item.id || index}
+                                item={item}
+                                onItemClick={onItemClick}
+                                level={level}
+                            />
+                        );
+                    } else if (shouldRenderAsItem(item)) {
+                        return (
+                            <SidebarItem
+                                key={item.id || index}
+                                item={item}
+                                onItemClick={onItemClick}
+                                level={level}
+                            />
+                        );
+                    }
 
-                return null;
-            })}
+                    return null;
+                })}
+            </ul>
         </nav>
     );
 };

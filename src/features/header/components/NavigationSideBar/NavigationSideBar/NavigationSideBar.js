@@ -149,7 +149,7 @@ const NavigationSideBar = ({
         <SidebarContext.Provider value={sidebarContextValue}>
             <aside className={sidebarClasses} data-sidebar-open={isOpen}>
                 {/* Header de la sidebar avec logo ou switcher */}
-                <div className="sidebar-header">
+                <header className="sidebar-header">
                     {useSwitcher && navigationData.length > 0 ? (
                         // Mode switcher : afficher le switcher avec logo intégré
                         <SidebarSwitcher
@@ -174,16 +174,14 @@ const NavigationSideBar = ({
                             </div>
                         )
                     )}
-                </div>
+                </header>
 
                 {/* Contenu principal de la sidebar */}
-                <div className="sidebar-content">
-                    <SidebarMenu
-                        navigationData={displayNavigationData}
-                        onItemClick={onItemClick}
-                        level={useSwitcher ? 1 : 0} // Ajuster le niveau si switcher utilisé
-                    />
-                </div>
+                <SidebarMenu
+                    navigationData={displayNavigationData}
+                    onItemClick={onItemClick}
+                    level={useSwitcher ? 1 : 0} // Ajuster le niveau si switcher utilisé
+                />
 
                 {/* Rail pour le redimensionnement (optionnel) */}
                 <div className="sidebar-rail" />

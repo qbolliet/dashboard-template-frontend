@@ -111,32 +111,6 @@
     }
   }
 
-  // ===== CONTENU DE LA SIDEBAR =====
-  .sidebar-content {
-    flex: 1; // Prend tout l'espace restant
-    overflow-y: auto; // Scroll si contenu déborde
-    overflow-x: hidden; // Pas de scroll horizontal
-    padding: var(--spacing-md) 0;
-
-    // Scrollbar personnalisée
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background-color: transparent;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background-color: hsl(var(--color-gray-300));
-      border-radius: var(--border-radius-sm);
-
-      &:hover {
-        background-color: hsl(var(--color-gray-400));
-      }
-    }
-  }
-
   // ===== RAIL DE REDIMENSIONNEMENT =====
   .sidebar-rail {
     position: absolute;

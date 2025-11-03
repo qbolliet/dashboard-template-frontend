@@ -5,10 +5,29 @@
 
 // ===== SIDEBAR MENU =====
 .sidebar-menu {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  padding: 0 var(--spacing-lg);
+  // Propriétés de scroll transférées depuis .sidebar-content
+  flex: 1; // Prend tout l'espace restant
+  overflow-y: auto; // Scroll si contenu déborde
+  overflow-x: hidden; // Pas de scroll horizontal
+  padding: var(--spacing-md) 0;
+
+  // Scrollbar personnalisée
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--color-gray-300));
+    border-radius: var(--border-radius-sm);
+
+    &:hover {
+      background-color: hsl(var(--color-gray-400));
+    }
+  }
 
   // ===== NIVEAUX DE MENU =====
 
@@ -139,6 +158,32 @@
       //   left: var(--spacing-xl);
       // }
     }
+  }
+}
+
+// ===== LISTE DU MENU (UL) =====
+.sidebar-menu-list {
+  // Reset des styles de liste par défaut
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  // Layout pour les items
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: 0 var(--spacing-lg);
+
+  // ===== RESPONSIVE =====
+
+  // Tablette - réduire les paddings
+  @include breakpoint-down(medium) {
+    padding: 0 var(--spacing-md);
+  }
+
+  // Mobile - paddings encore plus réduits
+  @include breakpoint-down(small) {
+    padding: 0 var(--spacing-sm);
   }
 }
 
