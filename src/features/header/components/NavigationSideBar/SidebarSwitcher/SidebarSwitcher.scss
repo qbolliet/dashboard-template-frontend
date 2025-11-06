@@ -161,6 +161,14 @@
       color: hsl(var(--nav-dropdown-link-active-color));
     }
 
+    // État focusé (navigation clavier)
+    &--focused {
+      background-color: hsl(var(--nav-dropdown-link-hover-bg));
+      color: hsl(var(--nav-dropdown-link-hover-color));
+      outline: 2px solid hsl(var(--color-focus));
+      outline-offset: -2px;
+    }
+
     // Icône de l'option
     &-icon {
       width: var(--spacing-lg); // 16px

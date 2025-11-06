@@ -60,7 +60,8 @@ const SidebarItem = ({
         className: linkClasses,
         onClick: handleItemClick,
         title: !sidebarIsOpen ? item.name : undefined, // Tooltip quand sidebar fermée
-        'aria-label': item.name
+        'aria-label': item.name,
+        ...(isActive && { 'aria-current': 'page' }) // Indiquer la page actuelle
     };
 
     // Contenu du lien

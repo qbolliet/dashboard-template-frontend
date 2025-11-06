@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -8,6 +8,7 @@ import NavigationContainer from '../NavigationTopBar/NavigationContainer/Navigat
 import { NavigationSideBar, SidebarTrigger } from '../NavigationSideBar';
 import SearchBar from '../SearchBar/SearchBar';
 import ThemeToggleButton from '../../../theme/components/ThemeToggleButton/ThemeToggleButton';
+import { SkipLink } from '@/features/accessibility';
 import { useNavigation } from '../../hooks/useNavigation';
 import './Header.scss';
 
@@ -110,6 +111,11 @@ const Header = ({
 
     return (
         <>
+            {/* Skip link pour l'accessibilité */}
+            <SkipLink href="#main-content">
+                Passer la navigation
+            </SkipLink>
+
             {/* Sidebar de navigation intégrée */}
             {isSidebarMode && (
                 <NavigationSideBar

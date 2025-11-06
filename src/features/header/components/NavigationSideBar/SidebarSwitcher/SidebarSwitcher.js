@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { useSidebar } from '../NavigationSideBar/NavigationSideBar';
+import { useKeyboardNavigation, useAriaAnnounce, generateId } from '@/features/accessibility';
 import './SidebarSwitcher.scss';
 
 /**
@@ -31,6 +32,26 @@ const SidebarSwitcher = ({
     // Contexte de la sidebar
     const { isOpen: sidebarIsOpen } = useSidebar();
 
+    // Hook pour annonces aux lecteurs d'écran
+    const announce = useAriaAnnounce();
+
+    // IDs uniques pour les relations ARIA
+    const triggerId = useMemo(() => generateId('switcher-trigger'), []);
+    const listboxId = useMemo(() => generateId('switcher-listbox'), []);
+
+    // Navigation clavier dans le dropdown
+    const {
+        focusedIndex,
+        handleKeyDown: handleKeyboardNav,
+        setFocusedIndex,
+        resetFocus
+    } = useKeyboardNavigation({
+        items,
+        orientation: 'vertical',
+        loop: true,
+        getItemText: (item) => item.name || ''
+    });
+
     // Fermer le dropdown lors du clic à l'extérieur
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -43,28 +64,65 @@ const SidebarSwitcher = ({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Toggle du dropdown
+    // Toggle du dropdown avec reset du focus
     const toggleDropdown = () => {
-        setIsDropdownOpen(prev => !prev);
+        setIsDropdownOpen(prev => {
+            if (prev) {
+                // Si on ferme, reset du focus
+                resetFocus();
+            }
+            return !prev;
+        });
     };
 
-    // Gestion de la sélection d'un item
+    // Gestion de la sélection d'un item avec annonce
     const handleItemSelection = (item) => {
         setIsDropdownOpen(false);
+        resetFocus();
+
+        // Annoncer le changement de sélection aux lecteurs d'écran
+        if (item?.name) {
+            announce(`${item.name} sélectionné`, 'polite');
+        }
+
         if (onSelectionChange) {
             onSelectionChange(item);
         }
     };
 
-    // Gestion des raccourcis clavier
-    const handleKeyDown = (event) => {
-        if (event.key === 'Escape') {
+    // Gestion des raccourcis clavier (trigger)
+    const handleTriggerKeyDown = (event) => {
+        if (event.key === 'Escape' && isDropdownOpen) {
+            event.preventDefault();
             setIsDropdownOpen(false);
+            resetFocus();
         }
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
             toggleDropdown();
         }
+    };
+
+    // Gestion des raccourcis clavier (dropdown)
+    const handleDropdownKeyDown = (event) => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            setIsDropdownOpen(false);
+            resetFocus();
+            triggerRef.current?.focus();
+            return;
+        }
+
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            if (focusedIndex >= 0 && focusedIndex < items.length) {
+                handleItemSelection(items[focusedIndex]);
+            }
+            return;
+        }
+
+        // Déléguer les autres touches à la navigation clavier
+        handleKeyboardNav(event);
     };
 
     // Classes CSS pour le switcher
@@ -89,12 +147,15 @@ const SidebarSwitcher = ({
             {/* Trigger du switcher */}
             <button
                 ref={triggerRef}
+                id={triggerId}
                 type="button"
                 className="sidebar-switcher-trigger"
                 onClick={toggleDropdown}
-                onKeyDown={handleKeyDown}
+                onKeyDown={handleTriggerKeyDown}
                 aria-expanded={isDropdownOpen}
-                aria-haspopup="true"
+                aria-haspopup="listbox"
+                aria-controls={isDropdownOpen ? listboxId : undefined}
+                aria-label={`Sélecteur de navigation : ${selectedItem?.name || 'Aucune sélection'}`}
             >
                 {/* Logo */}
                 <div className="sidebar-switcher-logo">
@@ -138,14 +199,29 @@ const SidebarSwitcher = ({
             {/* Dropdown des options */}
             {isDropdownOpen && (
                 <div className={dropdownClasses}>
-                    <div className="sidebar-switcher-dropdown-content">
+                    <ul
+                        id={listboxId}
+                        role="listbox"
+                        aria-labelledby={triggerId}
+                        aria-activedescendant={
+                            focusedIndex >= 0 && focusedIndex < items.length
+                                ? `${listboxId}-option-${focusedIndex}`
+                                : undefined
+                        }
+                        tabIndex={-1}
+                        onKeyDown={handleDropdownKeyDown}
+                        className="sidebar-switcher-dropdown-content"
+                    >
                         {items.map((item, index) => (
-                            <button
+                            <li
                                 key={item.id || index}
-                                type="button"
+                                id={`${listboxId}-option-${index}`}
+                                role="option"
+                                aria-selected={selectedItem?.id === item.id}
                                 className={[
                                     'sidebar-switcher-option',
-                                    selectedItem?.id === item.id ? 'sidebar-switcher-option--selected' : ''
+                                    selectedItem?.id === item.id ? 'sidebar-switcher-option--selected' : '',
+                                    focusedIndex === index ? 'sidebar-switcher-option--focused' : ''
                                 ].filter(Boolean).join(' ')}
                                 onClick={() => handleItemSelection(item)}
                             >
@@ -175,14 +251,15 @@ const SidebarSwitcher = ({
                                             fill="none"
                                             stroke="currentColor"
                                             strokeWidth="2"
+                                            aria-hidden="true"
                                         >
                                             <polyline points="20,6 9,17 4,12" />
                                         </svg>
                                     </div>
                                 )}
-                            </button>
+                            </li>
                         ))}
-                    </div>
+                    </ul>
                 </div>
             )}
         </div>

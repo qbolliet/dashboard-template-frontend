@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSidebar } from '../NavigationSideBar/NavigationSideBar';
+import { AccessibleIcon, generateId } from '@/features/accessibility';
 import SidebarItem from '../SidebarItem/SidebarItem';
 import './SidebarGroup.scss';
 
@@ -26,6 +27,9 @@ const SidebarGroup = ({
 
     // Contexte de la sidebar
     const { isOpen: sidebarIsOpen, hasIcons, isActivePath, hasActiveChildren } = useSidebar();
+
+    // ID unique pour le contenu collapsible
+    const contentId = useMemo(() => generateId('sidebar-group-content'), []);
 
     // Vérifier si l'item ou ses enfants sont actifs
     const isActive = isActivePath(item.path);
@@ -140,6 +144,7 @@ const SidebarGroup = ({
                 className={triggerClasses}
                 onKeyDown={handleKeyDown}
                 aria-expanded={isExpanded}
+                aria-controls={hasChildren ? contentId : undefined}
                 aria-label={item.name}
                 title={!sidebarIsOpen ? item.name : undefined} // Tooltip quand sidebar fermée
             >
@@ -169,24 +174,32 @@ const SidebarGroup = ({
                     className="sidebar-group-chevron-button"
                     onClick={handleChevronClick}
                     aria-label={isExpanded ? 'Fermer le groupe' : 'Ouvrir le groupe'}
+                    aria-expanded={isExpanded}
+                    aria-controls={contentId}
                 >
-                    <svg
-                        className="sidebar-group-chevron-icon"
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                    >
-                        <path d="m9 18 6-6-6-6" />
-                    </svg>
+                    <AccessibleIcon
+                        icon={
+                            <svg
+                                className="sidebar-group-chevron-icon"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                            >
+                                <path d="m9 18 6-6-6-6" />
+                            </svg>
+                        }
+                        label={isExpanded ? 'Fermer' : 'Ouvrir'}
+                        decorative={true}
+                    />
                 </button>
             )}
 
             {/* Contenu collapsible - supportant plusieurs niveaux */}
             {isExpanded && hasChildren && sidebarIsOpen && (
-                <ul className="sidebar-group-content">
+                <ul id={contentId} className="sidebar-group-content">
                     {renderNestedContent(item.children, level + 1)}
                 </ul>
             )}

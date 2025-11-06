@@ -41,6 +41,11 @@
   flex-shrink: 0; // Empêche la sidebar de rétrécir
   z-index: calc(var(--z-fixed) + 1); // Au-dessus du header
 
+  // Désactiver les transitions si l'utilisateur préfère reduced-motion
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+
   // ===== ÉTATS DE LA SIDEBAR =====
 
   // État ouvert

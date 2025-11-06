@@ -10,13 +10,15 @@ import './SidebarTrigger.scss';
  * @param {Function} onToggle - Function to call when the trigger is clicked
  * @param {string} className - Optional additional CSS class
  * @param {string} ariaLabel - Optional ARIA label for accessibility
+ * @param {string} ariaControls - ID of the sidebar element this trigger controls
  * @returns {JSX.Element} The rendered sidebar trigger button
  */
 const SidebarTrigger = ({
     isOpen = false,
     onToggle,
     className = '',
-    ariaLabel = 'Toggle sidebar'
+    ariaLabel = 'Toggle sidebar',
+    ariaControls
 }) => {
     // Gestion du clic sur le trigger
     const handleClick = () => {
@@ -48,6 +50,7 @@ const SidebarTrigger = ({
             onKeyDown={handleKeyDown}
             aria-label={ariaLabel}
             aria-expanded={isOpen}
+            aria-controls={ariaControls}
             data-sidebar-trigger
         >
             {/* Icône hamburger animée */}
