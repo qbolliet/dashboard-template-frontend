@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useNavigation } from '../../../hooks/useNavigation';
 import SidebarSwitcher from '../SidebarSwitcher/SidebarSwitcher';
 import SidebarMenu from '../SidebarMenu/SidebarMenu';
-import { FocusTrap, useAriaAnnounce, generateId } from '@/features/accessibility';
+import { useFocusTrap, useAriaAnnounce, generateId } from '@/features/accessibility';
 import './NavigationSideBar.scss';
 
 // Context pour gérer l'état de la sidebar
@@ -87,6 +87,13 @@ const NavigationSideBar = ({
 
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
+
+    // Hook pour piéger le focus dans la sidebar en mode mobile
+    const focusTrapRef = useFocusTrap({
+        active: isMobile && isOpen,
+        returnFocus: true,
+        autoFocus: true
+    });
 
     // Synchroniser l'état avec la prop defaultOpen quand elle change
     useEffect(() => {
@@ -179,60 +186,55 @@ const NavigationSideBar = ({
     return (
         <SidebarContext.Provider value={sidebarContextValue}>
             <aside
+                ref={focusTrapRef}
                 id={sidebarId}
                 className={sidebarClasses}
                 data-sidebar-open={isOpen}
                 aria-label="Navigation latérale"
             >
-                <FocusTrap
-                    active={isMobile && isOpen}
-                    returnFocus={true}
-                    autoFocus={true}
-                >
-                    {/* Header de la sidebar avec logo ou switcher */}
-                    <header className="sidebar-header">
-                        {useSwitcher && navigationData.length > 0 ? (
-                            // Mode switcher : afficher le switcher avec logo intégré
-                            <SidebarSwitcher
-                                items={navigationData}
-                                selectedItem={selectedSwitcherItem}
-                                onSelectionChange={handleSwitcherChange}
-                            />
-                        ) : (
-                            // Mode normal : afficher seulement le logo quand la sidebar est ouverte
-                            isOpen && (
-                                <div className="sidebar-logo-container">
-                                    <Image
-                                        src='/logo.svg'
-                                        alt="Logo du site"
-                                        width={40}
-                                        height={40}
-                                        className="sidebar-logo"
-                                    />
-                                    <span className="sidebar-logo-text">
-                                        Mon Site
-                                    </span>
-                                </div>
-                            )
-                        )}
-                    </header>
+                {/* Header de la sidebar avec logo ou switcher */}
+                <header className="sidebar-header">
+                    {useSwitcher && navigationData.length > 0 ? (
+                        // Mode switcher : afficher le switcher avec logo intégré
+                        <SidebarSwitcher
+                            items={navigationData}
+                            selectedItem={selectedSwitcherItem}
+                            onSelectionChange={handleSwitcherChange}
+                        />
+                    ) : (
+                        // Mode normal : afficher seulement le logo quand la sidebar est ouverte
+                        isOpen && (
+                            <div className="sidebar-logo-container">
+                                <Image
+                                    src='/logo.svg'
+                                    alt="Logo du site"
+                                    width={40}
+                                    height={40}
+                                    className="sidebar-logo"
+                                />
+                                <span className="sidebar-logo-text">
+                                    Mon Site
+                                </span>
+                            </div>
+                        )
+                    )}
+                </header>
 
-                    {/* Contenu principal de la sidebar */}
-                    <SidebarMenu
-                        navigationData={displayNavigationData}
-                        onItemClick={onItemClick}
-                        level={useSwitcher ? 1 : 0} // Ajuster le niveau si switcher utilisé
-                    />
+                {/* Contenu principal de la sidebar */}
+                <SidebarMenu
+                    navigationData={displayNavigationData}
+                    onItemClick={onItemClick}
+                    level={useSwitcher ? 1 : 0} // Ajuster le niveau si switcher utilisé
+                />
 
-                    {/* Rail pour le redimensionnement (optionnel) */}
-                    <div
-                        className="sidebar-rail"
-                        role="separator"
-                        aria-orientation="vertical"
-                        aria-label="Redimensionner la barre latérale"
-                        tabIndex={0}
-                    />
-                </FocusTrap>
+                {/* Rail pour le redimensionnement (optionnel) */}
+                <div
+                    className="sidebar-rail"
+                    role="separator"
+                    aria-orientation="vertical"
+                    aria-label="Redimensionner la barre latérale"
+                    tabIndex={0}
+                />
             </aside>
         </SidebarContext.Provider>
     );

@@ -1,5 +1,4 @@
-import React, { useRef, useEffect } from 'react';
-import PropTypes from 'prop-types';
+import { useRef, useEffect } from 'react';
 
 /**
  * Sélecteur pour tous les éléments potentiellement focusables
@@ -44,33 +43,39 @@ const getFocusableElements = (container) => {
 };
 
 /**
- * FocusTrap Component
+ * useFocusTrap Hook
  *
  * Piège le focus clavier à l'intérieur d'un conteneur.
  * Utile pour les modales, les dropdowns, et les overlays.
  *
- * @param {Object} props - Component props
- * @param {React.ReactNode} props.children - Contenu dans lequel piéger le focus
- * @param {boolean} props.active - Active ou désactive le piège de focus
- * @param {boolean} props.returnFocus - Retourne le focus à l'élément d'origine à la désactivation
- * @param {boolean} props.autoFocus - Focus automatiquement le premier élément focusable à l'activation
- * @returns {React.ReactElement} The rendered component
+ * @param {Object} options - Hook options
+ * @param {boolean} options.active - Active ou désactive le piège de focus
+ * @param {boolean} options.returnFocus - Retourne le focus à l'élément d'origine à la désactivation
+ * @param {boolean} options.autoFocus - Focus automatiquement le premier élément focusable à l'activation
+ * @returns {React.RefObject} Ref à attacher au conteneur
  *
  * @example
- * <FocusTrap active={isOpen} returnFocus autoFocus>
- *   <div>
- *     <button>First</button>
- *     <button>Second</button>
- *     <button>Last</button>
- *   </div>
- * </FocusTrap>
+ * const Modal = ({ isOpen }) => {
+ *   const focusTrapRef = useFocusTrap({
+ *     active: isOpen,
+ *     returnFocus: true,
+ *     autoFocus: true
+ *   });
+ *
+ *   return (
+ *     <div ref={focusTrapRef}>
+ *       <button>First</button>
+ *       <button>Second</button>
+ *       <button>Last</button>
+ *     </div>
+ *   );
+ * };
  */
-const FocusTrap = ({
-  children,
+const useFocusTrap = ({
   active = false,
   returnFocus = true,
   autoFocus = true,
-}) => {
+} = {}) => {
   const containerRef = useRef(null);
   const previouslyFocusedElement = useRef(null);
 
@@ -136,18 +141,7 @@ const FocusTrap = ({
     };
   }, [active, autoFocus, returnFocus]);
 
-  return <div ref={containerRef}>{children}</div>;
+  return containerRef;
 };
 
-FocusTrap.propTypes = {
-  /** Contenu dans lequel piéger le focus */
-  children: PropTypes.node.isRequired,
-  /** Active ou désactive le piège de focus */
-  active: PropTypes.bool,
-  /** Retourne le focus à l'élément d'origine à la désactivation */
-  returnFocus: PropTypes.bool,
-  /** Focus automatiquement le premier élément focusable à l'activation */
-  autoFocus: PropTypes.bool,
-};
-
-export default FocusTrap;
+export default useFocusTrap;
