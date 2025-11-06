@@ -1,0 +1,39 @@
+/**
+ * Masquage visuel pour l'accessibilité
+ *
+ * Technique moderne utilisant clip-path pour masquer visuellement
+ * tout en gardant le contenu accessible aux lecteurs d'écran.
+ *
+ * Cette technique :
+ * - Cache l'élément visuellement
+ * - Garde le contenu accessible aux screen readers
+ * - Maintient la navigation au clavier pour les éléments focusables
+ * - Fonctionne avec tous les navigateurs modernes
+ */
+
+.visually-hidden {
+  // Masque visuellement l'élément
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+
+  // Si l'élément reçoit le focus (par ex. un lien), on le rend visible
+  &:focus,
+  &:active {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    clip-path: none;
+    white-space: normal;
+  }
+}
