@@ -111,9 +111,6 @@ const DropdownNavigationItem = ({
     const itemClasses = [
         'nav-item',
         'nav-item--dropdown',
-        isActive && 'nav-item--active',
-        hasActiveChild && 'nav-item--has-active-child',
-        hasChildren && 'nav-item--has-dropdown',
         isDropdownOpen && 'nav-item--dropdown--open',
         isActive && activeClassName,
         itemClassName

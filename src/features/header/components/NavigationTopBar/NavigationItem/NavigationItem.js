@@ -38,7 +38,6 @@ const NavigationItem = ({
     const itemClasses = [
         'nav-item',
         'nav-item--simple',
-        isActive && 'nav-item--active',
         isActive && activeClassName,
         itemClassName
     ].filter(Boolean).join(' ');

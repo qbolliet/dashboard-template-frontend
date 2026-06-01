@@ -87,19 +87,6 @@
         }
     }
 
-    // ----- Positionnement du toggle quand le menu est ouvert -----
-    &.primary-navigation--open .mobile-nav-toggle {
-        // Sur mobile/tablet, positionner de façon fixe pour rester visible pendant le scroll
-        @include breakpoint-down('medium') {
-            position: fixed;
-            top: var(--nav-toggle-position-top);
-            right: var(--nav-toggle-position-right);
-            transform: none;  // Reset du translateY pour le centrage
-            z-index: var(--nav-toggle-open-z-index);
-            transition: opacity var(--nav-toggle-transition-duration) ease;
-        }
-    }
-
 
     // =================================================================
     // MENU DE NAVIGATION

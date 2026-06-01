@@ -6,6 +6,7 @@
 //
 // Structure du composant :
 // - .primary-navigation : Liste <ul> contenant les éléments de navigation
+// - .nav-link : Base partagée des liens (voir section dédiée plus bas)
 //
 // Comportement :
 // - Desktop (large et plus) : Disposition horizontale avec espacement moyen
@@ -50,5 +51,46 @@
     @include breakpoint('large') {
         flex-direction: row;
         align-items: center;
+    }
+}
+
+
+// =================================================================
+// LIEN DE NAVIGATION (base partagée)
+// =================================================================
+// Styles communs aux liens des deux variantes d'éléments de navigation
+// (.nav-item--simple et .nav-item--dropdown). Les variantes ne surchargent
+// que ce qui leur est spécifique (display, padding, font-size, border-radius,
+// transition…) dans NavigationItem.scss / DropdownNavigationItem.scss.
+//
+// Note : sélecteur volontairement non scopé (.nav-link, spécificité 0-1-0) afin
+// que les surcharges contextuelles (.nav-item--simple .nav-link, 0-2-0) priment.
+.nav-link {
+    // === Reset des styles de lien ===
+    text-decoration: none;
+
+    // === Typographie commune ===
+    color: hsl(var(--nav-link-color));
+    font-weight: var(--nav-link-font-weight);
+
+    // === États d'interaction ===
+
+    // ----- Hover : survol de la souris -----
+    &:hover {
+        color: hsl(var(--nav-link-hover-color));
+        background-color: hsl(var(--nav-link-hover-bg));
+    }
+
+    // ----- Focus : navigation au clavier (accessibilité) -----
+    &:focus {
+        outline: var(--nav-focus-outline-width) solid hsl(var(--nav-link-focus-color));
+        outline-offset: var(--nav-focus-outline-offset);
+    }
+
+    // ----- Active : lien de la page courante -----
+    &--active {
+        color: hsl(var(--nav-link-active-color));
+        background-color: hsl(var(--nav-link-active-bg));
+        font-weight: var(--nav-link-font-weight-active);
     }
 }
