@@ -37,36 +37,34 @@ export const renderDropdownContent = (
                     const isGroupExpanded = expandedGroups.has(groupIndex);
                     return (
                         <div key={`group-${groupIndex}`} className={`nav-dropdown__group ${isGroupExpanded ? 'nav-dropdown__group--expanded' : ''}`}>
-                            {/* En-tête du groupe avec chevron mobile */}
-                            <div className="nav-dropdown__group-header-wrapper">
-                                <Link
-                                    href={basePath + group.path}
-                                    className={`nav-dropdown__group-header ${
-                                        isActivePath(basePath + group.path) ? 'nav-dropdown__group-header--active' : ''
-                                    }`}
-                                    onClick={onItemClick}
+                            {/* En-tête du groupe : enfant direct de la grille .nav-dropdown__group */}
+                            <Link
+                                href={basePath + group.path}
+                                className={`nav-dropdown__group-header ${
+                                    isActivePath(basePath + group.path) ? 'nav-dropdown__group-header--active' : ''
+                                }`}
+                                onClick={onItemClick}
+                            >
+                                {group.name}
+                            </Link>
+
+                            {/* Chevron pour mobile uniquement - géré par CSS */}
+                            {group.children && Array.isArray(group.children) && group.children.length > 0 && (
+                                <button
+                                    className={`nav-dropdown__group-chevron ${isGroupExpanded ? 'nav-dropdown__group-chevron--expanded' : ''}`}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        toggleGroupExpansion(groupIndex);
+                                    }}
+                                    aria-expanded={isGroupExpanded}
+                                    aria-label={`${isGroupExpanded ? 'Réduire' : 'Développer'} le groupe ${group.name}`}
+                                    type="button"
                                 >
-                                    {group.name}
-                                </Link>
-                                
-                                {/* Chevron pour mobile uniquement - géré par CSS */}
-                                {group.children && Array.isArray(group.children) && group.children.length > 0 && (
-                                    <button
-                                        className={`nav-dropdown__group-chevron ${isGroupExpanded ? 'nav-dropdown__group-chevron--expanded' : ''}`}
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            toggleGroupExpansion(groupIndex);
-                                        }}
-                                        aria-expanded={isGroupExpanded}
-                                        aria-label={`${isGroupExpanded ? 'Réduire' : 'Développer'} le groupe ${group.name}`}
-                                        type="button"
-                                    >
-                                        <ChevronDownIcon width="12" height="12" />
-                                    </button>
-                                )}
-                            </div>
-                        
+                                    <ChevronDownIcon width="12" height="12" />
+                                </button>
+                            )}
+
                             {/* Sous-éléments du groupe - afficher seulement si le groupe a des enfants */}
                             {group.children && Array.isArray(group.children) && group.children.length > 0 && (
                                 <ul className={`nav-dropdown__sublist ${isGroupExpanded ? 'nav-dropdown__sublist--expanded' : ''}`}>

@@ -7,7 +7,7 @@ import './DropdownToggleButton.scss';
 /**
  * Dropdown toggle button component for opening/closing dropdowns.
  * Uses ChevronDownIcon and global design system styles.
- * 
+ *
  * @param {boolean} isOpen - State of the dropdown (open/closed)
  * @param {Function} onClick - Function called on click
  * @param {Function} onKeyDown - Function to handle keyboard events
@@ -15,17 +15,18 @@ import './DropdownToggleButton.scss';
  * @param {string} ariaLabel - Accessibility label for the button
  * @param {string} className - Additional CSS classes
  * @param {string|number} size - Size of the icon (default: 12)
+ * @param {React.Ref} ref - Ref transmise au <button> interne (gestion du focus)
  * @returns {JSX.Element} The rendered dropdown toggle button component
  */
-const DropdownToggleButton = ({ 
-    isOpen, 
-    onClick, 
+const DropdownToggleButton = React.forwardRef(({
+    isOpen,
+    onClick,
     onKeyDown,
     ariaControls,
     ariaLabel,
     className = '',
     size = 12
-}) => {
+}, ref) => {
     /**
      * Handle keyboard events with default behavior if no custom handler provided.
      * 
@@ -55,6 +56,7 @@ const DropdownToggleButton = ({
 
     return (
         <button
+            ref={ref}
             type="button"
             className={buttonClasses}
             onClick={onClick}
@@ -77,6 +79,9 @@ const DropdownToggleButton = ({
             </span>
         </button>
     );
-};
+});
+
+// Nom d'affichage pour le débogage (requis avec forwardRef)
+DropdownToggleButton.displayName = 'DropdownToggleButton';
 
 export default DropdownToggleButton;

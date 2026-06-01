@@ -32,7 +32,10 @@ const DropdownNavigationItem = ({
     
     // Référence pour gérer les clics à l'extérieur du dropdown
     const dropdownRef = useRef(null);
-    
+
+    // Référence vers le bouton toggle (pour y renvoyer le focus à la fermeture clavier)
+    const toggleButtonRef = useRef(null);
+
     // Hook personnalisé pour les fonctions utilitaires de navigation
     const { isActivePath, hasActiveChildren } = useNavigation();
     
@@ -87,14 +90,15 @@ const DropdownNavigationItem = ({
 
     /**
      * Gérer les événements clavier pour l'accessibilité.
+     *
+     * Note : Enter/Espace sont déjà gérés nativement par le <button> toggle
+     * (déclenchement de onClick). On ne traite donc ici que la touche Échap,
+     * pour fermer le dropdown et renvoyer le focus sur le bouton toggle.
      */
     const handleKeyDown = (event) => {
         if (event.key === 'Escape') {
             setIsDropdownOpen(false);
-        }
-        if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            toggleDropdown();
+            toggleButtonRef.current?.focus();
         }
     };
 
@@ -110,6 +114,7 @@ const DropdownNavigationItem = ({
         isActive && 'nav-item--active',
         hasActiveChild && 'nav-item--has-active-child',
         hasChildren && 'nav-item--has-dropdown',
+        isDropdownOpen && 'nav-item--dropdown--open',
         isActive && activeClassName,
         itemClassName
     ].filter(Boolean).join(' ');
@@ -122,29 +127,27 @@ const DropdownNavigationItem = ({
 
     return (
         <li className={itemClasses} ref={dropdownRef}>
-            {/* En-tête de l'élément de navigation */}
-            <div className="nav-item__header">
-                {/* Lien principal */}
-                <Link 
-                    href={item.path}
-                    className={linkClasses}
-                    onClick={handleItemClick}
-                    aria-current={isActive ? 'page' : undefined}
-                >
-                    {item.name}
-                </Link>
+            {/* Lien principal */}
+            <Link
+                href={item.path}
+                className={linkClasses}
+                onClick={handleItemClick}
+                aria-current={isActive ? 'page' : undefined}
+            >
+                {item.name}
+            </Link>
 
-                {/* Bouton dropdown si l'élément a des enfants */}
-                {hasChildren && (
-                    <DropdownToggleButton
-                        isOpen={isDropdownOpen}
-                        onClick={toggleDropdown}
-                        onKeyDown={handleKeyDown}
-                        ariaControls={`dropdown-${index}`}
-                        ariaLabel={`${isDropdownOpen ? 'Fermer' : 'Ouvrir'} le sous-menu de ${item.name}`}
-                    />
-                )}
-            </div>
+            {/* Bouton dropdown si l'élément a des enfants */}
+            {hasChildren && (
+                <DropdownToggleButton
+                    ref={toggleButtonRef}
+                    isOpen={isDropdownOpen}
+                    onClick={toggleDropdown}
+                    onKeyDown={handleKeyDown}
+                    ariaControls={`dropdown-${index}`}
+                    ariaLabel={`${isDropdownOpen ? 'Fermer' : 'Ouvrir'} le sous-menu de ${item.name}`}
+                />
+            )}
 
             {/* Dropdown avec sous-éléments */}
             {hasChildren && (

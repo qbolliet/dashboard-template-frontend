@@ -45,12 +45,12 @@
   // Espacement pour les listes simples (sans groupes)
   --nav-dropdown-item-padding: var(--spacing-md);  // 0.75rem (12px)
   --nav-dropdown-item-gap: var(--spacing-xs);      // 0.25rem (4px) entre items
+  --nav-dropdown-item-padding-x: var(--spacing-sm);  // 0.5rem (8px)
 
   // ----- Liens Principaux (nav-link) -----
   // Padding des liens principaux de navigation avec dropdown
   --nav-dropdown-link-padding-y: var(--spacing-sm);     // 0.5rem (8px) vertical
-  --nav-dropdown-link-padding-left: var(--spacing-lg);  // 1rem (16px) gauche
-  --nav-dropdown-link-padding-right: var(--spacing-sm); // 0.5rem (8px) droite (réduit pour le bouton chevron)
+  --nav-dropdown-link-padding-x: var(--spacing-sm); // 0.5rem (8px) droite (réduit pour le bouton chevron)
 
   // ----- Liens Simples Dropdown -----
   // Padding des liens dans les listes simples (sans groupes)
@@ -97,7 +97,8 @@
 
   // ----- Sous-liens -----
   // Typographie des sous-liens dans les groupes
-  --nav-dropdown-sublink-font-size: var(--font-size-xs);  // 0.75rem (12px)
+  // Même taille que les autres niveaux : seules couleur et graisse les distinguent
+  --nav-dropdown-sublink-font-size: var(--font-size-sm);  // 0.875rem (14px)
   --nav-dropdown-sublink-weight: 400;                     // Normal
   --nav-dropdown-sublink-weight-active: 500;              // Medium pour l'état actif
 
@@ -148,8 +149,8 @@
   :root {
     // ----- Liens Principaux -----
     // Augmentation du padding vertical pour faciliter le touch
-    --nav-dropdown-link-padding-y: var(--spacing-md);                          // 0.75rem (12px)
-    --nav-dropdown-link-padding-right: var(--nav-dropdown-link-padding-left);  // 1rem (16px) - symétrique
+    --nav-dropdown-link-padding-y: var(--spacing-md);  // 0.75rem (12px)
+    --nav-dropdown-link-padding-x: var(--spacing-lg);  // 1rem (16px) - symétrique
 
     // ----- Sous-liens -----
     // Indentation plus prononcée pour la hiérarchie visuelle
@@ -190,6 +191,6 @@
     // ----- En-têtes de Groupe -----
     // Ajustement du padding pour optimiser l'espace disponible
     --nav-dropdown-group-header-padding-right: 0;                    // Pas de padding droite
-    --nav-dropdown-group-header-padding-left: var(--spacing-4xl);    // 2.5rem (40px) gauche
+    --nav-dropdown-group-header-padding-left: calc(var(--spacing-4xl) + var(--nav-dropdown-chevron-size));    // 2.5rem + 2rem (72px) gauche
   }
 }

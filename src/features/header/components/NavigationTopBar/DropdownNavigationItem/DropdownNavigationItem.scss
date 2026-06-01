@@ -5,16 +5,14 @@
 // Composant d'élément de navigation avec menu dropdown complexe
 //
 // Structure du composant :
-// - .nav-item--dropdown : Conteneur principal de l'élément
-//   - .nav-item__header : En-tête contenant le lien et le bouton toggle
+// - .nav-item--dropdown : Conteneur principal (grille : lien | toggle)
 //     - .nav-link : Lien principal de navigation
-//     - .dropdown-toggle-button : Bouton pour ouvrir/fermer le dropdown (dans NavigationItem.jsx)
+//     - .dropdown-toggle-button : Bouton pour ouvrir/fermer le dropdown (composant partagé)
 //   - .nav-dropdown : Menu dropdown (simple ou avec groupes)
 //     - Mode simple : .nav-dropdown__list > .nav-dropdown__item > .nav-dropdown__link
-//     - Mode groupes : .nav-dropdown__groups > .nav-dropdown__group
-//       - .nav-dropdown__group-header-wrapper
-//         - .nav-dropdown__group-header : En-tête/lien du groupe
-//         - .nav-dropdown__group-chevron : Bouton pour expand/collapse (mobile)
+//     - Mode groupes : .nav-dropdown__groups > .nav-dropdown__group (grille)
+//       - .nav-dropdown__group-header : En-tête/lien du groupe
+//       - .nav-dropdown__group-chevron : Bouton pour expand/collapse (mobile)
 //       - .nav-dropdown__sublist > .nav-dropdown__subitem > .nav-dropdown__sublink
 //
 // Comportement responsive :
@@ -39,17 +37,24 @@
     // Positionnement de base pour permettre le dropdown en absolute (desktop)
     position: relative;
 
-    // ----- En-tête de l'élément -----
-    // Conteneur du lien principal et du bouton toggle dropdown
-    .nav-item__header {
-        display: flex;
-        align-items: center;
+    // ----- Disposition de l'en-tête (lien + toggle) -----
+    // Grille remplaçant l'ancien wrapper .nav-item__header (flex).
+    // Le .nav-dropdown étant en position:absolute, il reste hors du flux de la grille.
+    display: grid;
+    grid-template-columns: auto auto;  // lien | toggle, collés à gauche
+    align-items: center;
+    justify-content: start;
+    border-radius: var(--nav-item-link-border-radius);
+    padding: 0 var(--nav-dropdown-padding-y);
 
-        // Sur mobile/tablette : placer le lien et le bouton aux extrémités
-        @include breakpoint-down('medium') {
-            justify-content: space-between;
-            width: 100%;
-        }
+    &--open{
+        background-color: hsl(var(--nav-link-hover-bg)); 
+    }
+
+    // Sur mobile/tablette : lien étiré, toggle à droite (≈ space-between)
+    @include breakpoint-down('medium') {
+        grid-template-columns: 1fr auto;
+        padding: 0;
     }
 
     // ----- Lien principal de navigation -----
@@ -57,8 +62,7 @@
         // === Disposition ===
         display: inline-flex;
         align-items: center;
-        // Padding avec moins d'espace à droite pour le bouton dropdown
-        padding: var(--nav-dropdown-link-padding-y) var(--nav-dropdown-link-padding-right) var(--nav-dropdown-link-padding-y) var(--nav-dropdown-link-padding-left);
+        padding: var(--nav-dropdown-link-padding-y) var(--nav-dropdown-link-padding-x);
 
         // === Apparence ===
         color: hsl(var(--nav-link-color));
@@ -102,7 +106,6 @@
         // === Responsive Mobile/Tablette ===
         @include breakpoint-down('medium') {
             width: 100%;
-            padding: var(--nav-dropdown-link-padding-y) var(--nav-dropdown-link-padding-right) var(--nav-dropdown-link-padding-y) var(--nav-dropdown-link-padding-left);
         }
     }
 }
@@ -112,10 +115,10 @@
 // =================================================================
 .nav-dropdown {
     // === Positionnement Desktop ===
-    // Positionné sous l'élément parent
+    // Centré horizontalement sous l'élément parent
     position: absolute;
     top: 100%;
-    left: 0;
+    left: 50%;
     min-width: var(--nav-dropdown-min-width);
     z-index: var(--z-dropdown);
 
@@ -125,19 +128,20 @@
     border-radius: var(--nav-dropdown-border-radius);
     box-shadow: 0 var(--spacing-xs) var(--spacing-md) hsla(var(--nav-dropdown-shadow) / 0.1);
     padding: var(--nav-dropdown-padding-y) var(--nav-dropdown-padding-x);
+    margin-top: 0.3rem;
 
     // === Animation d'apparition (Desktop) ===
-    // Par défaut : masqué et décalé vers le haut
+    // Par défaut : masqué, centré (translateX -50%) et décalé vers le haut
     opacity: 0;
     visibility: hidden;
-    transform: translateY(var(--nav-dropdown-translate-y));
+    transform: translate(-50%, var(--nav-dropdown-translate-y));
     transition: all var(--nav-dropdown-transition-duration) ease;
 
-    // État ouvert : visible et en position normale
+    // État ouvert : visible et en position normale (centrage conservé)
     &--open {
         opacity: 1;
         visibility: visible;
-        transform: translateY(0);
+        transform: translate(-50%, 0);
     }
     
     // -----------------------------------------------------------------
@@ -203,23 +207,17 @@
         gap: 0;  // Pas d'espace, les séparateurs sont gérés par border
     }
 
+    // Grille interne : en-tête (+ chevron mobile) puis sous-liste.
+    // En desktop le chevron est en display:none → une seule colonne.
     &__group {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: 1fr;
         padding: var(--nav-dropdown-group-padding);
 
         // Séparateur vertical entre groupes (desktop uniquement)
         &:not(:last-child) {
             border-right: 1px solid hsl(var(--nav-dropdown-separator));
         }
-    }
-
-    // Wrapper contenant l'en-tête et le chevron (mobile)
-    &__group-header-wrapper {
-        display: flex;
-        align-items: center;
-        position: relative;
-        width: 100%;  // Prend toute la largeur disponible
     }
 
     // ----- Bouton Chevron (expand/collapse) -----
@@ -299,7 +297,6 @@
     &__group-header {
         // === Disposition ===
         display: block;
-        flex: 1;  // Prend tout l'espace disponible
         padding: var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-right) var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-left);
         margin-bottom: var(--nav-dropdown-group-header-margin-bottom);
 
@@ -398,19 +395,13 @@
         }
 
         // === Très petits écrans (small et moins) ===
-        // Centrer le lien avec le toggle à droite
+        // Centrer le lien (colonne 1fr) avec le toggle à droite (colonne auto)
         @include breakpoint-down('small') {
-            .nav-item__header {
+            .nav-link {
+                text-align: center;
                 justify-content: center;
-                position: relative;
-
-                .nav-link {
-                    text-align: center;
-                    flex: 1;
-                    justify-content: center;
-                    // Padding asymétrique pour compenser le bouton toggle à droite
-                    padding: var(--spacing-md) 0 var(--spacing-md) var(--spacing-4xl);
-                }
+                // Padding asymétrique pour compenser le bouton toggle à droite
+                padding: var(--spacing-md) 0 var(--spacing-md) var(--spacing-4xl);
             }
         }
     }
@@ -419,6 +410,7 @@
     .nav-dropdown {
         // === Reset du positionnement desktop ===
         position: static;  // Pas de positionnement absolu
+        left: auto;        // Annule le centrage desktop (left: 50%)
         width: 100%;
         border: none;
         border-radius: 0;
@@ -435,8 +427,9 @@
         overflow: hidden;
         transition: max-height var(--nav-dropdown-transition-duration) ease;
 
-        // État ouvert : hauteur maximale
+        // État ouvert : hauteur maximale (annule le translate(-50%) hérité du desktop)
         &--open {
+            transform: none;
             max-height: var(--nav-dropdown-max-height);
         }
 
@@ -447,8 +440,9 @@
             flex-direction: column;
         }
 
-        // Groupe individuel
+        // Groupe individuel : en-tête | chevron sur la 1re rangée, sous-liste en dessous
         &__group {
+            grid-template-columns: 1fr auto;
             padding: 0;  // Reset du padding desktop
 
             // Séparateur horizontal entre groupes (au lieu de vertical)
@@ -460,17 +454,15 @@
             }
         }
 
-        // En-tête de groupe
+        // En-tête de groupe (colonne 1)
         &__group-header {
-            flex: 1;
-            justify-content: space-between;
             padding: var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-right) var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-left);
         }
 
-        // Bouton chevron (visible sur mobile)
+        // Bouton chevron (visible sur mobile, colonne 2)
         &__group-chevron {
             display: flex;  // Afficher le chevron sur mobile
-            z-index: 2;
+            align-self: center;
             width: var(--nav-dropdown-chevron-size);   // Taille responsive (tokens)
             height: var(--nav-dropdown-chevron-size);
 
@@ -482,8 +474,9 @@
             }
         }
 
-        // Sous-liste (accordéon dans accordéon)
+        // Sous-liste (accordéon dans accordéon) : pleine largeur sous l'en-tête
         &__sublist {
+            grid-column: 1 / -1;
             max-height: 0;  // Masqué par défaut
             overflow: hidden;
             transition: max-height var(--nav-dropdown-transition-duration) ease;
@@ -529,6 +522,24 @@
             &__group-header {
                 padding: var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-right) var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-left);
             }
+
+            // Sous-liste (accordéon dans accordéon) : pleine largeur sous l'en-tête
+            &__sublist {
+                padding-left: var(--spacing-4xl);
+            }
         }
+    }
+}
+
+// =================================================================
+// ACCESSIBILITÉ - RÉDUCTION DES ANIMATIONS
+// =================================================================
+// Neutralise les transitions du dropdown pour les utilisateurs ayant
+// activé « réduire les animations » (apparition, accordéon, rotation chevron).
+@media (prefers-reduced-motion: reduce) {
+    .nav-dropdown,
+    .nav-dropdown__sublist,
+    .nav-dropdown__group-chevron svg {
+        transition: none;
     }
 }
