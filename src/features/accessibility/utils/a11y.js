@@ -14,7 +14,7 @@
 let idCounter = 0;
 export const generateId = (prefix = 'a11y') => {
   idCounter += 1;
-  return `${prefix}-${idCounter}-${Date.now()}`;
+  return `${prefix}-${idCounter}`;
 };
 
 /**

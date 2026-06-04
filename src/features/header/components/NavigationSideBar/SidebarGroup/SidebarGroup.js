@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useId } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSidebar } from '../NavigationSideBar/NavigationSideBar';
-import { AccessibleIcon, generateId } from '@/features/accessibility';
+import { AccessibleIcon } from '@/features/accessibility';
 import SidebarItem from '../SidebarItem/SidebarItem';
 import './SidebarGroup.scss';
 
@@ -28,8 +28,8 @@ const SidebarGroup = ({
     // Contexte de la sidebar
     const { isOpen: sidebarIsOpen, hasIcons, isActivePath, hasActiveChildren } = useSidebar();
 
-    // ID unique pour le contenu collapsible
-    const contentId = useMemo(() => generateId('sidebar-group-content'), []);
+    // useId garantit un ID stable entre le rendu SSR et l'hydratation client
+    const contentId = `sidebar-group-content-${useId()}`;
 
     // Vérifier si l'item ou ses enfants sont actifs
     const isActive = isActivePath(item.path);

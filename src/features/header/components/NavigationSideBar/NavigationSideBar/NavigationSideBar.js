@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, createContext, useContext, useEffect, useMemo } from 'react';
+import React, { useState, createContext, useContext, useEffect, useMemo, useId } from 'react';
 import Image from 'next/image';
 import { useNavigation } from '../../../hooks/useNavigation';
 import SidebarSwitcher from '../SidebarSwitcher/SidebarSwitcher';
 import SidebarMenu from '../SidebarMenu/SidebarMenu';
-import { useFocusTrap, useAriaAnnounce, generateId } from '@/features/accessibility';
+import { useFocusTrap, useAriaAnnounce } from '@/features/accessibility';
 import './NavigationSideBar.scss';
 
 // Context pour gérer l'état de la sidebar
@@ -70,8 +70,8 @@ const NavigationSideBar = ({
     // Hook pour les annonces aux lecteurs d'écran
     const announce = useAriaAnnounce();
 
-    // Générer un ID unique pour aria-controls
-    const sidebarId = useMemo(() => generateId('navigation-sidebar'), []);
+    // useId garantit un ID stable entre le rendu SSR et l'hydratation client
+    const sidebarId = `navigation-sidebar-${useId()}`;
 
     // Détecter le mode mobile (pour activer le focus trap)
     const [isMobile, setIsMobile] = useState(false);

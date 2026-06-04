@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useId } from 'react';
 import Image from 'next/image';
 import { useSidebar } from '../NavigationSideBar/NavigationSideBar';
-import { useKeyboardNavigation, useAriaAnnounce, generateId } from '@/features/accessibility';
+import { useKeyboardNavigation, useAriaAnnounce } from '@/features/accessibility';
 import './SidebarSwitcher.scss';
 
 /**
@@ -36,8 +36,10 @@ const SidebarSwitcher = ({
     const announce = useAriaAnnounce();
 
     // IDs uniques pour les relations ARIA
-    const triggerId = useMemo(() => generateId('switcher-trigger'), []);
-    const listboxId = useMemo(() => generateId('switcher-listbox'), []);
+    // useId garantit des IDs stables entre le rendu SSR et l'hydratation client
+    const baseId = useId();
+    const triggerId = `switcher-trigger-${baseId}`;
+    const listboxId = `switcher-listbox-${baseId}`;
 
     // Navigation clavier dans le dropdown
     const {
