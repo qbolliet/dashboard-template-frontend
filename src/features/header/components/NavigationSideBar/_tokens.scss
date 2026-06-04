@@ -2,6 +2,16 @@
 
 
 :root{
-    // Padding 
+    // Padding
     --sidebar-item-padding: var(--spacing-xs);
+
+    // Indentation uniforme appliquée à chaque niveau imbriqué.
+    // Portée par le padding-left du <ul> de contenu, elle se compose
+    // naturellement avec la profondeur → support d'une profondeur arbitraire.
+    --sidebar-content-indent: var(--spacing-md);        // 12px
+
+    // Bouton chevron (ouverture/fermeture des groupes) :
+    // largeur fixe, hauteur étirée sur toute la ligne d'en-tête (align-self: stretch).
+    --sidebar-chevron-button-width: var(--spacing-4xl); // 40px (carré avec la hauteur de ligne)
+    --sidebar-chevron-icon-size: var(--spacing-lg);     // 16px : icône volontairement petite et fixe
 }

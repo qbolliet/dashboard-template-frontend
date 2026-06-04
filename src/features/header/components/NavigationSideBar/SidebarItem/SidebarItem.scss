@@ -137,25 +137,10 @@
     }
   }
 
-  // Niveau 1 - Items de second niveau
-  &--level-1 {
-    .sidebar-item-link,
-    .sidebar-item-span {
-      padding-left: var(--spacing-lg); // Indentation réduite pour les sous-éléments
-      font-size: var(--font-size-xs);
-    }
-  }
-
-  // Niveau 2+ - Items de niveau supérieur
-  &--level-2,
-  &--level-3 {
-    .sidebar-item-link,
-    .sidebar-item-span {
-      padding-left: var(--spacing-xl);
-      font-size: var(--font-size-xs);
-      font-weight: 400;
-    }
-  }
+  // Niveaux 1+ : aucune surcharge spécifique. L'apparence de base (couleur sublink
+  // tertiaire, graisse 400, --font-size-sm) s'applique à tous les niveaux imbriqués,
+  // quelle que soit la profondeur. L'indentation provient du padding-left du <ul>
+  // parent (.sidebar-group-content), pas d'un décalage par numéro de niveau.
 
   // ===== RESPONSIVE =====
 
@@ -175,22 +160,6 @@
       .sidebar-item--sidebar-collapsed & {
         width: var(--spacing-lg); // 16px
         height: var(--spacing-lg); // 16px
-      }
-    }
-
-    // Ajustements pour les niveaux imbriqués
-    &--level-1 {
-      .sidebar-item-link,
-      .sidebar-item-span {
-        padding-left: var(--spacing-md);
-      }
-    }
-
-    &--level-2,
-    &--level-3 {
-      .sidebar-item-link,
-      .sidebar-item-span {
-        padding-left: var(--spacing-lg);
       }
     }
   }
@@ -214,22 +183,6 @@
         margin-right: var(--spacing-sm);
         width: var(--spacing-lg);
         height: var(--spacing-lg);
-      }
-    }
-
-    // Ajustements pour les niveaux imbriqués sur mobile
-    &--level-1 {
-      .sidebar-item-link,
-      .sidebar-item-span {
-        padding-left: var(--spacing-sm);
-      }
-    }
-
-    &--level-2,
-    &--level-3 {
-      .sidebar-item-link,
-      .sidebar-item-span {
-        padding-left: var(--spacing-md);
       }
     }
   }

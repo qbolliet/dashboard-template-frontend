@@ -6,35 +6,37 @@
 
 // ===== SIDEBAR GROUP =====
 .sidebar-group {
-  // Le groupe est maintenant un <li>, donc reset des styles de liste
+  // Le groupe est un <li>, donc reset des styles de liste
   list-style: none;
 
-  // Utilisation de grid pour aligner trigger et chevron horizontalement
-  // et placer le content en dessous
+  // Grid : trigger + chevron alignés sur la ligne 1, contenu déplié sur la ligne 2
   display: grid;
   grid-template-columns: 1fr auto; // Trigger prend l'espace, chevron auto-sized
-  grid-template-rows: auto auto; // Ligne header + ligne content
+  grid-template-rows: auto auto;   // Ligne header + ligne content
   align-items: center;
   margin-bottom: var(--spacing-xs);
   min-height: var(--spacing-4xl); // Hauteur minimum pour harmoniser avec les items
-  border-radius: var(--border-radius-md);
   position: relative;
 
-  // Hover sur le groupe entier
-  &:hover {
+  // ===== SURVOL UNIFIÉ DE LA LIGNE D'EN-TÊTE =====
+  // On ne cible que le survol des enfants DIRECTS (trigger/chevron) via :has(> …)
+  // pour ne PAS réagir au survol des éléments imbriqués dans le contenu déplié.
+  //
+  // Survol de la ligne (trigger OU chevron) → fond doux unifié sur les deux éléments,
+  // qui forment une pilule continue (arrondis gauche/droite côté trigger/chevron).
+  &:has(> .sidebar-group-trigger:hover) > .sidebar-group-trigger,
+  &:has(> .sidebar-group-trigger:hover) > .sidebar-group-chevron-button,
+  &:has(> .sidebar-group-chevron-button:hover) > .sidebar-group-trigger,
+  &:has(> .sidebar-group-chevron-button:hover) > .sidebar-group-chevron-button {
     background-color: hsl(var(--nav-link-hover-bg));
     color: hsl(var(--nav-link-hover-color));
-    border-color: hsl(var(--color-border-hover));
+  }
 
-    .sidebar-group-trigger {
-      background-color: hsl(var(--nav-link-hover-bg));
-      color: hsl(var(--nav-link-hover-color));
-    }
-
-    .sidebar-group-chevron-button {
-      background-color: hsl(var(--nav-link-hover-bg));
-      color: hsl(var(--nav-link-hover-color));
-    }
+  // Sur-highlight plus marqué au survol DIRECT du chevron.
+  // Placé après la règle ci-dessus (même spécificité) → l'emporte pour le chevron.
+  &:has(> .sidebar-group-chevron-button:hover) > .sidebar-group-chevron-button {
+    background-color: hsl(var(--color-gray-200) / 0.5);
+    color: hsl(var(--color-text-secondary));
   }
 
   // ===== TRIGGER PRINCIPAL DU GROUPE =====
@@ -50,26 +52,23 @@
     padding: var(--sidebar-item-padding) var(--spacing-md);
     background-color: transparent;
     border: 1px solid transparent;
-    border-radius: var(--border-radius-md); // Arrondi partout par défaut
+    // Arrondi à gauche uniquement : continuité visuelle avec le chevron à droite
+    border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);
     cursor: pointer;
     text-decoration: none;
-    color: hsl(var(--nav-link-color));
+    // Couleur de base = apparence des niveaux imbriqués (secondaire).
+    // Le niveau racine (--level-0) repasse en couleur primaire plus bas.
+    color: hsl(var(--color-text-secondary));
     font-size: var(--font-size-sm);
     font-weight: 500;
     line-height: var(--line-height-tight);
     transition: all var(--transition-normal) ease;
     text-align: left;
 
-    // Hover discret sur le trigger seul
-    &:hover {
-      border-color: hsl(var(--color-border) / 0.5);
-    }
-
     // États d'interaction
     &:focus {
       outline: none;
       border-color: hsl(var(--color-focus));
-      //box-shadow: 0 0 0 2px hsl(var(--color-focus-shadow) / 0.2);
     }
 
     // État actif
@@ -83,11 +82,16 @@
     &[href] {
       text-decoration: none;
     }
+
+    // Sidebar collapsée : pas de chevron affiché → le trigger reprend un arrondi complet
+    .sidebar-group--sidebar-collapsed & {
+      border-radius: var(--border-radius-md);
+    }
   }
 
   // ===== ICÔNE DU GROUPE =====
   &-icon {
-    // L'icône est maintenant directement sur l'élément Image
+    // L'icône est directement sur l'élément Image
     width: var(--spacing-lg); // 16px
     height: var(--spacing-lg); // 16px
     flex-shrink: 0;
@@ -124,14 +128,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    // Dimensions carrées basées sur la taille du chevron partagée
-    width: var(--nav-chevron-size);
-    height: var(--nav-chevron-size);
+    // Largeur fixe + hauteur étirée sur toute la ligne d'en-tête.
+    // align-self: stretch fait correspondre la zone de survol/clic à la hauteur
+    // de la partie surlignée (corrige l'ancien bouton trop petit).
+    width: var(--sidebar-chevron-button-width);
+    align-self: stretch;
     padding: 0;
     margin: 0;
     background-color: transparent;
     border: 1px solid transparent;
-    border-radius: var(--border-radius-md);
+    // Arrondi à droite uniquement : continuité avec le trigger
+    border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
     cursor: pointer;
     color: hsl(var(--color-text-tertiary));
     transition: all var(--transition-normal) ease;
@@ -140,14 +147,6 @@
     &:focus {
       outline: none;
       border-color: hsl(var(--color-focus));
-      //box-shadow: 0 0 0 2px hsl(var(--color-focus-shadow) / 0.2);
-    }
-
-    // Hover discret sur le chevron - fond légèrement plus sombre
-    &:hover {
-      border-color: hsl(var(--color-border) / 0.5);
-      color: hsl(var(--color-text-secondary));
-      background-color: hsl(var(--color-gray-200) / 0.5);
     }
 
     &:active {
@@ -157,10 +156,9 @@
 
   // ===== ICÔNE DU CHEVRON =====
   &-chevron-icon {
-    // Le SVG est maintenant directement stylé, pas de wrapper
-    // Taille de l'icône proportionnelle au bouton (environ 60-70% du bouton)
-    width: calc(var(--nav-chevron-size) * 0.67);
-    height: calc(var(--nav-chevron-size) * 0.67);
+    // Taille fixe et volontairement petite, indépendante de la taille du bouton
+    width: var(--sidebar-chevron-icon-size);
+    height: var(--sidebar-chevron-icon-size);
     transition: transform var(--transition-normal) ease;
 
     // Rotation quand groupe expanded
@@ -175,9 +173,10 @@
     grid-column: 1 / -1;
     grid-row: 2;
 
-    // Le content est maintenant un <ul>, donc reset des styles de liste
+    // Le content est un <ul>, donc reset des styles de liste
     list-style: none;
-    padding-left: var(--spacing-xl); // Indentation pour les éléments enfants
+    // Indentation uniforme par niveau : se compose naturellement avec la profondeur
+    padding-left: var(--sidebar-content-indent);
     margin: 0;
     position: relative; // Nécessaire pour le positionnement du ::before
     overflow: hidden;
@@ -202,7 +201,6 @@
     &::before {
       content: '';
       position: absolute;
-      //left: var(--spacing-2xl);
       top: 0;
       bottom: 0;
       width: 1px;
@@ -211,56 +209,16 @@
     }
   }
 
-  // ===== NIVEAUX DE GROUPES =====
+  // ===== NIVEAU RACINE =====
+  // Une seule surcharge, pour le niveau 0 (toujours présent). Tous les niveaux ≥ 1
+  // partagent l'apparence de base (secondaire) → aucune dépendance au numéro de niveau,
+  // donc support d'une profondeur arbitraire. Les niveaux se distinguent par
+  // l'indentation (couleur) et le type de nœud par la graisse, jamais par la taille.
+  &--level-0 > .sidebar-group-trigger {
+    color: hsl(var(--nav-link-color));
 
-  // Niveau 0 - Groupes de premier niveau
-  &--level-0 {
-    // Harmonisation avec sidebar-item--level-0
-    .sidebar-group-trigger {
-      font-weight: 500;
-      color: hsl(var(--nav-link-color));
-
-      &:hover {
-        color: hsl(var(--nav-link-hover-color));
-        background-color: hsl(var(--nav-link-hover-bg));
-      }
-
-      &--active {
-        color: hsl(var(--nav-link-active-color));
-        background-color: hsl(var(--nav-link-active-bg));
-      }
-    }
-
-    // Harmoniser le container hover avec le niveau 0
-    .sidebar-group-trigger-container:hover {
-      background-color: hsl(var(--nav-link-hover-bg));
-
-      .sidebar-group-trigger {
-        color: hsl(var(--nav-link-hover-color));
-        background-color: hsl(var(--nav-link-hover-bg));
-      }
-
-      .sidebar-group-chevron-button {
-        color: hsl(var(--nav-link-hover-color));
-      }
-    }
-  }
-
-  // Niveau 1+ - Groupes imbriqués
-  &--level-1,
-  &--level-2,
-  &--level-3 {
-    .sidebar-group-trigger {
-      padding-left: var(--spacing-lg); // Indentation réduite pour les sous-groupes
-      font-size: var(--font-size-xs);
-    }
-
-    .sidebar-group-content {
-      padding-left: var(--spacing-lg);
-
-      // &::before {
-      //   left: var(--spacing-xl);
-      // }
+    &.sidebar-group-trigger--active {
+      color: hsl(var(--nav-link-active-color));
     }
   }
 
@@ -268,10 +226,6 @@
 
   // Tablette - ajustements des tailles
   @include breakpoint-down(medium) {
-    &-trigger-container {
-      min-height: var(--spacing-3xl); // Hauteur minimum réduite pour tablette
-    }
-
     &-trigger {
       padding: var(--spacing-xs) var(--spacing-sm);
       font-size: var(--font-size-xs);
@@ -286,46 +240,15 @@
         height: var(--spacing-lg); // 16px
       }
     }
-
-    &-content {
-      padding-left: var(--spacing-lg);
-
-      // &::before {
-      //   left: var(--spacing-lg);
-      // }
-    }
   }
 
   // Mobile - ajustements supplémentaires
   @include breakpoint-down(small) {
-    &-trigger-container {
-      min-height: var(--spacing-3xl); // Même hauteur que tablette
-      // Centrage des éléments avec chevron à droite (comme dans DropdownNavigationItem)
-      justify-content: center;
-      position: relative;
-    }
-
     &-trigger {
-      // Centrer le texte tout en compensant le chevron à droite
-      text-align: center;
-      flex: 1;
+      // Texte centré comme dans DropdownNavigationItem (chevron à droite)
       justify-content: center;
-      // Padding asymétrique pour compenser le bouton chevron à droite
-      padding: var(--spacing-xs) 0 var(--spacing-xs) var(--nav-chevron-size);
-    }
-
-    &-chevron-button {
-      // Positionner le chevron à droite de manière absolue
-      position: absolute;
-      right: 0;
-    }
-
-    &-content {
-      padding-left: var(--spacing-md);
-
-      // &::before {
-      //   left: var(--spacing-md);
-      // }
+      text-align: center;
+      font-size: var(--font-size-xs);
     }
 
     // Sur mobile, la sidebar n'est jamais vraiment collapsée en mode overlay
