@@ -236,7 +236,7 @@ const NavigationSideBar = ({
                 <SidebarMenu
                     navigationData={displayNavigationData}
                     onItemClick={onItemClick}
-                    level={useSwitcher ? 1 : 0} // Ajuster le niveau si switcher utilisé
+                    level={0} // Le premier niveau d'items reste de niveau 0, même en mode switcher
                 />
 
                 {/* Rail pour le redimensionnement (optionnel) */}

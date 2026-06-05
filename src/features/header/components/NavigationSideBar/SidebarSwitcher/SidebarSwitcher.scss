@@ -41,14 +41,15 @@
   }
 
   // ===== LOGO DU SWITCHER =====
+  // On affiche le logo tel quel (comme en mode useSwitcher=false) : pas de fond
+  // coloré ni de filtre brightness/invert, qui écrasaient tout le SVG en un bloc
+  // blanc. Seul --logo-filter est appliqué pour l'adaptation au thème.
   &-logo {
     display: flex;
     align-items: center;
     justify-content: center;
     width: var(--spacing-3xl); // 32px
     height: var(--spacing-3xl); // 32px
-    background-color: hsl(var(--color-primary-500));
-    border-radius: var(--border-radius-lg);
     flex-shrink: 0;
     overflow: hidden;
 
@@ -56,7 +57,7 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      filter: brightness(0) invert(1); // Rendre l'icône blanche sur fond coloré
+      filter: var(--logo-filter); // Adaptation au thème (clair/sombre)
     }
   }
 
@@ -208,17 +209,10 @@
 
   // ===== ÉTATS DE LA SIDEBAR =====
 
-  // Sidebar fermée - ne montrer que le logo
+  // Sidebar fermée - masquer entièrement le switcher (logo compris), comme le logo
+  // simple en mode useSwitcher=false qui ne s'affiche qu'à l'ouverture.
   &--collapsed {
-    .sidebar-switcher-content,
-    .sidebar-switcher-chevron {
-      display: none;
-    }
-
-    .sidebar-switcher-trigger {
-      justify-content: center;
-      padding: var(--spacing-sm);
-    }
+    display: none;
   }
 
   // Sidebar ouverte - montrer tout
