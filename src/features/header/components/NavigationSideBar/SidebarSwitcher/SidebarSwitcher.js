@@ -160,109 +160,99 @@ const SidebarSwitcher = ({
                 aria-label={`Sélecteur de navigation : ${selectedItem?.name || 'Aucune sélection'}`}
             >
                 {/* Logo */}
-                <div className="sidebar-switcher-logo">
-                    <Image
-                        src={logoSrc}
-                        alt="Logo"
-                        width={32}
-                        height={32}
-                        className="sidebar-switcher-logo-image"
-                    />
-                </div>
+                <Image
+                    src={logoSrc}
+                    alt="Logo"
+                    width={32}
+                    height={32}
+                    className="sidebar-switcher-logo"
+                />
 
-                {/* Contenu du switcher (visible quand ouvert) */}
+                {/* Titre + chevron (visibles quand la sidebar est ouverte) */}
                 {sidebarIsOpen && (
                     <>
-                        <div className="sidebar-switcher-content">
-                            <span className="sidebar-switcher-title">
-                                {selectedItem?.name || 'Sélectionner'}
-                            </span>
-                        </div>
+                        <span className="sidebar-switcher-title">
+                            {selectedItem?.name || 'Sélectionner'}
+                        </span>
 
                         {/* Icône chevron */}
-                        <div className="sidebar-switcher-chevron">
-                            <svg
-                                className="sidebar-switcher-chevron-icon"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                            >
-                                <path d="m7 15 5 5 5-5" />
-                                <path d="m7 9 5-5 5 5" />
-                            </svg>
-                        </div>
+                        <svg
+                            className="sidebar-switcher-chevron"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                        >
+                            <path d="m7 15 5 5 5-5" />
+                            <path d="m7 9 5-5 5 5" />
+                        </svg>
                     </>
                 )}
             </button>
 
             {/* Dropdown des options */}
             {isDropdownOpen && (
-                <div className={dropdownClasses}>
-                    <ul
-                        id={listboxId}
-                        role="listbox"
-                        aria-labelledby={triggerId}
-                        aria-activedescendant={
-                            focusedIndex >= 0 && focusedIndex < items.length
-                                ? `${listboxId}-option-${focusedIndex}`
-                                : undefined
-                        }
-                        tabIndex={-1}
-                        onKeyDown={handleDropdownKeyDown}
-                        className="sidebar-switcher-dropdown-content"
-                    >
-                        {items.map((item, index) => (
-                            <li
-                                key={item.id || index}
-                                id={`${listboxId}-option-${index}`}
-                                role="option"
-                                aria-selected={selectedItem?.id === item.id}
-                                className={[
-                                    'sidebar-switcher-option',
-                                    selectedItem?.id === item.id ? 'sidebar-switcher-option--selected' : '',
-                                    focusedIndex === index ? 'sidebar-switcher-option--focused' : ''
-                                ].filter(Boolean).join(' ')}
-                                onClick={() => handleItemSelection(item)}
-                            >
-                                {/* Icône de l'item (si disponible) */}
-                                {item.icon && (
-                                    <div className="sidebar-switcher-option-icon">
-                                        <Image
-                                            src={item.icon}
-                                            alt=""
-                                            width={16}
-                                            height={16}
-                                        />
-                                    </div>
-                                )}
+                <ul
+                    id={listboxId}
+                    role="listbox"
+                    aria-labelledby={triggerId}
+                    aria-activedescendant={
+                        focusedIndex >= 0 && focusedIndex < items.length
+                            ? `${listboxId}-option-${focusedIndex}`
+                            : undefined
+                    }
+                    tabIndex={-1}
+                    onKeyDown={handleDropdownKeyDown}
+                    className={dropdownClasses}
+                >
+                    {items.map((item, index) => (
+                        <li
+                            key={item.id || index}
+                            id={`${listboxId}-option-${index}`}
+                            role="option"
+                            aria-selected={selectedItem?.id === item.id}
+                            className={[
+                                'sidebar-switcher-option',
+                                selectedItem?.id === item.id ? 'sidebar-switcher-option--selected' : '',
+                                focusedIndex === index ? 'sidebar-switcher-option--focused' : ''
+                            ].filter(Boolean).join(' ')}
+                            onClick={() => handleItemSelection(item)}
+                        >
+                            {/* Icône de l'item (si disponible) */}
+                            {item.icon && (
+                                <Image
+                                    src={item.icon}
+                                    alt=""
+                                    width={16}
+                                    height={16}
+                                    className="sidebar-switcher-option-icon"
+                                />
+                            )}
 
-                                <span className="sidebar-switcher-option-text">
-                                    {item.name}
-                                </span>
+                            <span className="sidebar-switcher-option-text">
+                                {item.name}
+                            </span>
 
-                                {/* Indicateur de sélection */}
-                                {selectedItem?.id === item.id && (
-                                    <div className="sidebar-switcher-check">
-                                        <svg
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            aria-hidden="true"
-                                        >
-                                            <polyline points="20,6 9,17 4,12" />
-                                        </svg>
-                                    </div>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                            {/* Indicateur de sélection */}
+                            {selectedItem?.id === item.id && (
+                                <svg
+                                    className="sidebar-switcher-check"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    aria-hidden="true"
+                                >
+                                    <polyline points="20,6 9,17 4,12" />
+                                </svg>
+                            )}
+                        </li>
+                    ))}
+                </ul>
             )}
         </div>
     );
