@@ -147,29 +147,34 @@
     }
   }
 
-  // Mobile - overlay par défaut avec pleine largeur
+  // Mobile - tiroir pleine largeur dont le header se confond avec le header principal
   @include breakpoint-down(small) {
+    // La sidebar repart de tout en haut : son header s'aligne sur le header principal
+    // (même hauteur), formant une seule barre. Le fond opaque --color-surface assure
+    // la lisibilité de tous les items. Le header principal est rendu transparent et
+    // passe au-dessus (cf. Header.scss) pour que seul le trigger reste cliquable.
+    top: 0;
+    height: 100vh;
+
+    // Ouvert : tiroir pleine largeur, header décalé à droite pour ne pas passer
+    // sous le trigger (bord gauche du trigger = padding header + marge ; + largeur
+    // du trigger + un gap).
     &--open {
       width: var(--sidebar-width-open);
+
+      .sidebar-header {
+        padding-left: calc(
+          var(--header-padding-x) + var(--spacing-sm) + var(--search-height) + var(--spacing-md)
+        );
+      }
     }
 
-    // Overlay sombre sur mobile
-    &::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 100%;
-      width: 100vw;
-      height: 100vh;
-      background-color: hsl(var(--nav-overlay-bg) / 0.5);
-      z-index: -1;
-      opacity: 0;
-      transition: opacity var(--transition-normal) ease;
-    }
-
-    &--open::before {
-      opacity: 1;
-      left: 0;
+    // Fermé : le tiroir (z au-dessus du header) ne doit pas intercepter les clics
+    // du trigger. On masque tout débordement de son contenu (largeur 0) et on le
+    // rend transparent aux événements.
+    &--collapsed {
+      overflow: hidden;
+      pointer-events: none;
     }
   }
 }

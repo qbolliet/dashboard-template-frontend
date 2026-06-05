@@ -100,6 +100,18 @@ const NavigationSideBar = ({
         setIsOpen(defaultOpen);
     }, [defaultOpen]);
 
+    // Verrouiller le scroll de la page quand la sidebar est ouverte en mode mobile
+    // (le tiroir occupe tout l'écran sous le header ; on évite que la page défile derrière).
+    useEffect(() => {
+        if (isMobile && isOpen) {
+            const previousOverflow = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+            return () => {
+                document.body.style.overflow = previousOverflow;
+            };
+        }
+    }, [isMobile, isOpen]);
+
     // Plus besoin de gérer les classes CSS du body car la sidebar est maintenant intégrée dans le header
 
     // État pour gérer l'item sélectionné dans le switcher

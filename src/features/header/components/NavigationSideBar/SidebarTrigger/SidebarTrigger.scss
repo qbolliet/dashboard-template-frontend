@@ -149,36 +149,15 @@
     }
   }
 
-  // Mobile uniquement - encore plus petit
+  // Mobile uniquement
   @include breakpoint-down(small) {
-    width: var(--spacing-2xl); // 24px
-    height: var(--spacing-2xl); // 24px
+    // Bouton carré, aligné en hauteur sur la barre de recherche (--search-height)
+    width: var(--search-height);
+    height: var(--search-height);
+    // Légèrement décalé vers la droite par rapport au bord du header
+    margin-left: var(--spacing-sm);
 
-    .sidebar-trigger-icon {
-      width: 16px;
-      height: 16px;
-    }
-
-    .sidebar-trigger-line {
-      height: 1.5px;
-
-      &--top,
-      &--middle {
-        margin-bottom: 2.5px;
-      }
-    }
-
-    // Ajuster les transformations pour mobile
-    &--open {
-      .sidebar-trigger-line {
-        &--top {
-          transform: translateY(4px) rotate(45deg);
-        }
-
-        &--bottom {
-          transform: translateY(-4px) rotate(-45deg);
-        }
-      }
-    }
+    // L'icône (18px) et les transformations en X sont héritées du palier tablette,
+    // adaptées à cette boîte de 32px.
   }
 }

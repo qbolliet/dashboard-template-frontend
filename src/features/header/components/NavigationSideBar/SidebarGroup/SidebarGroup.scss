@@ -15,7 +15,7 @@
   grid-template-rows: auto auto;   // Ligne header + ligne content
   align-items: center;
   margin-bottom: var(--spacing-xs);
-  min-height: var(--spacing-4xl); // Hauteur minimum pour harmoniser avec les items
+  min-height: var(--sidebar-chevron-button-width); // Hauteur minimum pour harmoniser avec les items
   position: relative;
 
   // ===== SURVOL UNIFIÉ DE LA LIGNE D'EN-TÊTE =====
@@ -228,7 +228,6 @@
   @include breakpoint-down(medium) {
     &-trigger {
       padding: var(--spacing-xs) var(--spacing-sm);
-      font-size: var(--font-size-xs);
     }
 
     &-icon {
@@ -248,7 +247,11 @@
       // Texte centré comme dans DropdownNavigationItem (chevron à droite)
       justify-content: center;
       text-align: center;
-      font-size: var(--font-size-xs);
+      padding: var(--sidebar-item-padding) var(--spacing-md) var(--sidebar-item-padding) calc(var(--spacing-md) + var(--sidebar-chevron-button-width));
+    }
+
+    &-content {
+      padding-left: 0;
     }
 
     // Sur mobile, la sidebar n'est jamais vraiment collapsée en mode overlay

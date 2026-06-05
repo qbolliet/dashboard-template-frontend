@@ -18,7 +18,7 @@
     align-items: center;
     gap: var(--spacing-sm); // Espacement entre icône et texte
     width: 100%;
-    min-height: var(--spacing-4xl); // Hauteur minimum pour harmoniser avec les groupes
+    min-height: var(--sidebar-chevron-button-width); // Hauteur minimum pour harmoniser avec les groupes
     padding: var(--spacing-sm) var(--spacing-md);
     background-color: transparent;
     border: 1px solid transparent;
@@ -148,9 +148,9 @@
   @include breakpoint-down(medium) {
     &-link,
     &-span {
-      min-height: var(--spacing-3xl); // Hauteur minimum réduite pour tablette
       padding: var(--spacing-xs) var(--spacing-sm);
-      font-size: var(--font-size-xs);
+      // Police identique au grand écran : la densité est réduite via le padding/min-height,
+      // pas via la taille de texte (la police mobile ne doit pas être plus petite que tablette).
     }
 
     &-icon {
@@ -168,8 +168,9 @@
   @include breakpoint-down(small) {
     &-link,
     &-span {
-      min-height: var(--spacing-3xl); // Même hauteur que tablette
       padding: var(--spacing-xs) var(--spacing-sm);
+      justify-content: center;
+      text-align: center;
     }
 
     // Sur mobile, la sidebar n'est jamais vraiment collapsée en mode overlay

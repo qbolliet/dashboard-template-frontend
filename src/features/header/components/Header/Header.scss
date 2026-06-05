@@ -166,6 +166,36 @@
       }
     }
 
+    // En mode sidebar sur mobile, la sidebar fait 100vw : on neutralise le décalage
+    // du left-container (sinon le trigger serait poussé hors de l'écran et la croix
+    // de fermeture deviendrait inaccessible).
+    &--sidebar-open .left-container,
+    &--sidebar-collapsed .left-container {
+      margin-left: 0;
+      padding-left: 0;
+    }
+
+    // Sidebar ouverte : le header se confond avec le header de la sidebar.
+    // On le rend transparent et on le place AU-DESSUS du tiroir pour que seul le
+    // trigger reste visible/cliquable ; le fond et le logo proviennent du tiroir.
+    &--sidebar-open {
+      background: transparent;
+      border-bottom-color: transparent;
+      box-shadow: none;
+      z-index: calc(var(--z-fixed) + 2); // au-dessus de la sidebar (z-fixed + 1)
+      // Laisse passer les clics vers le tiroir en dessous, sauf sur le trigger.
+      pointer-events: none;
+
+      .sidebar-trigger {
+        pointer-events: auto;
+      }
+
+      // La barre de recherche et le toggle de thème sont masqués.
+      .right-container {
+        display: none;
+      }
+    }
+
     // Marge à droite uniquement en mode topbar (pas en mode sidebar)
     &:not(.primary-header--sidebar-mode) {
       .right-container {
