@@ -1,0 +1,31 @@
+// ===== TOKENS DU SIDEBARMENU =====
+// Indentation du menu selon le niveau de profondeur.
+// Valeurs explicites par palier responsive : les pas ne sont pas linéaires entre
+// breakpoints, donc on n'utilise pas calc() ici pour rester strictement iso-apparence.
+
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  --sidebar-menu-indent-1: var(--spacing-2xl);  // 1.5rem (24px)
+  --sidebar-menu-indent-2: var(--spacing-3xl);  // 2rem (32px)
+  --sidebar-menu-indent-3: var(--spacing-4xl);  // 2.5rem (40px)
+}
+
+// ===== RESPONSIVE =====
+// Tablette
+@include breakpoint-down('medium') {
+  :root {
+    --sidebar-menu-indent-1: var(--spacing-xl);   // 1.25rem (20px)
+    --sidebar-menu-indent-2: var(--spacing-2xl);  // 1.5rem (24px)
+    --sidebar-menu-indent-3: var(--spacing-3xl);  // 2rem (32px)
+  }
+}
+
+// Mobile
+@include breakpoint-down('small') {
+  :root {
+    --sidebar-menu-indent-1: var(--spacing-lg);   // 1rem (16px)
+    --sidebar-menu-indent-2: var(--spacing-xl);   // 1.25rem (20px)
+    --sidebar-menu-indent-3: var(--spacing-2xl);  // 1.5rem (24px)
+  }
+}

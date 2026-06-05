@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import SidebarGroup from '../SidebarGroup/SidebarGroup';
-import SidebarItem from '../SidebarItem/SidebarItem';
+import SidebarNode from '../SidebarNode/SidebarNode';
 import './SidebarMenu.scss';
 
 /**
@@ -30,44 +29,18 @@ const SidebarMenu = ({
         `sidebar-menu--level-${level}`
     ].filter(Boolean).join(' ');
 
-    // Fonction pour déterminer si un item doit être rendu comme groupe
-    const shouldRenderAsGroup = (item) => {
-        // Un item est un groupe s'il a des enfants, peu importe son type
-        return item.children && Array.isArray(item.children) && item.children.length > 0;
-    };
-
-    // Fonction pour déterminer si un item doit être rendu comme lien simple
-    const shouldRenderAsItem = (item) => {
-        return !shouldRenderAsGroup(item);
-    };
-
     return (
         <nav className={menuClasses} aria-label="Navigation latérale principale">
             <ul className="sidebar-menu-list">
-                {navigationData.map((item, index) => {
-                    // Rendu conditionnel basé sur le type d'item
-                    if (shouldRenderAsGroup(item)) {
-                        return (
-                            <SidebarGroup
-                                key={item.id || index}
-                                item={item}
-                                onItemClick={onItemClick}
-                                level={level}
-                            />
-                        );
-                    } else if (shouldRenderAsItem(item)) {
-                        return (
-                            <SidebarItem
-                                key={item.id || index}
-                                item={item}
-                                onItemClick={onItemClick}
-                                level={level}
-                            />
-                        );
-                    }
-
-                    return null;
-                })}
+                {/* SidebarNode choisit groupe ou item selon la présence d'enfants */}
+                {navigationData.map((item, index) => (
+                    <SidebarNode
+                        key={item.id || index}
+                        item={item}
+                        onItemClick={onItemClick}
+                        level={level}
+                    />
+                ))}
             </ul>
         </nav>
     );

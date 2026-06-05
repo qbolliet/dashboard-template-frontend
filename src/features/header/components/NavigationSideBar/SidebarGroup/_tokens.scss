@@ -1,0 +1,13 @@
+// ===== TOKENS DU SIDEBARGROUP =====
+// Variables propres aux groupes collapsibles de la sidebar.
+// Pour les tokens partagés (hauteur de ligne, chevron, indentation), voir ../_tokens.scss.
+
+:root {
+  // ===== PADDING DU TRIGGER =====
+  --sidebar-group-trigger-padding-y: var(--sidebar-item-padding);  // vertical
+  --sidebar-group-trigger-padding-x: var(--spacing-md);            // horizontal
+
+  // ===== ANIMATION DU CONTENU =====
+  // Hauteur maximale lors de l'expansion (assez grande pour ne jamais tronquer).
+  --sidebar-group-content-max-height: 1000px;
+}

@@ -2,6 +2,8 @@
 @use '../../../../../styles/utils/breakpoints' as *;
 @use '../../../../../styles/globals/colors';
 @use '../../../../../styles/globals/typography';
+@use '../colors' as *;   // Couleurs sémantiques sidebar
+@use './tokens' as *;    // Tokens locaux SidebarMenu (indentation par niveau)
 
 // ===== SIDEBAR MENU =====
 .sidebar-menu {
@@ -22,11 +24,11 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--color-gray-300));
+    background-color: hsl(var(--sidebar-scrollbar-thumb));
     border-radius: var(--border-radius-sm);
 
     &:hover {
-      background-color: hsl(var(--color-gray-400));
+      background-color: hsl(var(--sidebar-scrollbar-thumb-hover));
     }
   }
 
@@ -40,18 +42,17 @@
   // Niveau 1 - Items de second niveau
   &--level-1 {
     position: relative; // Nécessaire pour le positionnement du ::before
-    padding-left: var(--spacing-2xl); // Indentation pour les sous-éléments
+    padding-left: var(--sidebar-menu-indent-1); // Indentation pour les sous-éléments
     gap: var(--spacing-2px); // Espacement plus serré pour les sous-éléments
 
     // Bordure à gauche pour indiquer la hiérarchie
     &::before {
       content: '';
       position: absolute;
-      //left: var(--spacing-xl);
       top: 0;
       bottom: 0;
       width: 1px;
-      background-color: hsl(var(--color-border));
+      background-color: hsl(var(--sidebar-hierarchy-line-color));
       opacity: 0.5;
     }
   }
@@ -59,18 +60,17 @@
   // Niveau 2 - Items de troisième niveau
   &--level-2 {
     position: relative; // Nécessaire pour le positionnement du ::before
-    padding-left: var(--spacing-3xl); // Indentation encore plus importante
+    padding-left: var(--sidebar-menu-indent-2); // Indentation encore plus importante
     gap: var(--spacing-2px);
 
     // Bordure à gauche pour indiquer la hiérarchie
     &::before {
       content: '';
       position: absolute;
-      //left: var(--spacing-2xl);
       top: 0;
       bottom: 0;
       width: 1px;
-      background-color: hsl(var(--color-border));
+      background-color: hsl(var(--sidebar-hierarchy-line-color));
       opacity: 0.5;
     }
   }
@@ -78,18 +78,17 @@
   // Niveau 3+ - Items de niveau supérieur
   &--level-3 {
     position: relative; // Nécessaire pour le positionnement du ::before
-    padding-left: var(--spacing-4xl);
+    padding-left: var(--sidebar-menu-indent-3);
     gap: var(--spacing-2px);
 
     // Bordure à gauche pour indiquer la hiérarchie
     &::before {
       content: '';
       position: absolute;
-      //left: var(--spacing-3xl);
       top: 0;
       bottom: 0;
       width: 1px;
-      background-color: hsl(var(--color-border));
+      background-color: hsl(var(--sidebar-hierarchy-line-color));
       opacity: 0.5;
     }
   }
@@ -102,67 +101,8 @@
   }
 
   // ===== RESPONSIVE =====
-
-  // Tablette - réduire les paddings
-  @include breakpoint-down(medium) {
-    // Conserver le padding vertical (espace au-dessus du 1er item, identique au grand écran).
-    // Le padding horizontal est porté par .sidebar-menu-list.
-    padding: var(--spacing-md) 0;
-
-    &--level-1 {
-      padding-left: var(--spacing-xl);
-
-      // &::before {
-      //   left: var(--spacing-lg);
-      // }
-    }
-
-    &--level-2 {
-      padding-left: var(--spacing-2xl);
-
-      // &::before {
-      //   left: var(--spacing-xl);
-      // }
-    }
-
-    &--level-3 {
-      padding-left: var(--spacing-3xl);
-
-      // &::before {
-      //   left: var(--spacing-2xl);
-      // }
-    }
-  }
-
-  // Mobile - paddings encore plus réduits
-  @include breakpoint-down(small) {
-    // Conserver le padding vertical (espace au-dessus du 1er item).
-    padding: var(--spacing-md) 0;
-
-    &--level-1 {
-      padding-left: var(--spacing-lg);
-
-      // &::before {
-      //   left: var(--spacing-md);
-      // }
-    }
-
-    &--level-2 {
-      padding-left: var(--spacing-xl);
-
-      // &::before {
-      //   left: var(--spacing-lg);
-      // }
-    }
-
-    &--level-3 {
-      padding-left: var(--spacing-2xl);
-
-      // &::before {
-      //   left: var(--spacing-xl);
-      // }
-    }
-  }
+  // L'indentation par niveau et le padding vertical sont portés par les tokens responsive
+  // (./_tokens.scss) → plus de surcharge par breakpoint nécessaire ici.
 }
 
 // ===== LISTE DU MENU (UL) =====

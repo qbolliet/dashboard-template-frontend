@@ -2,7 +2,9 @@
 @use '../../../../../styles/utils/breakpoints' as *;
 @use '../../../../../styles/globals/colors';
 @use '../../../../../styles/globals/typography';
-@use './../tokens';
+@use '../tokens' as *;   // Tokens partagés sidebar
+@use '../colors' as *;   // Couleurs sémantiques sidebar
+@use './tokens' as *;    // Tokens locaux SidebarGroup
 
 // ===== SIDEBAR GROUP =====
 .sidebar-group {
@@ -15,7 +17,7 @@
   grid-template-rows: auto auto;   // Ligne header + ligne content
   align-items: center;
   margin-bottom: var(--spacing-xs);
-  min-height: var(--sidebar-chevron-button-width); // Hauteur minimum pour harmoniser avec les items
+  min-height: var(--sidebar-row-height); // Hauteur de ligne canonique (harmonisée avec les items)
   position: relative;
 
   // ===== SURVOL UNIFIÉ DE LA LIGNE D'EN-TÊTE =====
@@ -35,8 +37,8 @@
   // Sur-highlight plus marqué au survol DIRECT du chevron.
   // Placé après la règle ci-dessus (même spécificité) → l'emporte pour le chevron.
   &:has(> .sidebar-group-chevron-button:hover) > .sidebar-group-chevron-button {
-    background-color: hsl(var(--color-gray-200) / 0.5);
-    color: hsl(var(--color-text-secondary));
+    background-color: hsl(var(--sidebar-chevron-hover-bg) / 0.5);
+    color: hsl(var(--sidebar-chevron-hover-color));
   }
 
   // ===== TRIGGER PRINCIPAL DU GROUPE =====
@@ -49,7 +51,7 @@
     align-items: center;
     gap: var(--spacing-sm); // Espacement entre icône et texte
     min-height: inherit; // Hérite de la hauteur minimum du container
-    padding: var(--sidebar-item-padding) var(--spacing-md);
+    padding: var(--sidebar-group-trigger-padding-y) var(--sidebar-group-trigger-padding-x);
     background-color: transparent;
     border: 1px solid transparent;
     // Arrondi à gauche uniquement : continuité visuelle avec le chevron à droite
@@ -91,17 +93,17 @@
 
   // ===== ICÔNE DU GROUPE =====
   &-icon {
-    // L'icône est directement sur l'élément Image
-    width: var(--spacing-lg); // 16px
-    height: var(--spacing-lg); // 16px
+    // Taille pilotée par un token partagé responsive (item & groupe alignés)
+    width: var(--sidebar-icon-size);
+    height: var(--sidebar-icon-size);
     flex-shrink: 0;
     object-fit: contain;
     filter: hsl(var(--logo-filter)); // Appliquer le filtre du thème
 
     // Quand sidebar collapsée, agrandir l'icône
     .sidebar-group--sidebar-collapsed & {
-      width: var(--spacing-xl); // 20px - plus grande quand seule
-      height: var(--spacing-xl); // 20px
+      width: var(--sidebar-icon-size-collapsed);
+      height: var(--sidebar-icon-size-collapsed);
     }
   }
 
@@ -192,7 +194,7 @@
     }
 
     .sidebar-group--expanded & {
-      max-height: 1000px; // Valeur suffisamment grande
+      max-height: var(--sidebar-group-content-max-height);
       opacity: 1;
       margin-top: var(--spacing-xs);
     }
@@ -204,7 +206,7 @@
       top: 0;
       bottom: 0;
       width: 1px;
-      background-color: hsl(var(--color-border));
+      background-color: hsl(var(--sidebar-hierarchy-line-color));
       opacity: 0.3;
     }
   }
@@ -230,15 +232,7 @@
       padding: var(--spacing-xs) var(--spacing-sm);
     }
 
-    &-icon {
-      width: var(--spacing-sm); // 8px
-      height: var(--spacing-sm); // 8px
-
-      .sidebar-group--sidebar-collapsed & {
-        width: var(--spacing-lg); // 16px
-        height: var(--spacing-lg); // 16px
-      }
-    }
+    // La taille d'icône (8px / 16px collapsée) est portée par les tokens partagés responsive.
   }
 
   // Mobile - ajustements supplémentaires
@@ -247,7 +241,8 @@
       // Texte centré comme dans DropdownNavigationItem (chevron à droite)
       justify-content: center;
       text-align: center;
-      padding: var(--sidebar-item-padding) var(--spacing-md) var(--sidebar-item-padding) calc(var(--spacing-md) + var(--sidebar-chevron-button-width));
+      // Padding gauche élargi de la largeur du chevron → texte recentré malgré le chevron à droite
+      padding: var(--sidebar-group-trigger-padding-y) var(--sidebar-group-trigger-padding-x) var(--sidebar-group-trigger-padding-y) calc(var(--sidebar-group-trigger-padding-x) + var(--sidebar-chevron-button-width));
     }
 
     &-content {
@@ -263,8 +258,8 @@
 
       .sidebar-group-icon {
         margin-right: var(--spacing-sm);
-        width: var(--spacing-lg);
-        height: var(--spacing-lg);
+        width: var(--sidebar-icon-size-collapsed);
+        height: var(--sidebar-icon-size-collapsed);
       }
     }
   }
@@ -281,7 +276,7 @@
 
   // Quand expanded, permettre une hauteur suffisante
   .sidebar-group--expanded & {
-    max-height: 1000px; // Grande valeur pour éviter les coupures
+    max-height: var(--sidebar-group-content-max-height);
     transition-delay: 0s;
   }
 

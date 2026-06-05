@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSidebar } from '../NavigationSideBar/NavigationSideBar';
 import { AccessibleIcon } from '@/features/accessibility';
-import SidebarItem from '../SidebarItem/SidebarItem';
+import SidebarNode from '../SidebarNode/SidebarNode';
 import './SidebarGroup.scss';
 
 /**
@@ -36,6 +36,10 @@ const SidebarGroup = ({
     const hasActiveChild = hasActiveChildren(item);
     const shouldShowAsActive = isActive || hasActiveChild;
 
+    // Dérivations partagées : un lien réel (chemin valide non placeholder) et la présence d'enfants.
+    const isLink = Boolean(item.path && item.path !== '#');
+    const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+
     // Toggle de l'expansion
     const toggleExpanded = () => {
         setIsExpanded(prev => !prev);
@@ -43,15 +47,15 @@ const SidebarGroup = ({
 
     // Gestion du clic sur l'item (zone principale seulement)
     const handleItemClick = (event) => {
-        // Si c'est un lien avec une URL valide, laisser le comportement par défaut
-        if (item.path && item.path !== '#' && !item.path.startsWith('javascript:')) {
+        // Lien réellement navigable : laisser le comportement par défaut + notifier le parent
+        if (isLink && !item.path.startsWith('javascript:')) {
             if (onItemClick) {
                 onItemClick(item);
             }
             return;
         }
 
-        // Sinon, empêcher la navigation et juste toggle l'expansion
+        // Sinon (placeholder / javascript:), empêcher la navigation et juste toggle l'expansion
         event.preventDefault();
         toggleExpanded();
     };
@@ -67,7 +71,7 @@ const SidebarGroup = ({
     const handleKeyDown = (event) => {
         if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
-            if (item.path && item.path !== '#') {
+            if (isLink) {
                 handleItemClick(event);
             } else {
                 toggleExpanded();
@@ -96,43 +100,9 @@ const SidebarGroup = ({
         shouldShowAsActive ? 'sidebar-group-trigger--active' : ''
     ].filter(Boolean).join(' ');
 
-    // Déterminer si on a des enfants à afficher
-    const hasChildren = item.children && item.children.length > 0;
-
-    // Fonction récursive pour rendre le contenu imbriqué (inspirée de DropdownContentRenderer)
-    const renderNestedContent = (children, currentLevel) => {
-        if (!children || !Array.isArray(children) || children.length === 0) {
-            return null;
-        }
-
-        return children.map((child, index) => {
-            // Si l'enfant a des sous-enfants, créer un groupe imbriqué
-            if (child.children && Array.isArray(child.children) && child.children.length > 0) {
-                return (
-                    <SidebarGroup
-                        key={child.id || index}
-                        item={child}
-                        onItemClick={onItemClick}
-                        level={currentLevel}
-                    />
-                );
-            } else {
-                // Sinon, créer un item simple
-                return (
-                    <SidebarItem
-                        key={child.id || index}
-                        item={child}
-                        onItemClick={onItemClick}
-                        level={currentLevel}
-                    />
-                );
-            }
-        });
-    };
-
-    // Déterminer le composant wrapper (Link, button ou div)
-    const TriggerComponent = item.path && item.path !== '#' ? Link : 'button';
-    const triggerProps = item.path && item.path !== '#'
+    // Déterminer le composant wrapper (Link pour un lien réel, sinon button)
+    const TriggerComponent = isLink ? Link : 'button';
+    const triggerProps = isLink
         ? { href: item.path }
         : { type: 'button', onClick: handleItemClick };
 
@@ -197,10 +167,17 @@ const SidebarGroup = ({
                 </button>
             )}
 
-            {/* Contenu collapsible - supportant plusieurs niveaux */}
+            {/* Contenu collapsible - supportant plusieurs niveaux via SidebarNode */}
             {isExpanded && hasChildren && sidebarIsOpen && (
                 <ul id={contentId} className="sidebar-group-content">
-                    {renderNestedContent(item.children, level + 1)}
+                    {item.children.map((child, index) => (
+                        <SidebarNode
+                            key={child.id || index}
+                            item={child}
+                            onItemClick={onItemClick}
+                            level={level + 1}
+                        />
+                    ))}
                 </ul>
             )}
         </li>

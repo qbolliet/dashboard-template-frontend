@@ -1,17 +1,42 @@
-// Importation des modules
+// ===== TOKENS PARTAGÉS DE LA SIDEBAR =====
+// Variables structurantes communes à plusieurs sous-composants de la sidebar
+// (SidebarItem, SidebarGroup, SidebarMenu…).
+//
+// ⚠️ RÈGLE : Si une variable n'est utilisée que dans UN sous-composant, la mettre dans
+// le _tokens.scss de ce sous-composant. Pour les couleurs, voir ./_colors.scss.
 
+@use '@/styles/utils/breakpoints' as *;
 
-:root{
-    // Padding
-    --sidebar-item-padding: var(--spacing-xs);
+:root {
+  // ===== HAUTEUR DE LIGNE =====
+  // Hauteur canonique d'une entrée de navigation (item ou en-tête de groupe).
+  // Sert de min-height partagé → items et groupes s'alignent parfaitement.
+  --sidebar-row-height: var(--spacing-4xl);  // 40px
 
-    // Indentation uniforme appliquée à chaque niveau imbriqué.
-    // Portée par le padding-left du <ul> de contenu, elle se compose
-    // naturellement avec la profondeur → support d'une profondeur arbitraire.
-    --sidebar-content-indent: var(--spacing-md);        // 12px
+  // ===== CHEVRON (boutons d'ouverture/fermeture des groupes) =====
+  // Le bouton chevron est carré : sa largeur est DÉRIVÉE de la hauteur de ligne.
+  --sidebar-chevron-button-width: var(--sidebar-row-height);
+  --sidebar-chevron-icon-size: var(--spacing-lg);  // 16px : icône volontairement petite et fixe
 
-    // Bouton chevron (ouverture/fermeture des groupes) :
-    // largeur fixe, hauteur étirée sur toute la ligne d'en-tête (align-self: stretch).
-    --sidebar-chevron-button-width: var(--spacing-4xl); // 40px (carré avec la hauteur de ligne)
-    --sidebar-chevron-icon-size: var(--spacing-lg);     // 16px : icône volontairement petite et fixe
+  // ===== ICÔNES D'ENTRÉE (item & groupe) =====
+  // Taille de base, et taille agrandie quand la sidebar est collapsée (icône seule).
+  --sidebar-icon-size: var(--spacing-lg);            // 16px
+  --sidebar-icon-size-collapsed: var(--spacing-xl);  // 20px
+
+  // ===== PADDING & INDENTATION =====
+  --sidebar-item-padding: var(--spacing-xs);
+
+  // Indentation uniforme appliquée à chaque niveau imbriqué.
+  // Portée par le padding-left du <ul> de contenu, elle se compose
+  // naturellement avec la profondeur → support d'une profondeur arbitraire.
+  --sidebar-content-indent: var(--spacing-md);  // 12px
+}
+
+// ===== RESPONSIVE =====
+// Tablette : icônes plus petites (les entrées se densifient).
+@include breakpoint-down('medium') {
+  :root {
+    --sidebar-icon-size: var(--spacing-sm);            // 8px
+    --sidebar-icon-size-collapsed: var(--spacing-lg);  // 16px
+  }
 }

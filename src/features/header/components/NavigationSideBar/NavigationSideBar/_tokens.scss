@@ -1,0 +1,32 @@
+// ===== TOKENS DU CONTENEUR NAVIGATIONSIDEBAR =====
+// Dimensions propres au conteneur de la sidebar (largeurs, rail).
+// Pour les tokens partagés entre sous-composants, voir ../_tokens.scss.
+
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  // ===== LARGEURS =====
+  --sidebar-width-open: 280px;
+  --sidebar-width-collapsed: 64px;
+
+  // ===== RAIL DE REDIMENSIONNEMENT =====
+  // Largeur du rail ; son décalage à droite est DÉRIVÉ (moitié de la largeur, vers l'extérieur).
+  --sidebar-rail-width: var(--spacing-xs);  // 4px
+}
+
+// ===== RESPONSIVE =====
+// Tablette
+@include breakpoint-down('medium') {
+  :root {
+    --sidebar-width-open: 240px;
+    --sidebar-width-collapsed: 56px;
+  }
+}
+
+// Mobile : tiroir pleine largeur
+@include breakpoint-down('small') {
+  :root {
+    --sidebar-width-open: 100vw;
+    --sidebar-width-collapsed: 0px;
+  }
+}

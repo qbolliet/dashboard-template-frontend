@@ -2,29 +2,7 @@
 @use '../../../../../styles/utils/breakpoints' as *;
 @use '../../../../../styles/globals/colors';
 @use '../../../../../styles/globals/typography';
-
-// ===== VARIABLES CSS POUR LA SIDEBAR =====
-// Variables par défaut (desktop/large)
-:root {
-  --sidebar-width-open: 280px;
-  --sidebar-width-collapsed: 64px;
-}
-
-// Responsive - Écran moyen (tablette)
-@include breakpoint-down(medium) {
-  :root {
-    --sidebar-width-open: 240px;
-    --sidebar-width-collapsed: 56px;
-  }
-}
-
-// Responsive - Petit écran (mobile)
-@include breakpoint-down(small) {
-  :root {
-    --sidebar-width-open: 100vw;
-    --sidebar-width-collapsed: 0px;
-  }
-}
+@use './tokens' as *;  // Largeurs et rail (incluant les paliers responsive)
 
 // ===== NAVIGATION SIDEBAR =====
 .navigation-sidebar {
@@ -115,8 +93,9 @@
   .sidebar-rail {
     position: absolute;
     top: 0;
-    right: -2px;
-    width: 4px;
+    // Décalage vers l'extérieur DÉRIVÉ : moitié de la largeur du rail
+    right: calc(var(--sidebar-rail-width) / -2);
+    width: var(--sidebar-rail-width);
     height: 100%;
     cursor: col-resize;
     opacity: 0;
