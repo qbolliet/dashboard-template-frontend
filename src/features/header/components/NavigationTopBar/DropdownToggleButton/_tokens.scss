@@ -1,0 +1,24 @@
+@use '../../../../../styles/utils/breakpoints' as *;
+
+// ===== TOKENS DU BOUTON TOGGLE (DROPDOWN) =====
+// La taille du bouton toggle est structurante : elle est réutilisée par les autres
+// chevrons du dropdown (chevron de groupe) et par les paddings qui compensent sa
+// largeur, afin de garder un rythme cohérent sur les trois tailles d'écran.
+
+:root {
+    --dropdown-toggle-size: calc(var(--spacing-xl) + var(--spacing-xs));   // 24px (grand écran)
+}
+
+// Tablette : bouton légèrement plus grand
+@include breakpoint-down('medium') {
+    :root {
+        --dropdown-toggle-size: calc(var(--spacing-2xl) + var(--spacing-xs));   // 28px (écran moyen)
+    }
+}
+
+// Mobile : encore plus grand pour la cible tactile
+@include breakpoint-down('small') {
+    :root {
+        --dropdown-toggle-size: var(--spacing-4xl);   // 40px (petit écran)
+    }
+}

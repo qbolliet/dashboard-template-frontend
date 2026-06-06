@@ -3,9 +3,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useNavigation } from '../../../hooks/useNavigation';
-import DropdownToggleButton from '../../../../../components/ui/DropdownToggleButton/DropdownToggleButton';
-import ChevronDownIcon from '../../../../../components/icons/ChevronDownIcon/ChevronDownIcon';
-import { renderDropdownContent } from './DropdownContentRenderer';
+import DropdownToggleButton from '../DropdownToggleButton/DropdownToggleButton';
+import DropdownContent from './DropdownContent';
 import './DropdownNavigationItem.scss';
 
 /**
@@ -153,14 +152,13 @@ const DropdownNavigationItem = ({
                     className={`nav-dropdown ${isDropdownOpen ? 'nav-dropdown--open' : ''}`}
                     aria-hidden={!isDropdownOpen}
                 >
-                    {renderDropdownContent(
-                        item, 
-                        handleItemClick, 
-                        isActivePath, 
-                        expandedGroups, 
-                        toggleGroupExpansion,
-                        ChevronDownIcon
-                    )}
+                    <DropdownContent
+                        item={item}
+                        onItemClick={handleItemClick}
+                        isActivePath={isActivePath}
+                        expandedGroups={expandedGroups}
+                        toggleGroupExpansion={toggleGroupExpansion}
+                    />
                 </div>
             )}
         </li>

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import ChevronDownIcon from '../../icons/ChevronDownIcon/ChevronDownIcon';
+import ChevronDownIcon from '../../../../../components/icons/ChevronDownIcon/ChevronDownIcon';
 import './DropdownToggleButton.scss';
 
 /**

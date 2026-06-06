@@ -107,8 +107,10 @@
   // =================================================================
 
   // ----- Chevrons (boutons toggle) -----
-  // Taille des boutons chevron pour expand/collapse
-  --nav-dropdown-chevron-size: var(--font-size-2xl);              // 1.5rem (24px)
+  // Taille des boutons chevron pour expand/collapse.
+  // Alignée sur le bouton toggle racine : le token responsive --dropdown-toggle-size
+  // (défini dans NavigationTopBar/DropdownToggleButton/_tokens.scss) pilote 24/28/40px.
+  --nav-dropdown-chevron-size: var(--dropdown-toggle-size);
   --nav-dropdown-chevron-border-radius: var(--border-radius-md);  // 0.375rem (6px)
 
   // ----- Bordures -----
@@ -172,8 +174,7 @@
     --nav-dropdown-group-header-padding-left: var(--spacing-sm);   // 0.5rem (8px)
 
     // ----- Chevrons -----
-    // Taille légèrement augmentée pour faciliter l'interaction tactile
-    --nav-dropdown-chevron-size: var(--font-size-3xl);  // 1.75rem (28px)
+    // La taille suit --dropdown-toggle-size (28px en écran moyen) : aucun override ici.
 
     // Hauteurs maximales pour les animations d'expansion sur mobile
     --nav-dropdown-max-height: 500px;      // Hauteur max du dropdown principal
@@ -191,8 +192,7 @@
 @include breakpoint-down('small') {
   :root {
     // ----- Chevrons -----
-    // Taille maximale pour l'accessibilité tactile sur mobile
-    --nav-dropdown-chevron-size: var(--font-size-4xl);  // 2rem (32px)
+    // La taille suit --dropdown-toggle-size (40px en petit écran) : aucun override ici.
 
     // ----- Hiérarchie imbriquée -----
     // En small, rendu centré épuré façon sidebar : plus d'indentation par niveau

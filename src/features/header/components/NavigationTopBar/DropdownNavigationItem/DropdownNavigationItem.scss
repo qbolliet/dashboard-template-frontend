@@ -188,6 +188,11 @@
     // Container des groupes avec séparateurs verticaux (desktop)
 
     &__groups {
+        // Reset des styles de liste par défaut (<ul>)
+        list-style: none;
+        margin: 0;
+        padding: 0;
+
         display: flex;
         flex-direction: row;
         gap: 0;  // Pas d'espace, les séparateurs sont gérés par border
@@ -196,6 +201,9 @@
     // Grille interne : en-tête (+ chevron mobile) puis sous-liste.
     // En desktop le chevron est en display:none → une seule colonne.
     &__group {
+        // Reset de la puce de liste (<li>) ; la mise en page est gérée par la grille
+        list-style: none;
+
         display: grid;
         grid-template-columns: 1fr;
         padding: var(--nav-dropdown-group-padding);
@@ -388,8 +396,8 @@
             .nav-link {
                 text-align: center;
                 justify-content: center;
-                // Padding asymétrique pour compenser le bouton toggle à droite
-                padding: var(--spacing-md) 0 var(--spacing-md) var(--spacing-4xl);
+                // Padding asymétrique pour compenser la largeur du bouton toggle à droite
+                padding: var(--spacing-md) 0 var(--spacing-md) var(--dropdown-toggle-size);
             }
         }
     }

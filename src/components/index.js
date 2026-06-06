@@ -4,8 +4,5 @@
 // Navigation components
 export * from './navigation';
 
-// Icon components  
+// Icon components
 export * from './icons';
-
-// UI components
-export { default as DropdownToggleButton } from './ui/DropdownToggleButton/DropdownToggleButton';

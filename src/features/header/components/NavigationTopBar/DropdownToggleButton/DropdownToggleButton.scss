@@ -1,5 +1,6 @@
-@use '../../../styles/utils/breakpoints' as *;
-@use '../../../styles/globals/colors';
+@use '../../../../../styles/utils/breakpoints' as *;
+@use '../../../../../styles/globals/colors';
+@use './tokens' as *;
 
 // ===== DROPDOWN TOGGLE BUTTON =====
 // Bouton de basculement utilisant le système de design global
@@ -17,9 +18,10 @@
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     
-    // Dimensions avec variables système
-    width: calc(var(--spacing-xl) + var(--spacing-xs)); // 24px
-    height: calc(var(--spacing-xl) + var(--spacing-xs)); // 24px
+    // Dimensions : token responsive (24px grand / 28px moyen / 40px petit écran)
+    // défini dans ./_tokens.scss. Taille structurante, réutilisée par le chevron de groupe.
+    width: var(--dropdown-toggle-size);
+    height: var(--dropdown-toggle-size);
     
     // Forme avec variables système
     border-radius: var(--border-radius-md);
@@ -62,21 +64,12 @@
     
     // ===== RESPONSIVE =====
     
-    // Tablette - taille légèrement plus grande
+    // Tablette/mobile : la taille suit le token responsive --dropdown-toggle-size.
+    // On ne conserve ici que la désactivation de l'effet de scale au survol tactile.
     @include breakpoint-down('medium') {
-        width: calc(var(--spacing-2xl) + var(--spacing-xs)); // 28px
-        height: calc(var(--spacing-2xl) + var(--spacing-xs)); // 28px
-        
-        // Désactiver uniquement l'effet de scale sur mobile/tablette
         &:hover {
             transform: none;
         }
-    }
-    
-    // Mobile - encore plus grand pour l'accessibilité tactile
-    @include breakpoint-down('small') {
-        width: var(--spacing-4xl); // 32px
-        height: var(--spacing-4xl); // 32px
     }
 }
 
