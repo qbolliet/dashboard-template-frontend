@@ -33,6 +33,9 @@
   --nav-dropdown-shadow: 0 0% 0%;  // Pour box-shadow avec alpha
   --nav-dropdown-mobile-bg: var(--color-gray-50);
   --nav-dropdown-separator: var(--color-border);
+  // Barre verticale de hiérarchie en mode accordéon (medium/small) :
+  // calquée sur --sidebar-hierarchy-line-color pour imiter la sidebar
+  --nav-dropdown-hierarchy-line-color: var(--color-border);
 
   // ===== DROPDOWN - LIENS PRINCIPAUX =====
   --nav-dropdown-link-color: var(--color-text-tertiary);
@@ -81,6 +84,7 @@
   --nav-dropdown-border: var(--color-gray-300);
   --nav-dropdown-mobile-bg: var(--color-gray-200);
   --nav-dropdown-separator: var(--color-gray-300);
+  --nav-dropdown-hierarchy-line-color: var(--color-gray-300);
 
   // ===== DROPDOWN - LIENS =====
   --nav-dropdown-link-color: var(--color-text-tertiary);

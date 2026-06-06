@@ -48,7 +48,12 @@
     padding: 0 var(--nav-dropdown-padding-y);
 
     &--open{
-        background-color: hsl(var(--nav-link-hover-bg)); 
+        // Fond uniquement sur desktop. En mode accordéon (medium/small) on reste
+        // transparent pour imiter la sidebar : la hiérarchie se lit via la graisse,
+        // la couleur et la barre verticale, jamais via un fond gris global.
+        @include breakpoint('large') {
+            background-color: hsl(var(--nav-link-hover-bg));
+        }
     }
 
     // Sur mobile/tablette : lien étiré, toggle à droite (≈ space-between)
@@ -317,6 +322,7 @@
         display: flex;
         flex-direction: column;
         gap: var(--nav-dropdown-sublink-gap);
+        //margin-top: var(--nav-dropdown-sublink-gap);
     }
 
     &__subitem {
@@ -369,6 +375,7 @@
 
         // Séparateur entre éléments de navigation
         border-bottom: 1px solid hsl(var(--nav-mobile-separator));
+        border-radius: 0;
 
         // Pas de séparateur après le dernier élément
         &:last-child {
@@ -392,11 +399,17 @@
         // === Reset du positionnement desktop ===
         position: static;  // Pas de positionnement absolu
         left: auto;        // Annule le centrage desktop (left: 50%)
+        // En statique, le dropdown redevient un enfant de la grille du <li>
+        // (1fr auto). Sans cette règle il se placerait dans la seule colonne 1fr
+        // (plus étroite), désalignant les chevrons de groupe vis-à-vis du toggle
+        // racine. On le force à occuper toute la largeur → chevrons alignés à droite.
+        grid-column: 1 / -1;
         width: 100%;
         border: none;
         border-radius: 0;
         box-shadow: none;
-        background-color: hsl(var(--nav-dropdown-mobile-bg));
+        // Fond transparent (façon sidebar) : plus de bloc gris quand le dropdown s'ouvre.
+        background-color: transparent;
         padding: 0;
 
         // === Animation par hauteur (accordéon) ===
@@ -417,27 +430,62 @@
         // === Structure des groupes ===
 
         // Groupes en colonne (au lieu de ligne sur desktop)
+        // Niveau 1 (France, Allemagne) : décalage gauche + barre verticale de hiérarchie,
+        // calqué sur .sidebar-menu--level-1 (indentation par padding-left, barre en ::before).
         &__groups {
             flex-direction: column;
+            position: relative;  // Nécessaire pour positionner le ::before
+            padding-left: var(--nav-dropdown-indent);
+
+            // Barre verticale grise indiquant la hiérarchie
+            &::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                width: 1px;
+                background-color: hsl(var(--nav-dropdown-hierarchy-line-color));
+                opacity: 0.3;
+            }
+        }
+
+        // Liste simple (dropdown sans groupes) : même niveau d'imbrication que les groupes,
+        // donc même décalage gauche + barre verticale pour une hiérarchie homogène.
+        &__list {
+            position: relative;  // Nécessaire pour positionner le ::before
+            padding: 0 0 0 var(--nav-dropdown-indent);
+
+            &::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                width: 1px;
+                background-color: hsl(var(--nav-dropdown-hierarchy-line-color));
+                opacity: 0.3;
+            }
         }
 
         // Groupe individuel : en-tête | chevron sur la 1re rangée, sous-liste en dessous
         &__group {
             grid-template-columns: 1fr auto;
             padding: 0;  // Reset du padding desktop
+            padding-bottom: var(--spacing-sm);
 
             // Séparateur horizontal entre groupes (au lieu de vertical)
             &:not(:last-child) {
                 border-right: none;  // Supprime le séparateur vertical desktop
                 border-bottom: 1px solid hsl(var(--nav-dropdown-separator));
                 margin-bottom: var(--spacing-sm);
-                padding-bottom: var(--spacing-sm);
             }
         }
 
         // En-tête de groupe (colonne 1)
         &__group-header {
             padding: var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-right) var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-left);
+            margin-bottom:0;
         }
 
         // Bouton chevron (visible sur mobile, colonne 2)
@@ -455,12 +503,28 @@
             }
         }
 
-        // Sous-liste (accordéon dans accordéon) : pleine largeur sous l'en-tête
+        // Sous-liste (accordéon dans accordéon) : pleine largeur sous l'en-tête.
+        // Niveau 2 (PIB, Consommation) : décalage gauche + barre verticale supplémentaire,
+        // calqué sur .sidebar-menu--level-2 (hiérarchie imbriquée à profondeur arbitraire).
         &__sublist {
             grid-column: 1 / -1;
+            position: relative;  // Nécessaire pour positionner le ::before
+            padding-left: var(--nav-dropdown-indent);
             max-height: 0;  // Masqué par défaut
             overflow: hidden;
             transition: max-height var(--nav-dropdown-transition-duration) ease;
+
+            // Barre verticale grise indiquant le second niveau de hiérarchie
+            &::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                width: 1px;
+                background-color: hsl(var(--nav-dropdown-hierarchy-line-color));
+                opacity: 0.3;
+            }
 
             // État expanded
             &--expanded {
@@ -468,30 +532,31 @@
             }
         }
 
-        // === Ajustements des liens ===
-
-        // Liens simples
-        &__link {
-            font-size: var(--nav-dropdown-link-font-size);
-
-            // Hover plus subtil sur mobile (éviter les états persistants)
-            &:hover {
-                background-color: hsl(var(--nav-dropdown-link-hover-bg) / 0.2);
+        &__subitem {
+            &:not(:last-child) {
+                padding-bottom: var(--nav-dropdown-sublink-gap);
+                // Séparateur entre éléments de navigation
+                border-bottom: 1px solid hsl(var(--nav-mobile-separator));
+                border-radius: 0;
             }
         }
 
-        // En-têtes de groupe et sous-liens
+        // === Ajustements des liens ===
+        // Taille de police harmonisée sur tous les niveaux. Le fond gris de survol
+        // (façon sidebar) provient des règles de base, en PLEINE opacité : on ne le
+        // réduit plus en /0.2 sur mobile/tablette. Ainsi tous les items du dropdown —
+        // y compris les en-têtes de groupe et les sous-liens internes — sont surlignés
+        // en gris au survol comme dans la sidebar (et non seulement le lien racine).
+        &__link,
         &__group-header,
         &__sublink {
             font-size: var(--nav-dropdown-link-font-size);
-
-            // Hover plus subtil sur mobile
-            &:hover {
-                background-color: hsl(var(--nav-dropdown-link-hover-bg) / 0.2);
-            }
         }
 
         // === Très petits écrans (small et moins) ===
+        // Rendu très proche de la sidebar : éléments centrés empilés, distinction des
+        // niveaux par graisse + couleur uniquement (aucune différence de fond hors
+        // actif/hover). L'indentation par niveau passe à 0 (--nav-dropdown-indent).
         @include breakpoint-down('small') {
             // Chevron encore plus grand pour l'accessibilité tactile
             &__group-chevron {
@@ -499,14 +564,16 @@
                 height: var(--nav-dropdown-chevron-size);
             }
 
-            // Padding ajusté pour les petits écrans
+            // En-tête de groupe : texte centré, décalé à gauche de la largeur du chevron
+            // (padding gauche piloté par les tokens) pour un centrage visuel exact.
             &__group-header {
                 padding: var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-right) var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-left);
+                text-align: center;
             }
 
-            // Sous-liste (accordéon dans accordéon) : pleine largeur sous l'en-tête
-            &__sublist {
-                padding-left: var(--spacing-4xl);
+            // Sous-liens : texte centré, padding symétrique (indentation nulle en small)
+            &__sublink {
+                text-align: center;
             }
         }
     }

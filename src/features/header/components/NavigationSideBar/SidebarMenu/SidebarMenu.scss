@@ -125,9 +125,24 @@
     padding: 0 var(--spacing-md);
   }
 
-  // Mobile - paddings encore plus réduits
+  // Mobile - paddings encore plus réduits + lignes de séparation
   @include breakpoint-down(small) {
     padding: 0 var(--spacing-sm);
+    // L'espacement vertical entre entrées est désormais porté par la respiration
+    // symétrique autour des séparateurs (ci-dessous), pas par le gap flex : sinon le
+    // gap s'ajoute uniquement EN DESSOUS de la ligne et la déséquilibre.
+    gap: 0;
+
+    // Séparateurs horizontaux sous chaque item de premier niveau (sauf le dernier),
+    // façon topbar. Uniquement sur petit écran (cf. exigence). Les niveaux imbriqués
+    // sont traités dans SidebarGroup.scss (.sidebar-group-content).
+    // padding-bottom (au-dessus de la ligne) = margin-bottom (en dessous) → trait centré
+    // entre le bas de l'élément survolé et le haut du suivant.
+    & > li:not(:last-child) {
+      padding-bottom: var(--sidebar-mobile-separator-gap);
+      margin-bottom: var(--sidebar-mobile-separator-gap);
+      border-bottom: 1px solid hsl(var(--nav-mobile-separator));
+    }
   }
 }
 

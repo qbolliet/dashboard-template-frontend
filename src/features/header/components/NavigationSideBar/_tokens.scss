@@ -30,6 +30,14 @@
   // Portée par le padding-left du <ul> de contenu, elle se compose
   // naturellement avec la profondeur → support d'une profondeur arbitraire.
   --sidebar-content-indent: var(--spacing-md);  // 12px
+
+  // ===== SÉPARATEURS MOBILE (petits écrans) =====
+  // Respiration symétrique de part et d'autre des lignes grises qui séparent les
+  // entrées de navigation (cf. SidebarMenu/SidebarGroup, breakpoint small).
+  // Appliquée à la fois en padding-bottom (espace AU-DESSUS de la ligne, entre le bas
+  // de l'élément survolé et le trait) et en margin-bottom (espace EN DESSOUS, entre le
+  // trait et l'élément suivant) → la ligne reste visuellement centrée entre deux items.
+  --sidebar-mobile-separator-gap: var(--spacing-xs);  // 4px de chaque côté
 }
 
 // ===== RESPONSIVE =====

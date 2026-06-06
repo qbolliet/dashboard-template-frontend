@@ -152,14 +152,24 @@
     --nav-dropdown-link-padding-y: var(--spacing-md);  // 0.75rem (12px)
     --nav-dropdown-link-padding-x: var(--spacing-lg);  // 1rem (16px) - symétrique
 
+    // ----- Hiérarchie imbriquée (style sidebar) -----
+    // Décalage gauche appliqué à chaque niveau imbriqué (groupes et sous-listes).
+    // Remplace l'ancien modèle « gros padding droit » par une indentation type sidebar.
+    --nav-dropdown-indent: var(--spacing-md);  // 0.75rem (12px) par niveau
+
+    // Marge intérieure du cadre <ul> : empêche le toggle racine et les chevrons
+    // de groupe de déborder/toucher le bord droit, et les aligne verticalement.
+    --nav-dropdown-frame-inset: var(--spacing-md);  // 0.75rem (12px)
+
     // ----- Sous-liens -----
-    // Indentation plus prononcée pour la hiérarchie visuelle
-    --nav-dropdown-sublink-padding-left: calc(var(--spacing-3xl) + var(--spacing-lg));  // 3rem (48px)
+    // Padding symétrique modeste (l'indentation est portée par --nav-dropdown-indent)
+    --nav-dropdown-sublink-padding-left: var(--spacing-sm);   // 0.5rem (8px)
+    --nav-dropdown-sublink-padding-right: var(--spacing-sm);  // 0.5rem (8px)
 
     // ----- En-têtes de Groupe -----
-    // Padding horizontal augmenté pour mieux séparer du contenu
-    --nav-dropdown-group-header-padding-right: var(--spacing-3xl);  // 2rem (32px)
-    --nav-dropdown-group-header-padding-left: var(--spacing-3xl);   // 2rem (32px)
+    // Padding symétrique modeste (l'indentation est portée par --nav-dropdown-indent)
+    --nav-dropdown-group-header-padding-right: var(--spacing-sm);  // 0.5rem (8px)
+    --nav-dropdown-group-header-padding-left: var(--spacing-sm);   // 0.5rem (8px)
 
     // ----- Chevrons -----
     // Taille légèrement augmentée pour faciliter l'interaction tactile
@@ -184,13 +194,19 @@
     // Taille maximale pour l'accessibilité tactile sur mobile
     --nav-dropdown-chevron-size: var(--font-size-4xl);  // 2rem (32px)
 
+    // ----- Hiérarchie imbriquée -----
+    // En small, rendu centré épuré façon sidebar : plus d'indentation par niveau
+    --nav-dropdown-indent: 0;
+
     // ----- Sous-liens -----
-    // Réduction de l'indentation pour gagner de l'espace
-    --nav-dropdown-sublink-padding-left: var(--spacing-md);  // 0.75rem (12px)
+    // Padding symétrique : le texte est centré (voir .scss), pas d'indentation gauche
+    --nav-dropdown-sublink-padding-left: var(--spacing-sm);   // 0.5rem (8px)
+    --nav-dropdown-sublink-padding-right: var(--spacing-sm);  // 0.5rem (8px)
 
     // ----- En-têtes de Groupe -----
-    // Ajustement du padding pour optimiser l'espace disponible
-    --nav-dropdown-group-header-padding-right: 0;                    // Pas de padding droite
-    --nav-dropdown-group-header-padding-left: calc(var(--spacing-4xl) + var(--nav-dropdown-chevron-size));    // 2.5rem + 2rem (72px) gauche
+    // Centrage compensé : on décale à gauche de la largeur du chevron (à droite)
+    // pour que le texte apparaisse visuellement centré (même logique que la sidebar).
+    --nav-dropdown-group-header-padding-right: 0;
+    --nav-dropdown-group-header-padding-left: var(--nav-dropdown-chevron-size);
   }
 }

@@ -209,6 +209,20 @@
       background-color: hsl(var(--sidebar-hierarchy-line-color));
       opacity: 0.3;
     }
+
+    // Mobile : lignes de séparation sous chaque item imbriqué (sauf le dernier),
+    // façon topbar. Uniquement sur petit écran. Complète les séparateurs de premier
+    // niveau définis dans SidebarMenu.scss (.sidebar-menu-list).
+    @include breakpoint-down(small) {
+      // Respiration symétrique autour du trait (cf. SidebarMenu) : padding-bottom
+      // au-dessus = margin-bottom en dessous → séparateur centré entre le bas de
+      // l'élément survolé et le haut du suivant.
+      & > li:not(:last-child) {
+        padding-bottom: var(--sidebar-mobile-separator-gap);
+        margin-bottom: var(--sidebar-mobile-separator-gap);
+        border-bottom: 1px solid hsl(var(--nav-mobile-separator));
+      }
+    }
   }
 
   // ===== NIVEAU RACINE =====
