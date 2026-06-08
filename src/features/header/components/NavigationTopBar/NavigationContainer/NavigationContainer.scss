@@ -92,7 +92,7 @@
     // MENU DE NAVIGATION
     // =================================================================
 
-    .primary-navigation {
+    .topbar-list {
         // Réactive les clics pour le menu
         pointer-events: auto;
 
@@ -126,11 +126,13 @@
             box-shadow: -4px 0 20px hsla(var(--nav-mobile-shadow) / 0.1);
 
             // === Padding ===
-            // Padding ajusté pour éviter le chevauchement avec le bouton de fermeture fixe
-            padding: var(--nav-mobile-padding-top)
-                     var(--nav-mobile-padding-x)
-                     var(--nav-mobile-padding-bottom)
-                     var(--nav-mobile-padding-x);
+            // Vertical : place pour le bouton de fermeture fixe en haut. Horizontal :
+            // cadre de liste partagé avec la sidebar (--header-nav-list-padding-x : md/sm)
+            // → les toggles de dropdown ne touchent plus le bord droit.
+            padding-top: var(--nav-mobile-padding-top);
+            padding-bottom: var(--nav-mobile-padding-bottom);
+            padding-left: var(--header-nav-list-padding-x);
+            padding-right: var(--header-nav-list-padding-x);
 
             // === Gestion du défilement ===
             // Permettre le scroll vertical si le contenu dépasse
@@ -143,7 +145,7 @@
             transition: transform var(--nav-transition-duration) ease;
 
             // État ouvert - menu glisse dans l'écran
-            &.primary-navigation--open {
+            &.topbar-list--open {
                 transform: translateX(0);
             }
         }

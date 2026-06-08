@@ -31,7 +31,7 @@ const SidebarMenu = ({
 
     return (
         <nav className={menuClasses} aria-label="Navigation latérale principale">
-            <ul className="sidebar-menu-list">
+            <ul className="sidebar-list">
                 {/* SidebarNode choisit groupe ou item selon la présence d'enfants */}
                 {navigationData.map((item, index) => (
                     <SidebarNode

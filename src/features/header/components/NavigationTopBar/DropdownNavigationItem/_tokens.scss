@@ -1,212 +1,65 @@
 // ===== TOKENS DE DROPDOWNNAVIGATIONITEM =====
-// Variables spécifiques aux éléments de navigation avec dropdown
+// Variables propres au dropdown de la topbar (panneau, groupes, sous-listes).
 //
-// Architecture des tokens :
-// - Dimensions : largeurs, hauteurs et translations pour les animations
-// - Spacing : espacements internes (padding) et externes (margin, gap)
-// - Typographie : tailles de police et poids de caractères
-// - Apparence : bordures, transitions et effets visuels
-// - Layout : z-index et positionnement
+// Ce qui est mutualisé vit ailleurs :
+// - padding des liens / en-têtes, taille du toggle → ../_tokens.scss (--topbar-*) ;
+// - couleur / graisse de base, font-size, radius, transition, hover/focus/active →
+//   classe de rôle .nav-link (features/header/nav-base.scss) ;
+// - couleurs → features/header/_colors.scss (tokens --nav-dropdown-*).
 //
-// Pour les couleurs, voir features/header/_colors.scss
-//
-// Notes d'organisation :
-// - Les tokens sont organisés par catégorie puis par élément
-// - Les valeurs responsive sont dans les media queries en fin de fichier
-// - Tous les espacements utilisent les tokens globaux de typography.scss
+// Les valeurs responsive sont dans les media queries en fin de fichier.
 
-// Importation des breakpoints
 @use '@/styles/utils/breakpoints' as *;
 
 :root {
   // =================================================================
-  // DIMENSIONS
+  // PANNEAU DROPDOWN (le <ul> qui remplace l'ancien wrapper .nav-dropdown)
   // =================================================================
+  --topbar-dropdown-min-width: 220px;                          // largeur min desktop
+  --topbar-dropdown-translate-y: calc(var(--spacing-sm) * -1); // -8px : animation desktop
+  --topbar-dropdown-padding-y: var(--spacing-sm);              // 8px (cadre du panneau)
+  --topbar-dropdown-padding-x: 0;
+  --topbar-dropdown-border-radius: var(--border-radius-lg);    // 8px (panneau desktop)
 
-  // ----- Dropdown Desktop -----
-  // Largeur minimale du menu dropdown sur desktop
-  --nav-dropdown-min-width: 220px;
+  // Espacement entre feuilles (gap des listes/sous-listes au desktop).
+  --topbar-dropdown-content-gap: var(--spacing-sm);  // 8px
 
-  // Translation verticale pour l'animation d'apparition (valeur négative)
-  --nav-dropdown-translate-y: calc(var(--spacing-sm) * -1);  // -0.5rem (-8px)
-
-  // ----- Dropdown Mobile -----
-  
-
-  // =================================================================
-  // SPACING (ESPACEMENTS)
-  // =================================================================
-
-  // ----- Conteneur Dropdown -----
-  // Padding interne du conteneur dropdown
-  --nav-dropdown-padding-x: 0;                  // Pas de padding horizontal
-  --nav-dropdown-padding-y: var(--spacing-sm);  // 0.5rem (8px) vertical
-
-  // Espacement pour les listes simples (sans groupes)
-  --nav-dropdown-item-padding: var(--spacing-md);  // 0.75rem (12px)
-  --nav-dropdown-item-gap: var(--spacing-xs);      // 0.25rem (4px) entre items
-  --nav-dropdown-item-padding-x: var(--spacing-sm);  // 0.5rem (8px)
-
-  // ----- Liens Principaux (nav-link) -----
-  // Padding des liens principaux de navigation avec dropdown
-  --nav-dropdown-link-padding-y: var(--spacing-sm);     // 0.5rem (8px) vertical
-  --nav-dropdown-link-padding-x: var(--spacing-sm); // 0.5rem (8px) droite (réduit pour le bouton chevron)
-
-  // ----- Liens Simples Dropdown -----
-  // Padding des liens dans les listes simples (sans groupes)
-  --nav-dropdown-link-simple-padding-y: var(--spacing-md);  // 0.75rem (12px)
-  --nav-dropdown-link-simple-padding-x: var(--spacing-lg);  // 1rem (16px)
-
-  // ----- En-têtes de Groupe -----
-  // Padding du conteneur de groupe
-  --nav-dropdown-group-padding: var(--spacing-md);  // 0.75rem (12px)
-
-  // Padding de l'en-tête de groupe (lien ou titre)
-  --nav-dropdown-group-header-padding-y: var(--spacing-sm);      // 0.5rem (8px)
-  --nav-dropdown-group-header-padding-left: var(--spacing-sm);   // 0.5rem (8px)
-  --nav-dropdown-group-header-padding-right: var(--spacing-sm);  // 0.5rem (8px)
-
-  // Marge inférieure de l'en-tête de groupe
-  --nav-dropdown-group-header-margin-bottom: var(--spacing-sm);  // 0.5rem (8px)
-
-  // ----- Sous-liens (sublinks) -----
-  // Padding des sous-liens dans les groupes
-  --nav-dropdown-sublink-padding-y: var(--spacing-sm);       // 0.5rem (8px)
-  --nav-dropdown-sublink-padding-left: var(--spacing-md);    // 0.75rem (12px)
-  --nav-dropdown-sublink-padding-right: var(--spacing-md);   // 0.75rem (12px)
-
-  // Espacement entre les sous-liens
-  --nav-dropdown-sublink-gap: var(--spacing-sm);  // 0.5rem (8px)
+  // Padding d'un groupe (cellule) au desktop.
+  --topbar-dropdown-group-padding: var(--spacing-md);  // 12px
 
   // =================================================================
-  // TYPOGRAPHIE
+  // TYPOGRAPHIE — GRAISSES SPÉCIFIQUES (couleur/graisse = versant par niveau)
   // =================================================================
-
-  // ----- Liens Principaux -----
-  // Taille de police pour les liens principaux et les liens dropdown
-  --nav-dropdown-link-font-size: var(--font-size-sm);  // 0.875rem (14px)
-
-  // Poids de police pour les liens simples
-  --nav-dropdown-link-weight: 400;         // Normal
-  --nav-dropdown-link-weight-active: 500;  // Medium pour l'état actif
-
-  // ----- En-têtes de Groupe -----
-  // Typographie des en-têtes de groupe
-  --nav-dropdown-header-font-size: var(--font-size-sm);  // 0.875rem (14px)
-  --nav-dropdown-header-weight: 600;                     // Semi-bold
-
-  // ----- Sous-liens -----
-  // Typographie des sous-liens dans les groupes
-  // Même taille que les autres niveaux : seules couleur et graisse les distinguent
-  --nav-dropdown-sublink-font-size: var(--font-size-sm);  // 0.875rem (14px)
-  --nav-dropdown-sublink-weight: 400;                     // Normal
-  --nav-dropdown-sublink-weight-active: 500;              // Medium pour l'état actif
-
-  // =================================================================
-  // APPARENCE
-  // =================================================================
-
-  // ----- Chevrons (boutons toggle) -----
-  // Taille des boutons chevron pour expand/collapse.
-  // Alignée sur le bouton toggle racine : le token responsive --dropdown-toggle-size
-  // (défini dans NavigationTopBar/DropdownToggleButton/_tokens.scss) pilote 24/28/40px.
-  --nav-dropdown-chevron-size: var(--dropdown-toggle-size);
-  --nav-dropdown-chevron-border-radius: var(--border-radius-md);  // 0.375rem (6px)
-
-  // ----- Bordures -----
-  // Arrondis des bordures
-  --nav-dropdown-border-radius: var(--border-radius-lg);       // 0.5rem (8px) pour le conteneur
-  --nav-dropdown-link-border-radius: var(--border-radius-md);  // 0.375rem (6px) pour les liens
-
-  // ----- Transitions -----
-  // Durées des transitions pour les animations
-  --nav-dropdown-chevron-transition: var(--transition-normal);     // 0.2s pour les chevrons
-  --nav-dropdown-link-transition: var(--transition-normal);        // 0.2s pour les liens
-  --nav-dropdown-transition-duration: var(--transition-slow);      // 0.3s pour les dropdowns
-
-  // Transition complète pour les liens (propriété + durée + easing)
-  --nav-dropdown-link-transition-full: all var(--transition-normal) ease;
-
-  // ----- Focus -----
-  // Taille de l'ombre de focus
-  --nav-dropdown-focus-shadow-size: var(--spacing-2px);  // 2px
+  --topbar-link-weight: 400;                  // feuilles (normal)
+  --topbar-link-weight-active: 500;           // feuille active
+  --topbar-group-header-weight: 600;          // en-tête de groupe imbriqué (semi-bold)
 
   // =================================================================
   // LAYOUT
   // =================================================================
-
-  // ----- Z-index -----
-  // Niveau de superposition du dropdown
-  --nav-dropdown-z-index: var(--z-dropdown);  // 1000
+  --topbar-dropdown-z-index: var(--z-dropdown);  // 1000
 }
 
 // =================================================================
-// RESPONSIVE - TABLETTE (medium et moins)
+// RESPONSIVE - TABLETTE (medium et moins) : mode accordéon
 // =================================================================
-// Ajustements pour écrans tablette :
-// - Augmentation des zones tactiles (padding, chevrons)
-// - Meilleure adaptation aux interactions tactiles
-
 @include breakpoint-down('medium') {
   :root {
-    // ----- Liens Principaux -----
-    // Augmentation du padding vertical pour faciliter le touch
-    --nav-dropdown-link-padding-y: var(--spacing-md);  // 0.75rem (12px)
-    --nav-dropdown-link-padding-x: var(--spacing-lg);  // 1rem (16px) - symétrique
+    // Décalage gauche appliqué à chaque niveau imbriqué (hiérarchie façon sidebar).
+    --topbar-dropdown-indent: var(--spacing-md);  // 12px par niveau
 
-    // ----- Hiérarchie imbriquée (style sidebar) -----
-    // Décalage gauche appliqué à chaque niveau imbriqué (groupes et sous-listes).
-    // Remplace l'ancien modèle « gros padding droit » par une indentation type sidebar.
-    --nav-dropdown-indent: var(--spacing-md);  // 0.75rem (12px) par niveau
-
-    // Marge intérieure du cadre <ul> : empêche le toggle racine et les chevrons
-    // de groupe de déborder/toucher le bord droit, et les aligne verticalement.
-    --nav-dropdown-frame-inset: var(--spacing-md);  // 0.75rem (12px)
-
-    // ----- Sous-liens -----
-    // Padding symétrique modeste (l'indentation est portée par --nav-dropdown-indent)
-    --nav-dropdown-sublink-padding-left: var(--spacing-sm);   // 0.5rem (8px)
-    --nav-dropdown-sublink-padding-right: var(--spacing-sm);  // 0.5rem (8px)
-
-    // ----- En-têtes de Groupe -----
-    // Padding symétrique modeste (l'indentation est portée par --nav-dropdown-indent)
-    --nav-dropdown-group-header-padding-right: var(--spacing-sm);  // 0.5rem (8px)
-    --nav-dropdown-group-header-padding-left: var(--spacing-sm);   // 0.5rem (8px)
-
-    // ----- Chevrons -----
-    // La taille suit --dropdown-toggle-size (28px en écran moyen) : aucun override ici.
-
-    // Hauteurs maximales pour les animations d'expansion sur mobile
-    --nav-dropdown-max-height: 500px;      // Hauteur max du dropdown principal
-    --nav-dropdown-sublist-max-height: 300px;     // Hauteur max des sous-listes
+    // Hauteurs maximales pour les animations d'expansion.
+    --topbar-dropdown-max-height: 500px;          // panneau principal
+    --topbar-dropdown-sublist-max-height: 300px;  // sous-listes
   }
 }
 
 // =================================================================
 // RESPONSIVE - MOBILE (small et moins)
 // =================================================================
-// Ajustements pour petits écrans :
-// - Zones tactiles maximisées pour l'accessibilité
-// - Simplification de la hiérarchie visuelle
-
 @include breakpoint-down('small') {
   :root {
-    // ----- Chevrons -----
-    // La taille suit --dropdown-toggle-size (40px en petit écran) : aucun override ici.
-
-    // ----- Hiérarchie imbriquée -----
-    // En small, rendu centré épuré façon sidebar : plus d'indentation par niveau
-    --nav-dropdown-indent: 0;
-
-    // ----- Sous-liens -----
-    // Padding symétrique : le texte est centré (voir .scss), pas d'indentation gauche
-    --nav-dropdown-sublink-padding-left: var(--spacing-sm);   // 0.5rem (8px)
-    --nav-dropdown-sublink-padding-right: var(--spacing-sm);  // 0.5rem (8px)
-
-    // ----- En-têtes de Groupe -----
-    // Centrage compensé : on décale à gauche de la largeur du chevron (à droite)
-    // pour que le texte apparaisse visuellement centré (même logique que la sidebar).
-    --nav-dropdown-group-header-padding-right: 0;
-    --nav-dropdown-group-header-padding-left: var(--nav-dropdown-chevron-size);
+    // Rendu centré épuré façon sidebar : plus d'indentation par niveau.
+    --topbar-dropdown-indent: 0;
   }
 }

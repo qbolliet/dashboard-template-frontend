@@ -1,63 +1,62 @@
-// ===== IMPORTS =====
-@use '../../../../../styles/utils/breakpoints' as *;
-@use '../../../../../styles/globals/colors';
-@use '../../../../../styles/globals/typography';
-@use '../tokens' as *;   // Tokens partagés sidebar
-@use '../colors' as *;   // Couleurs sémantiques sidebar
-@use './tokens' as *;    // Tokens locaux SidebarItem
+// =================================================================
+// SIDEBAR ITEM — feuille de navigation de la sidebar
+// =================================================================
+// Structure : <li.nav-item.sidebar-item> > <a.nav-link.nav-link--leaf.sidebar-link>
+//   > <img.sidebar-icon> <span.nav-text.sidebar-text> [indicateur externe]
+// Variante non-cliquable : <span.nav-link.nav-link--leaf.sidebar-link.sidebar-link--static>
+//
+// Style commun (couleur/font-size/radius/transition + padding feuille) : classes de rôle
+// (features/header/nav-base.scss). Ici : spécifique sidebar (couleur tertiaire par défaut,
+// bordure, icône/texte, niveau 0, tooltip collapsé).
+//
+// Tokens : ./_tokens.scss, ../_tokens.scss. Couleurs : ../_colors.scss.
 
-// ===== SIDEBAR ITEM =====
+@use '../../../../../styles/utils/breakpoints' as *;
+@use '../colors' as *;
+
+// ===== CONTENEUR (li) =====
 .sidebar-item {
-  // L'item est maintenant un <li>, donc reset des styles de liste
-  list-style: none;
   display: flex;
   flex-direction: column;
-  margin-bottom: var(--spacing-xs);
+}
 
-  // ===== LIEN DE L'ITEM =====
-  &-link,
-  &-span {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm); // Espacement entre icône et texte
-    width: 100%;
-    min-height: var(--sidebar-row-height); // Hauteur de ligne canonique (harmonisée avec les groupes)
-    padding: var(--sidebar-item-padding-y) var(--sidebar-item-padding-x);
-    background-color: transparent;
-    border: 1px solid transparent;
-    border-radius: var(--border-radius-md);
-    text-decoration: none;
-    color: hsl(var(--nav-dropdown-sublink-color));
-    font-size: var(--font-size-sm);
-    font-weight: 400;
-    line-height: var(--line-height-tight);
-    transition: all var(--transition-normal) ease;
-    cursor: pointer;
+// ===== LIEN DE LA FEUILLE =====
+.sidebar-link {
+  // Padding alimentant la facette .nav-link--leaf.
+  --nav-leaf-pad-y: var(--sidebar-link-padding-y);
+  --nav-leaf-pad-x: var(--sidebar-link-padding-x);
 
-    // États d'interaction pour les liens
-    &:hover {
-      background-color: hsl(var(--nav-dropdown-sublink-hover-bg));
-      color: hsl(var(--nav-dropdown-sublink-hover-color));
-      border-color: hsl(var(--color-border-hover));
-    }
+  gap: var(--spacing-sm);          // espacement icône / texte
+  width: 100%;
+  border: 1px solid transparent;
+  cursor: pointer;
 
-    &:focus {
-      outline: none;
-      border-color: hsl(var(--color-focus));
-      box-shadow: 0 0 0 2px hsl(var(--color-focus-shadow) / 0.2);
-    }
+  // Apparence de base = feuille imbriquée (tertiaire). Le niveau 0 repasse en primaire.
+  color: hsl(var(--nav-dropdown-sublink-color));
+  font-weight: 400;
 
-    // État actif
-    &--active {
-      background-color: hsl(var(--nav-dropdown-sublink-active-bg));
-      color: hsl(var(--nav-dropdown-sublink-active-color));
-      border-color: hsl(var(--color-primary-500) / 0.3);
-      font-weight: 500;
-    }
+  &:hover {
+    background-color: hsl(var(--nav-dropdown-sublink-hover-bg));
+    color: hsl(var(--nav-dropdown-sublink-hover-color));
+    border-color: hsl(var(--color-border-hover));
   }
 
-  // Styles spécifiques pour les spans (éléments non-cliquables)
-  &-span {
+  // Focus façon sidebar : bordure + halo (et non l'outline de la classe de rôle).
+  &:focus {
+    outline: none;
+    border-color: hsl(var(--color-focus));
+    box-shadow: 0 0 0 2px hsl(var(--color-focus-shadow) / 0.2);
+  }
+
+  &--active {
+    background-color: hsl(var(--nav-dropdown-sublink-active-bg));
+    color: hsl(var(--nav-dropdown-sublink-active-color));
+    border-color: hsl(var(--color-primary-500) / 0.3);
+    font-weight: 500;
+  }
+
+  // Variante non-cliquable (item sans chemin).
+  &--static {
     cursor: default;
     opacity: 0.7;
 
@@ -67,119 +66,82 @@
       border-color: transparent;
     }
   }
+}
 
-  // ===== ICÔNE DE L'ITEM =====
-  &-icon {
-    // Taille pilotée par un token partagé responsive (item & groupe alignés)
-    width: var(--sidebar-icon-size);
-    height: var(--sidebar-icon-size);
-    flex-shrink: 0;
-    object-fit: contain;
-    filter: hsl(var(--logo-filter)); // Appliquer le filtre du thème
+// ===== NIVEAU RACINE (couleur/graisse primaires) =====
+.sidebar-item--level-0 .sidebar-link {
+  font-weight: 500;
+  color: hsl(var(--nav-link-color));
 
-    // Quand sidebar collapsée, agrandir l'icône
-    .sidebar-item--sidebar-collapsed & {
+  &:hover {
+    color: hsl(var(--nav-link-hover-color));
+    background-color: hsl(var(--nav-link-hover-bg));
+  }
+
+  &--active {
+    color: hsl(var(--nav-link-active-color));
+    background-color: hsl(var(--nav-link-active-bg));
+  }
+}
+
+// ===== ICÔNE =====
+.sidebar-icon {
+  width: var(--sidebar-icon-size);
+  height: var(--sidebar-icon-size);
+  flex-shrink: 0;
+  object-fit: contain;
+  filter: hsl(var(--logo-filter));
+
+  .sidebar-item--sidebar-collapsed & {
+    width: var(--sidebar-icon-size-collapsed);
+    height: var(--sidebar-icon-size-collapsed);
+  }
+}
+
+// ===== TEXTE (la facette .nav-text gère flex/troncature) =====
+.sidebar-text {
+  .sidebar-item--sidebar-collapsed & {
+    display: none;
+  }
+}
+
+// ===== INDICATEUR DE LIEN EXTERNE =====
+.sidebar-external-indicator {
+  width: var(--sidebar-external-indicator-size);
+  height: var(--sidebar-external-indicator-size);
+  margin-left: var(--spacing-sm);
+  color: hsl(var(--color-text-tertiary));
+  flex-shrink: 0;
+  opacity: 0.6;
+
+  .sidebar-item--sidebar-collapsed & {
+    display: none;
+  }
+
+  .sidebar-link:hover & {
+    opacity: 1;
+  }
+}
+
+// ===== RESPONSIVE — MOBILE =====
+// Le padding vient des tokens ; ici seul le centrage est propre au small.
+@include breakpoint-down('small') {
+  .sidebar-link {
+    justify-content: center;
+    text-align: center;
+  }
+
+  // Sur mobile, la sidebar n'est jamais réellement collapsée (mode overlay).
+  .sidebar-item--sidebar-collapsed {
+    .sidebar-text,
+    .sidebar-external-indicator {
+      display: block;
+    }
+
+    .sidebar-icon {
+      margin-right: var(--spacing-sm);
       width: var(--sidebar-icon-size-collapsed);
       height: var(--sidebar-icon-size-collapsed);
-    }
-  }
-
-  // ===== TEXTE DE L'ITEM =====
-  &-text {
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0; // Permet la troncature
-
-    // Caché quand sidebar collapsée
-    .sidebar-item--sidebar-collapsed & {
-      display: none;
-    }
-  }
-
-  // ===== INDICATEUR DE LIEN EXTERNE =====
-  &-external-indicator {
-    // L'indicateur est maintenant directement sur le SVG
-    width: var(--sidebar-external-indicator-size);
-    height: var(--sidebar-external-indicator-size);
-    margin-left: var(--spacing-sm);
-    color: hsl(var(--color-text-tertiary));
-    flex-shrink: 0;
-    opacity: 0.6;
-
-    // Caché quand sidebar collapsée
-    .sidebar-item--sidebar-collapsed & {
-      display: none;
-    }
-
-    // Hover effect
-    .sidebar-item-link:hover & {
-      opacity: 1;
-    }
-  }
-
-  // ===== NIVEAUX D'ITEMS =====
-
-  // Niveau 0 - Items de premier niveau
-  &--level-0 {
-    .sidebar-item-link,
-    .sidebar-item-span {
-      font-weight: 500;
-      color: hsl(var(--nav-link-color));
-
-      &:hover {
-        color: hsl(var(--nav-link-hover-color));
-        background-color: hsl(var(--nav-link-hover-bg));
-      }
-
-      &--active {
-        color: hsl(var(--nav-link-active-color));
-        background-color: hsl(var(--nav-link-active-bg));
-      }
-    }
-  }
-
-  // Niveaux 1+ : aucune surcharge spécifique. L'apparence de base (couleur sublink
-  // tertiaire, graisse 400, --font-size-sm) s'applique à tous les niveaux imbriqués,
-  // quelle que soit la profondeur. L'indentation provient du padding-left du <ul>
-  // parent (.sidebar-group-content), pas d'un décalage par numéro de niveau.
-
-  // ===== RESPONSIVE =====
-
-  // Tablette - ajustements des tailles
-  @include breakpoint-down(medium) {
-    &-link,
-    &-span {
-      padding: var(--spacing-xs) var(--spacing-sm);
-      // Police identique au grand écran : la densité est réduite via le padding/min-height,
-      // pas via la taille de texte (la police mobile ne doit pas être plus petite que tablette).
-    }
-
-    // La taille d'icône (8px / 16px collapsée) est portée par les tokens partagés responsive.
-  }
-
-  // Mobile - ajustements supplémentaires
-  @include breakpoint-down(small) {
-    &-link,
-    &-span {
-      padding: var(--spacing-xs) var(--spacing-sm);
-      justify-content: center;
-      text-align: center;
-    }
-
-    // Sur mobile, la sidebar n'est jamais vraiment collapsée en mode overlay
-    &--sidebar-collapsed {
-      .sidebar-item-text,
-      .sidebar-item-external-indicator {
-        display: block;
-      }
-
-      .sidebar-item-icon {
-        margin-right: var(--spacing-sm);
-        width: var(--sidebar-icon-size-collapsed);
-        height: var(--sidebar-icon-size-collapsed);
-      }
     }
   }
 }
@@ -188,10 +150,8 @@
 .sidebar-item--sidebar-collapsed {
   position: relative;
 
-  // Tooltip au survol (uniquement sur desktop)
-  @include breakpoint(medium) {
-    .sidebar-item-link:hover::after,
-    .sidebar-item-span:hover::after {
+  @include breakpoint('medium') {
+    .sidebar-link:hover::after {
       content: attr(title);
       position: absolute;
       left: 100%;
@@ -213,7 +173,7 @@
   }
 }
 
-// ===== ANIMATION POUR LE TOOLTIP =====
+// ===== ANIMATION DU TOOLTIP =====
 @keyframes tooltip-in {
   from {
     opacity: 0;

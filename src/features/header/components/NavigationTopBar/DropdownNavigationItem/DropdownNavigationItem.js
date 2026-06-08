@@ -106,17 +106,20 @@ const DropdownNavigationItem = ({
     const hasActiveChild = hasActiveChildren(item);
     const hasChildren = item.children && item.children !== null;
 
-    // Classes CSS dynamiques
+    // Classes CSS dynamiques (rôle .nav-row + préfixe .topbar-group)
     const itemClasses = [
-        'nav-item',
-        'nav-item--dropdown',
-        isDropdownOpen && 'nav-item--dropdown--open',
+        'nav-row',
+        'topbar-group',
+        isDropdownOpen && 'topbar-group--open',
         isActive && activeClassName,
         itemClassName
     ].filter(Boolean).join(' ');
 
+    // En-tête racine : rôle .nav-link + facette parent + préfixe .topbar-group-header
     const linkClasses = [
         'nav-link',
+        'nav-link--parent',
+        'topbar-group-header',
         isActive && 'nav-link--active',
         hasActiveChild && 'nav-link--has-active-child'
     ].filter(Boolean).join(' ');
@@ -130,7 +133,7 @@ const DropdownNavigationItem = ({
                 onClick={handleItemClick}
                 aria-current={isActive ? 'page' : undefined}
             >
-                {item.name}
+                <span className="nav-text topbar-text">{item.name}</span>
             </Link>
 
             {/* Bouton dropdown si l'élément a des enfants */}
@@ -145,21 +148,17 @@ const DropdownNavigationItem = ({
                 />
             )}
 
-            {/* Dropdown avec sous-éléments */}
+            {/* Dropdown avec sous-éléments : le <ul> EST le panneau (plus de wrapper <div>) */}
             {hasChildren && (
-                <div 
+                <DropdownContent
+                    item={item}
                     id={`dropdown-${index}`}
-                    className={`nav-dropdown ${isDropdownOpen ? 'nav-dropdown--open' : ''}`}
-                    aria-hidden={!isDropdownOpen}
-                >
-                    <DropdownContent
-                        item={item}
-                        onItemClick={handleItemClick}
-                        isActivePath={isActivePath}
-                        expandedGroups={expandedGroups}
-                        toggleGroupExpansion={toggleGroupExpansion}
-                    />
-                </div>
+                    isOpen={isDropdownOpen}
+                    onItemClick={handleItemClick}
+                    isActivePath={isActivePath}
+                    expandedGroups={expandedGroups}
+                    toggleGroupExpansion={toggleGroupExpansion}
+                />
             )}
         </li>
     );

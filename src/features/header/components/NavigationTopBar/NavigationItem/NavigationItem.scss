@@ -1,85 +1,42 @@
 // =================================================================
-// NAVIGATION ITEM
+// NAVIGATION ITEM — feuille de liste simple (sans dropdown)
 // =================================================================
+// Structure : <li.nav-item.topbar-item> > <a.nav-link.nav-link--leaf.topbar-link>
+// Le style commun (couleur, font-size, radius, transition, hover/focus/active, padding
+// de la facette feuille) vient des classes de rôle (features/header/nav-base.scss).
 //
-// Composant d'élément de navigation simple (sans dropdown)
+// Ce fichier définit aussi la base .topbar-link (padding des feuilles), partagée avec les
+// feuilles du dropdown ; leur couleur/graisse spécifiques sont dans DropdownNavigationItem.
 //
-// Structure du composant :
-// - .nav-item--simple : Conteneur de l'élément de navigation
-//   - .nav-link : Lien de navigation
-//     - .nav-link--active : État actif du lien
-//
-// Comportement :
-// - Desktop (large et plus) : Affichage horizontal avec padding compact
-// - Mobile/Tablette : Affichage pleine largeur avec padding confortable
-// - États interactifs : hover, focus (accessibilité), active
-//
-// Pour les tokens (dimensions, spacing, typographie), voir ./_tokens.scss
-// Pour les font-weights et focus communs, voir ../_tokens.scss
-// Pour les couleurs, voir ../../../_colors.scss
+// Pour les tokens, voir ../_tokens.scss.
 
-// ----- Importation des modules -----
 @use '../../../../../styles/utils/breakpoints' as *;
-@use '../tokens' as *;
-@use './tokens' as *;
 
-
-// =================================================================
-// CONTENEUR DE L'ÉLÉMENT DE NAVIGATION
-// =================================================================
-.nav-item--simple {
-    // === Positionnement ===
-    position: relative;
-
-    // === Reset des styles de base ===
-    margin: 0;
-
-    // === Responsive - Desktop ===
-    // Layout flexbox horizontal pour aligner le lien
-    @include breakpoint('large') {
-        display: flex;
-        align-items: center;
-    }
-
-    // === Responsive - Mobile/Tablette ===
-    // Largeur complète pour faciliter le touch
-    @include breakpoint-down('medium') {
-        width: 100%;
-    }
+// ----- Base de feuille topbar (padding alimentant la facette .nav-link--leaf) -----
+// Couleur / graisse par défaut = celles de la classe de rôle .nav-link (lien racine).
+.topbar-link {
+  --nav-leaf-pad-y: var(--topbar-link-padding-y);
+  --nav-leaf-pad-x: var(--topbar-link-padding-x);
 }
 
+// ----- Conteneur (li) de la feuille simple horizontale -----
+.topbar-item {
+  // Largeur complète pour faciliter le touch en mobile/tablette.
+  @include breakpoint-down('medium') {
+    width: 100%;
+  }
 
-// =================================================================
-// LIEN DE NAVIGATION
-// =================================================================
-// Les styles communs (color, font-weight, text-decoration, :hover, :focus,
-// --active) sont factorisés dans la base .nav-link (voir NavigationMenu.scss).
-// On ne conserve ici que les spécificités de la variante « simple ».
-.nav-item--simple .nav-link {
-    // === Layout & Positionnement ===
-    display: block;
-    position: relative;
+  // Layout horizontal au desktop.
+  @include breakpoint('large') {
+    display: flex;
+    align-items: center;
+  }
+}
 
-    // === Espacement interne ===
-    // Utilise les custom properties définies dans _tokens.scss
-    // Varie automatiquement selon la taille d'écran
-    padding: var(--nav-item-link-padding);
-
-    // === Typographie ===
-    font-size: var(--nav-item-link-font-size);
-    line-height: var(--nav-item-link-line-height);
-
-    // === Apparence ===
-    border-radius: var(--nav-item-link-border-radius);
-
-    // === Animation ===
-    // Transition douce pour tous les changements (couleur, background, etc.)
-    transition: all var(--nav-item-link-transition) ease;
-
-    // === Responsive - Desktop ===
-    @include breakpoint('large') {
-        // Layout flexbox pour centrer le contenu verticalement
-        display: flex;
-        align-items: center;
-    }
+// ----- Exception « feuille simple horizontale » -----
+// Direct enfant de .topbar-list (≠ feuilles de dropdown) : padding-x plus généreux au
+// desktop et hauteur volontairement supérieure au toggle. Couleur/graisse = défauts de
+// rôle .nav-link (lien racine) → rien à surcharger.
+.topbar-list > .topbar-item > .topbar-link {
+  --nav-leaf-pad-x: var(--topbar-simple-padding-x);
 }

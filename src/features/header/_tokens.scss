@@ -40,6 +40,47 @@
   // ===== LOGO =====
   // Hauteur maximale du logo (80% de la hauteur du contenu)
   --header-logo-max-height: calc(var(--header-content-height) * 0.8);
+
+  // =================================================================
+  // NAVIGATION — ESPACEMENT PARTAGÉ (sidebar ⇄ topbar)
+  // =================================================================
+  // Tokens canoniques garantissant un rendu cohérent des deux composants de
+  // navigation. Les sous-composants (sidebar/topbar) en dérivent des alias scopés
+  // (--sidebar-* / --topbar-*) valorisés par défaut à ces valeurs, mais
+  // surchargeables individuellement sans impacter l'autre composant.
+
+  // Taille de police commune à tous les liens de navigation (sidebar ⇄ topbar).
+  --header-nav-link-font-size: var(--font-size-sm);  // 14px
+
+  // Graisses + focus communs aux liens de navigation (utilisés par la classe de rôle
+  // .nav-link, partagée entre sidebar et topbar).
+  --nav-link-font-weight: 500;
+  --nav-link-font-weight-active: 600;
+  --nav-focus-outline-width: 2px;
+  --nav-focus-outline-offset: 2px;
+
+  // Taille du bouton toggle/chevron (échelle tactile responsive). PILOTE UNIQUE de la
+  // hauteur de rangée : le padding-y dérivé ci-dessous fait que toute rangée « parente »
+  // mesure exactement cette taille → toggles/chevrons carrés et alignés sur les 3 écrans.
+  --header-nav-toggle-size: calc(var(--spacing-xl) + var(--spacing-xs));  // 24px (grand écran)
+
+  // padding-y DÉRIVÉ d'une rangée portant un toggle : (taille toggle − hauteur de texte)/2,
+  // avec hauteur de texte = line-height × font-size. Recalculé seul à chaque breakpoint
+  // puisque --header-nav-toggle-size y change. Remplace l'ancien min-height + line-height.
+  --header-nav-row-padding-y: calc(
+    (var(--header-nav-toggle-size) - var(--line-height-tight) * var(--header-nav-link-font-size)) / 2
+  );
+
+  // Barre grise centrée entre entrées sur petit écran (cf. mixin nav-mobile-separator).
+  // Respiration appliquée de chaque côté du trait → ligne équidistante.
+  --header-nav-separator-gap: var(--spacing-xs);  // 4px de chaque côté
+
+  // Padding horizontal des listes de navigation (cadre du <ul>), partagé sidebar/topbar.
+  --header-nav-list-padding-x: var(--spacing-lg);  // 16px (grand écran)
+
+  // Les paddings de lien partagés (--header-nav-link-padding-y/x, --header-nav-group-padding-x)
+  // ne sont définis qu'en medium/small ci-dessous : au desktop, chaque alias scopé fournit
+  // sa propre valeur via le 2e argument de var() → apparence desktop strictement préservée.
 }
 
 // ===== RESPONSIVE =====
@@ -49,6 +90,15 @@
   :root {
     --header-padding-x: var(--spacing-lg);  // 1rem (même qu'en desktop)
     --header-padding-y: var(--spacing-md);  // 0.75rem
+
+    // ----- Navigation partagée (medium) -----
+    --header-nav-toggle-size: calc(var(--spacing-2xl) + var(--spacing-xs));  // 28px
+    // Padding-y des feuilles aligné sur le padding-y dérivé des parents → toutes les
+    // rangées (feuilles et parents) ont la même hauteur = taille du toggle.
+    --header-nav-link-padding-y: var(--header-nav-row-padding-y);  // vertical, TOUS les rangs
+    --header-nav-link-padding-x: var(--spacing-sm);   // horizontal, feuilles / 1er niveau
+    --header-nav-group-padding-x: var(--spacing-sm);  // horizontal, rangs parents (avec toggle)
+    --header-nav-list-padding-x: var(--spacing-md);   // cadre des listes (12px)
   }
 }
 
@@ -60,5 +110,12 @@
     --header-padding-x: var(--spacing-md);  // 0.75rem
     --header-padding-y: var(--spacing-sm);  // 0.5rem
     --header-gap: var(--spacing-sm);        // Gap réduit sur mobile
+
+    // ----- Navigation partagée (small) -----
+    --header-nav-toggle-size: var(--spacing-4xl);     // 40px (cible tactile maximale)
+    --header-nav-link-padding-y: var(--header-nav-row-padding-y);  // = hauteur de rangée du toggle
+    --header-nav-link-padding-x: var(--spacing-sm);
+    --header-nav-group-padding-x: var(--spacing-md);  // décalage du 2e niveau
+    --header-nav-list-padding-x: var(--spacing-sm);   // cadre des listes (8px)
   }
 }

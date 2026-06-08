@@ -1,301 +1,191 @@
-// ===== IMPORTS =====
+// =================================================================
+// SIDEBAR GROUP — groupe collapsible de la sidebar
+// =================================================================
+// Structure : <li.nav-row.sidebar-group>
+//   <a|button.nav-link.nav-link--parent.sidebar-group-header> <span.nav-text.sidebar-text>
+//   <button.nav-toggle.sidebar-toggle> <svg.sidebar-toggle-icon>
+//   <ul.sidebar-group-content> … (SidebarNode récursif) …
+//
+// Style commun (couleur/font-size/radius/transition + padding parent + boilerplate toggle)
+// : classes de rôle (features/header/nav-base.scss). Resets + séparateurs : mixins.
+//
+// Tokens : ./_tokens.scss, ../_tokens.scss. Couleurs : ../_colors.scss.
+
 @use '../../../../../styles/utils/breakpoints' as *;
-@use '../../../../../styles/globals/colors';
-@use '../../../../../styles/globals/typography';
-@use '../tokens' as *;   // Tokens partagés sidebar
-@use '../colors' as *;   // Couleurs sémantiques sidebar
-@use './tokens' as *;    // Tokens locaux SidebarGroup
+@use '../../../nav-mixins' as *;
+@use '../colors' as *;
 
-// ===== SIDEBAR GROUP =====
+// ===== CONTENEUR (li, grille en-tête + contenu) =====
 .sidebar-group {
-  // Le groupe est un <li>, donc reset des styles de liste
-  list-style: none;
+  grid-template-columns: 1fr auto;  // trigger | chevron
+  grid-template-rows: auto auto;    // ligne en-tête + ligne contenu
 
-  // Grid : trigger + chevron alignés sur la ligne 1, contenu déplié sur la ligne 2
-  display: grid;
-  grid-template-columns: 1fr auto; // Trigger prend l'espace, chevron auto-sized
-  grid-template-rows: auto auto;   // Ligne header + ligne content
-  align-items: center;
-  margin-bottom: var(--spacing-xs);
-  min-height: var(--sidebar-row-height); // Hauteur de ligne canonique (harmonisée avec les items)
-  position: relative;
-
-  // ===== SURVOL UNIFIÉ DE LA LIGNE D'EN-TÊTE =====
-  // On ne cible que le survol des enfants DIRECTS (trigger/chevron) via :has(> …)
-  // pour ne PAS réagir au survol des éléments imbriqués dans le contenu déplié.
-  //
-  // Survol de la ligne (trigger OU chevron) → fond doux unifié sur les deux éléments,
-  // qui forment une pilule continue (arrondis gauche/droite côté trigger/chevron).
-  &:has(> .sidebar-group-trigger:hover) > .sidebar-group-trigger,
-  &:has(> .sidebar-group-trigger:hover) > .sidebar-group-chevron-button,
-  &:has(> .sidebar-group-chevron-button:hover) > .sidebar-group-trigger,
-  &:has(> .sidebar-group-chevron-button:hover) > .sidebar-group-chevron-button {
+  // ----- Survol unifié de la ligne d'en-tête -----
+  // :has(> …) ne cible que le survol des enfants DIRECTS (trigger/chevron) → pas de
+  // réaction au survol du contenu déplié. Trigger + chevron forment une pilule continue.
+  &:has(> .sidebar-group-header:hover) > .sidebar-group-header,
+  &:has(> .sidebar-group-header:hover) > .sidebar-toggle,
+  &:has(> .sidebar-toggle:hover) > .sidebar-group-header,
+  &:has(> .sidebar-toggle:hover) > .sidebar-toggle {
     background-color: hsl(var(--nav-link-hover-bg));
     color: hsl(var(--nav-link-hover-color));
   }
 
-  // Sur-highlight plus marqué au survol DIRECT du chevron.
-  // Placé après la règle ci-dessus (même spécificité) → l'emporte pour le chevron.
-  &:has(> .sidebar-group-chevron-button:hover) > .sidebar-group-chevron-button {
+  // Sur-highlight plus marqué au survol DIRECT du chevron (l'emporte, même spécificité).
+  &:has(> .sidebar-toggle:hover) > .sidebar-toggle {
     background-color: hsl(var(--sidebar-chevron-hover-bg) / 0.5);
     color: hsl(var(--sidebar-chevron-hover-color));
   }
+}
 
-  // ===== TRIGGER PRINCIPAL DU GROUPE =====
-  &-trigger {
-    // Positionnement dans la grille
-    grid-column: 1;
-    grid-row: 1;
+// ===== TRIGGER / EN-TÊTE DU GROUPE =====
+.sidebar-group-header {
+  // Padding alimentant la facette .nav-link--parent (padding-y dérivé → hauteur = toggle).
+  --nav-parent-pad-y: var(--sidebar-group-padding-y);
+  --nav-parent-pad-x: var(--sidebar-group-padding-x);
 
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm); // Espacement entre icône et texte
-    min-height: inherit; // Hérite de la hauteur minimum du container
-    padding: var(--sidebar-group-trigger-padding-y) var(--sidebar-group-trigger-padding-x);
-    background-color: transparent;
-    border: 1px solid transparent;
-    // Arrondi à gauche uniquement : continuité visuelle avec le chevron à droite
-    border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);
-    cursor: pointer;
+  grid-column: 1;
+  grid-row: 1;
+  gap: var(--spacing-sm);            // espacement icône / texte
+  background-color: transparent;
+  border: 1px solid transparent;
+  // Arrondi à gauche uniquement : continuité visuelle avec le chevron à droite.
+  border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);
+  cursor: pointer;
+  text-align: left;
+  // Couleur de base = niveaux imbriqués (secondaire) ; le niveau 0 repasse en primaire.
+  color: hsl(var(--color-text-secondary));
+  font-weight: 500;
+
+  // Focus façon sidebar : bordure (et non l'outline de la classe de rôle).
+  &:focus {
+    outline: none;
+    border-color: hsl(var(--color-focus));
+  }
+
+  &--active {
+    background-color: hsl(var(--nav-link-active-bg));
+    color: hsl(var(--nav-link-active-color));
+    border-color: hsl(var(--color-primary-500) / 0.3);
+  }
+
+  &[href] {
     text-decoration: none;
-    // Couleur de base = apparence des niveaux imbriqués (secondaire).
-    // Le niveau racine (--level-0) repasse en couleur primaire plus bas.
-    color: hsl(var(--color-text-secondary));
-    font-size: var(--font-size-sm);
-    font-weight: 500;
-    line-height: var(--line-height-tight);
-    transition: all var(--transition-normal) ease;
-    text-align: left;
-
-    // États d'interaction
-    &:focus {
-      outline: none;
-      border-color: hsl(var(--color-focus));
-    }
-
-    // État actif
-    &--active {
-      background-color: hsl(var(--nav-link-active-bg));
-      color: hsl(var(--nav-link-active-color));
-      border-color: hsl(var(--color-primary-500) / 0.3);
-    }
-
-    // Ajustements pour les liens (balise a)
-    &[href] {
-      text-decoration: none;
-    }
-
-    // Sidebar collapsée : pas de chevron affiché → le trigger reprend un arrondi complet
-    .sidebar-group--sidebar-collapsed & {
-      border-radius: var(--border-radius-md);
-    }
   }
 
-  // ===== ICÔNE DU GROUPE =====
-  &-icon {
-    // Taille pilotée par un token partagé responsive (item & groupe alignés)
-    width: var(--sidebar-icon-size);
-    height: var(--sidebar-icon-size);
-    flex-shrink: 0;
-    object-fit: contain;
-    filter: hsl(var(--logo-filter)); // Appliquer le filtre du thème
-
-    // Quand sidebar collapsée, agrandir l'icône
-    .sidebar-group--sidebar-collapsed & {
-      width: var(--sidebar-icon-size-collapsed);
-      height: var(--sidebar-icon-size-collapsed);
-    }
-  }
-
-  // ===== TEXTE DU GROUPE =====
-  &-text {
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    min-width: 0; // Permet la troncature
-
-    // Caché quand sidebar collapsée
-    .sidebar-group--sidebar-collapsed & {
-      display: none;
-    }
-  }
-
-  // ===== BOUTON CHEVRON SÉPARÉ =====
-  &-chevron-button {
-    // Positionnement dans la grille
-    grid-column: 2;
-    grid-row: 1;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    // Largeur fixe + hauteur étirée sur toute la ligne d'en-tête.
-    // align-self: stretch fait correspondre la zone de survol/clic à la hauteur
-    // de la partie surlignée (corrige l'ancien bouton trop petit).
-    width: var(--sidebar-chevron-button-width);
-    align-self: stretch;
-    padding: 0;
-    margin: 0;
-    background-color: transparent;
-    border: 1px solid transparent;
-    // Arrondi à droite uniquement : continuité avec le trigger
-    border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
-    cursor: pointer;
-    color: hsl(var(--color-text-tertiary));
-    transition: all var(--transition-normal) ease;
-    flex-shrink: 0;
-
-    &:focus {
-      outline: none;
-      border-color: hsl(var(--color-focus));
-    }
-
-    &:active {
-      transform: scale(0.95);
-    }
-  }
-
-  // ===== ICÔNE DU CHEVRON =====
-  &-chevron-icon {
-    // Taille fixe et volontairement petite, indépendante de la taille du bouton
-    width: var(--sidebar-chevron-icon-size);
-    height: var(--sidebar-chevron-icon-size);
-    transition: transform var(--transition-normal) ease;
-
-    // Rotation quand groupe expanded
-    .sidebar-group--expanded > .sidebar-group-chevron-button & {
-      transform: rotate(90deg);
-    }
-  }
-
-  // ===== CONTENU COLLAPSIBLE =====
-  &-content {
-    // Positionnement dans la grille - span all columns
-    grid-column: 1 / -1;
-    grid-row: 2;
-
-    // Le content est un <ul>, donc reset des styles de liste
-    list-style: none;
-    // Indentation uniforme par niveau : se compose naturellement avec la profondeur
-    padding-left: var(--sidebar-content-indent);
-    margin: 0;
-    position: relative; // Nécessaire pour le positionnement du ::before
-    overflow: hidden;
-    transition: all var(--transition-normal) ease;
-
-    // Animation d'entrée/sortie
-    .sidebar-group--collapsed & {
-      max-height: 0;
-      opacity: 0;
-      padding-top: 0;
-      padding-bottom: 0;
-      margin-top: 0;
-    }
-
-    .sidebar-group--expanded & {
-      max-height: var(--sidebar-group-content-max-height);
-      opacity: 1;
-      margin-top: var(--spacing-xs);
-    }
-
-    // Bordure à gauche pour indiquer la hiérarchie
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 1px;
-      background-color: hsl(var(--sidebar-hierarchy-line-color));
-      opacity: 0.3;
-    }
-
-    // Mobile : lignes de séparation sous chaque item imbriqué (sauf le dernier),
-    // façon topbar. Uniquement sur petit écran. Complète les séparateurs de premier
-    // niveau définis dans SidebarMenu.scss (.sidebar-menu-list).
-    @include breakpoint-down(small) {
-      // Respiration symétrique autour du trait (cf. SidebarMenu) : padding-bottom
-      // au-dessus = margin-bottom en dessous → séparateur centré entre le bas de
-      // l'élément survolé et le haut du suivant.
-      & > li:not(:last-child) {
-        padding-bottom: var(--sidebar-mobile-separator-gap);
-        margin-bottom: var(--sidebar-mobile-separator-gap);
-        border-bottom: 1px solid hsl(var(--nav-mobile-separator));
-      }
-    }
-  }
-
-  // ===== NIVEAU RACINE =====
-  // Une seule surcharge, pour le niveau 0 (toujours présent). Tous les niveaux ≥ 1
-  // partagent l'apparence de base (secondaire) → aucune dépendance au numéro de niveau,
-  // donc support d'une profondeur arbitraire. Les niveaux se distinguent par
-  // l'indentation (couleur) et le type de nœud par la graisse, jamais par la taille.
-  &--level-0 > .sidebar-group-trigger {
-    color: hsl(var(--nav-link-color));
-
-    &.sidebar-group-trigger--active {
-      color: hsl(var(--nav-link-active-color));
-    }
-  }
-
-  // ===== RESPONSIVE =====
-
-  // Tablette - ajustements des tailles
-  @include breakpoint-down(medium) {
-    &-trigger {
-      padding: var(--spacing-xs) var(--spacing-sm);
-    }
-
-    // La taille d'icône (8px / 16px collapsée) est portée par les tokens partagés responsive.
-  }
-
-  // Mobile - ajustements supplémentaires
-  @include breakpoint-down(small) {
-    &-trigger {
-      // Texte centré comme dans DropdownNavigationItem (chevron à droite)
-      justify-content: center;
-      text-align: center;
-      // Padding gauche élargi de la largeur du chevron → texte recentré malgré le chevron à droite
-      padding: var(--sidebar-group-trigger-padding-y) var(--sidebar-group-trigger-padding-x) var(--sidebar-group-trigger-padding-y) calc(var(--sidebar-group-trigger-padding-x) + var(--sidebar-chevron-button-width));
-    }
-
-    &-content {
-      padding-left: 0;
-    }
-
-    // Sur mobile, la sidebar n'est jamais vraiment collapsée en mode overlay
-    &--sidebar-collapsed {
-      .sidebar-group-text,
-      .sidebar-group-chevron {
-        display: block;
-      }
-
-      .sidebar-group-icon {
-        margin-right: var(--spacing-sm);
-        width: var(--sidebar-icon-size-collapsed);
-        height: var(--sidebar-icon-size-collapsed);
-      }
-    }
+  // Sidebar collapsée : pas de chevron → arrondi complet.
+  .sidebar-group--sidebar-collapsed & {
+    border-radius: var(--border-radius-md);
   }
 }
 
-// ===== TRANSITIONS SPÉCIALES POUR L'ANIMATION =====
+// Niveau racine : couleur primaire.
+.sidebar-group--level-0 > .sidebar-group-header {
+  color: hsl(var(--nav-link-color));
+
+  &.sidebar-group-header--active {
+    color: hsl(var(--nav-link-active-color));
+  }
+}
+
+// ===== CHEVRON (bouton d'ouverture) =====
+.sidebar-toggle {
+  grid-column: 2;
+  grid-row: 1;
+  // Largeur fixe + hauteur étirée sur toute la ligne d'en-tête.
+  width: var(--sidebar-toggle-size);
+  align-self: stretch;
+  margin: 0;
+  flex-shrink: 0;
+  // Arrondi à droite uniquement : continuité avec le trigger.
+  border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+}
+
+// ===== ICÔNE DU CHEVRON =====
+.sidebar-toggle-icon {
+  // Taille fixe, volontairement petite, indépendante du bouton.
+  width: var(--sidebar-toggle-icon-size);
+  height: var(--sidebar-toggle-icon-size);
+  transition: transform var(--transition-normal) ease;
+
+  .sidebar-group--expanded > .sidebar-toggle & {
+    transform: rotate(90deg);
+  }
+}
+
+// ===== ICÔNE / TEXTE DU GROUPE (collapsé) =====
+// La base (.sidebar-icon / .sidebar-text + facette .nav-text) est partagée avec l'item ;
+// ici on ne gère que le masquage propre à l'état collapsé du GROUPE.
+.sidebar-group--sidebar-collapsed {
+  .sidebar-icon {
+    width: var(--sidebar-icon-size-collapsed);
+    height: var(--sidebar-icon-size-collapsed);
+  }
+
+  .sidebar-text {
+    display: none;
+  }
+}
+
+// ===== CONTENU COLLAPSIBLE (ul) =====
 .sidebar-group-content {
-  // Utiliser max-height pour l'animation au lieu de height
+  @include nav-list-reset;
+
+  grid-column: 1 / -1;
+  grid-row: 2;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--sidebar-content-gap);
+  // Indentation uniforme par niveau (se compose avec la profondeur).
+  padding-left: var(--sidebar-content-indent);
+  position: relative;
+  overflow: hidden;
+
+  // Animation d'ouverture/fermeture (max-height + opacité + marge).
   max-height: 0;
   transition: max-height var(--transition-normal) ease,
               opacity var(--transition-fast) ease,
-              padding var(--transition-fast) ease,
               margin var(--transition-fast) ease;
 
-  // Quand expanded, permettre une hauteur suffisante
-  .sidebar-group--expanded & {
-    max-height: var(--sidebar-group-content-max-height);
-    transition-delay: 0s;
+  .sidebar-group--collapsed & {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
   }
 
-  // Retarder légèrement la disparition de l'opacité
-  .sidebar-group--collapsed & {
-    transition-delay: 0s, var(--transition-fast), 0s, 0s;
+  .sidebar-group--expanded & {
+    max-height: var(--sidebar-group-content-max-height);
+    opacity: 1;
+    margin-top: var(--spacing-xs);
+  }
+
+  // Barre verticale grise indiquant la hiérarchie.
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 1px;
+    background-color: hsl(var(--sidebar-hierarchy-line-color));
+    opacity: 0.3;
+  }
+
+  // Mobile : séparateurs gris centrés (façon topbar) + suppression de l'indentation.
+  @include breakpoint-down('small') {
+    padding-left: 0;
+    gap: 0;
+    @include nav-mobile-separator;
+  }
+}
+
+// ===== RESPONSIVE — MOBILE =====
+@include breakpoint-down('small') {
+  .sidebar-group-header {
+    // Texte centré, padding gauche compensant le chevron à droite (centrage visuel).
+    justify-content: center;
+    text-align: center;
+    --nav-parent-pad-x-left: calc(var(--sidebar-group-padding-x) + var(--sidebar-toggle-size));
   }
 }

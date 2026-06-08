@@ -12,15 +12,34 @@
   // Largeur du menu mobile sur tablette /!\ peut-être le même pour la sidebar
   --nav-topbar-mobile-width: 280px;
 
-  // ===== FOCUS =====
-  // Propriétés de focus partagées entre tous les éléments interactifs de la navigation
-  --nav-focus-outline-width: 2px;
-  --nav-focus-outline-offset: 2px;
+  // Note : les graisses (--nav-link-font-weight*) et le focus (--nav-focus-outline-*)
+  // partagés sont définis au niveau header (features/header/_tokens.scss) car la classe
+  // de rôle .nav-link les utilise aussi côté sidebar.
 
-  // ===== TYPOGRAPHIE =====
-  // Font weights partagés entre NavigationItem et DropdownNavigationItem
-  --nav-link-font-weight: 500;
-  --nav-link-font-weight-active: 600;
+  // =================================================================
+  // ALIAS SCOPÉS — NAVIGATION TOPBAR (cf. features/header/_tokens.scss)
+  // =================================================================
+  // Chaque alias reprend un token canonique header en préfixant `--topbar-` ; le motif
+  // var(--header-nav-*, <valeur-desktop>) préserve le rendu desktop tout en héritant des
+  // valeurs harmonisées medium/small. Surcharger ici n'affecte QUE la topbar.
+
+  // Taille du toggle/chevron (carré : 24 / 28 / 40 px).
+  --topbar-toggle-size: var(--header-nav-toggle-size);
+
+  // Rangs « parents » (lien racine + en-tête de groupe, portent un toggle/chevron) :
+  // padding-y dérivé (hauteur de rangée = taille du toggle) sur les 3 écrans.
+  --topbar-group-padding-y: var(--header-nav-row-padding-y);
+  --topbar-group-padding-x: var(--header-nav-group-padding-x, var(--spacing-sm));
+
+  // Feuilles dans un dropdown (liens de liste simple + sous-liens de groupe) :
+  // desktop sm/md (plus hautes que le toggle → exception « feuille »), medium/small
+  // alignées sur le padding-y dérivé via les tokens header.
+  --topbar-link-padding-y: var(--header-nav-link-padding-y, var(--spacing-sm));
+  --topbar-link-padding-x: var(--header-nav-link-padding-x, var(--spacing-md));
+
+  // Feuilles de la liste simple horizontale (NavigationItem) : padding horizontal plus
+  // généreux au desktop. C'est le seul lien dont la hauteur ne s'aligne pas sur le toggle.
+  --topbar-simple-padding-x: var(--header-nav-link-padding-x, var(--spacing-lg));
 }
 
 // =================================================================

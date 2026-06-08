@@ -1,601 +1,339 @@
 // =================================================================
-// DROPDOWN NAVIGATION ITEM
+// DROPDOWN NAVIGATION ITEM (topbar)
 // =================================================================
+// Élément de navigation avec menu déroulant. Structure :
 //
-// Composant d'élément de navigation avec menu dropdown complexe
+//   <li.nav-row.topbar-group>                      rangée racine (lien | toggle)
+//     <a.nav-link.nav-link--parent.topbar-group-header> <span.nav-text.topbar-text>
+//     <button.nav-toggle.topbar-toggle>            toggle racine (DropdownToggleButton)
+//     <ul.topbar-dropdown.topbar-dropdown--groups|--list>   panneau (ex .nav-dropdown)
+//       … groupes (.topbar-group) avec en-tête + chevron (.topbar-toggle) + sous-liste
+//         (.nav-content.topbar-content) …  OU  feuilles (.topbar-item > .topbar-link)
 //
-// Structure du composant :
-// - .nav-item--dropdown : Conteneur principal (grille : lien | toggle)
-//     - .nav-link : Lien principal de navigation
-//     - .dropdown-toggle-button : Bouton pour ouvrir/fermer le dropdown (composant partagé)
-//   - .nav-dropdown : Menu dropdown (simple ou avec groupes)
-//     - Mode simple : .nav-dropdown__list > .nav-dropdown__item > .nav-dropdown__link
-//     - Mode groupes : .nav-dropdown__groups > .nav-dropdown__group (grille)
-//       - .nav-dropdown__group-header : En-tête/lien du groupe
-//       - .nav-dropdown__group-chevron : Bouton pour expand/collapse (mobile)
-//       - .nav-dropdown__sublist > .nav-dropdown__subitem > .nav-dropdown__sublink
+// Style commun (couleur/graisse de base, font-size, radius, transition, hover/focus/active,
+// padding des facettes, centrage du toggle) : classes de rôle (features/header/nav-base.scss).
+// Resets de liste + séparateurs mobiles : mixins (features/header/_nav-mixins.scss).
 //
-// Comportement responsive :
-// - Desktop : Dropdown en position absolute sous l'élément, animation fade + translate
-// - Mobile/Tablette : Dropdown en position static, animation height avec accordéon
+// Comportement : desktop = popover absolu (fade + translate) ; medium/small = accordéon
+// (animation par hauteur), rendu rapproché de la sidebar (hiérarchie par indentation +
+// barre verticale ; séparateurs gris centrés en small uniquement).
 //
-// Pour les tokens (dimensions, spacing, etc.), voir ./_tokens.scss
-// Pour les couleurs, voir ../../../_colors.scss
+// Tokens : ./_tokens.scss et ../_tokens.scss. Couleurs : ../../../_colors.scss.
 
-// ----- Importation des modules -----
-@use '../../../colors' as *;
+@use '../../../nav-mixins' as *;
 @use '../tokens' as *;
 @use './tokens' as *;
 @use '../../../../../styles/utils/breakpoints' as *;
-@use '../../../../../styles/globals/typography' as *;
 
 
 // =================================================================
-// ÉLÉMENT DE NAVIGATION AVEC DROPDOWN
+// RANGÉE PARENTE (lien + toggle)
 // =================================================================
-.nav-item--dropdown {
-    // Positionnement de base pour permettre le dropdown en absolute (desktop)
-    position: relative;
-
-    // ----- Disposition de l'en-tête (lien + toggle) -----
-    // Grille remplaçant l'ancien wrapper .nav-item__header (flex).
-    // Le .nav-dropdown étant en position:absolute, il reste hors du flux de la grille.
-    display: grid;
-    grid-template-columns: auto auto;  // lien | toggle, collés à gauche
-    align-items: center;
-    justify-content: start;
-    border-radius: var(--nav-item-link-border-radius);
-    padding: 0 var(--nav-dropdown-padding-y);
-
-    &--open{
-        // Fond uniquement sur desktop. En mode accordéon (medium/small) on reste
-        // transparent pour imiter la sidebar : la hiérarchie se lit via la graisse,
-        // la couleur et la barre verticale, jamais via un fond gris global.
-        @include breakpoint('large') {
-            background-color: hsl(var(--nav-link-hover-bg));
-        }
-    }
-
-    // Sur mobile/tablette : lien étiré, toggle à droite (≈ space-between)
-    @include breakpoint-down('medium') {
-        grid-template-columns: 1fr auto;
-        padding: 0;
-    }
-
-    // ----- Lien principal de navigation -----
-    // Les styles communs (color, font-weight, text-decoration, :hover, :focus,
-    // --active) sont factorisés dans la base .nav-link (voir NavigationMenu.scss).
-    // On ne conserve ici que les spécificités de la variante « dropdown ».
-    .nav-link {
-        // === Disposition ===
-        display: inline-flex;
-        align-items: center;
-        padding: var(--nav-dropdown-link-padding-y) var(--nav-dropdown-link-padding-x);
-
-        // === Apparence ===
-        background-color: transparent;
-        font-size: var(--nav-dropdown-link-font-size);
-        border-radius: var(--nav-dropdown-link-border-radius);
-        white-space: nowrap;  // Empêcher le retour à la ligne
-
-        // Transition douce pour tous les changements
-        transition: all var(--nav-dropdown-link-transition) ease;
-
-        // === États d'interaction spécifiques ===
-
-        // Has active child : une page enfant est actuellement affichée
-        &--has-active-child {
-            color: hsl(var(--nav-link-active-child-color));
-            background-color: hsl(var(--nav-link-active-child-bg));
-        }
-
-        // === Responsive Mobile/Tablette ===
-        @include breakpoint-down('medium') {
-            width: 100%;
-        }
-    }
+.topbar-group {
+  border-radius: var(--border-radius-md);
 }
 
-// =================================================================
-// MENU DROPDOWN
-// =================================================================
-.nav-dropdown {
-    // === Positionnement Desktop ===
-    // Centré horizontalement sous l'élément parent
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    min-width: var(--nav-dropdown-min-width);
-    z-index: var(--z-dropdown);
+// Rangée RACINE (enfant direct de la liste) : lien | toggle collés à gauche au desktop.
+.topbar-list > .topbar-group {
+  grid-template-columns: auto auto;
+  justify-content: start;
+  padding-right: var(--topbar-group-padding-x);
 
-    // === Apparence ===
-    background-color: hsl(var(--nav-dropdown-bg));
-    border: 1px solid hsl(var(--nav-dropdown-border));
-    border-radius: var(--nav-dropdown-border-radius);
-    box-shadow: 0 var(--spacing-xs) var(--spacing-md) hsla(var(--nav-dropdown-shadow) / 0.1);
-    padding: var(--nav-dropdown-padding-y) var(--nav-dropdown-padding-x);
-    margin-top: 0.3rem;
-
-    // === Animation d'apparition (Desktop) ===
-    // Par défaut : masqué, centré (translateX -50%) et décalé vers le haut
-    opacity: 0;
-    visibility: hidden;
-    transform: translate(-50%, var(--nav-dropdown-translate-y));
-    transition: all var(--nav-dropdown-transition-duration) ease;
-
-    // État ouvert : visible et en position normale (centrage conservé)
-    &--open {
-        opacity: 1;
-        visibility: visible;
-        transform: translate(-50%, 0);
+  // Fond doux à l'ouverture, desktop uniquement (en accordéon on reste transparent,
+  // façon sidebar : la hiérarchie se lit via graisse/couleur/barre verticale).
+  &--open {
+    @include breakpoint('large') {
+      background-color: hsl(var(--nav-link-hover-bg));
     }
-    
-    // -----------------------------------------------------------------
-    // LISTE SIMPLE (sans groupes)
-    // -----------------------------------------------------------------
-    // Liste de liens simples, sans hiérarchie ni groupes
-
-    &__list {
-        // Reset des styles de liste par défaut
-        list-style: none;
-        margin: 0;
-        padding: var(--nav-dropdown-item-padding);
-
-        // Disposition en colonne avec espacement
-        display: flex;
-        flex-direction: column;
-        gap: var(--nav-dropdown-item-gap);
-    }
-
-    &__item {
-        margin: 0;
-    }
-
-    &__link {
-        // === Disposition ===
-        display: block;
-        padding: var(--nav-dropdown-link-simple-padding-y) var(--nav-dropdown-link-simple-padding-x);
-
-        // === Apparence ===
-        color: hsl(var(--nav-dropdown-link-color));
-        text-decoration: none;
-        font-size: var(--nav-dropdown-link-font-size);
-        font-weight: var(--nav-dropdown-link-weight);
-        border-radius: var(--nav-dropdown-link-border-radius);
-
-        // Transition douce
-        transition: all var(--nav-dropdown-link-transition) ease;
-
-        // === États ===
-
-        // Hover
-        &:hover {
-            color: hsl(var(--nav-dropdown-link-hover-color));
-            background-color: hsl(var(--nav-dropdown-link-hover-bg));
-        }
-
-        // Active : lien de la page actuelle
-        &--active {
-            color: hsl(var(--nav-dropdown-link-active-color));
-            background-color: hsl(var(--nav-dropdown-link-active-bg));
-            font-weight: var(--nav-dropdown-link-weight-active);
-        }
-    }
-    
-    // -----------------------------------------------------------------
-    // GROUPES AVEC SOUS-ÉLÉMENTS (structure hiérarchique)
-    // -----------------------------------------------------------------
-    // Container des groupes avec séparateurs verticaux (desktop)
-
-    &__groups {
-        // Reset des styles de liste par défaut (<ul>)
-        list-style: none;
-        margin: 0;
-        padding: 0;
-
-        display: flex;
-        flex-direction: row;
-        gap: 0;  // Pas d'espace, les séparateurs sont gérés par border
-    }
-
-    // Grille interne : en-tête (+ chevron mobile) puis sous-liste.
-    // En desktop le chevron est en display:none → une seule colonne.
-    &__group {
-        // Reset de la puce de liste (<li>) ; la mise en page est gérée par la grille
-        list-style: none;
-
-        display: grid;
-        grid-template-columns: 1fr;
-        padding: var(--nav-dropdown-group-padding);
-
-        // Séparateur vertical entre groupes (desktop uniquement)
-        &:not(:last-child) {
-            border-right: 1px solid hsl(var(--nav-dropdown-separator));
-        }
-    }
-
-    // ----- Bouton Chevron (expand/collapse) -----
-    // Visible uniquement sur mobile/tablette pour collapse les sous-listes
-    &__group-chevron {
-        // === Layout ===
-        // Masqué par défaut sur desktop
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        box-sizing: border-box;
-
-        // === Dimensions ===
-        // Taille responsive (augmente sur mobile pour le touch)
-        width: var(--nav-dropdown-chevron-size);
-        height: var(--nav-dropdown-chevron-size);
-
-        // === Apparence ===
-        background: none;
-        border: 1px solid transparent;
-        border-radius: var(--nav-dropdown-chevron-border-radius);
-        color: hsl(var(--nav-dropdown-group-header-color));
-        cursor: pointer;
-
-        // Optimisations tactiles
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
-
-        // === Transitions ===
-        transition: all var(--nav-dropdown-chevron-transition) ease;
-        transform-origin: center center;
-
-        // === États d'interaction ===
-
-        // Hover
-        &:hover {
-            background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
-            border-color: hsl(var(--nav-dropdown-group-header-hover-color) / 0.2);
-            color: hsl(var(--nav-dropdown-group-header-hover-color));
-        }
-
-        // Focus (navigation clavier)
-        &:focus {
-            outline: none;
-            border-color: hsl(var(--nav-dropdown-group-header-active-color));
-            box-shadow: 0 0 0 2px hsl(var(--nav-dropdown-group-header-active-bg) / 0.3);
-        }
-
-        // Active (clic/touch)
-        &:active {
-            transform: scale(0.95);  // Léger effet de pression
-        }
-
-        // État expanded : sous-liste visible
-        &--expanded {
-            background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
-            border-color: hsl(var(--nav-dropdown-group-header-color) / 0.2);
-
-            // Rotation du chevron vers le haut
-            svg {
-                transform: rotate(180deg);
-            }
-        }
-
-        // Icône SVG du chevron
-        svg {
-            display: block;
-            flex-shrink: 0;
-            transition: transform var(--nav-dropdown-transition-duration) ease;
-            transform-origin: center center;
-        }
-    }
-    
-    // ----- En-tête de Groupe -----
-    // Titre ou lien principal du groupe
-    &__group-header {
-        // === Disposition ===
-        display: block;
-        padding: var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-right) var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-left);
-        margin-bottom: var(--nav-dropdown-group-header-margin-bottom);
-
-        // === Apparence ===
-        color: hsl(var(--nav-dropdown-group-header-color));
-        text-decoration: none;
-        font-size: var(--nav-dropdown-header-font-size);
-        font-weight: var(--nav-dropdown-header-weight);
-        border-radius: var(--nav-dropdown-link-border-radius);
-
-        // Transition douce
-        transition: all var(--nav-dropdown-link-transition) ease;
-
-        // === États ===
-
-        // Hover
-        &:hover {
-            color: hsl(var(--nav-dropdown-group-header-hover-color));
-            background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
-        }
-
-        // Active : page actuelle
-        &--active {
-            color: hsl(var(--nav-dropdown-group-header-active-color));
-            background-color: hsl(var(--nav-dropdown-group-header-active-bg));
-        }
-    }
-
-    // ----- Sous-liste (dans un groupe) -----
-    &__sublist {
-        // Reset des styles de liste
-        list-style: none;
-        margin: 0;
-        padding: 0;
-
-        // Disposition en colonne avec espacement
-        display: flex;
-        flex-direction: column;
-        gap: var(--nav-dropdown-sublink-gap);
-        //margin-top: var(--nav-dropdown-sublink-gap);
-    }
-
-    &__subitem {
-        margin: 0;
-    }
-
-    // ----- Sous-liens -----
-    // Liens de second niveau dans les groupes
-    &__sublink {
-        // === Disposition ===
-        display: block;
-        padding: var(--nav-dropdown-sublink-padding-y) var(--nav-dropdown-sublink-padding-right) var(--nav-dropdown-sublink-padding-y) var(--nav-dropdown-sublink-padding-left);
-
-        // === Apparence ===
-        color: hsl(var(--nav-dropdown-sublink-color));
-        text-decoration: none;
-        font-size: var(--nav-dropdown-sublink-font-size);
-        font-weight: var(--nav-dropdown-sublink-weight);
-        border-radius: var(--nav-dropdown-link-border-radius);
-
-        // Transition douce
-        transition: all var(--nav-dropdown-link-transition) ease;
-
-        // === États ===
-
-        // Hover
-        &:hover {
-            background-color: hsl(var(--nav-dropdown-sublink-hover-bg));
-            color: hsl(var(--nav-dropdown-sublink-hover-color));
-        }
-
-        // Active : page actuelle
-        &--active {
-            color: hsl(var(--nav-dropdown-sublink-active-color));
-            background-color: hsl(var(--nav-dropdown-sublink-active-bg));
-            font-weight: var(--nav-dropdown-sublink-weight-active);
-        }
-    }
+  }
 }
 
-// =================================================================
-// RESPONSIVE - MOBILE / TABLETTE (medium et moins)
-// =================================================================
-// Adaptations pour écrans tactiles : accordéon au lieu de dropdown
+// ----- En-tête / lien parent (commun racine + groupes) -----
+.topbar-group-header {
+  --nav-parent-pad-y: var(--topbar-link-padding-y); //var(--topbar-group-padding-y);
+  --nav-parent-pad-x: var(--topbar-group-padding-x);
+  background-color: transparent;
+  white-space: nowrap;
+}
 
+// En-tête RACINE : couleur/graisse de lien de 1er niveau (défauts de rôle .nav-link).
+.topbar-list > .topbar-group > .topbar-group-header {
+  // Au desktop, se dimensionne au contenu dans la colonne `auto`.
+  @include breakpoint('large') {
+    display: inline-flex;
+  }
+
+  // Une page enfant est affichée : surlignage discret.
+  &.nav-link--has-active-child {
+    color: hsl(var(--nav-link-active-child-color));
+    background-color: hsl(var(--nav-link-active-child-bg));
+  }
+}
+
+
+// =================================================================
+// PANNEAU DROPDOWN (le <ul>) — DESKTOP (popover)
+// =================================================================
+.topbar-dropdown {
+  @include nav-list-reset;
+
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  min-width: var(--topbar-dropdown-min-width);
+  z-index: var(--topbar-dropdown-z-index);
+
+  background-color: hsl(var(--nav-dropdown-bg));
+  border: 1px solid hsl(var(--nav-dropdown-border));
+  border-radius: var(--topbar-dropdown-border-radius);
+  box-shadow: 0 var(--spacing-xs) var(--spacing-md) hsla(var(--nav-dropdown-shadow) / 0.1);
+  padding: var(--topbar-dropdown-padding-y) var(--topbar-dropdown-padding-x);
+  margin-top: 0.3rem;
+
+  // Animation d'apparition (centrage conservé via translateX -50%).
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, var(--topbar-dropdown-translate-y));
+  transition: all var(--transition-slow) ease;
+
+  &--open {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+  }
+
+  // Liste simple (sans groupes) : colonne. Padding = cadre du panneau + respiration interne.
+  &--list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    padding: calc(var(--topbar-dropdown-padding-y) + var(--spacing-md)) var(--spacing-md);
+  }
+
+  // Groupes côte à côte (séparateurs verticaux gérés par border-right ci-dessous).
+  &--groups {
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+  }
+}
+
+// ----- Groupe (cellule) dans le panneau, desktop -----
+.topbar-dropdown--groups > .topbar-group {
+  grid-template-columns: 1fr;  // chevron masqué au desktop → une seule colonne
+  padding: var(--topbar-dropdown-group-padding);
+
+  &:not(:last-child) {
+    border-radius: 0;
+    border-right: 1px solid hsl(var(--nav-dropdown-separator));
+  }
+}
+
+// ----- En-tête de groupe imbriqué : couleur/graisse secondaires -----
+.topbar-dropdown .topbar-group-header {
+  color: hsl(var(--nav-dropdown-group-header-color));
+  font-weight: var(--topbar-group-header-weight);
+  margin-bottom: var(--spacing-sm);
+
+  &:hover {
+    color: hsl(var(--nav-dropdown-group-header-hover-color));
+    background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
+  }
+
+  &--active {
+    color: hsl(var(--nav-dropdown-group-header-active-color));
+    background-color: hsl(var(--nav-dropdown-group-header-active-bg));
+  }
+}
+
+// ----- Chevron de groupe (caché au desktop, visible en accordéon) -----
+.topbar-dropdown .topbar-toggle {
+  display: none;
+  width: var(--topbar-toggle-size);
+  color: hsl(var(--nav-dropdown-group-header-color));
+
+  &:hover {
+    background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
+    border-color: hsl(var(--nav-dropdown-group-header-hover-color) / 0.2);
+    color: hsl(var(--nav-dropdown-group-header-hover-color));
+  }
+
+  &--expanded svg {
+    transform: rotate(180deg);
+  }
+}
+
+// ----- Sous-liste (dans un groupe), desktop -----
+.topbar-content {
+  @include nav-list-reset;
+  display: flex;
+  flex-direction: column;
+  gap: var(--topbar-dropdown-content-gap);
+}
+
+// ----- Feuilles du dropdown : couleur/graisse tertiaires -----
+.topbar-dropdown .topbar-link {
+  color: hsl(var(--nav-dropdown-link-color));
+  font-weight: var(--topbar-link-weight);
+  width: 100%;
+
+  &:hover {
+    color: hsl(var(--nav-dropdown-link-hover-color));
+    background-color: hsl(var(--nav-dropdown-link-hover-bg));
+  }
+
+  &--active {
+    color: hsl(var(--nav-dropdown-link-active-color));
+    background-color: hsl(var(--nav-dropdown-link-active-bg));
+    font-weight: var(--topbar-link-weight-active);
+  }
+}
+
+
+// =================================================================
+// RESPONSIVE — MEDIUM ET MOINS (accordéon)
+// =================================================================
 @include breakpoint-down('medium') {
-    // ----- Élément de Navigation -----
-    .nav-item--dropdown {
-        width: 100%;
+  // Rangée racine : pleine largeur, lien étiré | toggle à droite, toggle aligné en hauteur.
+  .topbar-list > .topbar-group {
+    width: 100%;
+    grid-template-columns: 1fr auto;
+    padding: 0;
+    align-items: stretch;
+  }
 
-        // Séparateur entre éléments de navigation
-        border-bottom: 1px solid hsl(var(--nav-mobile-separator));
-        border-radius: 0;
+  // Panneau : statique, pleine largeur, transparent, animation par hauteur.
+  .topbar-dropdown {
+    position: static;
+    // Annule le positionnement popover desktop (sinon top:100% décale le panneau et il
+    // chevauche les entrées suivantes en accordéon).
+    top: auto;
+    left: auto;
+    grid-column: 1 / -1;
+    width: 100%;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background-color: transparent;
+    padding: 0;
+    margin-top: 0;
 
-        // Pas de séparateur après le dernier élément
-        &:last-child {
-            border-bottom: none;
-        }
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height var(--transition-slow) ease;
 
-        // === Très petits écrans (small et moins) ===
-        // Centrer le lien (colonne 1fr) avec le toggle à droite (colonne auto)
-        @include breakpoint-down('small') {
-            .nav-link {
-                text-align: center;
-                justify-content: center;
-                // Padding asymétrique pour compenser la largeur du bouton toggle à droite
-                padding: var(--spacing-md) 0 var(--spacing-md) var(--dropdown-toggle-size);
-            }
-        }
+    &--open {
+      transform: none;
+      max-height: var(--topbar-dropdown-max-height);
     }
-    
-    // ----- Menu Dropdown (mode accordéon mobile) -----
-    .nav-dropdown {
-        // === Reset du positionnement desktop ===
-        position: static;  // Pas de positionnement absolu
-        left: auto;        // Annule le centrage desktop (left: 50%)
-        // En statique, le dropdown redevient un enfant de la grille du <li>
-        // (1fr auto). Sans cette règle il se placerait dans la seule colonne 1fr
-        // (plus étroite), désalignant les chevrons de groupe vis-à-vis du toggle
-        // racine. On le force à occuper toute la largeur → chevrons alignés à droite.
-        grid-column: 1 / -1;
-        width: 100%;
-        border: none;
-        border-radius: 0;
-        box-shadow: none;
-        // Fond transparent (façon sidebar) : plus de bloc gris quand le dropdown s'ouvre.
-        background-color: transparent;
-        padding: 0;
 
-        // === Animation par hauteur (accordéon) ===
-        // Remplace l'animation fade/translate du desktop
-        transform: none;
-        opacity: 1;
-        visibility: visible;
-        max-height: 0;  // Masqué par défaut
-        overflow: hidden;
-        transition: max-height var(--nav-dropdown-transition-duration) ease;
+    // Liste simple + groupes : colonne décalée à gauche + barre verticale de hiérarchie.
+    &--list,
+    &--groups {
+      flex-direction: column;
+      position: relative;
+      padding: 0 0 0 var(--topbar-dropdown-indent);
+      gap: var(--header-nav-separator-gap);
 
-        // État ouvert : hauteur maximale (annule le translate(-50%) hérité du desktop)
-        &--open {
-            transform: none;
-            max-height: var(--nav-dropdown-max-height);
-        }
-
-        // === Structure des groupes ===
-
-        // Groupes en colonne (au lieu de ligne sur desktop)
-        // Niveau 1 (France, Allemagne) : décalage gauche + barre verticale de hiérarchie,
-        // calqué sur .sidebar-menu--level-1 (indentation par padding-left, barre en ::before).
-        &__groups {
-            flex-direction: column;
-            position: relative;  // Nécessaire pour positionner le ::before
-            padding-left: var(--nav-dropdown-indent);
-
-            // Barre verticale grise indiquant la hiérarchie
-            &::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                left: 0;
-                width: 1px;
-                background-color: hsl(var(--nav-dropdown-hierarchy-line-color));
-                opacity: 0.3;
-            }
-        }
-
-        // Liste simple (dropdown sans groupes) : même niveau d'imbrication que les groupes,
-        // donc même décalage gauche + barre verticale pour une hiérarchie homogène.
-        &__list {
-            position: relative;  // Nécessaire pour positionner le ::before
-            padding: 0 0 0 var(--nav-dropdown-indent);
-
-            &::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                left: 0;
-                width: 1px;
-                background-color: hsl(var(--nav-dropdown-hierarchy-line-color));
-                opacity: 0.3;
-            }
-        }
-
-        // Groupe individuel : en-tête | chevron sur la 1re rangée, sous-liste en dessous
-        &__group {
-            grid-template-columns: 1fr auto;
-            padding: 0;  // Reset du padding desktop
-            padding-bottom: var(--spacing-sm);
-
-            // Séparateur horizontal entre groupes (au lieu de vertical)
-            &:not(:last-child) {
-                border-right: none;  // Supprime le séparateur vertical desktop
-                border-bottom: 1px solid hsl(var(--nav-dropdown-separator));
-                margin-bottom: var(--spacing-sm);
-            }
-        }
-
-        // En-tête de groupe (colonne 1)
-        &__group-header {
-            padding: var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-right) var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-left);
-            margin-bottom:0;
-        }
-
-        // Bouton chevron (visible sur mobile, colonne 2)
-        &__group-chevron {
-            display: flex;  // Afficher le chevron sur mobile
-            align-self: center;
-            width: var(--nav-dropdown-chevron-size);   // Taille responsive (tokens)
-            height: var(--nav-dropdown-chevron-size);
-
-            // État expanded
-            &--expanded {
-                svg {
-                    transform: rotate(180deg);
-                }
-            }
-        }
-
-        // Sous-liste (accordéon dans accordéon) : pleine largeur sous l'en-tête.
-        // Niveau 2 (PIB, Consommation) : décalage gauche + barre verticale supplémentaire,
-        // calqué sur .sidebar-menu--level-2 (hiérarchie imbriquée à profondeur arbitraire).
-        &__sublist {
-            grid-column: 1 / -1;
-            position: relative;  // Nécessaire pour positionner le ::before
-            padding-left: var(--nav-dropdown-indent);
-            max-height: 0;  // Masqué par défaut
-            overflow: hidden;
-            transition: max-height var(--nav-dropdown-transition-duration) ease;
-
-            // Barre verticale grise indiquant le second niveau de hiérarchie
-            &::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                left: 0;
-                width: 1px;
-                background-color: hsl(var(--nav-dropdown-hierarchy-line-color));
-                opacity: 0.3;
-            }
-
-            // État expanded
-            &--expanded {
-                max-height: var(--nav-dropdown-sublist-max-height);
-            }
-        }
-
-        &__subitem {
-            &:not(:last-child) {
-                padding-bottom: var(--nav-dropdown-sublink-gap);
-                // Séparateur entre éléments de navigation
-                border-bottom: 1px solid hsl(var(--nav-mobile-separator));
-                border-radius: 0;
-            }
-        }
-
-        // === Ajustements des liens ===
-        // Taille de police harmonisée sur tous les niveaux. Le fond gris de survol
-        // (façon sidebar) provient des règles de base, en PLEINE opacité : on ne le
-        // réduit plus en /0.2 sur mobile/tablette. Ainsi tous les items du dropdown —
-        // y compris les en-têtes de groupe et les sous-liens internes — sont surlignés
-        // en gris au survol comme dans la sidebar (et non seulement le lien racine).
-        &__link,
-        &__group-header,
-        &__sublink {
-            font-size: var(--nav-dropdown-link-font-size);
-        }
-
-        // === Très petits écrans (small et moins) ===
-        // Rendu très proche de la sidebar : éléments centrés empilés, distinction des
-        // niveaux par graisse + couleur uniquement (aucune différence de fond hors
-        // actif/hover). L'indentation par niveau passe à 0 (--nav-dropdown-indent).
-        @include breakpoint-down('small') {
-            // Chevron encore plus grand pour l'accessibilité tactile
-            &__group-chevron {
-                width: var(--nav-dropdown-chevron-size);   // Valeur ajustée dans _tokens.scss
-                height: var(--nav-dropdown-chevron-size);
-            }
-
-            // En-tête de groupe : texte centré, décalé à gauche de la largeur du chevron
-            // (padding gauche piloté par les tokens) pour un centrage visuel exact.
-            &__group-header {
-                padding: var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-right) var(--nav-dropdown-group-header-padding-y) var(--nav-dropdown-group-header-padding-left);
-                text-align: center;
-            }
-
-            // Sous-liens : texte centré, padding symétrique (indentation nulle en small)
-            &__sublink {
-                text-align: center;
-            }
-        }
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 1px;
+        background-color: hsl(var(--nav-dropdown-hierarchy-line-color));
+        opacity: 0.3;
+      }
     }
+  }
+
+  // Groupe imbriqué : en-tête | chevron, sous-liste en dessous. Plus de séparateur vertical.
+  .topbar-dropdown--groups > .topbar-group {
+    grid-template-columns: 1fr auto;
+    padding: 0;
+    border-right: none;
+  }
+
+  // En-tête de groupe imbriqué.
+  .topbar-dropdown .topbar-group-header {
+    margin-bottom: 0;
+    width: 100%;
+  }
+
+  // Chevron de groupe : visible, épouse la hauteur de la rangée d'en-tête.
+  .topbar-dropdown .topbar-toggle {
+    display: flex;
+    align-self: stretch;
+    height: auto;
+  }
+
+  // Sous-liste (accordéon imbriqué) : décalage gauche + barre verticale.
+  .topbar-content {
+    grid-column: 1 / -1;
+    position: relative;
+    padding-left: var(--topbar-dropdown-indent);
+    gap: var(--header-nav-separator-gap);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height var(--transition-slow) ease;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 1px;
+      background-color: hsl(var(--nav-dropdown-hierarchy-line-color));
+      opacity: 0.3;
+    }
+
+    &--expanded {
+      max-height: var(--topbar-dropdown-sublist-max-height);
+    }
+  }
 }
 
+
 // =================================================================
-// ACCESSIBILITÉ - RÉDUCTION DES ANIMATIONS
+// RESPONSIVE — SMALL ET MOINS (rendu façon sidebar)
 // =================================================================
-// Neutralise les transitions du dropdown pour les utilisateurs ayant
-// activé « réduire les animations » (apparition, accordéon, rotation chevron).
+@include breakpoint-down('small') {
+  // Séparateurs gris centrés entre entrées (gap 0 → la respiration vient du séparateur).
+  .topbar-dropdown--list,
+  .topbar-dropdown--groups,
+  .topbar-content {
+    gap: 0;
+    @include nav-mobile-separator;
+  }
+
+  // En-têtes (racine + groupes) : texte centré, padding gauche compensant le toggle à droite.
+  .topbar-list > .topbar-group > .topbar-group-header,
+  .topbar-dropdown .topbar-group-header {
+    justify-content: center;
+    text-align: center;
+    --nav-parent-pad-x-left: calc(var(--topbar-group-padding-x) + var(--topbar-toggle-size));
+  }
+
+  // Feuilles : texte centré.
+  .topbar-dropdown .topbar-link {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+
+// =================================================================
+// ACCESSIBILITÉ — RÉDUCTION DES ANIMATIONS
+// =================================================================
 @media (prefers-reduced-motion: reduce) {
-    .nav-dropdown,
-    .nav-dropdown__sublist,
-    .nav-dropdown__group-chevron svg {
-        transition: none;
-    }
+  .topbar-dropdown,
+  .topbar-content,
+  .topbar-toggle svg {
+    transition: none;
+  }
 }

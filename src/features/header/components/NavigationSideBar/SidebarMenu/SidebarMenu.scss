@@ -1,17 +1,23 @@
-// ===== IMPORTS =====
-@use '../../../../../styles/utils/breakpoints' as *;
-@use '../../../../../styles/globals/colors';
-@use '../../../../../styles/globals/typography';
-@use '../colors' as *;   // Couleurs sémantiques sidebar
-@use './tokens' as *;    // Tokens locaux SidebarMenu (indentation par niveau)
+// =================================================================
+// SIDEBAR MENU — zone scrollable + liste de 1er niveau
+// =================================================================
+// .sidebar-menu : <nav> scrollable. .sidebar-list : <ul> de 1er niveau.
+// Les niveaux imbriqués sont rendus par SidebarGroup (.sidebar-group-content), pas par
+// une récursion de SidebarMenu → ce composant est toujours de niveau 0.
+//
+// Resets + séparateurs mobiles : mixins (features/header/_nav-mixins.scss).
+// Tokens : ../_tokens.scss, features/header/_tokens.scss. Couleurs : ../_colors.scss.
 
-// ===== SIDEBAR MENU =====
+@use '../../../../../styles/utils/breakpoints' as *;
+@use '../../../nav-mixins' as *;
+@use '../colors' as *;
+
+// ===== ZONE SCROLLABLE =====
 .sidebar-menu {
-  // Propriétés de scroll transférées depuis .sidebar-content
-  flex: 1; // Prend tout l'espace restant
-  overflow-y: auto; // Scroll si contenu déborde
-  overflow-x: hidden; // Pas de scroll horizontal
-  overscroll-behavior: contain; // Empêche le scroll de se propager à la page derrière
+  flex: 1;                       // prend tout l'espace restant
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;  // évite la propagation du scroll à la page
   padding: var(--spacing-md) 0;
 
   // Scrollbar personnalisée
@@ -32,149 +38,25 @@
     }
   }
 
-  // ===== NIVEAUX DE MENU =====
-
-  // Niveau 0 - Items de premier niveau
-  &--level-0 {
-    // Styles par défaut
-  }
-
-  // Niveau 1 - Items de second niveau
-  &--level-1 {
-    position: relative; // Nécessaire pour le positionnement du ::before
-    padding-left: var(--sidebar-menu-indent-1); // Indentation pour les sous-éléments
-    gap: var(--spacing-2px); // Espacement plus serré pour les sous-éléments
-
-    // Bordure à gauche pour indiquer la hiérarchie
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 1px;
-      background-color: hsl(var(--sidebar-hierarchy-line-color));
-      opacity: 0.5;
-    }
-  }
-
-  // Niveau 2 - Items de troisième niveau
-  &--level-2 {
-    position: relative; // Nécessaire pour le positionnement du ::before
-    padding-left: var(--sidebar-menu-indent-2); // Indentation encore plus importante
-    gap: var(--spacing-2px);
-
-    // Bordure à gauche pour indiquer la hiérarchie
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 1px;
-      background-color: hsl(var(--sidebar-hierarchy-line-color));
-      opacity: 0.5;
-    }
-  }
-
-  // Niveau 3+ - Items de niveau supérieur
-  &--level-3 {
-    position: relative; // Nécessaire pour le positionnement du ::before
-    padding-left: var(--sidebar-menu-indent-3);
-    gap: var(--spacing-2px);
-
-    // Bordure à gauche pour indiquer la hiérarchie
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 1px;
-      background-color: hsl(var(--sidebar-hierarchy-line-color));
-      opacity: 0.5;
-    }
-  }
-
-  // ===== ÉTATS GÉNÉRAUX =====
-
-  // Menu vide
   &:empty {
     display: none;
   }
-
-  // ===== RESPONSIVE =====
-  // L'indentation par niveau et le padding vertical sont portés par les tokens responsive
-  // (./_tokens.scss) → plus de surcharge par breakpoint nécessaire ici.
 }
 
-// ===== LISTE DU MENU (UL) =====
-.sidebar-menu-list {
-  // Reset des styles de liste par défaut
-  list-style: none;
-  padding: 0;
-  margin: 0;
+// ===== LISTE DE 1ER NIVEAU (UL) =====
+.sidebar-list {
+  @include nav-list-reset;
 
-  // Layout pour les items
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
-  padding: 0 var(--spacing-lg);
+  // Espacement entre entrées porté par le gap (et non plus par margin-bottom des items).
+  gap: var(--sidebar-list-gap);
+  // Cadre horizontal partagé avec la topbar (lg / md / sm selon l'écran).
+  padding: 0 var(--header-nav-list-padding-x);
 
-  // ===== RESPONSIVE =====
-
-  // Tablette - réduire les paddings
-  @include breakpoint-down(medium) {
-    padding: 0 var(--spacing-md);
-  }
-
-  // Mobile - paddings encore plus réduits + lignes de séparation
-  @include breakpoint-down(small) {
-    padding: 0 var(--spacing-sm);
-    // L'espacement vertical entre entrées est désormais porté par la respiration
-    // symétrique autour des séparateurs (ci-dessous), pas par le gap flex : sinon le
-    // gap s'ajoute uniquement EN DESSOUS de la ligne et la déséquilibre.
+  // Mobile : séparateurs gris centrés à la place du gap.
+  @include breakpoint-down('small') {
     gap: 0;
-
-    // Séparateurs horizontaux sous chaque item de premier niveau (sauf le dernier),
-    // façon topbar. Uniquement sur petit écran (cf. exigence). Les niveaux imbriqués
-    // sont traités dans SidebarGroup.scss (.sidebar-group-content).
-    // padding-bottom (au-dessus de la ligne) = margin-bottom (en dessous) → trait centré
-    // entre le bas de l'élément survolé et le haut du suivant.
-    & > li:not(:last-child) {
-      padding-bottom: var(--sidebar-mobile-separator-gap);
-      margin-bottom: var(--sidebar-mobile-separator-gap);
-      border-bottom: 1px solid hsl(var(--nav-mobile-separator));
-    }
-  }
-}
-
-// ===== SÉPARATEURS ENTRE GROUPES =====
-.sidebar-menu + .sidebar-menu {
-  margin-top: var(--spacing-lg);
-  position: relative;
-
-  // Ligne de séparation
-  &::before {
-    content: '';
-    position: absolute;
-    top: calc(-1 * var(--spacing-md));
-    left: var(--spacing-lg);
-    right: var(--spacing-lg);
-    height: 1px;
-    background-color: hsl(var(--nav-mobile-separator));
-    opacity: 0.3;
-  }
-
-  // Responsive pour les séparateurs
-  @include breakpoint-down(medium) {
-    &::before {
-      left: var(--spacing-md);
-      right: var(--spacing-md);
-    }
-  }
-
-  @include breakpoint-down(small) {
-    &::before {
-      left: var(--spacing-sm);
-      right: var(--spacing-sm);
-    }
+    @include nav-mobile-separator;
   }
 }

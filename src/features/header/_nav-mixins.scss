@@ -1,0 +1,33 @@
+// ===== MIXINS PARTAGÉS DE NAVIGATION =====
+// Mixins factorisant des motifs SCSS répétés entre la topbar et la sidebar.
+// Importés via `@use '../_nav-mixins' as *;` dans les .scss de composants.
+//
+// ⚠️ Ce fichier ne produit AUCUN CSS par lui-même : il ne contient que des mixins.
+// Les CLASSES de rôle partagées (.nav-link, .nav-row…) vivent dans nav-base.scss,
+// compilé une seule fois (import JS dans Header.js).
+
+// ----- Reset des styles de liste (<ul>) -----
+// Remplace le triptyque répété « list-style:none; margin:0; padding:0; » présent dans
+// toutes les listes de navigation (NavigationMenu, dropdown groups/list/sublist,
+// SidebarMenu, SidebarGroup content).
+@mixin nav-list-reset {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+// ----- Séparateurs mobiles centrés entre entrées -----
+// Barre grise équidistante entre deux entrées de navigation sur petit écran.
+// La respiration est symétrique : padding-bottom (AU-DESSUS du trait) = margin-bottom
+// (EN DESSOUS) → le trait reste visuellement centré entre le bas de l'élément et le
+// haut du suivant. Appliqué aux enfants directs <li> sauf le dernier.
+//
+// À appeler DANS le sélecteur du conteneur de liste (ex. .sidebar-list, .topbar-content).
+@mixin nav-mobile-separator {
+  & > li:not(:last-child) {
+    padding-bottom: var(--header-nav-separator-gap);
+    margin-bottom: var(--header-nav-separator-gap);
+    border-bottom: 1px solid hsl(var(--nav-mobile-separator));
+    border-radius: 0;
+  }
+}

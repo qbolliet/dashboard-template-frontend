@@ -32,17 +32,21 @@ const DropdownGroup = ({
     const hasChildren =
         Array.isArray(group.children) && group.children.length > 0;
 
-    // Classes dynamiques (état déplié pour l'accordéon mobile)
+    // Classes dynamiques (rôle .nav-row + préfixe .topbar-group ; état déplié = accordéon)
     const groupClasses = [
-        'nav-dropdown__group',
-        isExpanded && 'nav-dropdown__group--expanded'
+        'nav-row',
+        'topbar-group',
+        isExpanded && 'topbar-group--expanded'
     ]
         .filter(Boolean)
         .join(' ');
 
+    // En-tête de groupe : rôle .nav-link + facette parent + préfixe .topbar-group-header
     const headerClasses = [
-        'nav-dropdown__group-header',
-        isActivePath(groupPath) && 'nav-dropdown__group-header--active'
+        'nav-link',
+        'nav-link--parent',
+        'topbar-group-header',
+        isActivePath(groupPath) && 'topbar-group-header--active'
     ]
         .filter(Boolean)
         .join(' ');
@@ -51,15 +55,15 @@ const DropdownGroup = ({
         <li className={groupClasses}>
             {/* En-tête / lien principal du groupe */}
             <Link href={groupPath} className={headerClasses} onClick={onItemClick}>
-                {group.name}
+                <span className="nav-text topbar-text">{group.name}</span>
             </Link>
 
             {/* Chevron pour déplier/replier le groupe — visible uniquement sur mobile (géré en CSS) */}
             {hasChildren && (
                 <button
                     type="button"
-                    className={`nav-dropdown__group-chevron ${
-                        isExpanded ? 'nav-dropdown__group-chevron--expanded' : ''
+                    className={`nav-toggle topbar-toggle ${
+                        isExpanded ? 'topbar-toggle--expanded' : ''
                     }`}
                     onClick={(e) => {
                         e.preventDefault();
@@ -76,8 +80,8 @@ const DropdownGroup = ({
             {/* Sous-liste : sous-éléments du groupe */}
             {hasChildren && (
                 <ul
-                    className={`nav-dropdown__sublist ${
-                        isExpanded ? 'nav-dropdown__sublist--expanded' : ''
+                    className={`topbar-content ${
+                        isExpanded ? 'topbar-content--expanded' : ''
                     }`}
                 >
                     {group.children.map((subChild, subIndex) => (
@@ -87,8 +91,8 @@ const DropdownGroup = ({
                             name={subChild.name}
                             isActive={isActivePath(groupPath + subChild.path)}
                             onItemClick={onItemClick}
-                            itemClass="nav-dropdown__subitem"
-                            linkClass="nav-dropdown__sublink"
+                            itemClass="topbar-item"
+                            linkClass="topbar-link"
                         />
                     ))}
                 </ul>

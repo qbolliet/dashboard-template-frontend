@@ -26,10 +26,10 @@ const NavigationMenu = ({
         return item.children && item.children !== null;
     };
 
-    // Classes CSS pour le menu
+    // Classes CSS pour le menu (liste de 1er niveau de la topbar)
     const menuClasses = [
-        "primary-navigation", 
-        isOpen && 'primary-navigation--open',
+        "topbar-list",
+        isOpen && 'topbar-list--open',
         className
     ].filter(Boolean).join(' ');
 

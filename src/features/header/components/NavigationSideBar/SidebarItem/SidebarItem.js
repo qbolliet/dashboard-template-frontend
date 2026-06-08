@@ -41,18 +41,21 @@ const SidebarItem = ({
         item.path.startsWith('tel:')
     );
 
-    // Classes CSS pour l'item
+    // Classes CSS pour l'item (rôle .nav-item + préfixe .sidebar-item)
     const itemClasses = [
+        'nav-item',
         'sidebar-item',
         `sidebar-item--level-${level}`,
         isActive ? 'sidebar-item--active' : '',
         sidebarIsOpen ? 'sidebar-item--sidebar-open' : 'sidebar-item--sidebar-collapsed'
     ].filter(Boolean).join(' ');
 
-    // Classes CSS pour le lien
+    // Classes CSS pour le lien (rôle .nav-link + facette feuille + préfixe .sidebar-link)
     const linkClasses = [
-        'sidebar-item-link',
-        isActive ? 'sidebar-item-link--active' : ''
+        'nav-link',
+        'nav-link--leaf',
+        'sidebar-link',
+        isActive ? 'sidebar-link--active' : ''
     ].filter(Boolean).join(' ');
 
     // Propriétés communes pour les liens
@@ -74,13 +77,13 @@ const SidebarItem = ({
                     alt=""
                     width={20}
                     height={20}
-                    className="sidebar-item-icon"
+                    className="sidebar-icon"
                 />
             )}
 
             {/* Texte de l'item (visible quand sidebar ouverte) */}
             {sidebarIsOpen && (
-                <span className="sidebar-item-text">
+                <span className="nav-text sidebar-text">
                     {item.name}
                 </span>
             )}
@@ -88,7 +91,7 @@ const SidebarItem = ({
             {/* Indicateur de lien externe */}
             {isExternalLink && sidebarIsOpen && (
                 <svg
-                    className="sidebar-item-external-indicator"
+                    className="sidebar-external-indicator"
                     width="12"
                     height="12"
                     viewBox="0 0 24 24"
@@ -108,7 +111,7 @@ const SidebarItem = ({
         // Pas de lien - rendu comme span
         return (
             <li className={itemClasses}>
-                <span className="sidebar-item-span">
+                <span className="nav-link nav-link--leaf sidebar-link sidebar-link--static">
                     {linkContent}
                 </span>
             </li>

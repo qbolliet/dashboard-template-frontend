@@ -34,16 +34,19 @@ const NavigationItem = ({
         }
     };
     
-    // Classes CSS dynamiques
+    // Classes CSS dynamiques (rôle .nav-item + préfixe .topbar-item)
     const itemClasses = [
         'nav-item',
-        'nav-item--simple',
+        'topbar-item',
         isActive && activeClassName,
         itemClassName
     ].filter(Boolean).join(' ');
 
+    // Lien feuille : rôle .nav-link + facette feuille + préfixe .topbar-link
     const linkClasses = [
         'nav-link',
+        'nav-link--leaf',
+        'topbar-link',
         isActive && 'nav-link--active'
     ].filter(Boolean).join(' ');
 
@@ -55,7 +58,7 @@ const NavigationItem = ({
                 onClick={handleClick}
                 aria-current={isActive ? 'page' : undefined}
             >
-                {item.name}
+                <span className="nav-text topbar-text">{item.name}</span>
             </Link>
         </li>
     );

@@ -85,8 +85,9 @@ const SidebarGroup = ({
         }
     };
 
-    // Classes CSS pour le groupe
+    // Classes CSS pour le groupe (rôle .nav-row + préfixe .sidebar-group)
     const groupClasses = [
+        'nav-row',
         'sidebar-group',
         `sidebar-group--level-${level}`,
         shouldShowAsActive ? 'sidebar-group--active' : '',
@@ -94,10 +95,12 @@ const SidebarGroup = ({
         sidebarIsOpen ? 'sidebar-group--sidebar-open' : 'sidebar-group--sidebar-collapsed'
     ].filter(Boolean).join(' ');
 
-    // Classes CSS pour le trigger
+    // Classes CSS pour le trigger (rôle .nav-link + facette parent + préfixe .sidebar-group-header)
     const triggerClasses = [
-        'sidebar-group-trigger',
-        shouldShowAsActive ? 'sidebar-group-trigger--active' : ''
+        'nav-link',
+        'nav-link--parent',
+        'sidebar-group-header',
+        shouldShowAsActive ? 'sidebar-group-header--active' : ''
     ].filter(Boolean).join(' ');
 
     // Déterminer le composant wrapper (Link pour un lien réel, sinon button)
@@ -125,13 +128,13 @@ const SidebarGroup = ({
                         alt=""
                         width={20}
                         height={20}
-                        className="sidebar-group-icon"
+                        className="sidebar-icon"
                     />
                 )}
 
                 {/* Texte du groupe (visible quand sidebar ouverte) */}
                 {sidebarIsOpen && (
-                    <span className="sidebar-group-text">
+                    <span className="nav-text sidebar-text">
                         {item.name}
                     </span>
                 )}
@@ -141,7 +144,7 @@ const SidebarGroup = ({
             {sidebarIsOpen && hasChildren && (
                 <button
                     type="button"
-                    className="sidebar-group-chevron-button"
+                    className="nav-toggle sidebar-toggle"
                     onClick={handleChevronClick}
                     aria-label={isExpanded ? 'Fermer le groupe' : 'Ouvrir le groupe'}
                     aria-expanded={isExpanded}
@@ -150,7 +153,7 @@ const SidebarGroup = ({
                     <AccessibleIcon
                         icon={
                             <svg
-                                className="sidebar-group-chevron-icon"
+                                className="sidebar-toggle-icon"
                                 width="16"
                                 height="16"
                                 viewBox="0 0 24 24"

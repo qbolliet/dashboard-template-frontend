@@ -1,12 +1,9 @@
 // ===== TOKENS DU SIDEBARITEM =====
-// Variables propres aux items simples de la sidebar.
-// Pour les tokens partagés (hauteur de ligne, taille d'icône), voir ../_tokens.scss.
+// Variables propres aux items simples (feuilles) de la sidebar.
+// Le padding du lien (--sidebar-link-padding-*) et la taille d'icône sont des tokens
+// partagés (voir ../_tokens.scss).
 
 :root {
-  // ===== PADDING DU LIEN =====
-  --sidebar-item-padding-y: var(--spacing-sm);  // 0.5rem (8px)
-  --sidebar-item-padding-x: var(--spacing-md);  // 0.75rem (12px)
-
   // ===== INDICATEUR DE LIEN EXTERNE =====
   --sidebar-external-indicator-size: var(--spacing-md);  // 12px
 }

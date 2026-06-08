@@ -47,10 +47,11 @@ const DropdownToggleButton = React.forwardRef(({
         }
     };
 
-    // Classes CSS dynamiques
+    // Classes CSS dynamiques (rôle .nav-toggle + préfixe .topbar-toggle)
     const buttonClasses = [
-        'dropdown-toggle-button',
-        isOpen && 'dropdown-toggle-button--open',
+        'nav-toggle',
+        'topbar-toggle',
+        isOpen && 'topbar-toggle--open',
         className
     ].filter(Boolean).join(' ');
 
@@ -67,10 +68,10 @@ const DropdownToggleButton = React.forwardRef(({
             tabIndex={0}
         >
             {/* Icône chevron utilisant le composant centralisé */}
-            <ChevronDownIcon 
-                width={size} 
+            <ChevronDownIcon
+                width={size}
                 height={size}
-                className="dropdown-toggle-button__icon"
+                className="topbar-toggle-icon"
             />
 
             {/* Texte accessible pour les lecteurs d'écran */}

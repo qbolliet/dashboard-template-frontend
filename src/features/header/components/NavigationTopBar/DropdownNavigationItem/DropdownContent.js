@@ -27,6 +27,8 @@ const isGroupedStructure = (children) =>
  * shape of the data.
  *
  * @param {Object} item - The parent navigation item (provides `children` and base `path`).
+ * @param {string} id - DOM id of the dropdown panel (the <ul> itself).
+ * @param {boolean} isOpen - Whether the dropdown is open (drives the --open modifier).
  * @param {Function} onItemClick - Click handler for links (closes the dropdown).
  * @param {Function} isActivePath - Tests whether a path matches the current page.
  * @param {Set<number>} expandedGroups - Indices of expanded groups (mobile accordion).
@@ -35,6 +37,8 @@ const isGroupedStructure = (children) =>
  */
 const DropdownContent = ({
     item,
+    id,
+    isOpen = false,
     onItemClick,
     isActivePath,
     expandedGroups,
@@ -47,10 +51,21 @@ const DropdownContent = ({
         return null;
     }
 
+    // Classes du panneau (le <ul> lui-même) : rôle de panneau + variante + état ouvert.
+    const panelClasses = (variant) => [
+        'topbar-dropdown',
+        variant,
+        isOpen && 'topbar-dropdown--open'
+    ].filter(Boolean).join(' ');
+
     // PRIORITÉ 1 : structure à deux niveaux (groupes avec sous-éléments)
     if (isGroupedStructure(children)) {
         return (
-            <ul className="nav-dropdown__groups">
+            <ul
+                id={id}
+                className={panelClasses('topbar-dropdown--groups')}
+                aria-hidden={!isOpen}
+            >
                 {children.map((group, groupIndex) => (
                     <DropdownGroup
                         key={`group-${groupIndex}`}
@@ -69,7 +84,11 @@ const DropdownContent = ({
 
     // PRIORITÉ 2 : liste simple à un niveau (liens sans sous-éléments)
     return (
-        <ul className="nav-dropdown__list">
+        <ul
+            id={id}
+            className={panelClasses('topbar-dropdown--list')}
+            aria-hidden={!isOpen}
+        >
             {children.map((child, childIndex) => (
                 <DropdownItem
                     key={`child-${childIndex}`}
@@ -77,8 +96,8 @@ const DropdownContent = ({
                     name={child.name}
                     isActive={isActivePath(basePath + child.path)}
                     onItemClick={onItemClick}
-                    itemClass="nav-dropdown__item"
-                    linkClass="nav-dropdown__link"
+                    itemClass="topbar-item"
+                    linkClass="topbar-link"
                 />
             ))}
         </ul>

@@ -2,42 +2,48 @@
 // Variables structurantes communes à plusieurs sous-composants de la sidebar
 // (SidebarItem, SidebarGroup, SidebarMenu…).
 //
+// Chaque alias reprend un token canonique header (--header-nav-*) en préfixant
+// `--sidebar-` ; le motif var(--header-nav-*, <valeur-desktop>) préserve le rendu
+// desktop tout en héritant des valeurs harmonisées medium/small. Surcharger ici
+// n'affecte QUE la sidebar, jamais la topbar.
+//
 // ⚠️ RÈGLE : Si une variable n'est utilisée que dans UN sous-composant, la mettre dans
 // le _tokens.scss de ce sous-composant. Pour les couleurs, voir ./_colors.scss.
 
 @use '@/styles/utils/breakpoints' as *;
 
 :root {
-  // ===== HAUTEUR DE LIGNE =====
-  // Hauteur canonique d'une entrée de navigation (item ou en-tête de groupe).
-  // Sert de min-height partagé → items et groupes s'alignent parfaitement.
-  --sidebar-row-height: var(--spacing-4xl);  // 40px
+  // ===== PADDING DES LIENS (cf. header/_tokens.scss) =====
+  // Feuille (item) : desktop sm/md ; medium/small alignés sur la topbar via les tokens header.
+  --sidebar-link-padding-y: var(--header-nav-link-padding-y, var(--spacing-sm));
+  --sidebar-link-padding-x: var(--header-nav-link-padding-x, var(--spacing-md));
+  // Rang parent (trigger de groupe, porte le chevron) : padding-y dérivé (hauteur = toggle)
+  // sur les 3 écrans ; padding-x desktop md, harmonisé medium/small via le token header.
+  --sidebar-group-padding-y: var(--header-nav-row-padding-y);
+  --sidebar-group-padding-x: var(--header-nav-group-padding-x, var(--spacing-md));
 
-  // ===== CHEVRON (boutons d'ouverture/fermeture des groupes) =====
-  // Le bouton chevron est carré : sa largeur est DÉRIVÉE de la hauteur de ligne.
-  --sidebar-chevron-button-width: var(--sidebar-row-height);
-  --sidebar-chevron-icon-size: var(--spacing-lg);  // 16px : icône volontairement petite et fixe
+  // ===== TOGGLE (chevron d'ouverture des groupes) =====
+  // Carré, aligné sur le toggle de la topbar : 24 / 28 / 40 px. Sa largeur fixe la
+  // colonne du chevron ; sa hauteur s'étire sur la rangée (= taille du toggle via padding).
+  --sidebar-toggle-size: var(--header-nav-toggle-size);
+  --sidebar-toggle-icon-size: var(--spacing-lg);  // 16px : icône volontairement petite et fixe
+
+  // ===== ESPACEMENT ENTRE ENTRÉES (gap des listes) =====
+  // Remplace les anciens margin-bottom des items/groupes par un gap porté par le <ul>.
+  // 1er niveau = sm (équivaut à l'ancien gap xs + margin xs) ; imbriqué = xs.
+  --sidebar-list-gap: var(--spacing-sm);     // 8px entre entrées de 1er niveau
+  --sidebar-content-gap: var(--spacing-xs);  // 4px entre entrées imbriquées
 
   // ===== ICÔNES D'ENTRÉE (item & groupe) =====
   // Taille de base, et taille agrandie quand la sidebar est collapsée (icône seule).
   --sidebar-icon-size: var(--spacing-lg);            // 16px
   --sidebar-icon-size-collapsed: var(--spacing-xl);  // 20px
 
-  // ===== PADDING & INDENTATION =====
-  --sidebar-item-padding: var(--spacing-xs);
-
+  // ===== INDENTATION =====
   // Indentation uniforme appliquée à chaque niveau imbriqué.
   // Portée par le padding-left du <ul> de contenu, elle se compose
   // naturellement avec la profondeur → support d'une profondeur arbitraire.
   --sidebar-content-indent: var(--spacing-md);  // 12px
-
-  // ===== SÉPARATEURS MOBILE (petits écrans) =====
-  // Respiration symétrique de part et d'autre des lignes grises qui séparent les
-  // entrées de navigation (cf. SidebarMenu/SidebarGroup, breakpoint small).
-  // Appliquée à la fois en padding-bottom (espace AU-DESSUS de la ligne, entre le bas
-  // de l'élément survolé et le trait) et en margin-bottom (espace EN DESSOUS, entre le
-  // trait et l'élément suivant) → la ligne reste visuellement centrée entre deux items.
-  --sidebar-mobile-separator-gap: var(--spacing-xs);  // 4px de chaque côté
 }
 
 // ===== RESPONSIVE =====
