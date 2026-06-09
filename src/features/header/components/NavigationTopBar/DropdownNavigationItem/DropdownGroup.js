@@ -83,7 +83,6 @@ const DropdownGroup = ({
                     className={`topbar-content ${
                         isExpanded ? 'topbar-content--expanded' : ''
                     }`}
-                    inert={!isExpanded}
                 >
                     {group.children.map((subChild, subIndex) => (
                         <DropdownItem

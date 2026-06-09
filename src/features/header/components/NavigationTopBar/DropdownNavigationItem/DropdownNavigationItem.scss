@@ -39,10 +39,21 @@
   justify-content: start;
   padding-right: var(--topbar-group-padding-x);
 
-  // Desktop : survol ET ouverture surlignent le <li> ENTIER (et non le couple lien+toggle).
-  // `:has(> …)` ne réagit qu'au survol des enfants DIRECTS (lien/toggle), pas du panneau
-  // popover. En accordéon (medium/small) on garde la pilule lien+toggle (cf. bloc dédié).
+  // Desktop : survol / ouverture / section active surlignent le <li> ENTIER (et non le
+  // couple lien+toggle). `:has(> …)` ne réagit qu'au survol des enfants DIRECTS (lien/toggle),
+  // pas du panneau popover. En accordéon (medium/small) on garde la pilule (cf. bloc dédié).
   @include breakpoint('large') {
+    // Liseré permanent transparent → currentColor selon l'état, sans reflow entre états.
+    border: 1px solid transparent;
+
+    // Section active (page enfant courante, ou lien lui-même actif) : surlignage persistant.
+    &:has(> .topbar-group-header.nav-link--has-active-child),
+    &:has(> .topbar-group-header.nav-link--active) {
+      background-color: hsl(var(--nav-link-active-child-bg));
+      border-color: currentColor;
+    }
+
+    // Survol / ouverture (l'emporte sur l'actif au survol car déclaré après).
     &:has(> .topbar-group-header:hover),
     &:has(> .topbar-toggle:hover),
     &--open {
@@ -50,8 +61,9 @@
       border-color: currentColor;
     }
 
-    // Neutralise le survol individuel des enfants : le <li> porte seul le surlignage.
-    > .topbar-group-header:hover {
+    // Neutralise les fonds/liserés individuels des enfants : le <li> porte seul le surlignage.
+    > .topbar-group-header:hover,
+    > .topbar-group-header.nav-link--active {
       background-color: transparent;
       border-color: transparent;
     }
@@ -82,7 +94,11 @@
   // Une page enfant est affichée : surlignage discret.
   &.nav-link--has-active-child {
     color: hsl(var(--nav-link-active-child-color));
-    background-color: hsl(var(--nav-link-active-child-bg));
+    // Fond porté par le <li> au desktop (cf. bloc breakpoint('large') de .topbar-group) ;
+    // sur l'en-tête seulement en accordéon.
+    @include breakpoint-down('medium') {
+      background-color: hsl(var(--nav-link-active-child-bg));
+    }
   }
 }
 
@@ -330,6 +346,9 @@
     max-height: 0;
     overflow: hidden;
     transition: max-height var(--transition-slow) ease;
+    // Hors tabulation + arbre a11y quand replié — piloté en CSS (et non via `inert` côté
+    // JS) car en accordéon seulement : au desktop (popover) la sous-liste reste visible.
+    visibility: hidden;
 
     &::before {
       content: '';
@@ -344,6 +363,7 @@
 
     &--expanded {
       max-height: var(--topbar-dropdown-sublist-max-height);
+      visibility: visible;
       // Respiration parent ↔ premier item = gap inter-items. Présente uniquement déplié
       // → aucun espacement superflu sous un sous-groupe replié (le <ul> reste monté).
       padding-top: var(--header-nav-separator-gap);
