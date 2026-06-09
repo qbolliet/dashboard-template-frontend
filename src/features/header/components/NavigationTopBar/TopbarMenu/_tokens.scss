@@ -1,0 +1,59 @@
+// ===== TOKENS DE TOPBARMENU =====
+// Variables spécifiques à la liste de navigation principale
+//
+// Architecture des tokens :
+// - Layout : espacement entre les éléments de navigation (gap)
+// - Alignement : alignement des éléments sur mobile
+//
+// Pour les couleurs, voir features/header/_colors.scss
+// Pour les propriétés communes de navigation, voir ../_tokens.scss
+//
+// Notes d'organisation :
+// - Les tokens sont organisés par catégorie fonctionnelle
+// - Tous les espacements utilisent les tokens globaux de typography.scss
+// - Les valeurs responsive sont gérées via media queries pour éviter la duplication
+// - Sur mobile : disposition verticale et centrée
+// - Sur desktop : disposition horizontale
+
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  // =================================================================
+  // LAYOUT - ESPACEMENT ENTRE LES ÉLÉMENTS
+  // =================================================================
+
+  // ----- Gap entre les éléments de navigation -----
+  // Gap par défaut (desktop) - espacement horizontal entre les liens
+  --nav-menu-gap: var(--spacing-md);
+
+
+  // =================================================================
+  // ALIGNEMENT - ALIGNEMENT DES ÉLÉMENTS
+  // =================================================================
+  // Note : Ces propriétés ne sont utilisées que sur mobile
+  // Sur desktop, l'alignement est géré par le layout horizontal
+
+  // ----- Alignement des éléments dans le container flex -----
+  // Détermine l'alignement horizontal des éléments
+  --nav-menu-align: center;
+
+  // ----- Alignement du texte dans les éléments -----
+  // Détermine l'alignement du contenu textuel
+  --nav-menu-text-align: center;
+}
+
+
+// =================================================================
+// RESPONSIVE - MOBILE/TABLETTE (medium et moins)
+// =================================================================
+// Ajustements pour les petits et moyens écrans :
+// - Gap réduit pour économiser l'espace vertical
+// - L'alignement reste centré (valeurs par défaut)
+
+@include breakpoint-down('medium') {
+  :root {
+    // ----- Gap réduit sur mobile/tablette -----
+    // Gap vertical plus compact pour le layout mobile
+    --nav-menu-gap: var(--spacing-sm);
+  }
+}

@@ -1,0 +1,38 @@
+// =================================================================
+// TOPBAR ITEM — feuille de liste simple (sans dropdown)
+// =================================================================
+// Structure : <li.nav-item.topbar-item> > <a.nav-link.nav-link--leaf.topbar-link>
+// Le style commun (couleur, font-size, radius, transition, hover/focus/active, padding
+// de la facette feuille) vient des classes de rôle (features/header/nav-base.scss).
+//
+// Ce fichier définit aussi la base .topbar-link (padding des feuilles), partagée avec les
+// feuilles du dropdown ; leur couleur/graisse spécifiques sont dans TopbarGroup.
+//
+// Pour les tokens, voir ../_tokens.scss.
+
+@use '../../../../../styles/utils/breakpoints' as *;
+
+// ----- Base de feuille topbar (padding alimentant la facette .nav-link--leaf) -----
+// Couleur / graisse par défaut = celles de la classe de rôle .nav-link (lien racine).
+.topbar-link {
+  --nav-leaf-pad-y: var(--topbar-link-padding-y);
+  --nav-leaf-pad-x: var(--topbar-link-padding-x);
+}
+
+// ----- Conteneur (li) de la feuille simple horizontale -----
+.topbar-item {
+  // Largeur complète pour faciliter le touch en mobile/tablette.
+  @include breakpoint-down('medium') {
+    width: 100%;
+  }
+  // Au desktop : pas de flex ici — le <li> n'a qu'un enfant, .topbar-list (row,
+  // align-items: center) centre déjà l'item, et le <a.nav-link--leaf> est lui-même flex.
+}
+
+// ----- Exception « feuille simple horizontale » -----
+// Direct enfant de .topbar-list (≠ feuilles de dropdown) : padding-x plus généreux au
+// desktop et hauteur volontairement supérieure au toggle. Couleur/graisse = défauts de
+// rôle .nav-link (lien racine) → rien à surcharger.
+.topbar-list > .topbar-item > .topbar-link {
+  --nav-leaf-pad-x: var(--topbar-simple-padding-x);
+}

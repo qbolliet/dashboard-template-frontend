@@ -1,0 +1,413 @@
+// =================================================================
+// TOPBAR GROUP (topbar)
+// =================================================================
+// Élément de navigation avec menu déroulant. Structure :
+//
+//   <li.nav-row.topbar-group>                      rangée racine (lien | toggle)
+//     <a.nav-link.nav-link--parent.topbar-group-header> <span.nav-text.topbar-text>
+//     <button.nav-toggle.topbar-toggle>            toggle racine (TopbarToggleButton)
+//     <ul.topbar-dropdown.topbar-dropdown--groups|--list>   panneau (ex .nav-dropdown)
+//       … groupes (.topbar-group) avec en-tête + chevron (.topbar-toggle) + sous-liste
+//         (.nav-content.topbar-content) …  OU  feuilles (.topbar-item > .topbar-link)
+//
+// Style commun (couleur/graisse de base, font-size, radius, transition, hover/focus/active,
+// padding des facettes, centrage du toggle) : classes de rôle (features/header/nav-base.scss).
+// Resets de liste + séparateurs mobiles : mixins (features/header/_nav-mixins.scss).
+//
+// Comportement : desktop = popover absolu (fade + translate) ; medium/small = accordéon
+// (animation par hauteur), rendu rapproché de la sidebar (hiérarchie par indentation +
+// barre verticale ; séparateurs gris centrés en small uniquement).
+//
+// Tokens : ./_tokens.scss et ../_tokens.scss. Couleurs : ../../../_colors.scss.
+
+@use '../../../nav-mixins' as *;
+@use '../tokens' as *;
+@use './tokens' as *;
+@use '../../../../../styles/utils/breakpoints' as *;
+
+
+// =================================================================
+// RANGÉE PARENTE (lien + toggle)
+// =================================================================
+.topbar-group {
+  border-radius: var(--border-radius-md);
+}
+
+// Rangée RACINE (enfant direct de la liste) : lien | toggle collés à gauche au desktop.
+.topbar-list > .topbar-group {
+  grid-template-columns: auto auto;
+  justify-content: start;
+  padding-right: var(--topbar-group-padding-x);
+
+  // Desktop : survol / ouverture / section active surlignent le <li> ENTIER (et non le
+  // couple lien+toggle). `:has(> …)` ne réagit qu'au survol des enfants DIRECTS (lien/toggle),
+  // pas du panneau popover. En accordéon (medium/small) on garde la pilule (cf. bloc dédié).
+  @include breakpoint('large') {
+    // Liseré permanent transparent → currentColor selon l'état, sans reflow entre états.
+    border: 1px solid transparent;
+
+    // Section active (page enfant courante, ou lien lui-même actif) : surlignage persistant.
+    &:has(> .topbar-group-header.nav-link--has-active-child),
+    &:has(> .topbar-group-header.nav-link--active) {
+      background-color: hsl(var(--nav-link-active-child-bg));
+      border-color: currentColor;
+    }
+
+    // Survol / ouverture (l'emporte sur l'actif au survol car déclaré après).
+    &:has(> .topbar-group-header:hover),
+    &:has(> .topbar-toggle:hover),
+    &--open {
+      background-color: hsl(var(--nav-link-hover-bg));
+      border-color: currentColor;
+    }
+
+    // Neutralise les fonds/liserés individuels des enfants : le <li> porte seul le surlignage.
+    > .topbar-group-header:hover,
+    > .topbar-group-header.nav-link--active {
+      background-color: transparent;
+      border-color: transparent;
+    }
+
+    > .topbar-toggle:hover {
+      background-color: transparent;
+      border-color: transparent;
+      transform: none;
+    }
+  }
+}
+
+// ----- En-tête / lien parent (commun racine + groupes) -----
+.topbar-group-header {
+  --nav-parent-pad-y: var(--topbar-link-padding-y); //var(--topbar-group-padding-y);
+  --nav-parent-pad-x: var(--topbar-group-padding-x);
+  background-color: transparent;
+  white-space: nowrap;
+}
+
+// En-tête RACINE : couleur/graisse de lien de 1er niveau (défauts de rôle .nav-link).
+.topbar-list > .topbar-group > .topbar-group-header {
+  // Au desktop, se dimensionne au contenu dans la colonne `auto`.
+  @include breakpoint('large') {
+    display: inline-flex;
+  }
+
+  // Une page enfant est affichée : surlignage discret.
+  &.nav-link--has-active-child {
+    color: hsl(var(--nav-link-active-child-color));
+    // Fond porté par le <li> au desktop (cf. bloc breakpoint('large') de .topbar-group) ;
+    // sur l'en-tête seulement en accordéon.
+    @include breakpoint-down('medium') {
+      background-color: hsl(var(--nav-link-active-child-bg));
+    }
+  }
+}
+
+
+// =================================================================
+// PANNEAU DROPDOWN (le <ul>) — DESKTOP (popover)
+// =================================================================
+.topbar-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  min-width: var(--topbar-dropdown-min-width);
+  z-index: var(--topbar-dropdown-z-index);
+
+  background-color: hsl(var(--nav-dropdown-bg));
+  border: 1px solid hsl(var(--nav-dropdown-border));
+  border-radius: var(--topbar-dropdown-border-radius);
+  box-shadow: 0 var(--spacing-xs) var(--spacing-md) hsla(var(--nav-dropdown-shadow) / 0.1);
+  padding: var(--topbar-dropdown-padding-y) var(--topbar-dropdown-padding-x);
+  margin-top: 0.3rem;
+
+  // Animation d'apparition (centrage conservé via translateX -50%).
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, var(--topbar-dropdown-translate-y));
+  transition: all var(--transition-slow) ease;
+
+  &--open {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0);
+  }
+
+  // Liste simple (sans groupes) : colonne. Padding = cadre du panneau + respiration interne.
+  &--list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    padding: calc(var(--topbar-dropdown-padding-y) + var(--spacing-md)) var(--spacing-md);
+  }
+
+  // Groupes côte à côte (séparateurs verticaux gérés par border-right ci-dessous).
+  &--groups {
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+  }
+}
+
+// ----- Groupe (cellule) dans le panneau, desktop -----
+.topbar-dropdown--groups > .topbar-group {
+  grid-template-columns: 1fr;  // chevron masqué au desktop → une seule colonne
+  padding: var(--topbar-dropdown-group-padding);
+
+  &:not(:last-child) {
+    border-radius: 0;
+    border-right: 1px solid hsl(var(--nav-dropdown-separator));
+  }
+}
+
+// ----- En-tête de groupe imbriqué : couleur/graisse secondaires -----
+.topbar-dropdown .topbar-group-header {
+  color: hsl(var(--nav-dropdown-group-header-color));
+  font-weight: var(--topbar-group-header-weight);
+  margin-bottom: var(--spacing-sm);
+
+  &:hover {
+    color: hsl(var(--nav-dropdown-group-header-hover-color));
+    background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
+  }
+
+  &--active {
+    color: hsl(var(--nav-dropdown-group-header-active-color));
+    background-color: hsl(var(--nav-dropdown-group-header-active-bg));
+  }
+}
+
+// ----- Chevron de groupe (caché au desktop, visible en accordéon) -----
+.topbar-dropdown .topbar-toggle {
+  display: none;
+  width: var(--topbar-toggle-size);
+  color: hsl(var(--nav-dropdown-group-header-color));
+
+  &:hover {
+    background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
+    color: hsl(var(--nav-dropdown-group-header-hover-color));
+  }
+
+  &--expanded svg {
+    transform: rotate(180deg);
+  }
+}
+
+// ----- Sous-liste (dans un groupe), desktop -----
+.topbar-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--topbar-dropdown-content-gap);
+}
+
+// ----- Feuilles du dropdown : couleur/graisse tertiaires -----
+.topbar-dropdown .topbar-link {
+  color: hsl(var(--nav-dropdown-link-color));
+  font-weight: var(--topbar-link-weight);
+  width: 100%;
+
+  &:hover {
+    color: hsl(var(--nav-dropdown-link-hover-color));
+    background-color: hsl(var(--nav-dropdown-link-hover-bg));
+  }
+
+  &--active {
+    color: hsl(var(--nav-dropdown-link-active-color));
+    background-color: hsl(var(--nav-dropdown-link-active-bg));
+    font-weight: var(--topbar-link-weight-active);
+  }
+}
+
+// ----- Feuilles de liste simple (--list) : texte centré au desktop -----
+// Ciblées via `> .topbar-item` : enfants directs du panneau → uniquement la variante --list
+// (en --groups les enfants directs sont des .topbar-group, leurs feuilles vivent dans
+// .topbar-content et restent alignées à gauche). justify-content car .nav-link--leaf est flex.
+@include breakpoint('large') {
+  .topbar-dropdown > .topbar-item > .topbar-link {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+
+// =================================================================
+// RESPONSIVE — MEDIUM ET MOINS (accordéon)
+// =================================================================
+@include breakpoint-down('medium') {
+  // Rangée racine : pleine largeur, lien étiré | toggle à droite, toggle aligné en hauteur.
+  .topbar-list > .topbar-group {
+    width: 100%;
+    grid-template-columns: 1fr auto;
+    padding: 0;
+    align-items: stretch;
+
+    // Accordéon : survol = pilule lien + toggle (mutualisée avec la sidebar). Au desktop,
+    // c'est le <li> entier qui est surligné (cf. bloc breakpoint('large') plus haut).
+    @include nav-group-hover-pill('.topbar-group-header', '.topbar-toggle');
+
+    // Rayons complémentaires → pilule continue lien + toggle (medium/small uniquement ;
+    // au desktop chacun garde son rayon md complet).
+    > .topbar-group-header {
+      border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);
+    }
+
+    > .topbar-toggle {
+      border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+    }
+  }
+
+  // Panneau : statique, pleine largeur, transparent, animation par hauteur.
+  .topbar-dropdown {
+    position: static;
+    // Annule le positionnement popover desktop (sinon top:100% décale le panneau et il
+    // chevauche les entrées suivantes en accordéon).
+    top: auto;
+    left: auto;
+    grid-column: 1 / -1;
+    width: 100%;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background-color: transparent;
+    padding: 0;
+    margin-top: 0;
+
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height var(--transition-slow) ease;
+
+    &--open {
+      transform: none;
+      max-height: var(--topbar-dropdown-max-height);
+    }
+
+    // Liste simple + groupes : colonne décalée à gauche + barre verticale de hiérarchie.
+    &--list,
+    &--groups {
+      flex-direction: column;
+      position: relative;
+      padding: 0 0 0 var(--topbar-dropdown-indent);
+      gap: var(--header-nav-separator-gap);
+
+      // Respiration parent ↔ premier item = gap inter-items. Présente uniquement panneau
+      // ouvert → aucun espacement superflu quand le <ul> (toujours monté) est replié.
+      &.topbar-dropdown--open {
+        padding-top: var(--header-nav-separator-gap);
+      }
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 1px;
+        background-color: hsl(var(--nav-dropdown-hierarchy-line-color));
+        opacity: 0.3;
+      }
+    }
+  }
+
+  // Groupe imbriqué : en-tête | chevron, sous-liste en dessous. Plus de séparateur vertical.
+  .topbar-dropdown--groups > .topbar-group {
+    grid-template-columns: 1fr auto;
+    padding: 0;
+    border-right: none;
+  }
+
+  // Survol unifié en-tête + chevron des groupes imbriqués (accordéon, où le chevron est
+  // visible). Au desktop le chevron est masqué → on conserve le survol discret (cf. plus haut).
+  .topbar-dropdown .topbar-group {
+    @include nav-group-hover-pill('.topbar-group-header', '.topbar-toggle');
+  }
+
+  // En-tête de groupe imbriqué. Rayon gauche → continuité de pilule avec le chevron.
+  .topbar-dropdown .topbar-group-header {
+    margin-bottom: 0;
+    width: 100%;
+    border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);
+  }
+
+  // Chevron de groupe : visible, épouse la hauteur de la rangée d'en-tête. Rayon droit.
+  .topbar-dropdown .topbar-toggle {
+    display: flex;
+    align-self: stretch;
+    border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+  }
+
+  // Sous-liste (accordéon imbriqué) : décalage gauche + barre verticale.
+  .topbar-content {
+    grid-column: 1 / -1;
+    position: relative;
+    padding-left: var(--topbar-dropdown-indent);
+    gap: var(--header-nav-separator-gap);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height var(--transition-slow) ease;
+    // Hors tabulation + arbre a11y quand replié — piloté en CSS (et non via `inert` côté
+    // JS) car en accordéon seulement : au desktop (popover) la sous-liste reste visible.
+    visibility: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 1px;
+      background-color: hsl(var(--nav-dropdown-hierarchy-line-color));
+      opacity: 0.3;
+    }
+
+    &--expanded {
+      max-height: var(--topbar-dropdown-sublist-max-height);
+      visibility: visible;
+      // Respiration parent ↔ premier item = gap inter-items. Présente uniquement déplié
+      // → aucun espacement superflu sous un sous-groupe replié (le <ul> reste monté).
+      padding-top: var(--header-nav-separator-gap);
+    }
+  }
+}
+
+
+// =================================================================
+// RESPONSIVE — SMALL ET MOINS (rendu façon sidebar)
+// =================================================================
+@include breakpoint-down('small') {
+  // Séparateurs gris centrés entre entrées (gap 0 → la respiration vient du séparateur).
+  // Le padding-top (respiration parent ↔ premier item) est fourni par le bloc medium.
+  .topbar-dropdown--list,
+  .topbar-dropdown--groups,
+  .topbar-content {
+    gap: 0;
+    @include nav-mobile-separator;
+  }
+
+  // En-têtes (racine + groupes) : texte centré, padding gauche compensant le toggle à droite.
+  .topbar-list > .topbar-group > .topbar-group-header,
+  .topbar-dropdown .topbar-group-header {
+    justify-content: center;
+    text-align: center;
+    --nav-parent-pad-x-left: calc(var(--topbar-group-padding-x) + var(--topbar-toggle-size));
+  }
+
+  // Feuilles : texte centré.
+  .topbar-dropdown .topbar-link {
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+
+// =================================================================
+// ACCESSIBILITÉ — RÉDUCTION DES ANIMATIONS
+// =================================================================
+@media (prefers-reduced-motion: reduce) {
+  .topbar-dropdown,
+  .topbar-content,
+  .topbar-toggle svg {
+    transition: none;
+  }
+}

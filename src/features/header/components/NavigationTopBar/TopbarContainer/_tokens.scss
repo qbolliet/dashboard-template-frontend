@@ -1,0 +1,102 @@
+// ===== TOKENS DE TOPBARCONTAINER =====
+// Variables spécifiques au conteneur de navigation et au menu mobile
+//
+// Architecture des tokens :
+// - Espacement : paddings du menu mobile
+// - Positionnement : positions du toggle mobile
+// - Dimensions : largeurs du menu mobile selon les breakpoints
+// - Animations : durées et timing des transitions
+// - Z-index : superposition des couches du conteneur, menu et toggle
+//
+// Pour les couleurs, voir features/header/_colors.scss
+//
+// Notes d'organisation :
+// - Les tokens sont organisés par catégorie fonctionnelle
+// - Tous les espacements utilisent les tokens globaux de typography.scss
+// - Les valeurs responsive sont définies pour chaque breakpoint
+
+// Importation des breakpoints
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  // =================================================================
+  // POSITIONNEMENT DU TOGGLE MOBILE
+  // =================================================================
+
+  // ----- Position du bouton hamburger -----
+  // Position verticale centrée du toggle
+  --nav-toggle-position-top: 50%;
+
+  // Position horizontale selon le viewport
+  --nav-toggle-position-right: var(--spacing-lg);  // 16px - Tablette et plus
+
+  // =================================================================
+  // DIMENSIONS DU MENU MOBILE
+  // =================================================================
+
+  // ----- Largeurs du menu selon viewport -----
+  // Largeur par défaut sur tablette (réutilise le token partagé)
+  --nav-mobile-width: var(--nav-topbar-mobile-width);  // 280px depuis NavigationTopBar/_tokens.scss
+
+  // ----- Padding interne du menu mobile -----
+  // Espacement supérieur : doit laisser de la place pour le bouton de fermeture fixe
+  --nav-mobile-padding-top: calc(var(--spacing-6xl) + var(--spacing-lg));  // 56px + 16px = 72px
+
+  // Espacement latéral
+  --nav-mobile-padding-x: var(--spacing-lg);  // 16px
+
+  // Espacement inférieur
+  --nav-mobile-padding-bottom: var(--spacing-xl);  // 20px
+
+  // =================================================================
+  // ANIMATIONS
+  // =================================================================
+
+  // ----- Transitions du menu mobile -----
+  // Durée de l'animation de slide in/out
+  --nav-transition-duration: var(--transition-normal);  // 0.2s
+
+  // Durée de l'animation d'apparition du bouton
+  --nav-toggle-transition-duration: var(--transition-fast); // 0.1s
+
+  // =================================================================
+  // Z-INDEX
+  // =================================================================
+
+  // ----- Superposition des couches -----
+  // Conteneur principal de navigation
+  --nav-container-z-index: var(--z-fixed);  // 1030
+
+  // Toggle mobile (menu fermé) - au-dessus du menu mobile
+  --nav-toggle-z-index: calc(var(--nav-mobile-z-index) + 1);  // 1051
+
+  // Toggle mobile (menu ouvert) - doit être au-dessus de tout
+  --nav-toggle-open-z-index: calc(var(--nav-mobile-z-index) + 2);  // 1052
+}
+
+// =================================================================
+// RESPONSIVE - TABLETTE (medium et moins)
+// =================================================================
+// Ajustements pour écrans tablette :
+// - Disposition du toggle de navigation
+
+// @include breakpoint-down('medium') {
+//   :root {
+//     // Position horizontale selon le viewport
+//     //--nav-toggle-position-top: var(--nav-toggle-position-right);
+//   }
+// }
+
+
+// =================================================================
+// RESPONSIVE - MOBILE (small et moins)
+// =================================================================
+// Ajustements pour écrans mobiles :
+// - Disposition du toggle de navigation
+
+@include breakpoint-down('small') {
+  :root {
+    // Position horizontale selon le viewport
+    --nav-toggle-position-right: var(--spacing-md);  // 12px - Petits écrans
+  }
+}

@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 // Classes de rôle partagées de navigation — importées AVANT les composants nav
 // (topbar/sidebar) pour garantir l'ordre de cascade : rôles communs avant spécifiques.
 import '../../nav-base.scss';
-import NavigationContainer from '../NavigationTopBar/NavigationContainer/NavigationContainer';
+import TopbarContainer from '../NavigationTopBar/TopbarContainer/TopbarContainer';
 import { NavigationSideBar, SidebarTrigger } from '../NavigationSideBar';
 import SearchBar from '../SearchBar/SearchBar';
 import ThemeToggleButton from '../../../theme/components/ThemeToggleButton/ThemeToggleButton';
@@ -154,7 +154,7 @@ const Header = ({
                             </Link>
 
                             {/* Navigation principale */}
-                            <NavigationContainer
+                            <TopbarContainer
                                 navigationData={navigationData}
                                 onItemClick={onNavigationItemClick}
                             />

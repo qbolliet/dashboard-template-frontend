@@ -1,0 +1,25 @@
+// ===== TOKENS DE TOPBAROVERLAY =====
+// Variables spécifiques au composant TopbarOverlay
+// Overlay semi-transparent pour fermer le menu mobile de navigation
+//
+// ⚠️ RÈGLE : Ce fichier contient UNIQUEMENT les variables propres à TopbarOverlay.
+// Les variables partagées avec d'autres composants de NavigationTopBar sont dans
+// features/header/components/NavigationTopBar/_tokens.scss
+// Les couleurs partagées sont dans features/header/_colors.scss
+
+:root {
+  // ===== OPACITÉ =====
+  // Transparence du background de l'overlay
+  // Valeur entre 0 (transparent) et 1 (opaque)
+  --nav-overlay-opacity: 0.5;
+
+  // ===== Z-INDEX =====
+  // Positionnement en couches : en dessous du menu mobile mais au-dessus du contenu
+  // Calculé à partir de --nav-mobile-z-index défini dans features/header/_tokens.scss
+  --nav-overlay-z-index: calc(var(--nav-mobile-z-index) - 1);
+
+  // ===== TRANSITIONS =====
+  // Animation d'apparition/disparition de l'overlay
+  // Utilise --transition-normal défini dans styles/globals/typography.scss
+  --nav-overlay-transition-duration: var(--transition-normal);
+}

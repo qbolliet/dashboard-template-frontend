@@ -1,10 +1,13 @@
 // ===== CENTRALIZED NAVIGATION EXPORTS =====
 // Index pour faciliter l'importation des composants de navigation
 
-export { default as NavigationContainer } from './NavigationContainer/NavigationContainer';
-export { default as NavigationMenu } from './NavigationMenu/NavigationMenu';
-export { default as NavigationItem } from './NavigationItem/NavigationItem';
-export { default as DropdownNavigationItem } from './DropdownNavigationItem/DropdownNavigationItem';
-export { default as DropdownToggleButton } from './DropdownToggleButton/DropdownToggleButton';
-export { default as MobileMenuToggle } from './MobileMenuToggle/MobileMenuToggle';
-export { default as NavigationOverlay } from './NavigationOverlay/NavigationOverlay';
+export { default as TopbarContainer }    from './TopbarContainer/TopbarContainer';
+export { default as TopbarMenu }         from './TopbarMenu/TopbarMenu';
+export { default as TopbarItem }         from './TopbarItem/TopbarItem';
+export { default as TopbarGroup }        from './TopbarGroup/TopbarGroup';
+export { default as TopbarNode }         from './TopbarNode/TopbarNode';
+export { default as TopbarGroupSection } from './TopbarGroupSection/TopbarGroupSection';
+export { default as TopbarGroupItem }    from './TopbarGroupItem/TopbarGroupItem';
+export { default as TopbarToggleButton } from './TopbarToggleButton/TopbarToggleButton';
+export { default as TopbarTrigger }      from './TopbarTrigger/TopbarTrigger';
+export { default as TopbarOverlay }      from './TopbarOverlay/TopbarOverlay';

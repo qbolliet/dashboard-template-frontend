@@ -1,7 +1,0 @@
-// ===== TOKENS DE NAVIGATIONITEM =====
-// La feuille de liste simple (lien horizontal) n'a plus de token propre :
-// - couleur / graisse / font-size / radius / transition → classe de rôle .nav-link
-//   (voir features/header/nav-base.scss) ;
-// - padding → --topbar-link-padding-y + --topbar-simple-padding-x (voir ../_tokens.scss).
-//
-// Fichier conservé pour la cohérence d'arborescence et d'éventuels tokens futurs.
