@@ -34,6 +34,9 @@
   line-height: var(--line-height-tight);
 
   // === Apparence ===
+  // Bordure transparente en base : réserve la place du liseré « active » (zéro reflow
+  // entre états). Surchargée en couleur sur --active ci-dessous.
+  border: 1px solid transparent;
   border-radius: var(--border-radius-md);
   transition: all var(--transition-normal) ease;
 
@@ -52,6 +55,8 @@
     color: hsl(var(--nav-link-active-color));
     background-color: hsl(var(--nav-link-active-bg));
     font-weight: var(--nav-link-font-weight-active);
+    // Liseré 1px = couleur du texte actif (currentColor) → s'adapte à chaque contexte.
+    border-color: currentColor;
   }
 }
 

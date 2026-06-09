@@ -13,6 +13,8 @@
 
 @use '../../../../../styles/utils/breakpoints' as *;
 @use '../../../nav-mixins' as *;
+@use '../tokens' as *;   // Tokens partagés sidebar (--sidebar-toggle-size, paddings, indent…) — émet leur :root
+@use './tokens' as *;    // Tokens propres au groupe (--sidebar-group-content-max-height)
 @use '../colors' as *;
 
 // ===== CONTENEUR (li, grille en-tête + contenu) =====
@@ -66,7 +68,8 @@
   &--active {
     background-color: hsl(var(--nav-link-active-bg));
     color: hsl(var(--nav-link-active-color));
-    border-color: hsl(var(--color-primary-500) / 0.3);
+    // Liseré = couleur du texte actif (cohérent avec la classe de rôle .nav-link--active).
+    border-color: currentColor;
   }
 
   &[href] {
@@ -129,8 +132,6 @@
 
 // ===== CONTENU COLLAPSIBLE (ul) =====
 .sidebar-group-content {
-  @include nav-list-reset;
-
   grid-column: 1 / -1;
   grid-row: 2;
 
@@ -173,8 +174,11 @@
   }
 
   // Mobile : séparateurs gris centrés (façon topbar) + suppression de l'indentation.
+  // padding-top : même respiration entre le <ul> et le parent qu'entre deux <li>
+  // (clippé avec l'accordéon max-height + overflow:hidden → absent une fois fermé).
   @include breakpoint-down('small') {
     padding-left: 0;
+    padding-top: var(--header-nav-separator-gap);
     gap: 0;
     @include nav-mobile-separator;
   }

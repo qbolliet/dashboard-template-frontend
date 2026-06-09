@@ -84,9 +84,13 @@ a {
     color: inherit;
 }
 
-// Remove list style from ul
+// Remove list style + default margin/padding from ul
+// (remplace l'ancien mixin nav-list-reset ; les listes qui ont besoin d'un padding propre
+//  le redéclarent et surchargent ce reset).
 ul {
     list-style: none;
+    margin: 0;
+    padding: 0;
 }
   
   

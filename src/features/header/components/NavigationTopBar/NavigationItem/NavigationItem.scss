@@ -25,12 +25,8 @@
   @include breakpoint-down('medium') {
     width: 100%;
   }
-
-  // Layout horizontal au desktop.
-  @include breakpoint('large') {
-    display: flex;
-    align-items: center;
-  }
+  // Au desktop : pas de flex ici — le <li> n'a qu'un enfant, .topbar-list (row,
+  // align-items: center) centre déjà l'item, et le <a.nav-link--leaf> est lui-même flex.
 }
 
 // ----- Exception « feuille simple horizontale » -----

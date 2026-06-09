@@ -75,8 +75,6 @@
 // PANNEAU DROPDOWN (le <ul>) — DESKTOP (popover)
 // =================================================================
 .topbar-dropdown {
-  @include nav-list-reset;
-
   position: absolute;
   top: 100%;
   left: 50%;
@@ -165,7 +163,6 @@
 
 // ----- Sous-liste (dans un groupe), desktop -----
 .topbar-content {
-  @include nav-list-reset;
   display: flex;
   flex-direction: column;
   gap: var(--topbar-dropdown-content-gap);
@@ -186,6 +183,17 @@
     color: hsl(var(--nav-dropdown-link-active-color));
     background-color: hsl(var(--nav-dropdown-link-active-bg));
     font-weight: var(--topbar-link-weight-active);
+  }
+}
+
+// ----- Feuilles de liste simple (--list) : texte centré au desktop -----
+// Ciblées via `> .topbar-item` : enfants directs du panneau → uniquement la variante --list
+// (en --groups les enfants directs sont des .topbar-group, leurs feuilles vivent dans
+// .topbar-content et restent alignées à gauche). justify-content car .nav-link--leaf est flex.
+@include breakpoint('large') {
+  .topbar-dropdown > .topbar-item > .topbar-link {
+    justify-content: center;
+    text-align: center;
   }
 }
 
@@ -304,10 +312,14 @@
 // =================================================================
 @include breakpoint-down('small') {
   // Séparateurs gris centrés entre entrées (gap 0 → la respiration vient du séparateur).
+  // padding-top : même respiration entre le <ul> et le parent qu'entre deux <li>.
+  // padding (et non margin) → clippé avec l'accordéon (max-height + overflow:hidden),
+  // donc absent quand le panneau est fermé.
   .topbar-dropdown--list,
   .topbar-dropdown--groups,
   .topbar-content {
     gap: 0;
+    padding-top: var(--header-nav-separator-gap);
     @include nav-mobile-separator;
   }
 

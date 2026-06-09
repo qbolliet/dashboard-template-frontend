@@ -10,6 +10,7 @@
 
 @use '../../../../../styles/utils/breakpoints' as *;
 @use '../../../nav-mixins' as *;
+@use '../tokens' as *;   // Tokens partagés sidebar (--sidebar-list-gap, etc.) — émet leur :root
 @use '../colors' as *;
 
 // ===== ZONE SCROLLABLE =====
@@ -45,8 +46,6 @@
 
 // ===== LISTE DE 1ER NIVEAU (UL) =====
 .sidebar-list {
-  @include nav-list-reset;
-
   display: flex;
   flex-direction: column;
   // Espacement entre entrées porté par le gap (et non plus par margin-bottom des items).

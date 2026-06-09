@@ -12,6 +12,8 @@
 // Tokens : ./_tokens.scss, ../_tokens.scss. Couleurs : ../_colors.scss.
 
 @use '../../../../../styles/utils/breakpoints' as *;
+@use '../tokens' as *;   // Tokens partagés sidebar (--sidebar-toggle-size, paddings…) — émet leur :root
+@use './tokens' as *;    // Tokens propres à l'item (--sidebar-external-indicator-size)
 @use '../colors' as *;
 
 // ===== CONTENEUR (li) =====
@@ -51,7 +53,8 @@
   &--active {
     background-color: hsl(var(--nav-dropdown-sublink-active-bg));
     color: hsl(var(--nav-dropdown-sublink-active-color));
-    border-color: hsl(var(--color-primary-500) / 0.3);
+    // Liseré = couleur du texte actif (cohérent avec la classe de rôle .nav-link--active).
+    border-color: currentColor;
     font-weight: 500;
   }
 

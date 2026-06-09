@@ -13,8 +13,6 @@
 @use './tokens' as *;
 
 .topbar-list {
-  @include nav-list-reset;
-
   // Disposition verticale par défaut (mobile) ; horizontale au desktop.
   display: flex;
   flex-direction: column;

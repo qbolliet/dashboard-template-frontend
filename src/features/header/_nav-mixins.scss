@@ -6,16 +6,6 @@
 // Les CLASSES de rôle partagées (.nav-link, .nav-row…) vivent dans nav-base.scss,
 // compilé une seule fois (import JS dans Header.js).
 
-// ----- Reset des styles de liste (<ul>) -----
-// Remplace le triptyque répété « list-style:none; margin:0; padding:0; » présent dans
-// toutes les listes de navigation (NavigationMenu, dropdown groups/list/sublist,
-// SidebarMenu, SidebarGroup content).
-@mixin nav-list-reset {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
 // ----- Séparateurs mobiles centrés entre entrées -----
 // Barre grise équidistante entre deux entrées de navigation sur petit écran.
 // La respiration est symétrique : padding-bottom (AU-DESSUS du trait) = margin-bottom

@@ -4,6 +4,9 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
+// Classes de rôle partagées de navigation — importées AVANT les composants nav
+// (topbar/sidebar) pour garantir l'ordre de cascade : rôles communs avant spécifiques.
+import '../../nav-base.scss';
 import NavigationContainer from '../NavigationTopBar/NavigationContainer/NavigationContainer';
 import { NavigationSideBar, SidebarTrigger } from '../NavigationSideBar';
 import SearchBar from '../SearchBar/SearchBar';

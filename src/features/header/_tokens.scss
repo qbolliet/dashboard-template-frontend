@@ -92,12 +92,12 @@
     --header-padding-y: var(--spacing-md);  // 0.75rem
 
     // ----- Navigation partagée (medium) -----
-    --header-nav-toggle-size: calc(var(--spacing-2xl) + var(--spacing-xs));  // 28px
+    --header-nav-toggle-size: calc(var(--spacing-2xl) + var(--spacing-md));  // 36px (2.25rem)
     // Padding-y des feuilles aligné sur le padding-y dérivé des parents → toutes les
     // rangées (feuilles et parents) ont la même hauteur = taille du toggle.
     --header-nav-link-padding-y: var(--header-nav-row-padding-y);  // vertical, TOUS les rangs
-    --header-nav-link-padding-x: var(--spacing-sm);   // horizontal, feuilles / 1er niveau
-    --header-nav-group-padding-x: var(--spacing-sm);  // horizontal, rangs parents (avec toggle)
+    --header-nav-link-padding-x: var(--spacing-md);   // horizontal, feuilles / 1er niveau
+    --header-nav-group-padding-x: var(--spacing-md);  // horizontal, rangs parents (avec toggle)
     --header-nav-list-padding-x: var(--spacing-md);   // cadre des listes (12px)
   }
 }
