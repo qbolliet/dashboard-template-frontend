@@ -1,10 +1,8 @@
 // ===== TOKENS DU SIDEBARGROUP =====
-// Variables propres aux groupes collapsibles de la sidebar.
+// Aucun token de dimension propre au groupe : l'ouverture/fermeture est auto-dimensionnée
+// (grid-template-rows 0fr → 1fr, cf. SidebarGroup.scss) et ne nécessite donc PAS de hauteur
+// maximale fixe — la piste 1fr se résout à la hauteur réelle du contenu, à toute profondeur.
 // Le padding du trigger (--sidebar-group-padding-*), la taille du toggle et l'indentation
 // sont des tokens partagés (voir ../_tokens.scss).
-
-:root {
-  // ===== ANIMATION DU CONTENU =====
-  // Hauteur maximale lors de l'expansion (assez grande pour ne jamais tronquer).
-  --sidebar-group-content-max-height: 1000px;
-}
+//
+// Ce fichier reste comme emplacement conventionnel pour d'éventuels tokens propres au groupe.

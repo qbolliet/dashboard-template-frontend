@@ -237,8 +237,17 @@
   .topbar-list > .topbar-group {
     width: 100%;
     grid-template-columns: 1fr auto;
+    // En-tête (auto) + panneau animé de 0fr à 1fr. Auto-dimensionné (la piste 1fr se résout
+    // à la hauteur réelle du panneau) → robuste à toute profondeur, homogène avec la sidebar
+    // (cf. SidebarGroup.scss). Remplace l'ancienne animation par max-height fixe.
+    grid-template-rows: auto 0fr;
+    transition: grid-template-rows var(--transition-slow) var(--ease-collapse);
     padding: 0;
     align-items: stretch;
+
+    &.topbar-group--open {
+      grid-template-rows: auto 1fr;
+    }
 
     // Accordéon : survol = pilule lien + toggle (mutualisée avec la sidebar). Au desktop,
     // c'est le <li> entier qui est surligné (cf. bloc breakpoint('large') plus haut).
@@ -255,7 +264,7 @@
     }
   }
 
-  // Panneau : statique, pleine largeur, transparent, animation par hauteur.
+  // Panneau : statique, pleine largeur, transparent ; enfant étiré de la grille du groupe.
   .topbar-dropdown {
     position: static;
     // Annule le positionnement popover desktop (sinon top:100% décale le panneau et il
@@ -263,6 +272,8 @@
     top: auto;
     left: auto;
     grid-column: 1 / -1;
+    grid-row: 2;
+    align-self: stretch;
     width: 100%;
     border: none;
     border-radius: 0;
@@ -274,28 +285,22 @@
     transform: none;
     opacity: 1;
     visibility: visible;
-    max-height: 0;
+    // Animation pilotée par la grille du groupe parent (cf. .topbar-list > .topbar-group) :
+    // overflow:hidden masque pendant le repli, min-height:0 autorise la piste 0fr à écraser
+    // le panneau sous sa hauteur de contenu. Plus aucune hauteur fixe.
     overflow: hidden;
-    transition: max-height var(--transition-slow) ease;
-
-    &--open {
-      transform: none;
-      max-height: var(--topbar-dropdown-max-height);
-    }
+    min-height: 0;
+    transition: none;
 
     // Liste simple + groupes : colonne décalée à gauche + barre verticale de hiérarchie.
     &--list,
     &--groups {
       flex-direction: column;
       position: relative;
-      padding: 0 0 0 var(--topbar-dropdown-indent);
+      // Respiration parent ↔ premier item = gap inter-items. Toujours présente : clippée
+      // au repli (piste 0fr + overflow:hidden), donc aucun espacement superflu replié.
+      padding: var(--header-nav-separator-gap) 0 0 var(--topbar-dropdown-indent);
       gap: var(--header-nav-separator-gap);
-
-      // Respiration parent ↔ premier item = gap inter-items. Présente uniquement panneau
-      // ouvert → aucun espacement superflu quand le <ul> (toujours monté) est replié.
-      &.topbar-dropdown--open {
-        padding-top: var(--header-nav-separator-gap);
-      }
 
       &::before {
         content: '';
@@ -311,10 +316,17 @@
   }
 
   // Groupe imbriqué : en-tête | chevron, sous-liste en dessous. Plus de séparateur vertical.
+  // Même animation par la grille que le groupe racine (homogène avec la sidebar).
   .topbar-dropdown--groups > .topbar-group {
     grid-template-columns: 1fr auto;
+    grid-template-rows: auto 0fr;
+    transition: grid-template-rows var(--transition-slow) var(--ease-collapse);
     padding: 0;
     border-right: none;
+
+    &.topbar-group--expanded {
+      grid-template-rows: auto 1fr;
+    }
   }
 
   // Survol unifié en-tête + chevron des groupes imbriqués (accordéon, où le chevron est
@@ -337,15 +349,19 @@
     border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
   }
 
-  // Sous-liste (accordéon imbriqué) : décalage gauche + barre verticale.
+  // Sous-liste (accordéon imbriqué) : décalage gauche + barre verticale ; enfant étiré de
+  // la grille du groupe imbriqué. min-height:0 + overflow:hidden = conditions de l'écrasement.
   .topbar-content {
     grid-column: 1 / -1;
+    grid-row: 2;
+    align-self: stretch;
     position: relative;
     padding-left: var(--topbar-dropdown-indent);
+    // Respiration parent ↔ premier item : toujours présente, clippée au repli (piste 0fr).
+    padding-top: var(--header-nav-separator-gap);
     gap: var(--header-nav-separator-gap);
-    max-height: 0;
     overflow: hidden;
-    transition: max-height var(--transition-slow) ease;
+    min-height: 0;
     // Hors tabulation + arbre a11y quand replié — piloté en CSS (et non via `inert` côté
     // JS) car en accordéon seulement : au desktop (popover) la sous-liste reste visible.
     visibility: hidden;
@@ -362,11 +378,7 @@
     }
 
     &--expanded {
-      max-height: var(--topbar-dropdown-sublist-max-height);
       visibility: visible;
-      // Respiration parent ↔ premier item = gap inter-items. Présente uniquement déplié
-      // → aucun espacement superflu sous un sous-groupe replié (le <ul> reste monté).
-      padding-top: var(--header-nav-separator-gap);
     }
   }
 }
@@ -405,6 +417,7 @@
 // ACCESSIBILITÉ — RÉDUCTION DES ANIMATIONS
 // =================================================================
 @media (prefers-reduced-motion: reduce) {
+  .topbar-group,
   .topbar-dropdown,
   .topbar-content,
   .topbar-toggle svg {

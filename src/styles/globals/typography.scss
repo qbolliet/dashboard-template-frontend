@@ -57,6 +57,11 @@
   --transition-normal: 0.2s;
   --transition-slow: 0.3s;
 
+  // Courbe d'accélération des ouvertures/fermetures de dropdowns de navigation
+  // (sidebar + topbar). « easeInOutSine » : symétrique et douce, sans accélération
+  // brutale → atténue l'impression de rebond. Ajuster la nervosité ici uniquement.
+  --ease-collapse: cubic-bezier(0.37, 0, 0.63, 1);
+
   // Z-index pour la superposition
   --z-behind: -1000;
   --z-dropdown: 1000;

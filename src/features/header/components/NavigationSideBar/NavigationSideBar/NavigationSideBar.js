@@ -214,7 +214,10 @@ const NavigationSideBar = ({
                             onSelectionChange={handleSwitcherChange}
                         />
                     ) : (
-                        // Mode normal : afficher seulement le logo quand la sidebar est ouverte
+                        // Mode normal : logo affiché uniquement sidebar ouverte. Masquage par
+                        // garde JS (et non CSS) : en mode rail le conteneur déborderait de
+                        // l'aside étroit (aucun overflow:hidden au desktop), et un display:none
+                        // n'apporterait aucune transition (masquage non animable).
                         isOpen && (
                             <div className="sidebar-logo-container">
                                 <Image

@@ -81,15 +81,14 @@ const SidebarItem = ({
                 />
             )}
 
-            {/* Texte de l'item (visible quand sidebar ouverte) */}
-            {sidebarIsOpen && (
-                <span className="nav-text sidebar-text">
-                    {item.name}
-                </span>
-            )}
+            {/* Texte de l'item : toujours monté ; masqué en mode rail via le CSS
+                (.sidebar-item--sidebar-collapsed .sidebar-text → display:none). */}
+            <span className="nav-text sidebar-text">
+                {item.name}
+            </span>
 
-            {/* Indicateur de lien externe */}
-            {isExternalLink && sidebarIsOpen && (
+            {/* Indicateur de lien externe : idem, masqué en rail par le CSS. */}
+            {isExternalLink && (
                 <svg
                     className="sidebar-external-indicator"
                     width="12"

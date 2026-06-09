@@ -47,12 +47,16 @@
     padding: 0 var(--spacing-md); // Padding horizontal seulement
     border-bottom: 1px solid hsl(var(--color-border));
     flex-shrink: 0; // Empêche le header de rétrécir
+  }
 
-    // En mode collapsé, centrer le contenu
-    .navigation-sidebar--collapsed & {
-      justify-content: center;
-      padding: 0 var(--spacing-sm);
-    }
+  // Rail : centrer le contenu du header (ex. switcher). Ciblé correctement —
+  // `.navigation-sidebar--collapsed` et `.navigation-sidebar` sont la MÊME balise : on ne
+  // peut donc PAS écrire `.navigation-sidebar--collapsed &` depuis .sidebar-header (cela
+  // exigerait un ancêtre .navigation-sidebar supplémentaire et ne matcherait jamais).
+  // Placé après la règle de base pour l'emporter à spécificité égale.
+  &--collapsed .sidebar-header {
+    justify-content: center;
+    padding: 0 var(--spacing-sm);
   }
 
   // ===== CONTAINER LOGO SIMPLE =====
@@ -61,6 +65,18 @@
     align-items: center;
     gap: var(--spacing-md);
     padding: var(--spacing-sm) var(--spacing-md);
+    // En mode rail, ce conteneur n'est pas rendu (garde JS `isOpen` côté composant) :
+    // inutile de le masquer en CSS.
+
+    // Petit écran (tiroir pleine largeur) : logo + nom centrés dans l'espace disponible
+    // du header (à droite du trigger, cf. padding-left de .sidebar-header--open), avec un
+    // peu plus d'air entre les deux. `flex: 1` est nécessaire pour que le conteneur occupe
+    // la largeur — sans quoi `justify-content` n'aurait rien à répartir.
+    @include breakpoint-down('small') {
+      flex: 1;
+      justify-content: center;
+      gap: var(--spacing-xl);
+    }
 
     .sidebar-logo {
       width: var(--spacing-3xl); // 32px
@@ -75,17 +91,6 @@
       font-weight: 600;
       color: hsl(var(--color-text-primary));
       white-space: nowrap;
-
-      // Caché quand sidebar collapsée
-      .navigation-sidebar--collapsed & {
-        display: none;
-      }
-    }
-
-    // Centrer le logo quand sidebar collapsée
-    .navigation-sidebar--collapsed & {
-      justify-content: center;
-      padding: var(--spacing-sm);
     }
   }
 
@@ -142,7 +147,7 @@
       width: var(--sidebar-width-open);
 
       .sidebar-header {
-        padding-left: calc(
+        padding-x: calc(
           var(--header-padding-x) + var(--spacing-sm) + var(--search-height) + var(--spacing-md)
         );
       }

@@ -47,10 +47,8 @@
   :root {
     // Décalage gauche appliqué à chaque niveau imbriqué (hiérarchie façon sidebar).
     --topbar-dropdown-indent: var(--spacing-md);  // 12px par niveau
-
-    // Hauteurs maximales pour les animations d'expansion.
-    --topbar-dropdown-max-height: 500px;          // panneau principal
-    --topbar-dropdown-sublist-max-height: 300px;  // sous-listes
+    // Plus de hauteur maximale fixe : l'accordéon est désormais auto-dimensionné via
+    // grid-template-rows 0fr → 1fr (cf. TopbarGroup.scss), homogène avec la sidebar.
   }
 }
 

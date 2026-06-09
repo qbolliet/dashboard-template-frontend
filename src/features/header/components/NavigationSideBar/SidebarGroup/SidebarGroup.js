@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useId } from 'react';
+import React, { useState, useEffect, useId } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSidebar } from '../NavigationSideBar/NavigationSideBar';
@@ -24,6 +24,18 @@ const SidebarGroup = ({
 }) => {
     // État pour gérer l'expansion du groupe
     const [isExpanded, setIsExpanded] = useState(false);
+
+    // Lazy-mount + keep-mounted : le sous-arbre n'est monté qu'au premier dépliage,
+    // puis conservé. Le DOM initial reste léger (les branches jamais ouvertes ne sont
+    // pas montées) sans payer de montage/démontage RÉPÉTÉ ensuite. Une fois monté,
+    // l'apparition/disparition redevient purement CSS (cf. grille du parent dans
+    // SidebarGroup.scss). `hasBeenExpanded` ne redescend jamais à false.
+    const [hasBeenExpanded, setHasBeenExpanded] = useState(false);
+    useEffect(() => {
+        if (isExpanded) {
+            setHasBeenExpanded(true);
+        }
+    }, [isExpanded]);
 
     // Contexte de la sidebar
     const { isOpen: sidebarIsOpen, hasIcons, isActivePath, hasActiveChildren } = useSidebar();
@@ -132,12 +144,12 @@ const SidebarGroup = ({
                     />
                 )}
 
-                {/* Texte du groupe (visible quand sidebar ouverte) */}
-                {sidebarIsOpen && (
-                    <span className="nav-text sidebar-text">
-                        {item.name}
-                    </span>
-                )}
+                {/* Texte du groupe : toujours monté ; masqué en mode rail via le CSS
+                    (.sidebar-group--sidebar-collapsed .sidebar-text → display:none).
+                    Source de vérité unique côté style, et transition fluide au toggle. */}
+                <span className="nav-text sidebar-text">
+                    {item.name}
+                </span>
             </TriggerComponent>
 
             {/* Indicateur d'expansion (chevron) - clickable séparément */}
@@ -171,12 +183,12 @@ const SidebarGroup = ({
             )}
 
             {/* Contenu collapsible - supportant plusieurs niveaux via SidebarNode.
-                Rendu JSX constant (toujours monté tant qu'il y a des enfants et que la
-                sidebar est ouverte) : l'apparition/disparition est pilotée par le CSS
-                (.sidebar-group--collapsed/--expanded → max-height/opacity).
+                Monté au premier dépliage puis conservé (cf. hasBeenExpanded) : tant qu'il
+                est monté, l'apparition/disparition est pilotée par le CSS (la grille du
+                parent anime grid-template-rows 0fr ↔ 1fr, auto-dimensionnée).
                 `inert` (replié) sort le contenu de l'ordre de tabulation ET de l'arbre
                 d'accessibilité — indispensable puisqu'il reste dans le DOM. */}
-            {hasChildren && sidebarIsOpen && (
+            {hasChildren && sidebarIsOpen && (isExpanded || hasBeenExpanded) && (
                 <ul
                     id={contentId}
                     className="sidebar-group-content"
