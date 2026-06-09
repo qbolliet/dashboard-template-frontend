@@ -40,7 +40,6 @@
   &:hover {
     background-color: hsl(var(--nav-dropdown-sublink-hover-bg));
     color: hsl(var(--nav-dropdown-sublink-hover-color));
-    border-color: hsl(var(--color-border-hover));
   }
 
   // Focus façon sidebar : bordure + halo (et non l'outline de la classe de rôle).

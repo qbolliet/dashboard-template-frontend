@@ -64,7 +64,7 @@ const DropdownContent = ({
             <ul
                 id={id}
                 className={panelClasses('topbar-dropdown--groups')}
-                aria-hidden={!isOpen}
+                inert={!isOpen}
             >
                 {children.map((group, groupIndex) => (
                     <DropdownGroup
@@ -87,7 +87,7 @@ const DropdownContent = ({
         <ul
             id={id}
             className={panelClasses('topbar-dropdown--list')}
-            aria-hidden={!isOpen}
+            inert={!isOpen}
         >
             {children.map((child, childIndex) => (
                 <DropdownItem

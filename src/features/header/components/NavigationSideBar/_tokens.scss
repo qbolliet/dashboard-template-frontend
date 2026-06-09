@@ -13,20 +13,29 @@
 @use '@/styles/utils/breakpoints' as *;
 
 :root {
-  // ===== PADDING DES LIENS (cf. header/_tokens.scss) =====
-  // Feuille (item) : desktop sm/md ; medium/small alignés sur la topbar via les tokens header.
-  --sidebar-link-padding-y: var(--header-nav-link-padding-y, var(--spacing-sm));
-  --sidebar-link-padding-x: var(--header-nav-link-padding-x, var(--spacing-md));
-  // Rang parent (trigger de groupe, porte le chevron) : padding-y dérivé (hauteur = toggle)
-  // sur les 3 écrans ; padding-x desktop md, harmonisé medium/small via le token header.
-  --sidebar-group-padding-y: var(--header-nav-row-padding-y);
-  --sidebar-group-padding-x: var(--header-nav-group-padding-x, var(--spacing-md));
-
   // ===== TOGGLE (chevron d'ouverture des groupes) =====
-  // Carré, aligné sur le toggle de la topbar : 24 / 28 / 40 px. Sa largeur fixe la
-  // colonne du chevron ; sa hauteur s'étire sur la rangée (= taille du toggle via padding).
-  --sidebar-toggle-size: var(--header-nav-toggle-size);
+  // Carré. PILOTE UNIQUE de la hauteur de rangée (cf. --sidebar-row-padding-y) : sa
+  // largeur fixe la colonne du chevron, sa hauteur s'étire sur la rangée via le padding.
+  // Au desktop il vaut 1,75rem (28px) — plus grand que le toggle topbar (24px), c'est le
+  // seul écart volontaire ; medium/small reprennent le toggle header partagé (36 / 40 px).
+  --sidebar-toggle-size: var(--spacing-3xl);  // 32px (desktop)
   --sidebar-toggle-icon-size: var(--spacing-lg);  // 16px : icône volontairement petite et fixe
+
+  // ===== PADDING DES LIENS (cf. header/_tokens.scss) =====
+  // padding-y DÉRIVÉ de la taille du toggle sidebar : (toggle − hauteur de texte) / 2.
+  // Token UNIQUE partagé feuille ⇄ parent → toutes les rangées (feuilles ET triggers de
+  // groupe) ont la même hauteur = taille du toggle, sur les 3 écrans. Pas de variable
+  // padding-y distincte par niveau : la hauteur de rangée est la même pour tous.
+  --sidebar-row-padding-y: calc(
+    (var(--sidebar-toggle-size) - var(--line-height-tight) * var(--header-nav-link-font-size)) / 2
+  );
+  // Feuille (item) : hauteur = rangée ; padding-x propre (harmonisé medium/small via header).
+  --sidebar-link-padding-y: var(--sidebar-row-padding-y);
+  --sidebar-link-padding-x: var(--header-nav-link-padding-x, var(--spacing-md));
+  // Rang parent (trigger de groupe, porte le chevron) : même hauteur de rangée ; padding-x
+  // distinct (réserve la place du chevron), desktop md, harmonisé medium/small via header.
+  --sidebar-group-padding-y: var(--sidebar-row-padding-y);
+  --sidebar-group-padding-x: var(--header-nav-group-padding-x, var(--spacing-md));
 
   // ===== ESPACEMENT ENTRE ENTRÉES (gap des listes) =====
   // Remplace les anciens margin-bottom des items/groupes par un gap porté par le <ul>.
@@ -50,6 +59,9 @@
 // Tablette : icônes plus petites (les entrées se densifient).
 @include breakpoint-down('medium') {
   :root {
+    // Toggle aligné sur le toggle header partagé (36 / 40 px) en medium/small
+    --sidebar-toggle-size: var(--header-nav-toggle-size);
+
     --sidebar-icon-size: var(--spacing-sm);            // 8px
     --sidebar-icon-size-collapsed: var(--spacing-lg);  // 16px
   }

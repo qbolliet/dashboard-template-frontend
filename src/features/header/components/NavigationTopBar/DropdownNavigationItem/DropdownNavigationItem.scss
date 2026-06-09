@@ -39,11 +39,27 @@
   justify-content: start;
   padding-right: var(--topbar-group-padding-x);
 
-  // Fond doux à l'ouverture, desktop uniquement (en accordéon on reste transparent,
-  // façon sidebar : la hiérarchie se lit via graisse/couleur/barre verticale).
-  &--open {
-    @include breakpoint('large') {
+  // Desktop : survol ET ouverture surlignent le <li> ENTIER (et non le couple lien+toggle).
+  // `:has(> …)` ne réagit qu'au survol des enfants DIRECTS (lien/toggle), pas du panneau
+  // popover. En accordéon (medium/small) on garde la pilule lien+toggle (cf. bloc dédié).
+  @include breakpoint('large') {
+    &:has(> .topbar-group-header:hover),
+    &:has(> .topbar-toggle:hover),
+    &--open {
       background-color: hsl(var(--nav-link-hover-bg));
+      border-color: currentColor;
+    }
+
+    // Neutralise le survol individuel des enfants : le <li> porte seul le surlignage.
+    > .topbar-group-header:hover {
+      background-color: transparent;
+      border-color: transparent;
+    }
+
+    > .topbar-toggle:hover {
+      background-color: transparent;
+      border-color: transparent;
+      transform: none;
     }
   }
 }
@@ -152,7 +168,6 @@
 
   &:hover {
     background-color: hsl(var(--nav-dropdown-group-header-hover-bg));
-    border-color: hsl(var(--nav-dropdown-group-header-hover-color) / 0.2);
     color: hsl(var(--nav-dropdown-group-header-hover-color));
   }
 
@@ -208,6 +223,20 @@
     grid-template-columns: 1fr auto;
     padding: 0;
     align-items: stretch;
+
+    // Accordéon : survol = pilule lien + toggle (mutualisée avec la sidebar). Au desktop,
+    // c'est le <li> entier qui est surligné (cf. bloc breakpoint('large') plus haut).
+    @include nav-group-hover-pill('.topbar-group-header', '.topbar-toggle');
+
+    // Rayons complémentaires → pilule continue lien + toggle (medium/small uniquement ;
+    // au desktop chacun garde son rayon md complet).
+    > .topbar-group-header {
+      border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);
+    }
+
+    > .topbar-toggle {
+      border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+    }
   }
 
   // Panneau : statique, pleine largeur, transparent, animation par hauteur.
@@ -246,6 +275,12 @@
       padding: 0 0 0 var(--topbar-dropdown-indent);
       gap: var(--header-nav-separator-gap);
 
+      // Respiration parent ↔ premier item = gap inter-items. Présente uniquement panneau
+      // ouvert → aucun espacement superflu quand le <ul> (toujours monté) est replié.
+      &.topbar-dropdown--open {
+        padding-top: var(--header-nav-separator-gap);
+      }
+
       &::before {
         content: '';
         position: absolute;
@@ -266,17 +301,24 @@
     border-right: none;
   }
 
-  // En-tête de groupe imbriqué.
+  // Survol unifié en-tête + chevron des groupes imbriqués (accordéon, où le chevron est
+  // visible). Au desktop le chevron est masqué → on conserve le survol discret (cf. plus haut).
+  .topbar-dropdown .topbar-group {
+    @include nav-group-hover-pill('.topbar-group-header', '.topbar-toggle');
+  }
+
+  // En-tête de groupe imbriqué. Rayon gauche → continuité de pilule avec le chevron.
   .topbar-dropdown .topbar-group-header {
     margin-bottom: 0;
     width: 100%;
+    border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);
   }
 
-  // Chevron de groupe : visible, épouse la hauteur de la rangée d'en-tête.
+  // Chevron de groupe : visible, épouse la hauteur de la rangée d'en-tête. Rayon droit.
   .topbar-dropdown .topbar-toggle {
     display: flex;
     align-self: stretch;
-    height: auto;
+    border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
   }
 
   // Sous-liste (accordéon imbriqué) : décalage gauche + barre verticale.
@@ -302,6 +344,9 @@
 
     &--expanded {
       max-height: var(--topbar-dropdown-sublist-max-height);
+      // Respiration parent ↔ premier item = gap inter-items. Présente uniquement déplié
+      // → aucun espacement superflu sous un sous-groupe replié (le <ul> reste monté).
+      padding-top: var(--header-nav-separator-gap);
     }
   }
 }
@@ -312,14 +357,11 @@
 // =================================================================
 @include breakpoint-down('small') {
   // Séparateurs gris centrés entre entrées (gap 0 → la respiration vient du séparateur).
-  // padding-top : même respiration entre le <ul> et le parent qu'entre deux <li>.
-  // padding (et non margin) → clippé avec l'accordéon (max-height + overflow:hidden),
-  // donc absent quand le panneau est fermé.
+  // Le padding-top (respiration parent ↔ premier item) est fourni par le bloc medium.
   .topbar-dropdown--list,
   .topbar-dropdown--groups,
   .topbar-content {
     gap: 0;
-    padding-top: var(--header-nav-separator-gap);
     @include nav-mobile-separator;
   }
 

@@ -22,16 +22,9 @@
   grid-template-columns: 1fr auto;  // trigger | chevron
   grid-template-rows: auto auto;    // ligne en-tête + ligne contenu
 
-  // ----- Survol unifié de la ligne d'en-tête -----
-  // :has(> …) ne cible que le survol des enfants DIRECTS (trigger/chevron) → pas de
-  // réaction au survol du contenu déplié. Trigger + chevron forment une pilule continue.
-  &:has(> .sidebar-group-header:hover) > .sidebar-group-header,
-  &:has(> .sidebar-group-header:hover) > .sidebar-toggle,
-  &:has(> .sidebar-toggle:hover) > .sidebar-group-header,
-  &:has(> .sidebar-toggle:hover) > .sidebar-toggle {
-    background-color: hsl(var(--nav-link-hover-bg));
-    color: hsl(var(--nav-link-hover-color));
-  }
+  // ----- Survol unifié de la ligne d'en-tête (pilule en-tête + chevron) -----
+  // Mutualisé avec la topbar via le mixin (cf. features/header/_nav-mixins.scss).
+  @include nav-group-hover-pill('.sidebar-group-header', '.sidebar-toggle');
 
   // Sur-highlight plus marqué au survol DIRECT du chevron (l'emporte, même spécificité).
   &:has(> .sidebar-toggle:hover) > .sidebar-toggle {
@@ -143,22 +136,27 @@
   position: relative;
   overflow: hidden;
 
-  // Animation d'ouverture/fermeture (max-height + opacité + marge).
+  // Animation d'ouverture/fermeture (max-height + opacité). Le <ul> est toujours monté
+  // (rendu JSX constant) : c'est le CSS qui pilote l'apparition/disparition.
   max-height: 0;
   transition: max-height var(--transition-normal) ease,
-              opacity var(--transition-fast) ease,
-              margin var(--transition-fast) ease;
+              opacity var(--transition-fast) ease;
 
-  .sidebar-group--collapsed & {
+  // Combinateur ENFANT (`>`) impératif : le <ul> étant toujours monté à tous les niveaux,
+  // un sélecteur descendant ferait hériter l'état déplié du parent aux sous-groupes repliés
+  // (→ niveaux 2+ toujours ouverts). `> &` ne cible que le contenu DIRECT du groupe concerné.
+  .sidebar-group--collapsed > & {
     max-height: 0;
     opacity: 0;
-    margin-top: 0;
   }
 
-  .sidebar-group--expanded & {
+  .sidebar-group--expanded > & {
     max-height: var(--sidebar-group-content-max-height);
     opacity: 1;
-    margin-top: var(--spacing-xs);
+    // Respiration <ul> ↔ parent = gap inter-items (premier item à la même distance du
+    // parent que les items entre eux). Présente uniquement déplié → aucun espacement
+    // superflu sous un groupe replié (le <ul> reste dans le DOM).
+    padding-top: var(--sidebar-content-gap);
   }
 
   // Barre verticale grise indiquant la hiérarchie.
@@ -174,11 +172,8 @@
   }
 
   // Mobile : séparateurs gris centrés (façon topbar) + suppression de l'indentation.
-  // padding-top : même respiration entre le <ul> et le parent qu'entre deux <li>
-  // (clippé avec l'accordéon max-height + overflow:hidden → absent une fois fermé).
   @include breakpoint-down('small') {
     padding-left: 0;
-    padding-top: var(--header-nav-separator-gap);
     gap: 0;
     @include nav-mobile-separator;
   }

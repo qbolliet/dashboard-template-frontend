@@ -21,3 +21,36 @@
     border-radius: 0;
   }
 }
+
+// ----- Pilule de survol unifiée : en-tête + toggle -----
+// Survoler l'en-tête OU le toggle d'un groupe (.nav-row) met le COUPLE en apparence hover :
+// fond + texte + bordure currentColor formant une pilule continue (en-tête = bordure gauche,
+// toggle = bordure droite, jointure interne sans bordure). `:has(> …)` ne réagit qu'au survol
+// des enfants DIRECTS (trigger / toggle) → aucune réaction au survol du contenu déplié.
+//
+// $header / $toggle : sélecteurs des deux enfants (préfixés composant, ex. '.sidebar-group-header').
+// À appeler DANS le sélecteur du conteneur de groupe (.sidebar-group / .topbar-group).
+@mixin nav-group-hover-pill($header, $toggle) {
+  &:has(> #{$header}:hover) > #{$header},
+  &:has(> #{$header}:hover) > #{$toggle},
+  &:has(> #{$toggle}:hover) > #{$header},
+  &:has(> #{$toggle}:hover) > #{$toggle} {
+    background-color: hsl(var(--nav-link-hover-bg));
+    color: hsl(var(--nav-link-hover-color));
+    border-top-color: currentColor;
+    border-bottom-color: currentColor;
+  }
+
+  // En-tête : bordure gauche pleine, droite transparente (jointure avec le toggle).
+  &:has(> #{$header}:hover) > #{$header},
+  &:has(> #{$toggle}:hover) > #{$header} {
+    border-left-color: currentColor;
+    border-right-color: transparent;
+  }
+
+  // Toggle : bordure droite pleine (la gauche reste transparente côté jointure).
+  &:has(> #{$header}:hover) > #{$toggle},
+  &:has(> #{$toggle}:hover) > #{$toggle} {
+    border-right-color: currentColor;
+  }
+}

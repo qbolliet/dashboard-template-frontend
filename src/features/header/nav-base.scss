@@ -44,6 +44,7 @@
   &:hover {
     color: hsl(var(--nav-link-hover-color));
     background-color: hsl(var(--nav-link-hover-bg));
+    border-color: currentColor;
   }
 
   &:focus {

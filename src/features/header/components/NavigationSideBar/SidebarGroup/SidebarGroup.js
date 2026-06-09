@@ -170,9 +170,18 @@ const SidebarGroup = ({
                 </button>
             )}
 
-            {/* Contenu collapsible - supportant plusieurs niveaux via SidebarNode */}
-            {isExpanded && hasChildren && sidebarIsOpen && (
-                <ul id={contentId} className="sidebar-group-content">
+            {/* Contenu collapsible - supportant plusieurs niveaux via SidebarNode.
+                Rendu JSX constant (toujours monté tant qu'il y a des enfants et que la
+                sidebar est ouverte) : l'apparition/disparition est pilotée par le CSS
+                (.sidebar-group--collapsed/--expanded → max-height/opacity).
+                `inert` (replié) sort le contenu de l'ordre de tabulation ET de l'arbre
+                d'accessibilité — indispensable puisqu'il reste dans le DOM. */}
+            {hasChildren && sidebarIsOpen && (
+                <ul
+                    id={contentId}
+                    className="sidebar-group-content"
+                    inert={!isExpanded}
+                >
                     {item.children.map((child, index) => (
                         <SidebarNode
                             key={child.id || index}
