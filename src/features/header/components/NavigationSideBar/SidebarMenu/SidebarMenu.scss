@@ -48,7 +48,6 @@
 .sidebar-list {
   display: flex;
   flex-direction: column;
-  // Espacement entre entrées porté par le gap (et non plus par margin-bottom des items).
   gap: var(--sidebar-list-gap);
   // Cadre horizontal partagé avec la topbar (lg / md / sm selon l'écran).
   padding: 0 var(--header-nav-list-padding-x);

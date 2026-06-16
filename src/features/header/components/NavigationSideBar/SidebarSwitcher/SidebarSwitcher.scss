@@ -41,10 +41,6 @@
   }
 
   // ===== LOGO DU SWITCHER =====
-  // On affiche le logo tel quel (comme en mode useSwitcher=false) : pas de fond
-  // coloré ni de filtre brightness/invert, qui écrasaient tout le SVG en un bloc
-  // blanc. Seul --logo-filter est appliqué pour l'adaptation au thème.
-  // Les styles vivent directement sur l'<img> (plus de wrapper intermédiaire).
   &-logo {
     width: var(--spacing-3xl); // 32px
     height: var(--spacing-3xl); // 32px
@@ -54,8 +50,6 @@
   }
 
   // ===== TITRE DU SWITCHER =====
-  // Le <span> du titre porte aussi le rôle de l'ancien wrapper "content"
-  // (croissance flex + marge + troncature).
   &-title {
     display: block;
     flex: 1;
@@ -70,7 +64,6 @@
   }
 
   // ===== CHEVRON D'INDICATION =====
-  // Styles portés directement par le <svg> (plus de wrapper).
   &-chevron {
     margin-left: var(--spacing-sm);
     color: hsl(var(--color-text-tertiary));
@@ -84,15 +77,13 @@
   }
 
   // ===== DROPDOWN =====
-  // Le menu est désormais directement le <ul role="listbox"> : il porte à la fois
-  // le positionnement/l'animation (ex-wrapper) et le scroll/la scrollbar
-  // (ex-"content").
+  // Le menu porte à la fois le positionnement/l'animation (ex-wrapper) et le scroll/la scrollbar
   &-dropdown {
     position: absolute;
     top: calc(100% + var(--spacing-xs));
     left: 0;
     right: 0;
-    margin: 0; // Neutralise la marge par défaut du <ul> (désormais la boîte positionnée)
+    margin: 0; // Neutralise la marge par défaut du <ul>
     padding: var(--spacing-xs);
     max-height: 400px;
     overflow-y: auto;
@@ -181,7 +172,6 @@
   }
 
   // ===== INDICATEUR DE SÉLECTION =====
-  // Styles portés directement par le <svg> (plus de wrapper).
   &-check {
     width: var(--spacing-lg);
     height: var(--spacing-lg);
@@ -196,11 +186,6 @@
   // simple en mode useSwitcher=false qui ne s'affiche qu'à l'ouverture.
   &--collapsed {
     display: none;
-  }
-
-  // Sidebar ouverte - montrer tout
-  &--expanded {
-    // Styles par défaut déjà définis
   }
 
   // ===== RESPONSIVE =====

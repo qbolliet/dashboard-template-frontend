@@ -2,6 +2,13 @@
 // Variables partagées entre tous les sous-composants de NavigationTopBar
 // (TopbarContainer, TopbarMenu, TopbarItem, TopbarGroup, TopbarNode, TopbarGroupSection, TopbarGroupItem, TopbarToggleButton, TopbarTrigger, TopbarOverlay)
 //
+// Chaque alias reprend un token canonique header (--header-nav-*) en préfixant
+// `--topbar-` ; le motif var(--header-nav-*, <valeur-desktop>) préserve le rendu
+// desktop tout en héritant des valeurs harmonisées medium/small. Surcharger ici
+// n'affecte QUE la topbar, jamais la topbar.
+// Pour modifier à la fois la sidebar et la topbar, il faut modifier les valeurs des
+// variables dans src/features/header/_tokens.scss
+//
 // ⚠️ RÈGLE : Si une variable n'est utilisée que dans UN sous-composant, la mettre dans
 // features/header/components/NavigationTopBar/[SousComposant]/_tokens.scss
 

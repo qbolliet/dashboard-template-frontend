@@ -6,6 +6,8 @@
 // `--sidebar-` ; le motif var(--header-nav-*, <valeur-desktop>) préserve le rendu
 // desktop tout en héritant des valeurs harmonisées medium/small. Surcharger ici
 // n'affecte QUE la sidebar, jamais la topbar.
+// Pour modifier à la fois la sidebar et la topbar, il faut modifier les valeurs des
+// variables dans src/features/header/_tokens.scss
 //
 // ⚠️ RÈGLE : Si une variable n'est utilisée que dans UN sous-composant, la mettre dans
 // le _tokens.scss de ce sous-composant. Pour les couleurs, voir ./_colors.scss.

@@ -23,12 +23,12 @@
 
   // État ouvert
   &--open {
-    width: var(--sidebar-width-open); // Utilise la variable CSS responsive
+    width: var(--sidebar-width-open);
   }
 
   // État fermé/collapsé
   &--collapsed {
-    width: var(--sidebar-width-collapsed); // Utilise la variable CSS responsive
+    width: var(--sidebar-width-collapsed);
 
     // Quand il n'y a pas d'icônes, cacher complètement la sidebar
     &.navigation-sidebar--no-icons {
@@ -49,11 +49,7 @@
     flex-shrink: 0; // Empêche le header de rétrécir
   }
 
-  // Rail : centrer le contenu du header (ex. switcher). Ciblé correctement —
-  // `.navigation-sidebar--collapsed` et `.navigation-sidebar` sont la MÊME balise : on ne
-  // peut donc PAS écrire `.navigation-sidebar--collapsed &` depuis .sidebar-header (cela
-  // exigerait un ancêtre .navigation-sidebar supplémentaire et ne matcherait jamais).
-  // Placé après la règle de base pour l'emporter à spécificité égale.
+  // Rail : centrer le contenu du header
   &--collapsed .sidebar-header {
     justify-content: center;
     padding: 0 var(--spacing-sm);
@@ -162,78 +158,3 @@
     }
   }
 }
-
-// ===== STYLES GLOBAUX POUR LE DÉCALAGE DU CONTENU =====
-// Ces styles s'appliquent globalement via les classes du body
-
-// Empêcher le scroll horizontal quand la sidebar est présente
-// :global(body.sidebar-open),
-// :global(body.sidebar-collapsed) {
-//   overflow-x: hidden;
-// }
-
-// // Décalage pour le contenu quand la sidebar est ouverte
-// :global(body.sidebar-open) {
-//   // Desktop - décalage complet
-//   @include breakpoint(medium) {
-//     .main-content,
-//     .primary-header:not(.primary-header--sidebar-mode) {
-//       margin-left: 280px;
-//       transition: margin-left var(--transition-normal) ease;
-//     }
-//   }
-
-//   // Tablette - décalage réduit
-//   @include breakpoint-down(medium) {
-//     .main-content,
-//     .primary-header:not(.primary-header--sidebar-mode) {
-//       margin-left: 240px;
-//       transition: margin-left var(--transition-normal) ease;
-//     }
-//   }
-
-//   // Mobile - pas de décalage (mode overlay)
-//   @include breakpoint-down(small) {
-//     .main-content,
-//     .primary-header:not(.primary-header--sidebar-mode) {
-//       margin-left: 0;
-//     }
-//   }
-// }
-
-// // Décalage réduit quand la sidebar est collapsée
-// :global(body.sidebar-collapsed) {
-//   // Desktop - petit décalage pour les icônes
-//   @include breakpoint(medium) {
-//     .main-content,
-//     .primary-header:not(.primary-header--sidebar-mode) {
-//       margin-left: 64px;
-//       transition: margin-left var(--transition-normal) ease;
-//     }
-//   }
-
-//   // Tablette - petit décalage adapté
-//   @include breakpoint-down(medium) {
-//     .main-content,
-//     .primary-header:not(.primary-header--sidebar-mode) {
-//       margin-left: 56px;
-//       transition: margin-left var(--transition-normal) ease;
-//     }
-//   }
-
-//   // Mobile - pas de décalage
-//   @include breakpoint-down(small) {
-//     .main-content,
-//     .primary-header:not(.primary-header--sidebar-mode) {
-//       margin-left: 0;
-//     }
-//   }
-
-//   // Cas spécial : quand il n'y a pas d'icônes, pas de décalage du tout
-//   &:has(.navigation-sidebar--no-icons) {
-//     .main-content,
-//     .primary-header:not(.primary-header--sidebar-mode) {
-//       margin-left: 0 !important;
-//     }
-//   }
-// }

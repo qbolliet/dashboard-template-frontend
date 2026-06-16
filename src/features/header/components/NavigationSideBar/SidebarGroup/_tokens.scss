@@ -1,7 +1,5 @@
 // ===== TOKENS DU SIDEBARGROUP =====
 // Aucun token de dimension propre au groupe : l'ouverture/fermeture est auto-dimensionnée
-// (grid-template-rows 0fr → 1fr, cf. SidebarGroup.scss) et ne nécessite donc PAS de hauteur
-// maximale fixe — la piste 1fr se résout à la hauteur réelle du contenu, à toute profondeur.
 // Le padding du trigger (--sidebar-group-padding-*), la taille du toggle et l'indentation
 // sont des tokens partagés (voir ../_tokens.scss).
 //
