@@ -237,9 +237,6 @@
   .topbar-list > .topbar-group {
     width: 100%;
     grid-template-columns: 1fr auto;
-    // En-tête (auto) + panneau animé de 0fr à 1fr. Auto-dimensionné (la piste 1fr se résout
-    // à la hauteur réelle du panneau) → robuste à toute profondeur, homogène avec la sidebar
-    // (cf. SidebarGroup.scss). Remplace l'ancienne animation par max-height fixe.
     grid-template-rows: auto 0fr;
     transition: grid-template-rows var(--transition-slow) var(--ease-collapse);
     padding: 0;
@@ -285,9 +282,6 @@
     transform: none;
     opacity: 1;
     visibility: visible;
-    // Animation pilotée par la grille du groupe parent (cf. .topbar-list > .topbar-group) :
-    // overflow:hidden masque pendant le repli, min-height:0 autorise la piste 0fr à écraser
-    // le panneau sous sa hauteur de contenu. Plus aucune hauteur fixe.
     overflow: hidden;
     min-height: 0;
     transition: none;
@@ -297,8 +291,6 @@
     &--groups {
       flex-direction: column;
       position: relative;
-      // Respiration parent ↔ premier item = gap inter-items. Toujours présente : clippée
-      // au repli (piste 0fr + overflow:hidden), donc aucun espacement superflu replié.
       padding: var(--header-nav-separator-gap) 0 0 var(--topbar-dropdown-indent);
       gap: var(--header-nav-separator-gap);
 
@@ -316,7 +308,6 @@
   }
 
   // Groupe imbriqué : en-tête | chevron, sous-liste en dessous. Plus de séparateur vertical.
-  // Même animation par la grille que le groupe racine (homogène avec la sidebar).
   .topbar-dropdown--groups > .topbar-group {
     grid-template-columns: 1fr auto;
     grid-template-rows: auto 0fr;
@@ -349,15 +340,13 @@
     border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
   }
 
-  // Sous-liste (accordéon imbriqué) : décalage gauche + barre verticale ; enfant étiré de
-  // la grille du groupe imbriqué. min-height:0 + overflow:hidden = conditions de l'écrasement.
+  // Sous-liste (accordéon imbriqué) : décalage gauche + barre verticale ;
   .topbar-content {
     grid-column: 1 / -1;
     grid-row: 2;
     align-self: stretch;
     position: relative;
     padding-left: var(--topbar-dropdown-indent);
-    // Respiration parent ↔ premier item : toujours présente, clippée au repli (piste 0fr).
     padding-top: var(--header-nav-separator-gap);
     gap: var(--header-nav-separator-gap);
     overflow: hidden;

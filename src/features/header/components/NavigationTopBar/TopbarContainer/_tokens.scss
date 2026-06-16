@@ -74,19 +74,6 @@
   --nav-toggle-open-z-index: calc(var(--nav-mobile-z-index) + 2);  // 1052
 }
 
-// =================================================================
-// RESPONSIVE - TABLETTE (medium et moins)
-// =================================================================
-// Ajustements pour écrans tablette :
-// - Disposition du toggle de navigation
-
-// @include breakpoint-down('medium') {
-//   :root {
-//     // Position horizontale selon le viewport
-//     //--nav-toggle-position-top: var(--nav-toggle-position-right);
-//   }
-// }
-
 
 // =================================================================
 // RESPONSIVE - MOBILE (small et moins)

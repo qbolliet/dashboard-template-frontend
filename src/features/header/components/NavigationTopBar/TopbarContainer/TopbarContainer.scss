@@ -126,8 +126,8 @@
             box-shadow: -4px 0 20px hsla(var(--nav-mobile-shadow) / 0.1);
 
             // === Padding ===
-            // Vertical : place pour le bouton de fermeture fixe en haut. Horizontal :
-            // cadre de liste partagé avec la sidebar (--header-nav-list-padding-x : md/sm)
+            // Vertical : place pour le bouton de fermeture fixe en haut. 
+            // Horizontal : cadre de liste partagé avec la sidebar (--header-nav-list-padding-x : md/sm)
             // → les toggles de dropdown ne touchent plus le bord droit.
             padding-top: var(--nav-mobile-padding-top);
             padding-bottom: var(--nav-mobile-padding-bottom);

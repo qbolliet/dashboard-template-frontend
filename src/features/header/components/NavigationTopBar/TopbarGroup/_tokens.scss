@@ -47,8 +47,6 @@
   :root {
     // Décalage gauche appliqué à chaque niveau imbriqué (hiérarchie façon sidebar).
     --topbar-dropdown-indent: var(--spacing-md);  // 12px par niveau
-    // Plus de hauteur maximale fixe : l'accordéon est désormais auto-dimensionné via
-    // grid-template-rows 0fr → 1fr (cf. TopbarGroup.scss), homogène avec la sidebar.
   }
 }
 
