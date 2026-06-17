@@ -1,0 +1,27 @@
+// ===== TOKENS DU SIDEBARSWITCHER =====
+// Dimensions structurantes du sélecteur de section (logo, dropdown, icônes).
+// Propres au switcher → préfixe `--sidebar-switcher-*`. La scrollbar du dropdown réutilise
+// le mixin partagé nav-scrollbar (features/header/_nav-mixins.scss).
+// Pour les couleurs, voir features/header/_colors.scss et ../_colors.scss.
+
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  // ----- Logo du trigger -----
+  --sidebar-switcher-logo-size: var(--spacing-3xl);  // 32px (desktop)
+
+  // ----- Dropdown -----
+  // Hauteur maximale avant défilement (seuil propre au switcher, hors échelle spacing).
+  --sidebar-switcher-dropdown-max-height: 400px;
+
+  // ----- Options -----
+  --sidebar-switcher-option-icon-size: var(--spacing-lg);  // 16px
+  --sidebar-switcher-check-size: var(--spacing-lg);        // 16px : indicateur de sélection
+}
+
+// Tablette : logo plus compact.
+@include breakpoint-down('medium') {
+  :root {
+    --sidebar-switcher-logo-size: var(--spacing-2xl);  // 24px
+  }
+}

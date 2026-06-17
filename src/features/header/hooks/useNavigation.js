@@ -7,10 +7,9 @@ import { usePathname } from 'next/navigation';
  * Custom hook for managing navigation state and utilities.
  * Provides mobile menu state and useful functions for navigation components.
  * 
- * @param {Array} navigationData - Optional navigation data array, if not provided returns hook utilities only
  * @returns {Object} Object containing navigation data and functions
  */
-export const useNavigation = (navigationData = null) => {
+export const useNavigation = () => {
     // État pour gérer l'affichage du menu mobile
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     
@@ -84,6 +83,29 @@ export const useNavigation = (navigationData = null) => {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    // Gestion du défilement du body - empêche le défilement de la page quand le menu mobile est ouvert
+    // Compense la disparition de la scrollbar pour éviter le décalage horizontal du bouton toggle
+    useEffect(() => {
+        if (isMobileMenuOpen) {
+            // Calculer la largeur de la scrollbar avant de la masquer
+            const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+            
+            // Sauvegarder les styles actuels
+            const originalOverflow = window.getComputedStyle(document.body).overflow;
+            const originalPaddingRight = window.getComputedStyle(document.body).paddingRight;
+            
+            // Empêcher le défilement et compenser la largeur de la scrollbar
+            document.body.style.overflow = 'hidden';
+            document.body.style.paddingRight = `${scrollbarWidth}px`;
+            
+            // Nettoyer au démontage ou à la fermeture du menu
+            return () => {
+                document.body.style.overflow = originalOverflow;
+                document.body.style.paddingRight = originalPaddingRight;
+            };
+        }
+    }, [isMobileMenuOpen]);
 
     return {
         // Données

@@ -1,0 +1,90 @@
+// ===== TOKENS DE TOPBARCONTAINER =====
+// Variables spécifiques au conteneur de navigation et au menu mobile
+//
+// Architecture des tokens :
+// - Espacement : paddings du menu mobile
+// - Positionnement : positions du toggle mobile
+// - Dimensions : largeurs du menu mobile selon les breakpoints
+// - Animations : durées et timing des transitions
+// - Z-index : superposition des couches du conteneur, menu et toggle
+//
+// Pour les couleurs, voir features/header/_colors.scss
+//
+// Notes d'organisation :
+// - Les tokens sont organisés par catégorie fonctionnelle
+// - Tous les espacements utilisent les tokens globaux de typography.scss
+// - Les valeurs responsive sont définies pour chaque breakpoint
+
+// Importation des breakpoints
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  // =================================================================
+  // POSITIONNEMENT DU TOGGLE MOBILE
+  // =================================================================
+
+  // ----- Position du bouton hamburger -----
+  // Position verticale centrée du toggle
+  --topbar-toggle-position-top: 50%;
+
+  // Position horizontale selon le viewport
+  --topbar-toggle-position-right: var(--spacing-lg);  // 16px - Tablette et plus
+
+  // =================================================================
+  // DIMENSIONS DU MENU MOBILE
+  // =================================================================
+
+  // ----- Largeur du tiroir -----
+  // Réutilise la largeur de tiroir PARTAGÉE avec la sidebar (280px tablette, 100vw mobile).
+  // Surchargeable ici sans impacter la sidebar ; pilotée en JS lors du redimensionnement.
+  --topbar-drawer-width: var(--nav-drawer-width);
+
+  // ----- Padding interne du menu mobile -----
+  // Espacement supérieur : doit laisser de la place pour le bouton de fermeture fixe
+  --topbar-drawer-padding-top: calc(var(--spacing-6xl) + var(--spacing-lg));  // 56px + 16px = 72px
+
+  // Espacement latéral
+  --topbar-drawer-padding-x: var(--spacing-lg);  // 16px
+
+  // Espacement inférieur
+  --topbar-drawer-padding-bottom: var(--spacing-xl);  // 20px
+
+  // =================================================================
+  // ANIMATIONS
+  // =================================================================
+
+  // ----- Transitions du menu mobile -----
+  // Durée de l'animation de slide in/out
+  --topbar-drawer-transition-duration: var(--transition-normal);  // 0.2s
+
+  // Durée de l'animation d'apparition du bouton
+  --topbar-toggle-transition-duration: var(--transition-fast); // 0.1s
+
+  // =================================================================
+  // Z-INDEX
+  // =================================================================
+
+  // ----- Superposition des couches -----
+  // Conteneur principal de navigation
+  --topbar-container-z-index: var(--z-fixed);  // 1030
+
+  // Toggle mobile (menu fermé) - au-dessus du menu mobile
+  --topbar-toggle-z-index: calc(var(--topbar-drawer-z-index) + 1);  // 1051
+
+  // Toggle mobile (menu ouvert) - doit être au-dessus de tout
+  --topbar-toggle-open-z-index: calc(var(--topbar-drawer-z-index) + 2);  // 1052
+}
+
+
+// =================================================================
+// RESPONSIVE - MOBILE (small et moins)
+// =================================================================
+// Ajustements pour écrans mobiles :
+// - Disposition du toggle de navigation
+
+@include breakpoint-down('small') {
+  :root {
+    // Position horizontale selon le viewport
+    --topbar-toggle-position-right: var(--spacing-md);  // 12px - Petits écrans
+  }
+}

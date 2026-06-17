@@ -1,0 +1,61 @@
+// ===== TOKENS DE TOPBARGROUP =====
+// Variables propres au dropdown de la topbar (panneau, groupes, sous-listes).
+//
+// Ce qui est mutualisé vit ailleurs :
+// - padding des liens / en-têtes, taille du toggle → ../_tokens.scss (--topbar-*) ;
+// - couleur / graisse de base, font-size, radius, transition, hover/focus/active →
+//   classe de rôle .nav-link (features/header/nav-base.scss) ;
+// - couleurs → features/header/_colors.scss (tokens --nav-dropdown-*).
+//
+// Les valeurs responsive sont dans les media queries en fin de fichier.
+
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  // =================================================================
+  // PANNEAU DROPDOWN (le <ul> qui remplace l'ancien wrapper .nav-dropdown)
+  // =================================================================
+  --topbar-dropdown-min-width: 220px;                          // largeur min desktop
+  --topbar-dropdown-translate-y: calc(var(--spacing-sm) * -1); // -8px : animation desktop
+  --topbar-dropdown-padding-y: var(--spacing-sm);              // 8px (cadre du panneau)
+  --topbar-dropdown-padding-x: 0;
+  --topbar-dropdown-border-radius: var(--border-radius-lg);    // 8px (panneau desktop)
+
+  // Espacement entre feuilles (gap des listes/sous-listes au desktop).
+  --topbar-dropdown-content-gap: var(--spacing-sm);  // 8px
+
+  // Padding d'un groupe (cellule) au desktop.
+  --topbar-dropdown-group-padding: var(--spacing-md);  // 12px
+
+  // =================================================================
+  // TYPOGRAPHIE — GRAISSES SPÉCIFIQUES (couleur/graisse = versant par niveau)
+  // =================================================================
+  --topbar-link-weight: 400;                  // feuilles (normal)
+  --topbar-link-weight-active: 500;           // feuille active
+  --topbar-group-header-weight: 600;          // en-tête de groupe imbriqué (semi-bold)
+
+  // =================================================================
+  // LAYOUT
+  // =================================================================
+  --topbar-dropdown-z-index: var(--z-dropdown);  // 1000
+}
+
+// =================================================================
+// RESPONSIVE - TABLETTE (medium et moins) : mode accordéon
+// =================================================================
+@include breakpoint-down('medium') {
+  :root {
+    // Décalage gauche appliqué à chaque niveau imbriqué (hiérarchie façon sidebar).
+    --topbar-dropdown-indent: var(--spacing-md);  // 12px par niveau
+  }
+}
+
+// =================================================================
+// RESPONSIVE - MOBILE (small et moins)
+// =================================================================
+@include breakpoint-down('small') {
+  :root {
+    // Rendu centré épuré façon sidebar : plus d'indentation par niveau.
+    --topbar-dropdown-indent: 0;
+  }
+}

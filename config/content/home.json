@@ -1,0 +1,60 @@
+{
+  "hero": {
+    "title": "Titre",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+    "ctaButton": {
+      "text": "Découvrir",
+      "link": "/indicator"
+    },
+    "backgroundImage": "/images/hero/hero-background.svg"
+  },
+  "cards": [
+    {
+      "id": "card-1",
+      "image": "/images/cards/geometric-pattern.svg",
+      "title": "Analytics Dashboard",
+      "description": "Visualisez vos données avec des graphiques interactifs et des métriques en temps réel pour prendre des décisions éclairées.",
+      "link": "/analytics"
+    },
+    {
+      "id": "card-2", 
+      "image": "/images/cards/data-visualization.svg",
+      "title": "Modèles Prédictifs",
+      "description": "Explorez nos modèles de machine learning pour anticiper les tendances et optimiser vos stratégies business.",
+      "link": "/predictions"
+    },
+    {
+      "id": "card-3",
+      "image": "/images/cards/network-nodes.svg", 
+      "title": "Analyse de Réseau",
+      "description": "Découvrez les connexions cachées dans vos données avec notre système d'analyse de réseau avancé.",
+      "link": "/network"
+    },
+    {
+      "id": "card-4",
+      "image": "/images/cards/geometric-pattern.svg",
+      "title": "Tableaux de Bord",
+      "description": "Créez et personnalisez vos tableaux de bord pour suivre les KPIs qui comptent vraiment pour votre activité.", 
+      "link": "/dashboards"
+    },
+    {
+      "id": "card-5",
+      "image": "/images/cards/data-visualization.svg",
+      "title": "Rapports Automatisés",
+      "description": "Générez automatiquement des rapports détaillés et partagez-les avec votre équipe en quelques clics.",
+      "link": "/reports"
+    },
+    {
+      "id": "card-6",
+      "image": "/images/cards/network-nodes.svg",
+      "title": "Intelligence Artificielle",
+      "description": "Intégrez l'IA dans vos processus métier pour automatiser les tâches complexes et gagner en efficacité.",
+      "link": "/ai"
+    }
+  ],
+  "cardsSection": {
+    "cardsPerRow": 3,
+    "title": "Nos Solutions",
+    "description": "Découvrez notre gamme complète d'outils d'analyse et de visualisation de données"
+  }
+}

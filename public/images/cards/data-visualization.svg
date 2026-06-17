@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <defs>
+    <linearGradient id="dataGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:hsl(209, 100%, 50%);stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:hsl(211, 100%, 73%);stop-opacity:0.6" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect x="20" y="20" width="160" height="160" rx="20" fill="url(#dataGrad)" opacity="0.1"/>
+  
+  <!-- Chart bars -->
+  <g fill="hsl(209, 100%, 50%)" opacity="0.7">
+    <rect x="40" y="120" width="20" height="50" rx="2"/>
+    <rect x="70" y="90" width="20" height="80" rx="2"/>
+    <rect x="100" y="60" width="20" height="110" rx="2"/>
+    <rect x="130" y="100" width="20" height="70" rx="2"/>
+    <rect x="160" y="80" width="20" height="90" rx="2"/>
+  </g>
+  
+  <!-- Data points and connecting line -->
+  <g stroke="hsl(211, 100%, 73%)" stroke-width="2" fill="hsl(211, 100%, 73%)" opacity="0.8">
+    <path d="M 45,115 L 75,85 L 105,55 L 135,95 L 165,75" fill="none"/>
+    <circle cx="45" cy="115" r="4"/>
+    <circle cx="75" cy="85" r="4"/>
+    <circle cx="105" cy="55" r="4"/>
+    <circle cx="135" cy="95" r="4"/>
+    <circle cx="165" cy="75" r="4"/>
+  </g>
+  
+  <!-- Grid lines -->
+  <g stroke="hsl(209, 100%, 50%)" stroke-width="1" opacity="0.2">
+    <line x1="30" y1="170" x2="170" y2="170"/>
+    <line x1="30" y1="140" x2="170" y2="140"/>
+    <line x1="30" y1="110" x2="170" y2="110"/>
+    <line x1="30" y1="80" x2="170" y2="80"/>
+    <line x1="30" y1="50" x2="170" y2="50"/>
+  </g>
+  
+  <!-- Axes -->
+  <g stroke="hsl(209, 100%, 50%)" stroke-width="2" opacity="0.6">
+    <line x1="30" y1="170" x2="170" y2="170"/>
+    <line x1="30" y1="170" x2="30" y2="50"/>
+  </g>
+</svg>

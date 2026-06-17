@@ -1,0 +1,191 @@
+// =================================================================
+// SIDEBAR GROUP — groupe collapsible de la sidebar
+// =================================================================
+// Structure : <li.nav-row.sidebar-group>
+//   <a|button.nav-link.nav-link--parent.sidebar-group-header> <span.nav-text.sidebar-text>
+//   <button.nav-toggle.sidebar-toggle> <svg.sidebar-toggle-icon>
+//   <ul.sidebar-group-content> … (SidebarNode récursif) …
+//
+// Style commun (couleur/font-size/radius/transition + padding parent + boilerplate toggle)
+// : classes de rôle (features/header/nav-base.scss). Resets + séparateurs : mixins.
+//
+// Tokens : ./_tokens.scss, ../_tokens.scss. Couleurs : ../_colors.scss.
+
+@use '../../../../../styles/utils/breakpoints' as *;
+@use '../../../nav-mixins' as *;
+@use '../tokens' as *;   // Tokens partagés sidebar (--sidebar-toggle-size, paddings, indent…) — émet leur :root
+@use './tokens' as *;    // Placeholder : aucun token de dimension propre (animation auto-dimensionnée)
+@use '../colors' as *;
+
+// ===== CONTENEUR (li, grille en-tête + contenu) =====
+.sidebar-group {
+  grid-template-columns: 1fr auto;  // trigger | chevron
+  // En-tête (auto) + contenu animé de 0fr à 1fr (hauteur RÉELLE du contenu, robuste à
+  // toute profondeur d'imbrication). Animation MUTUALISÉE avec l'accordéon de la topbar
+  // via le mixin (cf. features/header/_nav-mixins.scss)
+  @include nav-collapse-rows('.sidebar-group--expanded');
+
+  // ----- Survol unifié de la ligne d'en-tête (pilule en-tête + chevron) -----
+  // Mutualisé avec la topbar via le mixin (cf. features/header/_nav-mixins.scss).
+  @include nav-group-hover-pill('.sidebar-group-header', '.sidebar-toggle');
+
+  // Sur-highlight plus marqué au survol DIRECT du chevron (l'emporte, même spécificité).
+  &:has(> .sidebar-toggle:hover) > .sidebar-toggle {
+    background-color: hsl(var(--sidebar-chevron-hover-bg) / 0.5);
+    color: hsl(var(--sidebar-chevron-hover-color));
+  }
+}
+
+// ===== TRIGGER / EN-TÊTE DU GROUPE =====
+.sidebar-group-header {
+  // Padding alimentant la facette .nav-link--parent (padding-y dérivé → hauteur = toggle).
+  --nav-parent-pad-y: var(--sidebar-group-padding-y);
+  --nav-parent-pad-x: var(--sidebar-group-padding-x);
+
+  grid-column: 1;
+  grid-row: 1;
+  gap: var(--spacing-sm);            // espacement icône / texte
+  background-color: transparent;
+  border: 1px solid transparent;
+  // Arrondi à gauche uniquement : continuité visuelle avec le chevron à droite.
+  border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);
+  cursor: pointer;
+  text-align: left;
+  // Couleur de base = niveaux imbriqués (secondaire) ; le niveau 0 repasse en primaire.
+  color: hsl(var(--color-text-secondary));
+  font-weight: 500;
+
+  // Focus façon sidebar : bordure (et non l'outline de la classe de rôle).
+  &:focus {
+    outline: none;
+    border-color: hsl(var(--color-focus));
+  }
+
+  &--active {
+    background-color: hsl(var(--nav-link-active-bg));
+    color: hsl(var(--nav-link-active-color));
+    // Liseré = couleur du texte actif (cohérent avec la classe de rôle .nav-link--active).
+    border-color: currentColor;
+  }
+
+  &[href] {
+    text-decoration: none;
+  }
+
+  // Sidebar collapsée : pas de chevron → arrondi complet.
+  .sidebar-group--sidebar-collapsed & {
+    border-radius: var(--border-radius-md);
+  }
+}
+
+// Niveau racine : couleur primaire.
+.sidebar-group--level-0 > .sidebar-group-header {
+  color: hsl(var(--nav-link-color));
+
+  &.sidebar-group-header--active {
+    color: hsl(var(--nav-link-active-color));
+  }
+}
+
+// ===== CHEVRON (bouton d'ouverture) =====
+.sidebar-toggle {
+  grid-column: 2;
+  grid-row: 1;
+  // Largeur fixe + hauteur étirée sur toute la ligne d'en-tête.
+  width: var(--sidebar-toggle-size);
+  align-self: stretch;
+  margin: 0;
+  flex-shrink: 0;
+  // Arrondi à droite uniquement : continuité avec le trigger.
+  border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+}
+
+// ===== ICÔNE DU CHEVRON =====
+.sidebar-toggle-icon {
+  // Taille fixe, volontairement petite, indépendante du bouton.
+  width: var(--sidebar-toggle-icon-size);
+  height: var(--sidebar-toggle-icon-size);
+  transition: transform var(--transition-normal) ease;
+
+  .sidebar-group--expanded > .sidebar-toggle & {
+    transform: rotate(90deg);
+  }
+}
+
+// ===== ICÔNE / TEXTE DU GROUPE (collapsé) =====
+// La base (.sidebar-icon / .sidebar-text + facette .nav-text) est partagée avec l'item ;
+// ici on ne gère que le masquage propre à l'état collapsé du GROUPE.
+.sidebar-group--sidebar-collapsed {
+  .sidebar-icon {
+    width: var(--sidebar-icon-size-collapsed);
+    height: var(--sidebar-icon-size-collapsed);
+  }
+
+  .sidebar-text {
+    display: none;
+  }
+}
+
+// ===== CONTENU COLLAPSIBLE (ul) =====
+.sidebar-group-content {
+  grid-column: 1 / -1;
+  grid-row: 2;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--sidebar-content-gap);
+  // Indentation uniforme par niveau (se compose avec la profondeur).
+  padding-left: var(--sidebar-content-indent);
+  // Respiration <ul> ↔ parent = gap inter-items (premier item à la même distance du
+  // parent que les items entre eux). Toujours appliquée : elle est clippée quand le
+  // groupe est replié (piste 0fr + overflow:hidden du mixin ci-dessous).
+  padding-top: var(--sidebar-content-gap);
+  position: relative;
+
+  // --- Animation pilotée par la piste de grille du parent (cf. .sidebar-group) ---
+  // Panneau écrasable mutualisé avec la topbar (overflow/min-height/align-self).
+  @include nav-collapse-panel;
+
+  // Fondu synchronisé (le dimensionnement, lui, est géré par la grille du parent).
+  // Combinateur ENFANT (`>`) impératif : sans lui, un sous-groupe replié hériterait de
+  // l'état déplié de son ancêtre. `> &` ne cible que le contenu DIRECT du groupe concerné.
+  opacity: 0;
+  transition: opacity var(--transition-fast) ease;
+
+  .sidebar-group--expanded > & {
+    opacity: 1;
+  }
+
+  // Barre verticale grise indiquant la hiérarchie (mutualisée avec la topbar).
+  @include nav-hierarchy-line;
+
+  // Mobile : séparateurs gris centrés (façon topbar) + suppression de l'indentation.
+  @include breakpoint-down('small') {
+    padding-left: 0;
+    gap: 0;
+    @include nav-mobile-separator;
+  }
+}
+
+// ===== RESPONSIVE — MOBILE =====
+@include breakpoint-down('small') {
+  .sidebar-group-header {
+    // Texte centré, padding gauche compensant le chevron à droite (centrage visuel).
+    justify-content: center;
+    text-align: center;
+    --nav-parent-pad-x-left: calc(var(--sidebar-group-padding-x) + var(--sidebar-toggle-size));
+  }
+}
+
+// =================================================================
+// ACCESSIBILITÉ — RÉDUCTION DES ANIMATIONS
+// =================================================================
+// Pendant identique à la topbar (cf. TopbarGroup.scss) : on coupe l'animation de
+// hauteur (grille), le fondu du contenu et la rotation du chevron.
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-group,
+  .sidebar-group-content,
+  .sidebar-toggle-icon {
+    transition: none;
+  }
+}

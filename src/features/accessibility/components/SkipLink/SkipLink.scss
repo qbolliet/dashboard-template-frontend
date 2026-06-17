@@ -1,0 +1,44 @@
+@use '@/styles/globals/typography.scss' as *;
+
+/**
+ * SkipLink - Lien pour sauter la navigation
+ *
+ * Visible uniquement au focus clavier pour permettre aux utilisateurs
+ * de naviguer rapidement au contenu principal.
+ */
+
+.skip-link {
+  // Positionne le lien en haut à gauche
+  position: fixed;
+  top: var(--spacing-sm);
+  left: var(--spacing-sm);
+  z-index: var(--z-tooltip);
+
+  // Masque le lien par défaut (hors écran)
+  transform: translateY(-200%);
+
+  // Styles visuels
+  padding: var(--spacing-md) var(--spacing-xl);
+  background-color: hsl(var(--color-primary));
+  color: hsl(var(--color-primary-contrast));
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+
+  // Transition smooth pour l'apparition
+  transition: transform var(--transition-normal) ease-in-out;
+
+  // Rend le lien visible au focus
+  &:focus {
+    transform: translateY(0);
+    outline: 2px solid hsl(var(--color-focus));
+    outline-offset: 2px;
+  }
+
+  // État hover (visible seulement si déjà focus)
+  &:focus:hover {
+    background-color: hsl(var(--color-primary-hover));
+  }
+}

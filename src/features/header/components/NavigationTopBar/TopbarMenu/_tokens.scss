@@ -1,0 +1,21 @@
+// ===== TOKENS DE TOPBARMENU =====
+// Variables spécifiques à la liste de navigation principale de la topbar.
+//
+// CONVENTION : ces tokens sont PROPRES à la topbar → préfixe `--topbar-*`.
+// L'espacement vertical entre entrées sur medium/small est PARTAGÉ avec la sidebar
+// (--nav-list-gap, défini dans features/header/_tokens.scss) ; seul le gap HORIZONTAL
+// du desktop est singulier à la topbar (--topbar-menu-gap ci-dessous).
+//
+// Pour les couleurs, voir features/header/_colors.scss
+// Pour les propriétés communes de navigation, voir ../_tokens.scss
+
+:root {
+  // ----- Gap horizontal entre les liens au desktop (liste horizontale) -----
+  // Singulier à la topbar : sur medium/small, le gap vertical vient de --nav-list-gap.
+  --topbar-menu-gap: var(--spacing-md);
+
+  // ----- Alignement des éléments / du texte (utilisés sur mobile uniquement) -----
+  // Sur desktop, l'alignement est géré par le layout horizontal.
+  --topbar-menu-align: center;
+  --topbar-menu-text-align: center;
+}

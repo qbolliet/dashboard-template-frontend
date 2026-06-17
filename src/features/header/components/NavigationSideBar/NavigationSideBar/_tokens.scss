@@ -1,0 +1,30 @@
+// ===== TOKENS DU CONTENEUR NAVIGATIONSIDEBAR =====
+// Dimensions propres au conteneur de la sidebar (largeurs).
+// Pour les tokens partagés entre sous-composants, voir ../_tokens.scss.
+// Le rail de redimensionnement utilise la classe de rôle .nav-rail (nav-base.scss) et
+// le token partagé --nav-rail-width ; ses bornes sont --nav-drawer-width-min/max.
+
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  // ===== LARGEURS =====
+  // Largeur ouverte = largeur de tiroir PARTAGÉE avec la topbar (280px desktop/tablette,
+  // 100vw mobile) ; pilotée en JS lors du redimensionnement (cf. hook useResizable).
+  --sidebar-width-open: var(--nav-drawer-width);
+  --sidebar-width-collapsed: 64px;
+}
+
+// ===== RESPONSIVE =====
+// Tablette : seul l'état collapsé (rail) est plus étroit ; l'état ouvert suit --nav-drawer-width.
+@include breakpoint-down('medium') {
+  :root {
+    --sidebar-width-collapsed: 56px;
+  }
+}
+
+// Mobile : tiroir pleine largeur (via --nav-drawer-width) ; plus de rail collapsé.
+@include breakpoint-down('small') {
+  :root {
+    --sidebar-width-collapsed: 0px;
+  }
+}

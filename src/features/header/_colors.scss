@@ -1,0 +1,115 @@
+// ===== TOKENS DE COULEURS DE LA FEATURE HEADER =====
+// Couleurs partagées entre plusieurs composants du header
+//
+// ⚠️ RÈGLE : Si une couleur n'est utilisée que dans UN composant, la mettre dans
+// features/header/components/[Composant]/_colors.scss
+
+:root {
+  // ===== NAVIGATION GÉNÉRALE =====
+  --nav-link-color: var(--color-text-primary);
+  --nav-link-hover-color: var(--color-text-primary);
+  --nav-link-hover-bg: var(--color-gray-100);
+  --nav-link-focus-color: var(--color-primary-500);
+  --nav-link-active-color: var(--color-primary-500);
+  --nav-link-active-bg: var(--color-primary-50);
+  --nav-link-active-child-color: var(--color-primary-600);
+  --nav-link-active-child-bg: var(--color-primary-50);
+
+  // ===== NAVIGATION MOBILE & OVERLAY =====
+  // --topbar-drawer-bg / --topbar-drawer-shadow / --topbar-overlay-bg : spécifiques à la
+  // topbar (tiroir coulissant + overlay). --nav-mobile-separator reste partagé (séparateurs
+  // gris centrés en small, utilisés par les DEUX navigations via le mixin nav-mobile-separator).
+  --topbar-drawer-bg: var(--color-surface);
+  --topbar-drawer-shadow: 0 0% 0%;  // Pour box-shadow avec alpha
+  --nav-mobile-separator: var(--color-border);
+  --topbar-overlay-bg: 0 0% 0%;     // Pour overlay avec alpha
+
+  // ===== HAMBURGER MENU =====
+  --nav-hamburger-color: var(--color-text-primary);
+  --nav-hamburger-bg-hover: var(--color-gray-100);
+  --nav-hamburger-border-focus: var(--color-gray-400);
+
+  // ===== DROPDOWN NAVIGATION =====
+  // Le dropdown utilise la surface (même fond que la navigation principale).
+  --nav-dropdown-bg: var(--color-surface);
+  --nav-dropdown-border: var(--color-border);
+  --nav-dropdown-shadow: 0 0% 0%;  // Pour box-shadow avec alpha
+  --nav-dropdown-mobile-bg: var(--color-gray-50);
+  --nav-dropdown-separator: var(--color-border);
+
+  // ===== LIGNE DE HIÉRARCHIE (barre verticale des niveaux imbriqués) =====
+  // Token UNIQUE partagé sidebar ⇄ topbar (accordéon medium/small + sidebar).
+  --nav-hierarchy-line-color: var(--color-border);
+
+  // ===== DROPDOWN - LIENS PRINCIPAUX =====
+  --nav-dropdown-link-color: var(--color-text-tertiary);
+  --nav-dropdown-link-hover-color: var(--color-text-secondary);
+  --nav-dropdown-link-hover-bg: var(--color-gray-50);
+  --nav-dropdown-link-active-color: var(--color-primary-500);
+  --nav-dropdown-link-active-bg: var(--color-primary-50);
+
+  // ===== DROPDOWN - GROUP HEADERS =====
+  --nav-dropdown-group-header-color: var(--color-text-secondary);
+  --nav-dropdown-group-header-hover-color: var(--color-text-secondary);
+  --nav-dropdown-group-header-hover-bg: var(--color-gray-50);
+  --nav-dropdown-group-header-active-color: var(--color-primary-500);
+  --nav-dropdown-group-header-active-bg: var(--color-primary-50);
+
+  // ===== DROPDOWN - SUBLINKS =====
+  --nav-dropdown-sublink-color: var(--color-text-tertiary);
+  --nav-dropdown-sublink-hover-color: var(--color-text-secondary);
+  --nav-dropdown-sublink-hover-bg: var(--color-gray-50);
+  --nav-dropdown-sublink-active-color: var(--color-primary-500);
+  --nav-dropdown-sublink-active-bg: var(--color-primary-50);
+
+  // ===== LOGO FILTER =====
+  // Invert en mode clair pour les logos sombres
+  --logo-filter: invert(100%);
+}
+
+// ===== THÈME SOMBRE =====
+[data-theme="dark"] {
+  // ===== NAVIGATION GÉNÉRALE =====
+  --nav-link-color: var(--color-text-secondary);
+  --nav-link-hover-color: var(--color-white);
+  --nav-link-hover-bg: var(--color-gray-200);
+  --nav-link-active-color: var(--color-white);
+  --nav-link-active-bg: 211 80% 20%;     // Bleu sombre pour l'état actif
+  --nav-link-active-child-bg: 211 80% 15%; // Encore plus sombre pour les enfants actifs
+
+  // ===== NAVIGATION MOBILE =====
+  --topbar-drawer-bg: var(--color-surface);
+  --nav-mobile-separator: var(--color-gray-300);
+  --nav-hamburger-color: var(--color-text-primary);
+  --nav-hamburger-bg-hover: var(--color-gray-300);
+
+  // ===== DROPDOWN NAVIGATION =====
+  --nav-dropdown-bg: var(--color-surface);
+  --nav-dropdown-border: var(--color-gray-300);
+  --nav-dropdown-mobile-bg: var(--color-gray-200);
+  --nav-dropdown-separator: var(--color-gray-300);
+  --nav-hierarchy-line-color: var(--color-gray-300);
+
+  // ===== DROPDOWN - LIENS =====
+  --nav-dropdown-link-color: var(--color-text-tertiary);
+  --nav-dropdown-link-hover-color: var(--color-text-secondary);
+  --nav-dropdown-link-hover-bg: var(--color-gray-200);
+  --nav-dropdown-link-active-bg: 211 80% 20%;
+
+  // ===== DROPDOWN - GROUP HEADERS =====
+  --nav-dropdown-group-header-color: var(--color-text-tertiary);
+  --nav-dropdown-group-header-hover-color: var(--color-white);
+  --nav-dropdown-group-header-hover-bg: var(--color-gray-200);
+  --nav-dropdown-group-header-active-color: var(--color-gray-400);
+  --nav-dropdown-group-header-active-bg: var(--color-gray-200);
+
+  // ===== DROPDOWN - SUBLINKS =====
+  --nav-dropdown-sublink-color: var(--color-text-tertiary);
+  --nav-dropdown-sublink-hover-color: var(--color-text-secondary);
+  --nav-dropdown-sublink-hover-bg: var(--color-gray-200);
+  --nav-dropdown-sublink-active-bg: 211 80% 20%;
+
+  // ===== LOGO FILTER =====
+  // Pas de filtre en mode sombre
+  --logo-filter: none;
+}

@@ -1,0 +1,45 @@
+// =================================================================
+// SIDEBAR MENU — zone scrollable + liste de 1er niveau
+// =================================================================
+// .sidebar-menu : <nav> scrollable. .sidebar-list : <ul> de 1er niveau.
+// Les niveaux imbriqués sont rendus par SidebarGroup (.sidebar-group-content), pas par
+// une récursion de SidebarMenu → ce composant est toujours de niveau 0.
+//
+// Resets + séparateurs mobiles : mixins (features/header/_nav-mixins.scss).
+// Tokens : ../_tokens.scss, features/header/_tokens.scss. Couleurs : ../_colors.scss.
+
+@use '../../../../../styles/utils/breakpoints' as *;
+@use '../../../nav-mixins' as *;
+@use '../tokens' as *;   // Tokens partagés sidebar (--sidebar-list-gap, etc.) — émet leur :root
+@use '../colors' as *;
+
+// ===== ZONE SCROLLABLE =====
+.sidebar-menu {
+  flex: 1;                       // prend tout l'espace restant
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;  // évite la propagation du scroll à la page
+  padding: var(--spacing-md) 0;
+
+  // Scrollbar personnalisée (mixin partagé avec le dropdown du switcher).
+  @include nav-scrollbar(var(--sidebar-scrollbar-thumb), var(--sidebar-scrollbar-thumb-hover));
+
+  &:empty {
+    display: none;
+  }
+}
+
+// ===== LISTE DE 1ER NIVEAU (UL) =====
+.sidebar-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sidebar-list-gap);
+  // Cadre horizontal partagé avec la topbar (lg / md / sm selon l'écran).
+  padding: 0 var(--nav-list-padding-x);
+
+  // Mobile : séparateurs gris centrés à la place du gap.
+  @include breakpoint-down('small') {
+    gap: 0;
+    @include nav-mobile-separator;
+  }
+}

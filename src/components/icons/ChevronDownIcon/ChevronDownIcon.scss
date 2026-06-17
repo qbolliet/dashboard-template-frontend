@@ -1,0 +1,81 @@
+// ===== CHEVRON DOWN ICON =====
+// Icône de chevron pointant vers le bas avec styles du système de design
+
+.chevron-down-icon {
+    // Affichage et flexibilité
+    display: inline-block;
+    flex-shrink: 0;
+    
+    // Couleur hérite du parent
+    color: currentColor;
+    
+    // Transition pour les animations
+    transition: transform var(--transition-normal) ease;
+    transform-origin: center center;
+    
+    // Assurer un rendu net
+    vertical-align: middle;
+    
+    // ===== VARIATIONS DE TAILLE =====
+    
+    // Petite taille (navigation mobile, boutons compacts)
+    &--small {
+        width: var(--spacing-md); // 12px
+        height: var(--spacing-md); // 12px
+    }
+    
+    // Taille normale (navigation desktop)
+    &--normal {
+        width: var(--spacing-lg); // 16px
+        height: var(--spacing-lg); // 16px
+    }
+    
+    // Grande taille (boutons principaux)
+    &--large {
+        width: var(--spacing-xl); // 20px
+        height: var(--spacing-xl); // 20px
+    }
+    
+    // ===== ÉTATS D'INTERACTION =====
+    
+    // État survolé (si le parent est hoverable)
+    &--hoverable {
+        &:hover {
+            transform: scale(1.1);
+        }
+    }
+    
+    // État rotaté (pour les dropdowns ouverts)
+    &--rotated {
+        transform: rotate(180deg);
+    }
+    
+    // État rotaté avec hover
+    &--rotated.chevron-down-icon--hoverable {
+        &:hover {
+            transform: rotate(180deg) scale(1.1);
+        }
+    }
+    
+    // ===== VARIATIONS DE COULEUR =====
+    
+    // Couleur primaire (navigation active)
+    &--primary {
+        color: hsl(var(--color-primary-500));
+    }
+    
+    // Couleur secondaire (navigation normale)
+    &--secondary {
+        color: hsl(var(--color-text-secondary));
+    }
+    
+    // Couleur tertiaire (navigation inactive)
+    &--tertiary {
+        color: hsl(var(--color-text-tertiary));
+    }
+    
+    // ===== SUPPORT POUR REDUCED MOTION =====
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+}

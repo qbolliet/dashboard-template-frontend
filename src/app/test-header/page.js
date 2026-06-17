@@ -25,56 +25,54 @@ export default function TestHeaderPage() {
 
     return (
         <ThemeProvider>
-            <div className="test-page">
-                {/* Header avec les données de navigation_new.json */}
-                <Header 
-                    navigationData={navigationData.architecture}
-                    onNavigationItemClick={handleNavigationClick}
-                />
-                
-                {/* Contenu de test pour voir le header en action */}
-                <main className="test-content">
-                    <div className="container">
-                        <h1>Page de test du Header</h1>
-                        <p>
-                            Cette page utilise le fichier <code>navigation_new.json</code> pour tester 
-                            le composant Header avec différentes structures de navigation.
-                        </p>
+            {/* Header avec les données de navigation_new.json */}
+            <Header 
+                navigationData={navigationData.main_menu}
+                onNavigationItemClick={handleNavigationClick}
+            />
+            
+            {/* Contenu de test pour voir le header en action */}
+            <main className="test-content">
+                <div className="container">
+                    <h1>Page de test du Header</h1>
+                    <p>
+                        Cette page utilise le fichier <code>navigation_new.json</code> pour tester 
+                        le composant Header avec différentes structures de navigation.
+                    </p>
+                    
+                    <div className="test-sections">
+                        <section className="test-section">
+                            <h2>Fonctionnalités testées</h2>
+                            <ul>
+                                <li>✅ Navigation avec données en props</li>
+                                <li>✅ Menu mobile responsive</li>
+                                <li>✅ Dropdowns multi-niveaux</li>
+                                <li>✅ Barre de recherche avec suggestions</li>
+                                <li>✅ Toggle de thème clair/sombre</li>
+                                <li>✅ Accessibilité (ARIA, navigation clavier)</li>
+                            </ul>
+                        </section>
                         
-                        <div className="test-sections">
-                            <section className="test-section">
-                                <h2>Fonctionnalités testées</h2>
-                                <ul>
-                                    <li>✅ Navigation avec données en props</li>
-                                    <li>✅ Menu mobile responsive</li>
-                                    <li>✅ Dropdowns multi-niveaux</li>
-                                    <li>✅ Barre de recherche avec suggestions</li>
-                                    <li>✅ Toggle de thème clair/sombre</li>
-                                    <li>✅ Accessibilité (ARIA, navigation clavier)</li>
-                                </ul>
-                            </section>
-                            
-                            <section className="test-section">
-                                <h2>Structure de navigation testée</h2>
-                                <pre className="code-block">
-                                    {JSON.stringify(navigationData.architecture, null, 2)}
-                                </pre>
-                            </section>
-                            
-                            <section className="test-section">
-                                <h2>Instructions de test</h2>
-                                <ol>
-                                    <li>Testez le menu mobile en redimensionnant la fenêtre</li>
-                                    <li>Cliquez sur les éléments avec sous-menus</li>
-                                    <li>Testez la barre de recherche avec du texte</li>
-                                    <li>Basculez entre les thèmes clair/sombre</li>
-                                    <li>Vérifiez la navigation avec le clavier (Tab, Entrée, Échap)</li>
-                                </ol>
-                            </section>
-                        </div>
+                        <section className="test-section">
+                            <h2>Structure de navigation testée</h2>
+                            <pre className="code-block">
+                                {JSON.stringify(navigationData.architecture, null, 2)}
+                            </pre>
+                        </section>
+                        
+                        <section className="test-section">
+                            <h2>Instructions de test</h2>
+                            <ol>
+                                <li>Testez le menu mobile en redimensionnant la fenêtre</li>
+                                <li>Cliquez sur les éléments avec sous-menus</li>
+                                <li>Testez la barre de recherche avec du texte</li>
+                                <li>Basculez entre les thèmes clair/sombre</li>
+                                <li>Vérifiez la navigation avec le clavier (Tab, Entrée, Échap)</li>
+                            </ol>
+                        </section>
                     </div>
-                </main>
-            </div>
+                </div>
+            </main>
             
             <style jsx>{`
                 .test-page {
@@ -144,24 +142,8 @@ export default function TestHeaderPage() {
                     font-size: 0.875rem;
                 }
                 
-                /* Variables CSS pour les thèmes */
-                :root {
-                    --bg-color: #ffffff;
-                    --text-color: #333333;
-                    --heading-color: #1a1a1a;
-                    --card-bg: #f8f9fa;
-                    --border-color: #e5e5e5;
-                    --code-bg: #f1f3f4;
-                }
-                
-                [data-theme="dark"] {
-                    --bg-color: #1a1a1a;
-                    --text-color: #e5e5e5;
-                    --heading-color: #ffffff;
-                    --card-bg: #2d2d2d;
-                    --border-color: #404040;
-                    --code-bg: #262626;
-                }
+                /* Les variables CSS sont maintenant gérées par le système global de couleurs
+                   Voir src/styles/globals/colors.scss pour --bg-color, --text-color, etc. */
                 
                 @media (max-width: 768px) {
                     .container {

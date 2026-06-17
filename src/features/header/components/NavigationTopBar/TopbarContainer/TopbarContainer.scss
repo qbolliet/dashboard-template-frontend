@@ -1,0 +1,172 @@
+// =================================================================
+// TOPBAR CONTAINER
+// =================================================================
+//
+// Conteneur principal gérant le layout de la navigation topbar
+//
+// Structure du composant :
+// - .navigation-container : Conteneur principal
+//   - .mobile-nav-toggle : Bouton hamburger/fermeture (mobile uniquement)
+//   - .primary-navigation : Menu de navigation
+//     - Sur desktop : Navigation horizontale inline
+//     - Sur mobile/tablette : Menu overlay fixe glissant depuis la droite
+//
+// Comportements responsifs :
+// - Desktop (large et plus) :
+//   - Le toggle est masqué
+//   - La navigation est inline et toujours visible
+// - Mobile/Tablette (medium et moins) :
+//   - Le conteneur s'étend en absolute pour positionner le toggle
+//   - Le toggle est visible et positionné en haut à droite
+//   - La navigation est un overlay fixe qui slide depuis la droite
+//
+// Animations :
+// - Menu mobile : slide in/out avec translateX
+// - Toggle : transition de position entre état fermé/ouvert
+//
+// Pour les tokens (dimensions, spacing, z-index, etc.), voir ./_tokens.scss
+// Pour les couleurs, voir ../../../_colors.scss
+
+// ----- Importation des modules -----
+@use '../../../../../styles/utils/breakpoints' as *;
+@use '../../../../../styles/globals/typography';
+@use '../tokens' as *;        // Tokens partagés NavigationTopBar
+@use './tokens' as *;          // Tokens spécifiques TopbarContainer
+
+
+// =================================================================
+// CONTENEUR PRINCIPAL DE NAVIGATION
+// =================================================================
+.navigation-container {
+    // === Positionnement ===
+    position: relative;
+    z-index: var(--topbar-container-z-index);
+
+    // === Responsive Layout ===
+    // Sur mobile/tablet, étendre sur toute la largeur pour positionner le toggle
+    @include breakpoint-down('medium') {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 100%;
+
+        // Permet aux autres éléments du header d'être cliquables
+        // (seul le toggle et le menu auront pointer-events: auto)
+        pointer-events: none;
+    }
+
+
+    // =================================================================
+    // BOUTON TOGGLE MOBILE
+    // =================================================================
+
+    .mobile-nav-toggle {
+        // Réactive les clics pour le toggle
+        pointer-events: auto;
+
+        // ----- Masquage sur desktop -----
+        // Sur desktop, masquer le toggle (navigation toujours visible)
+        @include breakpoint('large') {
+            display: none;
+        }
+
+        // ----- Positionnement sur mobile/tablet (menu fermé) -----
+        @include breakpoint-down('medium') {
+            // Positionnement absolu dans le conteneur
+            position: absolute;
+            top: var(--topbar-toggle-position-top);
+            right: var(--topbar-toggle-position-right);
+            transform: translateY(-50%);  // Centrage vertical
+            z-index: var(--topbar-toggle-z-index);
+        }
+
+        // Ajustement pour très petits écrans
+        @include breakpoint-down('small') {
+            right: var(--topbar-toggle-position-right);
+        }
+    }
+
+
+    // =================================================================
+    // MENU DE NAVIGATION
+    // =================================================================
+
+    .topbar-list {
+        // Réactive les clics pour le menu
+        pointer-events: auto;
+
+        // ----- Desktop : Navigation horizontale inline -----
+        @include breakpoint('large') {
+            // Reset de tous les styles mobile
+            position: static;
+            width: auto;
+            height: auto;
+            background: transparent;
+            box-shadow: none;
+            padding: 0;
+            overflow: visible;
+            transform: none;
+            transition: none;
+            z-index: auto;
+        }
+
+        // ----- Mobile/Tablet : Menu overlay fixe -----
+        @include breakpoint-down('medium') {
+            // === Positionnement fixe ===
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: var(--topbar-drawer-width);
+            height: 100vh;
+            z-index: var(--topbar-drawer-z-index);
+
+            // === Apparence ===
+            background-color: hsl(var(--topbar-drawer-bg));
+            box-shadow: -4px 0 20px hsla(var(--topbar-drawer-shadow) / 0.1);
+
+            // === Padding ===
+            // Vertical : place pour le bouton de fermeture fixe en haut. 
+            // Horizontal : cadre de liste partagé avec la sidebar (--nav-list-padding-x : md/sm)
+            // → les toggles de dropdown ne touchent plus le bord droit.
+            padding-top: var(--topbar-drawer-padding-top);
+            padding-bottom: var(--topbar-drawer-padding-bottom);
+            padding-left: var(--nav-list-padding-x);
+            padding-right: var(--nav-list-padding-x);
+
+            // === Gestion du défilement ===
+            // Permettre le scroll vertical si le contenu dépasse
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            // === Animation de slide ===
+            // État fermé par défaut - menu hors de l'écran à droite
+            transform: translateX(100%);
+            transition: transform var(--topbar-drawer-transition-duration) ease;
+
+            // État ouvert - menu glisse dans l'écran
+            &.topbar-list--open {
+                transform: translateX(0);
+            }
+        }
+    }
+}
+
+
+// =================================================================
+// RAIL DE REDIMENSIONNEMENT DU TIROIR (bord gauche, medium uniquement)
+// =================================================================
+// Apparence + révélation au survol via la classe de rôle .nav-rail (nav-base.scss).
+// Ici : placement fixe au bord gauche du tiroir (ancré à droite), pour rester aligné
+// quelle que soit la position de scroll du tiroir. Rendu en JS uniquement en plage medium.
+.topbar-rail {
+    position: fixed;
+    top: 0;
+    height: 100vh;
+    // Bord gauche du tiroir, centré sur l'arête (moitié du rail vers l'extérieur).
+    left: calc(100vw - var(--topbar-drawer-width) - var(--nav-rail-width) / 2);
+    // Au-dessus du tiroir pour rester saisissable.
+    z-index: calc(var(--topbar-drawer-z-index) + 1);
+    // Le conteneur a pointer-events:none en medium → on réactive le rail.
+    pointer-events: auto;
+}

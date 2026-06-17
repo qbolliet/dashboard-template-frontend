@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import SearchIcon from '../../../../components/icons/SearchIcon/SearchIcon';
+import ClearIcon from '../../../../components/icons/ClearIcon/ClearIcon';
 import './SearchBar.scss';
 
 /**
@@ -183,19 +185,7 @@ const SearchBar = () => {
                 aria-label="Rechercher dans l'application"
             >
                 {/* Icône de recherche */}
-                <div className="search-icon" aria-hidden="true">
-                    <svg 
-                        width="16" 
-                        height="16" 
-                        viewBox="0 0 24 24" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2"
-                    >
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="M21 21l-4.35-4.35"></path>
-                    </svg>
-                </div>
+                <SearchIcon />
 
                 {/* Champ de saisie */}
                 <input
@@ -210,7 +200,7 @@ const SearchBar = () => {
                     onBlur={handleBlur}
                     onKeyDown={handleKeyDown}
                     autoComplete="off"
-                    aria-expanded={suggestions.length > 0}
+                    //aria-expanded={suggestions.length > 0}
                     aria-haspopup="listbox"
                     aria-owns={suggestions.length > 0 ? "search-suggestions" : undefined}
                 />
@@ -223,17 +213,7 @@ const SearchBar = () => {
                         onClick={handleClear}
                         aria-label="Effacer la recherche"
                     >
-                        <svg 
-                            width="14" 
-                            height="14" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="2"
-                        >
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
+                        <ClearIcon />
                     </button>
                 )}
             </form>
@@ -259,17 +239,7 @@ const SearchBar = () => {
                         >
                             {/* Icône de suggestion */}
                             <div className="search-suggestion__icon">
-                                <svg 
-                                    width="14" 
-                                    height="14" 
-                                    viewBox="0 0 24 24" 
-                                    fill="none" 
-                                    stroke="currentColor" 
-                                    strokeWidth="1.5"
-                                >
-                                    <circle cx="11" cy="11" r="8"></circle>
-                                    <path d="M21 21l-4.35-4.35"></path>
-                                </svg>
+                                <SearchIcon width="14" height="14" />
                             </div>
                             
                             {/* Texte de la suggestion */}

@@ -1,0 +1,121 @@
+// ===== MIXINS PARTAGÉS DE NAVIGATION =====
+// Mixins factorisant des motifs SCSS répétés entre la topbar et la sidebar.
+// Importés via `@use '../_nav-mixins' as *;` dans les .scss de composants.
+
+// ----- Séparateurs mobiles centrés entre entrées -----
+// Barre grise équidistante entre deux entrées de navigation sur petit écran.
+// La respiration est symétrique : padding-bottom (AU-DESSUS du trait) = margin-bottom
+// (EN DESSOUS) → le trait reste visuellement centré entre le bas de l'élément et le
+// haut du suivant. Appliqué aux enfants directs <li> sauf le dernier.
+//
+// À appeler dans le sélecteur du conteneur de liste (ex. .sidebar-list, .topbar-content).
+@mixin nav-mobile-separator {
+  & > li:not(:last-child) {
+    padding-bottom: var(--nav-separator-gap);
+    margin-bottom: var(--nav-separator-gap);
+    border-bottom: 1px solid hsl(var(--nav-mobile-separator));
+    border-radius: 0;
+  }
+}
+
+// ----- Pilule de survol unifiée : en-tête + toggle -----
+// Survoler l'en-tête OU le toggle d'un groupe (.nav-row) met le COUPLE en apparence hover :
+// fond + texte + bordure currentColor formant une pilule continue (en-tête = bordure gauche,
+// toggle = bordure droite, jointure interne sans bordure). `:has(> …)` ne réagit qu'au survol
+// des enfants DIRECTS (trigger / toggle) → aucune réaction au survol du contenu déplié.
+//
+// $header / $toggle : sélecteurs des deux enfants (préfixés composant, ex. '.sidebar-group-header').
+// À appeler dans le sélecteur du conteneur de groupe (.sidebar-group / .topbar-group).
+@mixin nav-group-hover-pill($header, $toggle) {
+  &:has(> #{$header}:hover) > #{$header},
+  &:has(> #{$header}:hover) > #{$toggle},
+  &:has(> #{$toggle}:hover) > #{$header},
+  &:has(> #{$toggle}:hover) > #{$toggle} {
+    background-color: hsl(var(--nav-link-hover-bg));
+    color: hsl(var(--nav-link-hover-color));
+    border-top-color: currentColor;
+    border-bottom-color: currentColor;
+  }
+
+  // En-tête : bordure gauche pleine, droite transparente (jointure avec le toggle).
+  &:has(> #{$header}:hover) > #{$header},
+  &:has(> #{$toggle}:hover) > #{$header} {
+    border-left-color: currentColor;
+    border-right-color: transparent;
+  }
+
+  // Toggle : bordure droite pleine (la gauche reste transparente côté jointure).
+  &:has(> #{$header}:hover) > #{$toggle},
+  &:has(> #{$toggle}:hover) > #{$toggle} {
+    border-right-color: currentColor;
+  }
+}
+
+// ----- Accordéon : animation de hauteur par piste de grille -----
+// Motif partagé sidebar (groupes) ⇄ topbar (rangée racine + groupes imbriqués en
+// medium/small) : la rangée est une grille `auto 0fr` (en-tête + contenu écrasé), le
+// contenu se résolvant à sa hauteur RÉELLE (0fr → 1fr) quand le groupe est déplié. Durée
+// + courbe communes (--transition-slow + --ease-collapse) → ouverture/fermeture homogènes.
+//
+// $expanded : suffixe de classe de l'état déplié (ex. '.sidebar-group--expanded',
+// '.topbar-group--open'). À appeler dans le sélecteur du conteneur de groupe (la grille).
+@mixin nav-collapse-rows($expanded) {
+  grid-template-rows: auto 0fr;
+  transition: grid-template-rows var(--transition-slow) var(--ease-collapse);
+
+  &#{$expanded} {
+    grid-template-rows: auto 1fr;
+  }
+}
+
+// ----- Accordéon : panneau de contenu écrasable -----
+// À appliquer au <ul>/contenu animé par la piste de grille du parent (cf. nav-collapse-rows).
+// overflow:hidden masque le contenu pendant le repli ; min-height:0 lève le minimum
+// automatique d'un élément de grille (autorise la piste 0fr à l'écraser à 0) ; align-self
+// rétablit l'étirement (la grille parente impose souvent `align-items: center`).
+// Le placement (grid-column/row), le fondu et l'indentation restent portés par le composant.
+@mixin nav-collapse-panel {
+  align-self: stretch;
+  overflow: hidden;
+  min-height: 0;
+}
+
+// ----- Barre verticale de hiérarchie (niveaux imbriqués) -----
+// Trait gris à gauche d'une sous-liste indiquant l'imbrication. Le conteneur doit être
+// `position: relative`. Couleur via le token PARTAGÉ --nav-hierarchy-line-color.
+@mixin nav-hierarchy-line {
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 1px;
+    background-color: hsl(var(--nav-hierarchy-line-color));
+    opacity: 0.3;
+  }
+}
+
+// ----- Scrollbar personnalisée fine (webkit) -----
+// Factorise la scrollbar des zones défilables de navigation (menu sidebar, dropdown du
+// switcher). $thumb : couleur du pouce (var() de token) ; $thumb-hover : optionnel.
+@mixin nav-scrollbar($thumb, $thumb-hover: null) {
+  &::-webkit-scrollbar {
+    width: calc(var(--spacing-2px) * 2);  // 4px
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: hsl(#{$thumb});
+    border-radius: var(--border-radius-sm);
+
+    @if $thumb-hover {
+      &:hover {
+        background-color: hsl(#{$thumb-hover});
+      }
+    }
+  }
+}

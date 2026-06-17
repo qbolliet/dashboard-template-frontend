@@ -1,0 +1,70 @@
+// ===== TOKENS PARTAGÉS DE LA SIDEBAR =====
+// Variables structurantes communes à plusieurs sous-composants de la sidebar
+// (SidebarItem, SidebarGroup, SidebarMenu…).
+//
+// Chaque alias reprend un token canonique header (--nav-*) en préfixant
+// `--sidebar-` ; le motif var(--nav-*, <valeur-desktop>) préserve le rendu
+// desktop tout en héritant des valeurs harmonisées medium/small. Surcharger ici
+// n'affecte QUE la sidebar, jamais la topbar.
+// Pour modifier à la fois la sidebar et la topbar, il faut modifier les valeurs des
+// variables dans src/features/header/_tokens.scss
+//
+// ⚠️ RÈGLE : Si une variable n'est utilisée que dans UN sous-composant, la mettre dans
+// le _tokens.scss de ce sous-composant. Pour les couleurs, voir ./_colors.scss.
+
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  // ===== TOGGLE (chevron d'ouverture des groupes) =====
+  // Carré. PILOTE UNIQUE de la hauteur de rangée (cf. --sidebar-row-padding-y) : sa
+  // largeur fixe la colonne du chevron, sa hauteur s'étire sur la rangée via le padding.
+  // Au desktop il vaut 1,75rem (28px) — plus grand que le toggle topbar (24px), c'est le
+  // seul écart volontaire ; medium/small reprennent le toggle header partagé (36 / 40 px).
+  --sidebar-toggle-size: var(--spacing-3xl);  // 32px (desktop)
+  --sidebar-toggle-icon-size: var(--spacing-lg);  // 16px : icône volontairement petite et fixe
+
+  // ===== PADDING DES LIENS (cf. header/_tokens.scss) =====
+  // padding-y DÉRIVÉ de la taille du toggle sidebar : (toggle − hauteur de texte) / 2.
+  // Token UNIQUE partagé feuille ⇄ parent → toutes les rangées (feuilles ET triggers de
+  // groupe) ont la même hauteur = taille du toggle, sur les 3 écrans. Pas de variable
+  // padding-y distincte par niveau : la hauteur de rangée est la même pour tous.
+  --sidebar-row-padding-y: calc(
+    (var(--sidebar-toggle-size) - var(--line-height-tight) * var(--nav-link-font-size)) / 2
+  );
+  // Feuille (item) : hauteur = rangée ; padding-x propre (harmonisé medium/small via header).
+  --sidebar-link-padding-y: var(--sidebar-row-padding-y);
+  --sidebar-link-padding-x: var(--nav-link-padding-x, var(--spacing-md));
+  // Rang parent (trigger de groupe, porte le chevron) : même hauteur de rangée ; padding-x
+  // distinct (réserve la place du chevron), desktop md, harmonisé medium/small via header.
+  --sidebar-group-padding-y: var(--sidebar-row-padding-y);
+  --sidebar-group-padding-x: var(--nav-group-padding-x, var(--spacing-md));
+
+  // ===== ESPACEMENT ENTRE ENTRÉES (gap des listes) =====
+  // Remplace les anciens margin-bottom des items/groupes par un gap porté par le <ul>.
+  // 1er niveau = gap PARTAGÉ avec la topbar (--nav-list-gap) ; imbriqué = xs.
+  --sidebar-list-gap: var(--nav-list-gap);   // 8px entre entrées de 1er niveau
+  --sidebar-content-gap: var(--spacing-xs);  // 4px entre entrées imbriquées
+
+  // ===== ICÔNES D'ENTRÉE (item & groupe) =====
+  // Taille de base, et taille agrandie quand la sidebar est collapsée (icône seule).
+  --sidebar-icon-size: var(--spacing-lg);            // 16px
+  --sidebar-icon-size-collapsed: var(--spacing-xl);  // 20px
+
+  // ===== INDENTATION =====
+  // Indentation uniforme appliquée à chaque niveau imbriqué.
+  // Portée par le padding-left du <ul> de contenu, elle se compose
+  // naturellement avec la profondeur → support d'une profondeur arbitraire.
+  --sidebar-content-indent: var(--spacing-md);  // 12px
+}
+
+// ===== RESPONSIVE =====
+// Tablette : icônes plus petites (les entrées se densifient).
+@include breakpoint-down('medium') {
+  :root {
+    // Toggle aligné sur le toggle header partagé (36 / 40 px) en medium/small
+    --sidebar-toggle-size: var(--nav-toggle-size);
+
+    --sidebar-icon-size: var(--spacing-sm);            // 8px
+    --sidebar-icon-size-collapsed: var(--spacing-lg);  // 16px
+  }
+}

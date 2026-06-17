@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 
 // Contexte pour le thème
 const ThemeContext = createContext();
@@ -18,7 +18,7 @@ export const ThemeProvider = ({ children }) => {
         if (typeof window === 'undefined') return 'light';
         
         // Récupérer le thème sauvegardé
-        const savedTheme = localStorage.getItem('dashboard-theme');
+        const savedTheme = localStorage.getItem('theme');
         if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
             return savedTheme;
         }
@@ -55,7 +55,7 @@ export const ThemeProvider = ({ children }) => {
      * Définir un thème spécifique
      * @param {string} newTheme - Le nouveau thème ('light' ou 'dark')
      */
-    const setSpecificTheme = (newTheme) => {
+    const setSpecificTheme = useCallback((newTheme) => {
         if (newTheme !== 'light' && newTheme !== 'dark') {
             console.warn('Thème non valide. Utilisez "light" ou "dark".');
             return;
@@ -72,15 +72,15 @@ export const ThemeProvider = ({ children }) => {
                 setIsTransitioning(false);
             }, 300);
         }
-    };
+    }, [theme]);
 
     /**
      * Détecter si le thème système a changé et l'adapter si aucun thème manuel n'est défini
      */
-    const syncWithSystemTheme = () => {
+    const syncWithSystemTheme = useCallback(() => {
         if (typeof window === 'undefined') return;
         
-        const hasManualTheme = localStorage.getItem('dashboard-theme-manual');
+        const hasManualTheme = localStorage.getItem('theme-manual');
         if (!hasManualTheme) {
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             const systemTheme = prefersDark ? 'dark' : 'light';
@@ -89,7 +89,7 @@ export const ThemeProvider = ({ children }) => {
                 setSpecificTheme(systemTheme);
             }
         }
-    };
+    }, [theme, setSpecificTheme]);
 
     // Effet pour appliquer le thème au DOM et le sauvegarder
     useEffect(() => {
@@ -99,10 +99,10 @@ export const ThemeProvider = ({ children }) => {
         document.body.setAttribute('data-theme', theme);
         
         // Sauvegarder le thème dans localStorage
-        localStorage.setItem('dashboard-theme', theme);
+        localStorage.setItem('theme', theme);
         
         // Marquer que l'utilisateur a fait un choix manuel
-        localStorage.setItem('dashboard-theme-manual', 'true');
+        localStorage.setItem('theme-manual', 'true');
         
         // Mettre à jour la meta tag pour la barre d'état sur mobile
         const metaThemeColor = document.querySelector('meta[name="theme-color"]');
@@ -128,7 +128,7 @@ export const ThemeProvider = ({ children }) => {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
         
         // Gestionnaire pour les changements du thème système
-        const handleSystemThemeChange = (e) => {
+        const handleSystemThemeChange = () => {
             syncWithSystemTheme();
         };
         
@@ -137,7 +137,7 @@ export const ThemeProvider = ({ children }) => {
         return () => {
             mediaQuery.removeEventListener('change', handleSystemThemeChange);
         };
-    }, [theme]);
+    }, [theme, syncWithSystemTheme]);
 
     // Effet pour gérer les classes CSS de transition
     useEffect(() => {

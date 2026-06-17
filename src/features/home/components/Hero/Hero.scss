@@ -1,0 +1,213 @@
+// ===== HERO SECTION - SECTION HÉRO =====
+// Import des variables du système de design
+@use '../../../../styles/globals/colors';
+@use '../../../../styles/globals/typography';
+@use '../../../../styles/utils/breakpoints';
+
+// Container principal du héro
+.hero {
+    // Position et structure
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    // Dimensions
+    min-height: calc(100vh - 2*var(--spacing-lg) - 40px);
+    width: 100%;
+    overflow: hidden;
+    
+    // Apparence de base - couleur neutre sans teinte bleue
+    background: hsl(var(--color-hero-bg));
+    
+    // Isolation pour le z-index
+    isolation: isolate;
+    
+    // Arrière-plan avec motif SVG via pseudo-élément
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        
+        // Configuration de l'image de fond dynamique
+        background-image: var(--hero-bg-image);
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        
+        // Opacité pour ne pas concurrencer le contenu
+        opacity: 0.4;
+    }
+}
+
+// Container principal du contenu
+.hero__container {
+    // Positionnement relatif pour le z-index
+    position: relative;
+    z-index: 1;
+    
+    // Structure flexible pour un meilleur centrage
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-9xl);
+    
+    // Contraintes et espacement
+    width: 100%;
+    max-width: 1200px;
+    padding: var(--spacing-2xl) var(--spacing-lg);
+}
+
+// En-tête avec titre et description (maintenant enfant direct du container)
+.hero__header {
+    // Structure et organisation
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    
+    // Contrainte de largeur pour la lisibilité avec centrage
+    max-width: 600px;
+}
+
+// Titre principal du héro
+.hero__title {
+    // Reset des marges par défaut
+    margin: 0;
+    
+    // Typographie imposante
+    font-size: var(--font-size-4xl);
+    font-weight: 700;
+    line-height: var(--line-height-tight);
+    
+    // Couleur accentuée
+    color: hsl(var(--color-text-primary));
+    
+    // Style distinctif
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+// Description du héro
+.hero__description {
+    // Reset des marges par défaut
+    margin: 0;
+    
+    // Typographie lisible
+    font-size: var(--font-size-lg);
+    line-height: var(--line-height-relaxed);
+    color: hsl(var(--color-text-secondary));
+    
+    // Espacement des lignes pour la lisibilité
+    max-width: 500px;
+}
+
+// Bouton CTA (maintenant enfant direct du container)
+.hero__cta-button {
+    // Taille optimisée pour le héro
+    min-width: 180px;
+    min-height: 180px;
+    
+    // Style spécifique si nécessaire
+    font-size: var(--font-size-xl);
+}
+
+
+// Responsive : adaptation pour tablettes
+@include breakpoints.breakpoint-down(medium) {
+    .hero {
+        min-height: calc(100vh - 2*var(--spacing-md) - 32px);
+    }
+    
+    .hero__container {
+        flex-direction: column;
+        gap: var(--spacing-4xl);
+        text-align: center;
+        padding: var(--spacing-xl) var(--spacing-md);
+    }
+    
+    .hero__header {
+        // Retire max-width sur tablette pour éviter le décalage à gauche
+        max-width: none;
+    }
+    
+    .hero__title {
+        font-size: var(--font-size-3xl);
+    }
+    
+    .hero__description {
+        font-size: var(--font-size-base);
+        max-width: 500px; // Garde une contrainte de largeur mais plus centrée
+        margin: 0 auto;   // Centre la description
+    }
+    
+    .hero__cta-button {
+        min-width: 160px;
+        min-height: 160px;
+    }
+}
+
+// Responsive : adaptation pour mobiles
+@include breakpoints.breakpoint-down(small) {
+    .hero {
+        min-height: calc(100vh - 2*var(--spacing-sm) - 28px);
+    }
+    
+    .hero__container {
+        gap: var(--spacing-3xl);
+        padding: var(--spacing-xl) var(--spacing-sm);
+    }
+    
+    .hero__header {
+        gap: var(--spacing-lg);
+    }
+    
+    .hero__title {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .hero__description {
+        font-size: var(--font-size-sm);
+    }
+    
+    .hero__cta-button {
+        min-width: 140px;
+        min-height: 140px;
+        font-size: var(--font-size-base);
+    }
+}
+
+// Animation d'entrée pour le contenu
+@media (prefers-reduced-motion: no-preference) {
+    .hero__header {
+        animation: fadeInLeft 0.8s ease-out;
+    }
+    
+    .hero__cta-button {
+        animation: fadeInRight 0.8s ease-out 0.2s both;
+    }
+}
+
+// Animations keyframes
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

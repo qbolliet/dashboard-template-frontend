@@ -1,0 +1,73 @@
+// ===== HAMBURGER ICON =====
+// Icône de menu hamburger avec styles du système de design
+
+.hamburger-icon {
+    // Affichage et flexibilité
+    display: inline-block;
+    flex-shrink: 0;
+    
+    // Couleur hérite du parent
+    color: currentColor;
+    
+    // Transition pour les animations
+    transition: transform var(--transition-normal) ease;
+    
+    // Assurer un rendu net
+    vertical-align: middle;
+    
+    // ===== VARIATIONS DE TAILLE =====
+    
+    // Petite taille
+    &--small {
+        width: var(--spacing-lg); // 16px
+        height: var(--spacing-md); // 12px
+    }
+    
+    // Taille normale (défaut)
+    &--normal {
+        width: var(--spacing-xl); // 20px
+        height: var(--spacing-lg); // 16px
+    }
+    
+    // Grande taille
+    &--large {
+        width: var(--spacing-2xl); // 24px
+        height: var(--spacing-xl); // 20px
+    }
+    
+    // ===== ÉTATS D'INTERACTION =====
+    
+    // État survolé
+    &--hoverable {
+        &:hover {
+            transform: scale(1.05);
+        }
+    }
+    
+    // État actif (menu ouvert)
+    &--active {
+        opacity: 0.7;
+    }
+    
+    // ===== VARIATIONS DE COULEUR =====
+    
+    // Couleur du système de navigation
+    &--navigation {
+        color: hsl(var(--nav-hamburger-color));
+    }
+    
+    // Couleur primaire
+    &--primary {
+        color: hsl(var(--color-primary-500));
+    }
+    
+    // Couleur secondaire
+    &--secondary {
+        color: hsl(var(--color-text-secondary));
+    }
+    
+    // ===== SUPPORT POUR REDUCED MOTION =====
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+}

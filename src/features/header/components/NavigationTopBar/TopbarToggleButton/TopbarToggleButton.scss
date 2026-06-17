@@ -1,0 +1,84 @@
+// ===== TOPBAR TOGGLE BUTTON (topbar) =====
+// Bouton d'ouverture du dropdown racine. Le boilerplate (centrage, bordure, radius,
+// transition, :active, :focus, icône SVG) vient de la classe de rôle .nav-toggle
+// (features/header/nav-base.scss). Ici : taille, couleurs propres au toggle racine,
+// état ouvert et adaptation tactile. Les chevrons de GROUPE (dans le dropdown) sont
+// surchargés dans TopbarGroup.scss.
+
+@use '../../../../../styles/utils/breakpoints' as *;
+@use './tokens' as *;
+
+.topbar-toggle {
+  // Dimensions carrées : 24 / 28 / 40 px (token partagé).
+  width: var(--topbar-toggle-size);
+  height: var(--topbar-toggle-size);
+
+  // Couleurs du toggle racine (alignées sur le bouton de thème).
+  color: hsl(var(--theme-toggle-icon));
+
+  &:hover {
+    background-color: hsl(var(--theme-toggle-bg-hover));
+    border-color: hsl(var(--theme-toggle-icon-hover) / 0.2);
+    color: hsl(var(--theme-toggle-icon-hover));
+    transform: scale(1.02);
+  }
+
+  &:focus {
+    border-color: hsl(var(--theme-toggle-border-focus));
+    box-shadow: 0 0 0 var(--spacing-2px) hsl(var(--theme-toggle-shadow-focus) / 0.3);
+  }
+
+  // État ouvert : fond doux + rotation de l'icône.
+  &--open {
+    background-color: hsl(var(--theme-toggle-bg-hover));
+    border-color: hsl(var(--theme-toggle-icon) / 0.2);
+
+    .topbar-toggle-icon {
+      transform: rotate(180deg);
+    }
+  }
+
+  // Tablette/mobile : le bouton épouse la hauteur de la rangée (carré) via align-self.
+  @include breakpoint-down('medium') {
+    align-self: stretch;
+    height: auto;
+    aspect-ratio: 1;
+
+    &:hover {
+      transform: none;  // pas d'effet de scale au survol tactile
+    }
+  }
+}
+
+// ===== ICÔNE DU BOUTON =====
+.topbar-toggle-icon {
+  transition: transform var(--transition-normal) ease;
+  transform-origin: center center;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// ===== CLASSE UTILITAIRE POUR L'ACCESSIBILITÉ =====
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// ===== SUPPORT POUR REDUCED MOTION =====
+@media (prefers-reduced-motion: reduce) {
+  .topbar-toggle,
+  .topbar-toggle-icon {
+    transition: none;
+  }
+}

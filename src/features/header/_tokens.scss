@@ -1,0 +1,162 @@
+// ===== TOKENS DE LA FEATURE HEADER =====
+// Variables partagées entre tous les composants du header
+// (NavigationTopBar, NavigationSideBar, SearchBar, ThemeToggle, etc.)
+//
+// ⚠️ RÈGLE : Si une variable n'est utilisée que dans UN composant, la mettre dans
+// features/header/components/[Composant]/_tokens.scss
+
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  // ===== DIMENSIONS PRINCIPALES =====
+  --header-height: 4rem;
+  --header-padding-x: var(--spacing-3xl);  // 2rem - padding horizontal appliqué au header
+
+  // Note: le header utilise height: var(--header-height) et centre le contenu avec flexbox.
+  // --header-padding-y documente le padding vertical de référence (réservé aux calculs éventuels).
+  --header-padding-y: var(--spacing-md);  // 0.75rem
+
+  --right-container-gap: var(--spacing-2xl);
+
+  // ===== SYNCHRONISATION AVEC AUTRES FEATURES =====
+  // La sidebar utilise cette variable pour aligner son header avec le topbar
+  --sidebar-header-height: var(--header-height);
+
+  // ===== SPACING INTERNE =====
+  --header-gap: var(--spacing-md);        // Gap entre les éléments principaux
+  --header-logo-gap: var(--spacing-sm);   // Gap autour du logo
+
+  // ===== Z-INDEX =====
+  --header-z-index: var(--z-sticky);
+
+  // ===== CONTRÔLES DU HEADER — TAILLE PARTAGÉE =====
+  // PILOTE UNIQUE de la taille des contrôles interactifs du header (logo, hauteur de
+  // la barre de recherche, bouton dark-light) → apparence homogène entre composants.
+  // Desktop : aligné sur la hauteur de la barre de recherche (2.25rem).
+  // Medium/small : aligné sur le bouton hamburger (cf. --nav-trigger-size ci-dessous).
+  --header-control-size: 2.25rem;  // 36px (grand écran)
+
+  // =================================================================
+  // NAVIGATION — ESPACEMENT PARTAGÉ (sidebar ⇄ topbar)
+  // =================================================================
+  // Tokens canoniques garantissant un rendu cohérent des deux composants de
+  // navigation. Les sous-composants (sidebar/topbar) en dérivent des alias scopés
+  // (--sidebar-* / --topbar-*) valorisés par défaut à ces valeurs, mais
+  // surchargeables individuellement sans impacter l'autre composant.
+
+  // Taille de police commune à tous les liens de navigation (sidebar ⇄ topbar).
+  --nav-link-font-size: var(--font-size-sm);  // 14px
+
+  // Graisses + focus communs aux liens de navigation (utilisés par la classe de rôle
+  // .nav-link, partagée entre sidebar et topbar).
+  --nav-link-font-weight: 500;
+  --nav-link-font-weight-active: 600;
+  --nav-focus-outline-width: 2px;
+  --nav-focus-outline-offset: 2px;
+
+  // Taille du bouton toggle/chevron (échelle tactile responsive). PILOTE UNIQUE de la
+  // hauteur de rangée : le padding-y dérivé ci-dessous fait que toute rangée « parente »
+  // mesure exactement cette taille → toggles/chevrons carrés et alignés sur les 3 écrans.
+  --nav-toggle-size: calc(var(--spacing-xl) + var(--spacing-xs));  // 24px (grand écran)
+
+  // padding-y DÉRIVÉ d'une rangée portant un toggle : (taille toggle − hauteur de texte)/2,
+  // avec hauteur de texte = line-height × font-size. Recalculé seul à chaque breakpoint
+  // puisque --nav-toggle-size y change. Remplace l'ancien min-height + line-height.
+  --nav-row-padding-y: calc(
+    (var(--nav-toggle-size) - var(--line-height-tight) * var(--nav-link-font-size)) / 2
+  );
+
+  // Barre grise centrée entre entrées sur petit écran (cf. mixin nav-mobile-separator).
+  // Respiration appliquée de chaque côté du trait → ligne équidistante.
+  --nav-separator-gap: var(--spacing-xs);  // 4px de chaque côté
+
+  // Padding horizontal des listes de navigation (cadre du <ul>), partagé sidebar/topbar.
+  --nav-list-padding-x: var(--spacing-lg);  // 16px (grand écran)
+
+  // Espacement vertical entre entrées de 1er niveau (gap des <ul>), partagé sidebar/topbar.
+  // La topbar le surcharge à md au desktop (liste horizontale) ; medium/small = sm communs.
+  --nav-list-gap: var(--spacing-sm);  // 8px
+
+  // Les paddings de lien partagés (--nav-link-padding-y/x, --nav-group-padding-x)
+  // ne sont définis qu'en medium/small ci-dessous : au desktop, chaque alias scopé fournit
+  // sa propre valeur via le 2e argument de var() → apparence desktop strictement préservée.
+
+  // =================================================================
+  // NAVIGATION — TIROIR COULISSANT (sidebar ⇄ tiroir topbar medium/small)
+  // =================================================================
+  // Largeur du tiroir partagée : 280px sur desktop/tablette, plein écran sur mobile.
+  // La sidebar (--sidebar-width-open) et la topbar (--topbar-drawer-width) en dérivent.
+  --nav-drawer-width: 280px;
+  // Bornes du redimensionnement par glisser (cf. hook useResizable).
+  --nav-drawer-width-min: 200px;
+  --nav-drawer-width-max: 480px;
+  // Largeur du rail de redimensionnement (zone de saisie, cf. classe de rôle .nav-rail).
+  --nav-rail-width: var(--spacing-xs);  // 4px
+
+  // =================================================================
+  // NAVIGATION — TRIGGER HAMBURGER (sidebar ⇄ topbar)
+  // =================================================================
+  // Apparence commune au bouton d'ouverture des deux navigations (mécanisme 3 lignes → X,
+  // cf. classe de rôle .nav-trigger). Échelle responsive : 40 → 32 → hauteur de recherche.
+  --nav-trigger-size: var(--spacing-4xl);        // 40px (grand écran)
+  --nav-trigger-icon-size: var(--spacing-xl);    // 20px : boîte des lignes du hamburger
+  --nav-trigger-line-thickness: var(--spacing-2px);  // 2px
+  --nav-trigger-line-gap: var(--spacing-xs);     // 4px : écart vertical entre les lignes
+  // Translation des lignes haut/bas pour former le « X » : DÉRIVÉE (écart + épaisseur).
+  --nav-trigger-cross-offset: calc(
+    var(--nav-trigger-line-gap) + var(--nav-trigger-line-thickness)
+  );
+  --nav-trigger-border-radius: var(--border-radius-md);
+}
+
+// ===== RESPONSIVE =====
+
+// Tablette - écran moyen
+@include breakpoint-down('medium') {
+  :root {
+    --header-padding-x: var(--spacing-lg);  // 1rem (même qu'en desktop)
+    --header-padding-y: var(--spacing-md);  // 0.75rem
+
+    // Contrôles du header (logo, recherche, dark-light) alignés sur le bouton hamburger.
+    // Couvre medium ET small (max-width 1149px) ; le hamburger en dérive juste en dessous.
+    --header-control-size: var(--spacing-3xl);  // 32px
+
+    // ----- Navigation partagée (medium) -----
+    --nav-toggle-size: calc(var(--spacing-2xl) + var(--spacing-md));  // 36px (2.25rem)
+    // Padding-y des feuilles aligné sur le padding-y dérivé des parents → toutes les
+    // rangées (feuilles et parents) ont la même hauteur = taille du toggle.
+    --nav-link-padding-y: var(--nav-row-padding-y);  // vertical, TOUS les rangs
+    --nav-link-padding-x: var(--spacing-md);   // horizontal, feuilles / 1er niveau
+    --nav-group-padding-x: var(--spacing-md);  // horizontal, rangs parents (avec toggle)
+    --nav-list-padding-x: var(--spacing-md);   // cadre des listes (12px)
+
+    // ----- Trigger hamburger (medium) : boîte et lignes plus compactes -----
+    // Couplé au token partagé → logo / recherche / dark-light s'alignent sur le hamburger.
+    --nav-trigger-size: var(--header-control-size);  // 32px
+    --nav-trigger-icon-size: 18px;           // boîte des lignes réduite
+    --nav-trigger-line-gap: 3px;             // écart réduit → cross-offset = 3px + 2px = 5px
+  }
+}
+
+// Mobile - petit écran
+@include breakpoint-down('small') {
+  :root {
+    // Réduction de la hauteur sur mobile
+    --header-height: 3.5rem;
+    --header-padding-x: var(--spacing-md);  // 0.75rem
+    --header-padding-y: var(--spacing-sm);  // 0.5rem
+    --header-gap: var(--spacing-sm);        // Gap réduit sur mobile
+
+    // ----- Navigation partagée (small) -----
+    --nav-toggle-size: var(--spacing-4xl);     // 40px (cible tactile maximale)
+    --nav-link-padding-y: var(--nav-row-padding-y);  // = hauteur de rangée du toggle
+    --nav-link-padding-x: var(--spacing-sm);
+    --nav-group-padding-x: var(--spacing-md);  // décalage du 2e niveau
+    --nav-list-padding-x: var(--spacing-sm);   // cadre des listes (8px)
+
+    // ----- Tiroir plein écran (mobile) : commun sidebar ⇄ topbar -----
+    --nav-drawer-width: 100vw;
+    // Le trigger hamburger reste piloté par --header-control-size (hérité du bloc medium) :
+    // logo / recherche / dark-light / hamburger partagent la même taille (32px) en small.
+  }
+}

@@ -1,0 +1,39 @@
+// ===== TOKENS DU COMPOSANT THEMETOGGLE =====
+// Dimensions et spacing spécifiques au bouton de changement de thème
+//
+// Pour les couleurs, voir _colors.scss dans ce même dossier
+
+// Importation des breakpoints
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  // ===== DIMENSIONS =====
+  --theme-toggle-size: calc(var(--header-control-size) - 0.5rem);        // 1.75rem (28px) - Taille du bouton carré
+  --theme-toggle-icon-size: var(--font-size-xl);    // Taille de l'icône (lune/soleil)
+  --theme-toggle-spinner-size: var(--font-size-xs); // Taille du spinner de transition
+
+  // ===== BORDER =====
+  --theme-toggle-border-radius: var(--border-radius-full);  // Bouton circulaire
+  --theme-toggle-border-width: 2px;                         // Largeur de la bordure au focus
+
+  // ===== SPACING =====
+  --theme-toggle-focus-ring-width: 2px;                     // Largeur de l'anneau de focus
+
+  // ===== TRANSITIONS =====
+  --theme-toggle-transition: var(--transition-slow);        // 0.3s - Transition douce
+  --theme-toggle-spinner-transition: 0.8s;                   // 0.8s - Transition très lente
+  --theme-toggle-rotate-hover: 15deg;                       // Rotation au survol
+
+  // ===== TRANSFORMS =====
+  --theme-toggle-scale-hover: 1.05;     // Agrandissement au survol
+  --theme-toggle-scale-active: 0.95;    // Réduction au clic
+}
+
+// ===== RESPONSIVE =====
+// Tablette
+@include breakpoint-down('medium') {
+  :root {
+    // ===== DIMENSIONS =====
+    --theme-toggle-size: var(--spacing-xl)
+  }
+}

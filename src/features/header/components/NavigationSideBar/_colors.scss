@@ -1,0 +1,24 @@
+// ===== COULEURS PARTAGÉES DE LA SIDEBAR =====
+// Tokens sémantiques propres à la sidebar. Ils pointent vers les primitives déjà
+// utilisées dans les .scss → rendu strictement identique.
+//
+// Les couleurs des liens/états (survol, actif) restent portées par les tokens --nav-*
+// de features/header/_colors.scss, partagés avec la navigation horizontale.
+//
+// Pour les dimensions, voir ./_tokens.scss.
+
+@use '@/styles/globals/tokens/semantic-colors' as *;
+
+:root {
+  // ===== CHEVRON (sur-survol direct du bouton chevron) =====
+  --sidebar-chevron-hover-bg: var(--color-gray-200);
+  --sidebar-chevron-hover-color: var(--color-text-secondary);
+
+  // ===== SCROLLBAR DU MENU =====
+  --sidebar-scrollbar-thumb: var(--color-gray-300);
+  --sidebar-scrollbar-thumb-hover: var(--color-gray-400);
+
+  // ===== TOOLTIP (sidebar collapsée) =====
+  --sidebar-tooltip-bg: var(--color-gray-900);
+  --sidebar-tooltip-color: var(--color-white);
+}

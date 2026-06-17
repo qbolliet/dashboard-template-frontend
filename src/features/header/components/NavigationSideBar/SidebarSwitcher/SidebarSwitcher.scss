@@ -1,0 +1,202 @@
+// ===== IMPORTS =====
+@use '../../../../../styles/utils/breakpoints' as *;
+@use '../../../../../styles/globals/colors';
+@use '../../../../../styles/globals/typography';
+@use '../../../nav-mixins' as *;
+@use './tokens' as *;
+
+// ===== SIDEBAR SWITCHER =====
+.sidebar-switcher {
+  position: relative;
+  width: 100%;
+
+  // ===== TRIGGER DU SWITCHER =====
+  &-trigger {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--border-radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-normal) ease;
+    text-align: left;
+
+    // États d'interaction
+    &:hover {
+      background-color: hsl(var(--nav-link-hover-bg));
+      border-color: hsl(var(--color-border-hover));
+    }
+
+    &:focus {
+      outline: none;
+      border-color: hsl(var(--color-focus));
+      box-shadow: 0 0 0 2px hsl(var(--color-focus-shadow) / 0.2);
+    }
+
+    // État du dropdown ouvert
+    .sidebar-switcher--open & {
+      background-color: hsl(var(--nav-link-active-bg));
+      border-color: hsl(var(--color-primary-500));
+    }
+  }
+
+  // ===== LOGO DU SWITCHER =====
+  &-logo {
+    width: var(--sidebar-switcher-logo-size);
+    height: var(--sidebar-switcher-logo-size);
+    flex-shrink: 0;
+    object-fit: contain;
+    filter: var(--logo-filter); // Adaptation au thème (clair/sombre)
+  }
+
+  // ===== TITRE DU SWITCHER =====
+  &-title {
+    display: block;
+    flex: 1;
+    margin-left: var(--spacing-md);
+    min-width: 0; // Permet la troncature du texte
+    font-size: var(--font-size-base);
+    font-weight: 500;
+    color: hsl(var(--color-text-primary));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // ===== CHEVRON D'INDICATION =====
+  &-chevron {
+    margin-left: var(--spacing-sm);
+    color: hsl(var(--color-text-tertiary));
+    flex-shrink: 0;
+    transition: transform var(--transition-normal) ease;
+
+    // Rotation quand dropdown ouvert
+    .sidebar-switcher--open & {
+      transform: rotate(180deg);
+    }
+  }
+
+  // ===== DROPDOWN =====
+  // Le menu porte à la fois le positionnement/l'animation (ex-wrapper) et le scroll/la scrollbar
+  &-dropdown {
+    position: absolute;
+    top: calc(100% + var(--spacing-xs));
+    left: 0;
+    right: 0;
+    margin: 0; // Neutralise la marge par défaut du <ul>
+    padding: var(--spacing-xs);
+    max-height: var(--sidebar-switcher-dropdown-max-height);
+    overflow-y: auto;
+    background-color: hsl(var(--nav-dropdown-bg));
+    border: 1px solid hsl(var(--nav-dropdown-border));
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    z-index: var(--z-dropdown);
+    opacity: 0;
+    transform: translateY(-var(--spacing-xs));
+    pointer-events: none;
+    transition: all var(--transition-fast) ease;
+
+    // État ouvert du dropdown
+    &--open {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    // Scrollbar personnalisée (mixin partagé avec le menu de la sidebar).
+    @include nav-scrollbar(var(--color-gray-300));
+  }
+
+  // ===== OPTIONS DU DROPDOWN =====
+  &-option {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: transparent;
+    border: none;
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast) ease;
+    text-align: left;
+    color: hsl(var(--nav-dropdown-link-color));
+
+    &:hover {
+      background-color: hsl(var(--nav-dropdown-link-hover-bg));
+      color: hsl(var(--nav-dropdown-link-hover-color));
+    }
+
+    &--selected {
+      background-color: hsl(var(--nav-dropdown-link-active-bg));
+      color: hsl(var(--nav-dropdown-link-active-color));
+    }
+
+    // État focusé (navigation clavier)
+    &--focused {
+      background-color: hsl(var(--nav-dropdown-link-hover-bg));
+      color: hsl(var(--nav-dropdown-link-hover-color));
+      outline: 2px solid hsl(var(--color-focus));
+      outline-offset: -2px;
+    }
+
+    // Icône de l'option — styles portés directement par l'<img>
+    &-icon {
+      width: var(--sidebar-switcher-option-icon-size);
+      height: var(--sidebar-switcher-option-icon-size);
+      margin-right: var(--spacing-sm);
+      flex-shrink: 0;
+      object-fit: contain;
+    }
+
+    // Texte de l'option
+    &-text {
+      flex: 1;
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  // ===== INDICATEUR DE SÉLECTION =====
+  &-check {
+    width: var(--sidebar-switcher-check-size);
+    height: var(--sidebar-switcher-check-size);
+    margin-left: var(--spacing-sm);
+    color: hsl(var(--color-primary-500));
+    flex-shrink: 0;
+  }
+
+  // ===== ÉTATS DE LA SIDEBAR =====
+
+  // Sidebar fermée - masquer entièrement le switcher (logo compris), comme le logo
+  // simple en mode useSwitcher=false qui ne s'affiche qu'à l'ouverture.
+  &--collapsed {
+    display: none;
+  }
+
+  // ===== RESPONSIVE =====
+
+  // Tablette - ajuster les tailles (le logo est piloté par le token responsive).
+  @include breakpoint-down(medium) {
+    &-title {
+      font-size: var(--font-size-sm);
+    }
+  }
+
+  // Mobile - ajustements supplémentaires
+  @include breakpoint-down(small) {
+    &-dropdown {
+      left: var(--spacing-sm);
+      right: var(--spacing-sm);
+    }
+
+    &-option-text {
+      font-size: var(--font-size-xs);
+    }
+  }
+}

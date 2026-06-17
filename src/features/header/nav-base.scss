@@ -1,0 +1,272 @@
+// =================================================================
+// CLASSES DE RÔLE PARTAGÉES — NAVIGATION (topbar ⇄ sidebar)
+// =================================================================
+// Style commun aux deux composants de navigation, factorisé sur des classes de « rôle »
+// non préfixées. Chaque balise porte une classe de rôle (style commun) + une classe
+// préfixée composant (.sidebar-* / .topbar-*) qui ne fournit QUE le spécifique
+// (couleur et graisse propres au niveau de hiérarchie, valeurs de padding, layout).
+//
+// ⚠️ Compilé UNE SEULE FOIS : importé via `import './nav-base.scss'` dans Header.js.
+// Ne pas l'`@use` ailleurs (les sélecteurs de classe seraient dupliqués dans le bundle).
+//
+// Conventions du projet :
+// - Couleurs en hsl(var(--token)) ; espacements/tailles via custom properties.
+// - line-height défini UNE fois ici (et non répété par élément) : sa valeur sert aussi
+//   au calcul du padding-y dérivé (cf. features/header/_tokens.scss).
+
+@use '@/styles/utils/breakpoints' as *;
+
+// =================================================================
+// LIEN DE NAVIGATION (base commune à tous les liens / déclencheurs)
+// =================================================================
+// Sélecteur volontairement à faible spécificité (0-1-0) : les classes préfixées et les
+// surcharges de niveau (couleur, graisse) priment naturellement.
+.nav-link {
+  // === Reset ===
+  text-decoration: none;
+
+  // === Typographie commune ===
+  // Couleur/graisse par défaut (rang racine) ; les niveaux imbriqués les surchargent.
+  color: hsl(var(--nav-link-color));
+  font-size: var(--nav-link-font-size);
+  font-weight: var(--nav-link-font-weight);
+  // line-height unique : référence du calc de padding-y (hauteur de rangée = toggle).
+  line-height: var(--line-height-tight);
+
+  // === Apparence ===
+  // Bordure transparente en base : réserve la place du liseré « active » (zéro reflow
+  // entre états). Surchargée en couleur sur --active ci-dessous.
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-md);
+  transition: all var(--transition-normal) ease;
+
+  // === États d'interaction ===
+  &:hover {
+    color: hsl(var(--nav-link-hover-color));
+    background-color: hsl(var(--nav-link-hover-bg));
+    border-color: currentColor;
+  }
+
+  &:focus {
+    outline: var(--nav-focus-outline-width) solid hsl(var(--nav-link-focus-color));
+    outline-offset: var(--nav-focus-outline-offset);
+  }
+
+  &--active {
+    color: hsl(var(--nav-link-active-color));
+    background-color: hsl(var(--nav-link-active-bg));
+    font-weight: var(--nav-link-font-weight-active);
+    // Liseré 1px = couleur du texte actif (currentColor) → s'adapte à chaque contexte.
+    border-color: currentColor;
+  }
+}
+
+// ----- Facette « feuille » (item terminal) -----
+// Padding fourni par les classes préfixées via les vars génériques --nav-leaf-pad-*.
+.nav-link--leaf {
+  display: flex;
+  align-items: center;
+  padding: var(--nav-leaf-pad-y) var(--nav-leaf-pad-x);
+}
+
+// ----- Facette « parent » (rang portant un toggle/chevron) -----
+// padding-y dérivé → hauteur de rangée = taille du toggle. Padding fourni par les
+// classes préfixées via --nav-parent-pad-*. Les côtés gauche/droit retombent sur
+// --nav-parent-pad-x mais restent surchargeables séparément (centrage compensé du
+// texte en small, où le padding gauche absorbe la largeur du toggle à droite).
+.nav-link--parent {
+  display: flex;
+  align-items: center;
+  padding:
+    var(--nav-parent-pad-y)
+    var(--nav-parent-pad-x-right, var(--nav-parent-pad-x))
+    var(--nav-parent-pad-y)
+    var(--nav-parent-pad-x-left, var(--nav-parent-pad-x));
+}
+
+// =================================================================
+// LIBELLÉ
+// =================================================================
+// Span de texte commun : permet la troncature (ellipsis) et l'alignement icône+texte.
+.nav-text {
+  flex: 1;
+  min-width: 0; // autorise la troncature dans un conteneur flex
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// =================================================================
+// ITEM / RANGÉE (conteneurs <li>)
+// =================================================================
+// Feuille : <li> simple.
+.nav-item {
+  list-style: none;
+  margin: 0;
+  position: relative;
+}
+
+// Rang parent : <li> en grille (libellé | toggle, puis contenu déplié sur la ligne 2).
+.nav-row {
+  list-style: none;
+  position: relative;
+  display: grid;
+  align-items: center;
+}
+
+// =================================================================
+// TOGGLE / CHEVRON (bouton d'ouverture)
+// =================================================================
+// Boilerplate commun aux trois boutons d'ouverture (toggle racine topbar, chevron de
+// groupe topbar, chevron de groupe sidebar). Taille, hover, rotation et arrondis
+// spécifiques restent portés par les classes préfixées.
+.nav-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-sizing: border-box;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  color: hsl(var(--color-text-tertiary));
+  transition: all var(--transition-normal) ease;
+  transform-origin: center center;
+
+  // Optimisations tactiles
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+
+  &:focus {
+    outline: none;
+    border-color: hsl(var(--color-focus));
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  // Icône SVG : toujours centrée, dimension propre fixée par chaque composant.
+  svg {
+    display: block;
+    flex-shrink: 0;
+  }
+}
+
+// =================================================================
+// TRIGGER HAMBURGER (ouverture/fermeture de la navigation)
+// =================================================================
+// Bouton commun à la sidebar ET à la topbar (mécanisme 3 lignes → X). Apparence pilotée
+// par les tokens --nav-trigger-* (features/header/_tokens.scss). Le PLACEMENT et la
+// VISIBILITÉ responsive (absolu côté topbar, masquage desktop…) restent portés par les
+// composants via une classe de positionnement (ex. .mobile-nav-toggle, .sidebar-trigger).
+.nav-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: var(--nav-trigger-size);
+  height: var(--nav-trigger-size);
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--nav-trigger-border-radius);
+  cursor: pointer;
+  transition: all var(--transition-normal) ease;
+
+  &:hover {
+    background-color: hsl(var(--nav-hamburger-bg-hover));
+    border-color: hsl(var(--color-border-hover));
+  }
+
+  // Focus clavier : bordure + halo (cohérent avec les feuilles de la sidebar).
+  &:focus {
+    outline: none;
+    border-color: hsl(var(--color-focus));
+    box-shadow: 0 0 0 2px hsl(var(--color-focus-shadow) / 0.2);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// Boîte des 3 lignes (empilées verticalement et centrées).
+.nav-trigger-icon {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: var(--nav-trigger-icon-size);
+  height: var(--nav-trigger-icon-size);
+}
+
+// Lignes du hamburger.
+.nav-trigger-line {
+  display: block;
+  width: 100%;
+  height: var(--nav-trigger-line-thickness);
+  background-color: hsl(var(--nav-hamburger-color));
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-normal) ease;
+  transform-origin: center;
+
+  // Écart vertical entre les lignes (pilote aussi la translation du « X »).
+  &--top,
+  &--middle {
+    margin-bottom: var(--nav-trigger-line-gap);
+  }
+}
+
+// État fermé : hamburger normal.
+.nav-trigger--closed .nav-trigger-line {
+  &.nav-trigger-line--top { transform: translateY(0) rotate(0deg); opacity: 1; }
+  &.nav-trigger-line--middle { transform: scaleX(1); opacity: 1; }
+  &.nav-trigger-line--bottom { transform: translateY(0) rotate(0deg); opacity: 1; }
+}
+
+// État ouvert : transformation en « X ». La translation est DÉRIVÉE de l'écart + l'épaisseur
+// (--nav-trigger-cross-offset) → croisement net à toutes les tailles responsive.
+.nav-trigger--open .nav-trigger-line {
+  &.nav-trigger-line--top {
+    transform: translateY(var(--nav-trigger-cross-offset)) rotate(45deg);
+  }
+
+  &.nav-trigger-line--middle {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+
+  &.nav-trigger-line--bottom {
+    transform: translateY(calc(-1 * var(--nav-trigger-cross-offset))) rotate(-45deg);
+  }
+}
+
+// =================================================================
+// RAIL DE REDIMENSIONNEMENT (bord glissable)
+// =================================================================
+// Poignée verticale fine révélée au survol pour redimensionner un tiroir de navigation
+// (bord droit de la sidebar, bord gauche du tiroir topbar en medium). La logique de
+// glisser vit dans le hook useResizable ; la RÉVÉLATION au survol du conteneur reste
+// portée par chaque composant (sélecteurs de conteneur différents).
+.nav-rail {
+  position: absolute;
+  top: 0;
+  width: var(--nav-rail-width);
+  height: 100%;
+  cursor: col-resize;
+  background-color: hsl(var(--color-primary-500));
+  opacity: 0;
+  transition: opacity var(--transition-fast) ease;
+  // Décalé vers l'extérieur (moitié de sa largeur) pour chevaucher le bord du tiroir.
+  &--right { right: calc(var(--nav-rail-width) / -2); }
+  &--left { left: calc(var(--nav-rail-width) / -2); }
+
+  // Toujours visible pendant la saisie directe (survol/drag du rail lui-même).
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    outline: none;
+  }
+}

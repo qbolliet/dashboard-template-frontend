@@ -1,0 +1,188 @@
+// =================================================================
+// SIDEBAR ITEM — feuille de navigation de la sidebar
+// =================================================================
+// Structure : <li.nav-item.sidebar-item> > <a.nav-link.nav-link--leaf.sidebar-link>
+//   > <img.sidebar-icon> <span.nav-text.sidebar-text> [indicateur externe]
+// Variante non-cliquable : <span.nav-link.nav-link--leaf.sidebar-link.sidebar-link--static>
+//
+// Style commun (couleur/font-size/radius/transition + padding feuille) : classes de rôle
+// (features/header/nav-base.scss). Ici : spécifique sidebar (couleur tertiaire par défaut,
+// bordure, icône/texte, niveau 0, tooltip collapsé).
+//
+// Tokens : ./_tokens.scss, ../_tokens.scss. Couleurs : ../_colors.scss.
+
+@use '../../../../../styles/utils/breakpoints' as *;
+@use '../tokens' as *;   // Tokens partagés sidebar (--sidebar-toggle-size, paddings…) — émet leur :root
+@use './tokens' as *;    // Tokens propres à l'item (--sidebar-external-indicator-size)
+@use '../colors' as *;
+
+// ===== CONTENEUR (li) =====
+.sidebar-item {
+  display: flex;
+  flex-direction: column;
+}
+
+// ===== LIEN DE LA FEUILLE =====
+.sidebar-link {
+  // Padding alimentant la facette .nav-link--leaf.
+  --nav-leaf-pad-y: var(--sidebar-link-padding-y);
+  --nav-leaf-pad-x: var(--sidebar-link-padding-x);
+
+  gap: var(--spacing-sm);          // espacement icône / texte
+  width: 100%;
+  border: 1px solid transparent;
+  cursor: pointer;
+
+  // Apparence de base = feuille imbriquée (tertiaire). Le niveau 0 repasse en primaire.
+  color: hsl(var(--nav-dropdown-sublink-color));
+  font-weight: 400;
+
+  &:hover {
+    background-color: hsl(var(--nav-dropdown-sublink-hover-bg));
+    color: hsl(var(--nav-dropdown-sublink-hover-color));
+  }
+
+  // Focus façon sidebar : bordure + halo (et non l'outline de la classe de rôle).
+  &:focus {
+    outline: none;
+    border-color: hsl(var(--color-focus));
+    box-shadow: 0 0 0 2px hsl(var(--color-focus-shadow) / 0.2);
+  }
+
+  &--active {
+    background-color: hsl(var(--nav-dropdown-sublink-active-bg));
+    color: hsl(var(--nav-dropdown-sublink-active-color));
+    // Liseré = couleur du texte actif (cohérent avec la classe de rôle .nav-link--active).
+    border-color: currentColor;
+    font-weight: 500;
+  }
+
+  // Variante non-cliquable (item sans chemin).
+  &--static {
+    cursor: default;
+    opacity: 0.7;
+
+    &:hover {
+      background-color: transparent;
+      color: hsl(var(--nav-dropdown-sublink-color));
+      border-color: transparent;
+    }
+  }
+}
+
+// ===== NIVEAU RACINE (couleur/graisse primaires) =====
+.sidebar-item--level-0 .sidebar-link {
+  font-weight: 500;
+  color: hsl(var(--nav-link-color));
+
+  &:hover {
+    color: hsl(var(--nav-link-hover-color));
+    background-color: hsl(var(--nav-link-hover-bg));
+  }
+
+  &--active {
+    color: hsl(var(--nav-link-active-color));
+    background-color: hsl(var(--nav-link-active-bg));
+  }
+}
+
+// ===== ICÔNE =====
+.sidebar-icon {
+  width: var(--sidebar-icon-size);
+  height: var(--sidebar-icon-size);
+  flex-shrink: 0;
+  object-fit: contain;
+  filter: hsl(var(--logo-filter));
+
+  .sidebar-item--sidebar-collapsed & {
+    width: var(--sidebar-icon-size-collapsed);
+    height: var(--sidebar-icon-size-collapsed);
+  }
+}
+
+// ===== TEXTE (la facette .nav-text gère flex/troncature) =====
+.sidebar-text {
+  .sidebar-item--sidebar-collapsed & {
+    display: none;
+  }
+}
+
+// ===== INDICATEUR DE LIEN EXTERNE =====
+.sidebar-external-indicator {
+  width: var(--sidebar-external-indicator-size);
+  height: var(--sidebar-external-indicator-size);
+  margin-left: var(--spacing-sm);
+  color: hsl(var(--color-text-tertiary));
+  flex-shrink: 0;
+  opacity: 0.6;
+
+  .sidebar-item--sidebar-collapsed & {
+    display: none;
+  }
+
+  .sidebar-link:hover & {
+    opacity: 1;
+  }
+}
+
+// ===== RESPONSIVE — MOBILE =====
+// Le padding vient des tokens ; ici seul le centrage est propre au small.
+@include breakpoint-down('small') {
+  .sidebar-link {
+    justify-content: center;
+    text-align: center;
+  }
+
+  // Sur mobile, la sidebar n'est jamais réellement collapsée (mode overlay).
+  .sidebar-item--sidebar-collapsed {
+    .sidebar-text,
+    .sidebar-external-indicator {
+      display: block;
+    }
+
+    .sidebar-icon {
+      margin-right: var(--spacing-sm);
+      width: var(--sidebar-icon-size-collapsed);
+      height: var(--sidebar-icon-size-collapsed);
+    }
+  }
+}
+
+// ===== TOOLTIP POUR SIDEBAR COLLAPSÉE =====
+.sidebar-item--sidebar-collapsed {
+  position: relative;
+
+  @include breakpoint('medium') {
+    .sidebar-link:hover::after {
+      content: attr(title);
+      position: absolute;
+      left: 100%;
+      top: 50%;
+      transform: translateY(-50%);
+      margin-left: var(--spacing-sm);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      background-color: hsl(var(--sidebar-tooltip-bg));
+      color: hsl(var(--sidebar-tooltip-color));
+      font-size: var(--font-size-xs);
+      font-weight: 400;
+      border-radius: var(--border-radius-sm);
+      white-space: nowrap;
+      z-index: var(--z-tooltip);
+      pointer-events: none;
+      opacity: 0;
+      animation: tooltip-in var(--transition-fast) ease forwards;
+    }
+  }
+}
+
+// ===== ANIMATION DU TOOLTIP =====
+@keyframes tooltip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}

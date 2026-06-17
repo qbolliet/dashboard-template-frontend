@@ -1,0 +1,42 @@
+// =================================================================
+// TOPBAR MENU — liste de navigation principale de la topbar
+// =================================================================
+// .topbar-list : le <ul> de premier niveau.
+// Les liens reposent sur les classes de rôle partagées (.nav-link…) définies dans
+// features/header/nav-base.scss ; voir aussi les sous-composants TopbarItem /
+// TopbarGroup pour les facettes spécifiques.
+//
+// Pour les tokens, voir ./_tokens.scss et features/header/_tokens.scss.
+
+@use '../../../../../styles/utils/breakpoints' as *;
+@use '../../../nav-mixins' as *;
+@use './tokens' as *;
+
+.topbar-list {
+  // Disposition verticale par défaut (mobile) ; horizontale au desktop.
+  display: flex;
+  flex-direction: column;
+  // Gap vertical partagé avec la sidebar (medium/small) ; surchargé au desktop ci-dessous.
+  gap: var(--nav-list-gap);
+
+  // Cadre horizontal partagé sidebar/topbar : empêche les toggles de coller au bord.
+  padding: 0 var(--nav-list-padding-x);
+
+  // Centrage des éléments + séparateurs gris centrés (façon sidebar) sur petit écran.
+  @include breakpoint-down('small') {
+    align-items: var(--topbar-menu-align);
+    text-align: var(--topbar-menu-text-align);
+    gap: 0;  // la respiration vient des séparateurs (sinon doublée sous la ligne)
+    @include nav-mobile-separator;
+  }
+
+  // Disposition horizontale sur les grands écrans.
+  @include breakpoint('large') {
+    flex-direction: row;
+    align-items: center;
+    // Gap horizontal singulier à la topbar au desktop (cf. ./_tokens.scss).
+    gap: var(--topbar-menu-gap);
+    // Pas de cadre horizontal au desktop : les liens s'alignent à la suite du logo.
+    padding: 0;
+  }
+}

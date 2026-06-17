@@ -1,0 +1,79 @@
+// ===== LARGE BUTTON - BOUTON CIRCULAIRE =====
+// Import des variables du système de design
+@use '../../../styles/globals/colors';
+@use '../../../styles/globals/typography';
+
+// Grand bouton rond avec effet de halo
+.large-button {
+    // Positionnement et structure de base
+    position: relative;
+    display: inline-grid;
+    z-index: 1;
+    place-items: center;
+    
+    // Dimensions et forme circulaire
+    padding: 0 var(--spacing-3xl);
+    border-radius: var(--border-radius-full);
+    aspect-ratio: 1;
+    
+    // Apparence de base
+    background: hsl(var(--color-primary-500));
+    color: hsl(var(--color-text-on-primary));
+    text-decoration: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: var(--font-size-lg);
+    
+    // Transitions fluides
+    transition: 
+        transform var(--transition-normal) ease-out,
+        box-shadow var(--transition-normal) ease-out;
+    
+    // États d'interaction
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    &:focus {
+        outline: 2px solid hsl(var(--color-focus));
+        outline-offset: 4px;
+    }
+    
+    &:active {
+        transform: translateY(0);
+    }
+}
+
+// Création du halo lumineux avec pseudo-élément
+.large-button::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: hsl(var(--color-primary-500));
+    border-radius: var(--border-radius-full);
+    opacity: 0.3;
+    transition: 
+        opacity var(--transition-slow) linear,
+        transform var(--transition-slow) ease-in-out;
+}
+
+// Animation du halo au survol et focus
+.large-button:hover::after,
+.large-button:focus::after {
+    opacity: 0.6;
+    transform: scale(1.15);
+}
+
+// Responsive : adaptation pour mobiles
+@media (max-width: 768px) {
+    .large-button {
+        padding: 0 var(--spacing-2xl);
+        font-size: var(--font-size-base);
+    }
+}

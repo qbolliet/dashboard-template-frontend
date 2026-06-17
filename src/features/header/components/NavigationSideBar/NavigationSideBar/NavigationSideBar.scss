@@ -1,0 +1,144 @@
+// ===== IMPORTS =====
+@use '../../../../../styles/utils/breakpoints' as *;
+@use '../../../../../styles/globals/colors';
+@use '../../../../../styles/globals/typography';
+@use './tokens' as *;  // Largeurs et rail (incluant les paliers responsive)
+
+// ===== NAVIGATION SIDEBAR =====
+.navigation-sidebar {
+  position: fixed; // Position fixed pour rester collée à gauche lors du scroll
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background-color: hsl(var(--color-surface));
+  border-right: 1px solid hsl(var(--color-border));
+  box-shadow: var(--shadow-md);
+  transition: width var(--transition-normal) ease;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0; // Empêche la sidebar de rétrécir
+  z-index: calc(var(--z-fixed) + 1); // Au-dessus du header
+
+  // ===== ÉTATS DE LA SIDEBAR =====
+
+  // État ouvert
+  &--open {
+    width: var(--sidebar-width-open);
+  }
+
+  // État fermé/collapsé
+  &--collapsed {
+    width: var(--sidebar-width-collapsed);
+
+    // Quand il n'y a pas d'icônes, cacher complètement la sidebar
+    &.navigation-sidebar--no-icons {
+      width: 0;
+      border-right: none;
+      box-shadow: none;
+    }
+  }
+
+  // ===== HEADER DE LA SIDEBAR =====
+  .sidebar-header {
+    // Hauteur fixe égale au header principal pour alignement parfait
+    height: var(--header-height);
+    display: flex;
+    align-items: center; // Centre le contenu verticalement
+    padding: 0 var(--spacing-md); // Padding horizontal seulement
+    border-bottom: 1px solid hsl(var(--color-border));
+    flex-shrink: 0; // Empêche le header de rétrécir
+  }
+
+  // Rail : centrer le contenu du header
+  &--collapsed .sidebar-header {
+    justify-content: center;
+    padding: 0 var(--spacing-sm);
+  }
+
+  // ===== CONTAINER LOGO SIMPLE =====
+  .sidebar-logo-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    // En mode rail, ce conteneur n'est pas rendu (garde JS `isOpen` côté composant) :
+    // inutile de le masquer en CSS.
+
+    // Petit écran (tiroir pleine largeur) : logo + nom centrés dans l'espace disponible
+    // du header (à droite du trigger, cf. padding-left de .sidebar-header--open), avec un
+    // peu plus d'air entre les deux. `flex: 1` est nécessaire pour que le conteneur occupe
+    // la largeur — sans quoi `justify-content` n'aurait rien à répartir.
+    @include breakpoint-down('small') {
+      flex: 1;
+      justify-content: center;
+      gap: var(--spacing-xl);
+    }
+
+    .sidebar-logo {
+      width: var(--spacing-3xl); // 32px
+      height: var(--spacing-3xl); // 32px
+      object-fit: contain;
+      filter: var(--logo-filter);
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo-text {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      color: hsl(var(--color-text-primary));
+      white-space: nowrap;
+    }
+  }
+
+  // ===== RAIL DE REDIMENSIONNEMENT =====
+  // Apparence + bord (droite) via la classe de rôle .nav-rail / .nav-rail--right
+  // (features/header/nav-base.scss). Ici : seule la révélation au survol de la sidebar
+  // (le rail s'affiche aussi à son propre survol, géré par .nav-rail).
+  &:hover .nav-rail {
+    opacity: 1;
+  }
+
+  // ===== RESPONSIVE =====
+
+  // Tablette - utilise les variables CSS
+  @include breakpoint-down(medium) {
+    &--open {
+      width: var(--sidebar-width-open);
+    }
+
+    &--collapsed {
+      width: var(--sidebar-width-collapsed);
+    }
+  }
+
+  // Mobile - tiroir pleine largeur dont le header se confond avec le header principal
+  @include breakpoint-down(small) {
+    // La sidebar repart de tout en haut : son header s'aligne sur le header principal
+    // (même hauteur), formant une seule barre. Le fond opaque --color-surface assure
+    // la lisibilité de tous les items. Le header principal est rendu transparent et
+    // passe au-dessus (cf. Header.scss) pour que seul le trigger reste cliquable.
+    top: 0;
+    height: 100vh;
+
+    // Ouvert : tiroir pleine largeur, header décalé à droite pour ne pas passer
+    // sous le trigger (bord gauche du trigger = padding header + marge ; + largeur
+    // du trigger + un gap).
+    &--open {
+      width: var(--sidebar-width-open);
+
+      .sidebar-header {
+        padding-x: calc(
+          var(--header-padding-x) + var(--spacing-sm) + var(--search-height) + var(--spacing-md)
+        );
+      }
+    }
+
+    // Fermé : le tiroir (z au-dessus du header) ne doit pas intercepter les clics
+    // du trigger. On masque tout débordement de son contenu (largeur 0) et on le
+    // rend transparent aux événements.
+    &--collapsed {
+      overflow: hidden;
+      pointer-events: none;
+    }
+  }
+}

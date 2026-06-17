@@ -1,0 +1,46 @@
+// ===== IMPORTS =====
+@use '@/styles/utils/breakpoints' as *;
+@use './tokens' as *;
+
+// ===== TOPBAR OVERLAY =====
+// Overlay semi-transparent qui apparaît derrière le menu mobile
+// Permet de fermer le menu en cliquant en dehors
+//
+// TOKENS UTILISÉS :
+// - --topbar-overlay-bg : Couleur de fond (définie dans features/header/_colors.scss)
+// - --topbar-overlay-opacity : Transparence du fond (définie dans ./tokens.scss)
+// - --topbar-overlay-z-index : Position en couches (définie dans ./tokens.scss)
+// - --topbar-overlay-transition-duration : Durée de l'animation (définie dans ./tokens.scss)
+//
+// COMPORTEMENT :
+// - Visible uniquement sur mobile/tablette (< large breakpoint)
+// - Masqué automatiquement sur desktop (>= large breakpoint)
+
+.nav-overlay {
+  // ===== POSITIONNEMENT =====
+  // Couvre tout l'écran
+  position: fixed;
+  inset: 0;
+
+  // ===== APPARENCE =====
+  // Background semi-transparent avec couleur HSL et opacité personnalisables
+  background-color: hsla(var(--topbar-overlay-bg) / var(--topbar-overlay-opacity));
+
+  // Position en couches : en dessous du menu mobile mais au-dessus du contenu
+  z-index: var(--topbar-overlay-z-index);
+
+  // ===== ANIMATION =====
+  // Apparition/disparition en fondu
+  opacity: 1;
+  transition: opacity var(--topbar-overlay-transition-duration) ease;
+
+  // ===== INTERACTIVITÉ =====
+  // Curseur pointeur pour indiquer que l'overlay est cliquable
+  cursor: pointer;
+
+  // ===== RESPONSIVE =====
+  // Masquer l'overlay sur desktop où le menu n'est pas mobile
+  @include breakpoint('large') {
+    display: none;
+  }
+}

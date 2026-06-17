@@ -1,0 +1,9 @@
+// ===== TOKENS DU SIDEBARITEM =====
+// Variables propres aux items simples (feuilles) de la sidebar.
+// Le padding du lien (--sidebar-link-padding-*) et la taille d'icône sont des tokens
+// partagés (voir ../_tokens.scss).
+
+:root {
+  // ===== INDICATEUR DE LIEN EXTERNE =====
+  --sidebar-external-indicator-size: var(--spacing-md);  // 12px
+}

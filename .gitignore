@@ -42,8 +42,12 @@ next-env.d.ts
 
 # claude
 CLAUDE.md
+DESIGN_SYSTEM.md
 .claude/*
+skills-lock.json
 
 # old repository
 old_src/*
-sidebar-example/*
+shadcn-ui-sidebar-02-example/*
+shadcn-ui-sidebar-07-example/*
+old_components/*
