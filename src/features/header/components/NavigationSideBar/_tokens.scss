@@ -2,8 +2,8 @@
 // Variables structurantes communes à plusieurs sous-composants de la sidebar
 // (SidebarItem, SidebarGroup, SidebarMenu…).
 //
-// Chaque alias reprend un token canonique header (--header-nav-*) en préfixant
-// `--sidebar-` ; le motif var(--header-nav-*, <valeur-desktop>) préserve le rendu
+// Chaque alias reprend un token canonique header (--nav-*) en préfixant
+// `--sidebar-` ; le motif var(--nav-*, <valeur-desktop>) préserve le rendu
 // desktop tout en héritant des valeurs harmonisées medium/small. Surcharger ici
 // n'affecte QUE la sidebar, jamais la topbar.
 // Pour modifier à la fois la sidebar et la topbar, il faut modifier les valeurs des
@@ -29,20 +29,20 @@
   // groupe) ont la même hauteur = taille du toggle, sur les 3 écrans. Pas de variable
   // padding-y distincte par niveau : la hauteur de rangée est la même pour tous.
   --sidebar-row-padding-y: calc(
-    (var(--sidebar-toggle-size) - var(--line-height-tight) * var(--header-nav-link-font-size)) / 2
+    (var(--sidebar-toggle-size) - var(--line-height-tight) * var(--nav-link-font-size)) / 2
   );
   // Feuille (item) : hauteur = rangée ; padding-x propre (harmonisé medium/small via header).
   --sidebar-link-padding-y: var(--sidebar-row-padding-y);
-  --sidebar-link-padding-x: var(--header-nav-link-padding-x, var(--spacing-md));
+  --sidebar-link-padding-x: var(--nav-link-padding-x, var(--spacing-md));
   // Rang parent (trigger de groupe, porte le chevron) : même hauteur de rangée ; padding-x
   // distinct (réserve la place du chevron), desktop md, harmonisé medium/small via header.
   --sidebar-group-padding-y: var(--sidebar-row-padding-y);
-  --sidebar-group-padding-x: var(--header-nav-group-padding-x, var(--spacing-md));
+  --sidebar-group-padding-x: var(--nav-group-padding-x, var(--spacing-md));
 
   // ===== ESPACEMENT ENTRE ENTRÉES (gap des listes) =====
   // Remplace les anciens margin-bottom des items/groupes par un gap porté par le <ul>.
-  // 1er niveau = sm (équivaut à l'ancien gap xs + margin xs) ; imbriqué = xs.
-  --sidebar-list-gap: var(--spacing-sm);     // 8px entre entrées de 1er niveau
+  // 1er niveau = gap PARTAGÉ avec la topbar (--nav-list-gap) ; imbriqué = xs.
+  --sidebar-list-gap: var(--nav-list-gap);   // 8px entre entrées de 1er niveau
   --sidebar-content-gap: var(--spacing-xs);  // 4px entre entrées imbriquées
 
   // ===== ICÔNES D'ENTRÉE (item & groupe) =====
@@ -62,7 +62,7 @@
 @include breakpoint-down('medium') {
   :root {
     // Toggle aligné sur le toggle header partagé (36 / 40 px) en medium/small
-    --sidebar-toggle-size: var(--header-nav-toggle-size);
+    --sidebar-toggle-size: var(--nav-toggle-size);
 
     --sidebar-icon-size: var(--spacing-sm);            // 8px
     --sidebar-icon-size-collapsed: var(--spacing-lg);  // 16px

@@ -9,5 +9,4 @@ export { default as TopbarNode }         from './TopbarNode/TopbarNode';
 export { default as TopbarGroupSection } from './TopbarGroupSection/TopbarGroupSection';
 export { default as TopbarGroupItem }    from './TopbarGroupItem/TopbarGroupItem';
 export { default as TopbarToggleButton } from './TopbarToggleButton/TopbarToggleButton';
-export { default as TopbarTrigger }      from './TopbarTrigger/TopbarTrigger';
 export { default as TopbarOverlay }      from './TopbarOverlay/TopbarOverlay';

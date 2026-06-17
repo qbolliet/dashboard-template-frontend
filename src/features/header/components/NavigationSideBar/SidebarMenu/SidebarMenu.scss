@@ -21,23 +21,8 @@
   overscroll-behavior: contain;  // évite la propagation du scroll à la page
   padding: var(--spacing-md) 0;
 
-  // Scrollbar personnalisée
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background-color: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--sidebar-scrollbar-thumb));
-    border-radius: var(--border-radius-sm);
-
-    &:hover {
-      background-color: hsl(var(--sidebar-scrollbar-thumb-hover));
-    }
-  }
+  // Scrollbar personnalisée (mixin partagé avec le dropdown du switcher).
+  @include nav-scrollbar(var(--sidebar-scrollbar-thumb), var(--sidebar-scrollbar-thumb-hover));
 
   &:empty {
     display: none;
@@ -50,7 +35,7 @@
   flex-direction: column;
   gap: var(--sidebar-list-gap);
   // Cadre horizontal partagé avec la topbar (lg / md / sm selon l'écran).
-  padding: 0 var(--header-nav-list-padding-x);
+  padding: 0 var(--nav-list-padding-x);
 
   // Mobile : séparateurs gris centrés à la place du gap.
   @include breakpoint-down('small') {

@@ -119,9 +119,10 @@
   --nav-hamburger-color: var(--color-text-primary);
   --nav-hamburger-bg-hover: var(--color-gray-100);
   --nav-hamburger-border-focus: var(--color-gray-400);
-  --nav-mobile-bg: var(--color-surface);
-  --nav-mobile-shadow: 0 0% 0%; // Pour box-shadow avec alpha
-  --nav-overlay-bg: 0 0% 0%; // Pour overlay avec alpha
+  // Spécifiques topbar (tiroir + overlay) ; --nav-mobile-separator reste partagé plus bas.
+  --topbar-drawer-bg: var(--color-surface);
+  --topbar-drawer-shadow: 0 0% 0%; // Pour box-shadow avec alpha
+  --topbar-overlay-bg: 0 0% 0%; // Pour overlay avec alpha
 
   // Navigation Items
   --nav-link-color: var(--color-text-primary);
@@ -134,7 +135,7 @@
   --nav-link-active-child-bg: var(--color-primary-50);
   
   // Navigation Dropdown - matching primary-navigation background
-  --nav-dropdown-bg: var(--nav-mobile-bg); // Same as primary navigation
+  --nav-dropdown-bg: var(--color-surface); // Same as primary navigation
   --nav-dropdown-border: var(--color-border);
   --nav-dropdown-shadow: 0 0% 0%; // Pour box-shadow avec alpha
   --nav-dropdown-link-color: var(--nav-dropdown-sublink-color);
@@ -231,8 +232,8 @@
   // Navigation en mode sombre
   --nav-hamburger-color: var(--color-text-primary);
   --nav-hamburger-bg-hover: var(--color-gray-300);
-  --nav-mobile-bg: var(--color-surface);
-  
+  --topbar-drawer-bg: var(--color-surface);
+
   // Navigation Items en mode sombre
   --nav-link-color: var(--color-text-secondary);
   --nav-link-hover-color: var(--color-white);
@@ -242,7 +243,7 @@
   --nav-link-active-child-bg: 211 80% 15%; // Encore plus sombre pour les enfants actifs
   
   // Navigation Dropdown en mode sombre - matching primary navigation
-  --nav-dropdown-bg: var(--nav-mobile-bg); // Same as primary navigation
+  --nav-dropdown-bg: var(--color-surface); // Same as primary navigation
   --nav-dropdown-border: var(--color-gray-300);
   --nav-dropdown-link-color: var(--nav-dropdown-sublink-color);
   --nav-dropdown-link-hover-color: var(--nav-dropdown-sublink-hover-color);

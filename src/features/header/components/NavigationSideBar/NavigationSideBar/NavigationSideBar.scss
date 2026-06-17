@@ -91,27 +91,11 @@
   }
 
   // ===== RAIL DE REDIMENSIONNEMENT =====
-  .sidebar-rail {
-    position: absolute;
-    top: 0;
-    // Décalage vers l'extérieur DÉRIVÉ : moitié de la largeur du rail
-    right: calc(var(--sidebar-rail-width) / -2);
-    width: var(--sidebar-rail-width);
-    height: 100%;
-    cursor: col-resize;
-    opacity: 0;
-    background-color: hsl(var(--color-primary-500));
-    transition: opacity var(--transition-fast) ease;
-
-    // Visible au survol de la sidebar
-    .navigation-sidebar:hover & {
-      opacity: 1;
-    }
-
-    // Toujours visible pendant le redimensionnement
-    &:hover {
-      opacity: 1;
-    }
+  // Apparence + bord (droite) via la classe de rôle .nav-rail / .nav-rail--right
+  // (features/header/nav-base.scss). Ici : seule la révélation au survol de la sidebar
+  // (le rail s'affiche aussi à son propre survol, géré par .nav-rail).
+  &:hover .nav-rail {
+    opacity: 1;
   }
 
   // ===== RESPONSIVE =====

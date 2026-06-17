@@ -1,7 +1,7 @@
 // ===== TOKENS DE TOPBARTOGGLEBUTTON =====
 // La taille du toggle est structurante (réutilisée par le chevron de groupe et les
 // paddings qui compensent sa largeur). L'échelle responsive (24/28/40px) vient du token
-// header --header-nav-toggle-size, réimporté via l'alias topbar --topbar-toggle-size.
+// header --nav-toggle-size, réimporté via l'alias topbar --topbar-toggle-size.
 // Le boilerplate du bouton (centrage, bordure, transition, :active) vit dans la classe
 // de rôle .nav-toggle (voir features/header/nav-base.scss).
 //

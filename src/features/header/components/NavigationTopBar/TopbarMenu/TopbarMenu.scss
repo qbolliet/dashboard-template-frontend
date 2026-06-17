@@ -16,15 +16,16 @@
   // Disposition verticale par défaut (mobile) ; horizontale au desktop.
   display: flex;
   flex-direction: column;
-  gap: var(--nav-menu-gap);
+  // Gap vertical partagé avec la sidebar (medium/small) ; surchargé au desktop ci-dessous.
+  gap: var(--nav-list-gap);
 
   // Cadre horizontal partagé sidebar/topbar : empêche les toggles de coller au bord.
-  padding: 0 var(--header-nav-list-padding-x);
+  padding: 0 var(--nav-list-padding-x);
 
   // Centrage des éléments + séparateurs gris centrés (façon sidebar) sur petit écran.
   @include breakpoint-down('small') {
-    align-items: var(--nav-menu-align);
-    text-align: var(--nav-menu-text-align);
+    align-items: var(--topbar-menu-align);
+    text-align: var(--topbar-menu-text-align);
     gap: 0;  // la respiration vient des séparateurs (sinon doublée sous la ligne)
     @include nav-mobile-separator;
   }
@@ -33,6 +34,8 @@
   @include breakpoint('large') {
     flex-direction: row;
     align-items: center;
+    // Gap horizontal singulier à la topbar au desktop (cf. ./_tokens.scss).
+    gap: var(--topbar-menu-gap);
     // Pas de cadre horizontal au desktop : les liens s'alignent à la suite du logo.
     padding: 0;
   }

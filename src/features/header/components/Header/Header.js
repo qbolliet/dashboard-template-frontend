@@ -8,7 +8,8 @@ import { usePathname } from 'next/navigation';
 // (topbar/sidebar) pour garantir l'ordre de cascade : rôles communs avant spécifiques.
 import '../../nav-base.scss';
 import TopbarContainer from '../NavigationTopBar/TopbarContainer/TopbarContainer';
-import { NavigationSideBar, SidebarTrigger } from '../NavigationSideBar';
+import { NavigationSideBar } from '../NavigationSideBar';
+import { NavTrigger } from '../NavTrigger';
 import SearchBar from '../SearchBar/SearchBar';
 import ThemeToggleButton from '../../../theme/components/ThemeToggleButton/ThemeToggleButton';
 import { SkipLink } from '@/features/accessibility';
@@ -135,10 +136,12 @@ const Header = ({
                 <div className="left-container">
                     {isSidebarMode ? (
                         <>
-                            {/* Trigger pour ouvrir/fermer la sidebar */}
-                            <SidebarTrigger
+                            {/* Trigger pour ouvrir/fermer la sidebar (composant partagé) */}
+                            <NavTrigger
                                 isOpen={sidebarOpen}
                                 onToggle={handleSidebarToggle}
+                                className="sidebar-trigger"
+                                ariaLabel="Basculer la navigation latérale"
                             />
 
                             {/* Titre de la page courante (breadcrumb) */}

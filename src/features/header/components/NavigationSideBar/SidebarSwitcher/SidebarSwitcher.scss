@@ -2,6 +2,8 @@
 @use '../../../../../styles/utils/breakpoints' as *;
 @use '../../../../../styles/globals/colors';
 @use '../../../../../styles/globals/typography';
+@use '../../../nav-mixins' as *;
+@use './tokens' as *;
 
 // ===== SIDEBAR SWITCHER =====
 .sidebar-switcher {
@@ -42,8 +44,8 @@
 
   // ===== LOGO DU SWITCHER =====
   &-logo {
-    width: var(--spacing-3xl); // 32px
-    height: var(--spacing-3xl); // 32px
+    width: var(--sidebar-switcher-logo-size);
+    height: var(--sidebar-switcher-logo-size);
     flex-shrink: 0;
     object-fit: contain;
     filter: var(--logo-filter); // Adaptation au thème (clair/sombre)
@@ -85,7 +87,7 @@
     right: 0;
     margin: 0; // Neutralise la marge par défaut du <ul>
     padding: var(--spacing-xs);
-    max-height: 400px;
+    max-height: var(--sidebar-switcher-dropdown-max-height);
     overflow-y: auto;
     background-color: hsl(var(--nav-dropdown-bg));
     border: 1px solid hsl(var(--nav-dropdown-border));
@@ -104,19 +106,8 @@
       pointer-events: auto;
     }
 
-    // Scrollbar personnalisée
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background-color: transparent;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background-color: hsl(var(--color-gray-300));
-      border-radius: var(--border-radius-sm);
-    }
+    // Scrollbar personnalisée (mixin partagé avec le menu de la sidebar).
+    @include nav-scrollbar(var(--color-gray-300));
   }
 
   // ===== OPTIONS DU DROPDOWN =====
@@ -153,8 +144,8 @@
 
     // Icône de l'option — styles portés directement par l'<img>
     &-icon {
-      width: var(--spacing-lg); // 16px
-      height: var(--spacing-lg); // 16px
+      width: var(--sidebar-switcher-option-icon-size);
+      height: var(--sidebar-switcher-option-icon-size);
       margin-right: var(--spacing-sm);
       flex-shrink: 0;
       object-fit: contain;
@@ -173,8 +164,8 @@
 
   // ===== INDICATEUR DE SÉLECTION =====
   &-check {
-    width: var(--spacing-lg);
-    height: var(--spacing-lg);
+    width: var(--sidebar-switcher-check-size);
+    height: var(--sidebar-switcher-check-size);
     margin-left: var(--spacing-sm);
     color: hsl(var(--color-primary-500));
     flex-shrink: 0;
@@ -190,13 +181,8 @@
 
   // ===== RESPONSIVE =====
 
-  // Tablette - ajuster les tailles
+  // Tablette - ajuster les tailles (le logo est piloté par le token responsive).
   @include breakpoint-down(medium) {
-    &-logo {
-      width: var(--spacing-2xl); // 24px
-      height: var(--spacing-2xl); // 24px
-    }
-
     &-title {
       font-size: var(--font-size-sm);
     }

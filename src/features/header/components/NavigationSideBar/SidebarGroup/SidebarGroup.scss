@@ -20,18 +20,10 @@
 // ===== CONTENEUR (li, grille en-tête + contenu) =====
 .sidebar-group {
   grid-template-columns: 1fr auto;  // trigger | chevron
-  // En-tête (auto) + contenu animé de 0fr à 1fr. La piste 1fr se résout à la hauteur
-  // RÉELLE du contenu (aucune hauteur fixe) : robuste quelles que soient la profondeur
-  // d'imbrication et la quantité d'items, et se recompose proprement quand un sous-groupe
-  // s'ouvre (le parent suit la croissance sans jamais rogner).
-  grid-template-rows: auto 0fr;
-  // Durée + courbe alignées sur l'accordéon de la topbar (--transition-slow + --ease-collapse)
-  // pour une ouverture/fermeture homogène entre les deux navigations.
-  transition: grid-template-rows var(--transition-slow) var(--ease-collapse);
-
-  &.sidebar-group--expanded {
-    grid-template-rows: auto 1fr;
-  }
+  // En-tête (auto) + contenu animé de 0fr à 1fr (hauteur RÉELLE du contenu, robuste à
+  // toute profondeur d'imbrication). Animation MUTUALISÉE avec l'accordéon de la topbar
+  // via le mixin (cf. features/header/_nav-mixins.scss)
+  @include nav-collapse-rows('.sidebar-group--expanded');
 
   // ----- Survol unifié de la ligne d'en-tête (pilule en-tête + chevron) -----
   // Mutualisé avec la topbar via le mixin (cf. features/header/_nav-mixins.scss).
@@ -138,10 +130,6 @@
 .sidebar-group-content {
   grid-column: 1 / -1;
   grid-row: 2;
-  // La grille parente (.nav-row) impose `align-items: center` ; on rétablit l'étirement
-  // sur la piste de contenu pour que le <ul> épouse la hauteur de sa piste (0fr → 0,
-  // condition nécessaire à l'écrasement à la fermeture).
-  align-self: stretch;
 
   display: flex;
   flex-direction: column;
@@ -150,15 +138,13 @@
   padding-left: var(--sidebar-content-indent);
   // Respiration <ul> ↔ parent = gap inter-items (premier item à la même distance du
   // parent que les items entre eux). Toujours appliquée : elle est clippée quand le
-  // groupe est replié (piste 0fr + overflow:hidden ci-dessous).
+  // groupe est replié (piste 0fr + overflow:hidden du mixin ci-dessous).
   padding-top: var(--sidebar-content-gap);
   position: relative;
 
   // --- Animation pilotée par la piste de grille du parent (cf. .sidebar-group) ---
-  // overflow:hidden masque le contenu pendant le repli ; min-height:0 lève le minimum
-  // automatique d'un élément de grille pour autoriser la piste 0fr à l'écraser à 0.
-  overflow: hidden;
-  min-height: 0;
+  // Panneau écrasable mutualisé avec la topbar (overflow/min-height/align-self).
+  @include nav-collapse-panel;
 
   // Fondu synchronisé (le dimensionnement, lui, est géré par la grille du parent).
   // Combinateur ENFANT (`>`) impératif : sans lui, un sous-groupe replié hériterait de
@@ -170,17 +156,8 @@
     opacity: 1;
   }
 
-  // Barre verticale grise indiquant la hiérarchie.
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 1px;
-    background-color: hsl(var(--sidebar-hierarchy-line-color));
-    opacity: 0.3;
-  }
+  // Barre verticale grise indiquant la hiérarchie (mutualisée avec la topbar).
+  @include nav-hierarchy-line;
 
   // Mobile : séparateurs gris centrés (façon topbar) + suppression de l'indentation.
   @include breakpoint-down('small') {

@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, createContext, useContext, useEffect, useMemo, useId } from 'react';
+import React, { useState, createContext, useContext, useEffect, useId, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import { useNavigation } from '../../../hooks/useNavigation';
+import useResizable from '../../../hooks/useResizable';
 import SidebarSwitcher from '../SidebarSwitcher/SidebarSwitcher';
 import SidebarMenu from '../SidebarMenu/SidebarMenu';
 import { useFocusTrap, useAriaAnnounce } from '@/features/accessibility';
@@ -93,6 +94,29 @@ const NavigationSideBar = ({
         active: isMobile && isOpen,
         returnFocus: true,
         autoFocus: true
+    });
+
+    // ===== REDIMENSIONNEMENT PAR GLISSER (rail du bord droit) =====
+    // Largeur ouverte personnalisée en px ; null = valeur du token responsive
+    // (--sidebar-width-open). Désactivé en mobile (tiroir 100vw).
+    const [openWidth, setOpenWidth] = useState(null);
+    const asideRef = useRef(null);
+
+    // Ref combinée : alimente le focus trap ET la mesure de largeur pour le rail.
+    const setAsideRef = useCallback((node) => {
+        asideRef.current = node;
+        if (focusTrapRef) {
+            focusTrapRef.current = node;
+        }
+    }, [focusTrapRef]);
+
+    // Bornes alignées sur les tokens --nav-drawer-width-min/max (features/header/_tokens.scss).
+    const railHandlers = useResizable({
+        direction: 'right',
+        min: 200,
+        max: 480,
+        getCurrentWidth: () => asideRef.current?.getBoundingClientRect().width,
+        onResize: setOpenWidth,
     });
 
     // Synchroniser l'état avec la prop defaultOpen quand elle change
@@ -198,11 +222,15 @@ const NavigationSideBar = ({
     return (
         <SidebarContext.Provider value={sidebarContextValue}>
             <aside
-                ref={focusTrapRef}
+                ref={setAsideRef}
                 id={sidebarId}
                 className={sidebarClasses}
                 data-sidebar-open={isOpen}
                 aria-label="Navigation latérale"
+                // Largeur personnalisée appliquée en custom property (desktop/tablette uniquement).
+                style={openWidth != null && !isMobile
+                    ? { '--sidebar-width-open': `${openWidth}px` }
+                    : undefined}
             >
                 {/* Header de la sidebar avec logo ou switcher */}
                 <header className="sidebar-header">
@@ -242,14 +270,20 @@ const NavigationSideBar = ({
                     level={0} // Le premier niveau d'items reste de niveau 0, même en mode switcher
                 />
 
-                {/* Rail pour le redimensionnement (optionnel) */}
-                <div
-                    className="sidebar-rail"
-                    role="separator"
-                    aria-orientation="vertical"
-                    aria-label="Redimensionner la barre latérale"
-                    tabIndex={0}
-                />
+                {/* Rail de redimensionnement (bord droit) — désactivé en mobile (100vw) */}
+                {!isMobile && (
+                    <div
+                        className="nav-rail nav-rail--right"
+                        role="separator"
+                        aria-orientation="vertical"
+                        aria-label="Redimensionner la barre latérale"
+                        aria-valuemin={200}
+                        aria-valuemax={480}
+                        tabIndex={0}
+                        onPointerDown={railHandlers.onPointerDown}
+                        onKeyDown={railHandlers.onKeyDown}
+                    />
+                )}
             </aside>
         </SidebarContext.Provider>
     );

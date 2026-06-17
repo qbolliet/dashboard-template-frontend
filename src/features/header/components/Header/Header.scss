@@ -164,6 +164,12 @@
       .logo {
         height: 28px; // Garde en px pour la cohérence
       }
+
+      // Trigger légèrement décalé du bord du header (placement propre à la sidebar ;
+      // l'apparence du bouton vient de la classe de rôle partagée .nav-trigger).
+      .sidebar-trigger {
+        margin-left: var(--spacing-sm);
+      }
     }
 
     // En mode sidebar sur mobile, la sidebar fait 100vw : on neutralise le décalage

@@ -16,10 +16,13 @@
   --nav-link-active-child-bg: var(--color-primary-50);
 
   // ===== NAVIGATION MOBILE & OVERLAY =====
-  --nav-mobile-bg: var(--color-surface);
-  --nav-mobile-shadow: 0 0% 0%;  // Pour box-shadow avec alpha
+  // --topbar-drawer-bg / --topbar-drawer-shadow / --topbar-overlay-bg : spécifiques à la
+  // topbar (tiroir coulissant + overlay). --nav-mobile-separator reste partagé (séparateurs
+  // gris centrés en small, utilisés par les DEUX navigations via le mixin nav-mobile-separator).
+  --topbar-drawer-bg: var(--color-surface);
+  --topbar-drawer-shadow: 0 0% 0%;  // Pour box-shadow avec alpha
   --nav-mobile-separator: var(--color-border);
-  --nav-overlay-bg: 0 0% 0%;     // Pour overlay avec alpha
+  --topbar-overlay-bg: 0 0% 0%;     // Pour overlay avec alpha
 
   // ===== HAMBURGER MENU =====
   --nav-hamburger-color: var(--color-text-primary);
@@ -27,15 +30,16 @@
   --nav-hamburger-border-focus: var(--color-gray-400);
 
   // ===== DROPDOWN NAVIGATION =====
-  // Le dropdown utilise le même background que la navigation principale
-  --nav-dropdown-bg: var(--nav-mobile-bg);
+  // Le dropdown utilise la surface (même fond que la navigation principale).
+  --nav-dropdown-bg: var(--color-surface);
   --nav-dropdown-border: var(--color-border);
   --nav-dropdown-shadow: 0 0% 0%;  // Pour box-shadow avec alpha
   --nav-dropdown-mobile-bg: var(--color-gray-50);
   --nav-dropdown-separator: var(--color-border);
-  // Barre verticale de hiérarchie en mode accordéon (medium/small) :
-  // calquée sur --sidebar-hierarchy-line-color pour imiter la sidebar
-  --nav-dropdown-hierarchy-line-color: var(--color-border);
+
+  // ===== LIGNE DE HIÉRARCHIE (barre verticale des niveaux imbriqués) =====
+  // Token UNIQUE partagé sidebar ⇄ topbar (accordéon medium/small + sidebar).
+  --nav-hierarchy-line-color: var(--color-border);
 
   // ===== DROPDOWN - LIENS PRINCIPAUX =====
   --nav-dropdown-link-color: var(--color-text-tertiary);
@@ -74,17 +78,17 @@
   --nav-link-active-child-bg: 211 80% 15%; // Encore plus sombre pour les enfants actifs
 
   // ===== NAVIGATION MOBILE =====
-  --nav-mobile-bg: var(--color-surface);
+  --topbar-drawer-bg: var(--color-surface);
   --nav-mobile-separator: var(--color-gray-300);
   --nav-hamburger-color: var(--color-text-primary);
   --nav-hamburger-bg-hover: var(--color-gray-300);
 
   // ===== DROPDOWN NAVIGATION =====
-  --nav-dropdown-bg: var(--nav-mobile-bg);
+  --nav-dropdown-bg: var(--color-surface);
   --nav-dropdown-border: var(--color-gray-300);
   --nav-dropdown-mobile-bg: var(--color-gray-200);
   --nav-dropdown-separator: var(--color-gray-300);
-  --nav-dropdown-hierarchy-line-color: var(--color-gray-300);
+  --nav-hierarchy-line-color: var(--color-gray-300);
 
   // ===== DROPDOWN - LIENS =====
   --nav-dropdown-link-color: var(--color-text-tertiary);

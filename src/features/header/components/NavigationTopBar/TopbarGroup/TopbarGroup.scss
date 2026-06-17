@@ -237,14 +237,10 @@
   .topbar-list > .topbar-group {
     width: 100%;
     grid-template-columns: 1fr auto;
-    grid-template-rows: auto 0fr;
-    transition: grid-template-rows var(--transition-slow) var(--ease-collapse);
+    // Accordéon mutualisé avec la sidebar (cf. features/header/_nav-mixins.scss).
+    @include nav-collapse-rows('.topbar-group--open');
     padding: 0;
     align-items: stretch;
-
-    &.topbar-group--open {
-      grid-template-rows: auto 1fr;
-    }
 
     // Accordéon : survol = pilule lien + toggle (mutualisée avec la sidebar). Au desktop,
     // c'est le <li> entier qui est surligné (cf. bloc breakpoint('large') plus haut).
@@ -270,7 +266,6 @@
     left: auto;
     grid-column: 1 / -1;
     grid-row: 2;
-    align-self: stretch;
     width: 100%;
     border: none;
     border-radius: 0;
@@ -282,42 +277,28 @@
     transform: none;
     opacity: 1;
     visibility: visible;
-    overflow: hidden;
-    min-height: 0;
     transition: none;
+    // Panneau écrasable mutualisé avec la sidebar (align-self/overflow/min-height).
+    @include nav-collapse-panel;
 
     // Liste simple + groupes : colonne décalée à gauche + barre verticale de hiérarchie.
     &--list,
     &--groups {
       flex-direction: column;
       position: relative;
-      padding: var(--header-nav-separator-gap) 0 0 var(--topbar-dropdown-indent);
-      gap: var(--header-nav-separator-gap);
+      padding: var(--nav-separator-gap) 0 0 var(--topbar-dropdown-indent);
+      gap: var(--nav-separator-gap);
 
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        width: 1px;
-        background-color: hsl(var(--nav-dropdown-hierarchy-line-color));
-        opacity: 0.3;
-      }
+      @include nav-hierarchy-line;
     }
   }
 
   // Groupe imbriqué : en-tête | chevron, sous-liste en dessous. Plus de séparateur vertical.
   .topbar-dropdown--groups > .topbar-group {
     grid-template-columns: 1fr auto;
-    grid-template-rows: auto 0fr;
-    transition: grid-template-rows var(--transition-slow) var(--ease-collapse);
+    @include nav-collapse-rows('.topbar-group--expanded');
     padding: 0;
     border-right: none;
-
-    &.topbar-group--expanded {
-      grid-template-rows: auto 1fr;
-    }
   }
 
   // Survol unifié en-tête + chevron des groupes imbriqués (accordéon, où le chevron est
@@ -344,27 +325,17 @@
   .topbar-content {
     grid-column: 1 / -1;
     grid-row: 2;
-    align-self: stretch;
     position: relative;
     padding-left: var(--topbar-dropdown-indent);
-    padding-top: var(--header-nav-separator-gap);
-    gap: var(--header-nav-separator-gap);
-    overflow: hidden;
-    min-height: 0;
+    padding-top: var(--nav-separator-gap);
+    gap: var(--nav-separator-gap);
+    // Panneau écrasable mutualisé avec la sidebar (align-self/overflow/min-height).
+    @include nav-collapse-panel;
     // Hors tabulation + arbre a11y quand replié — piloté en CSS (et non via `inert` côté
     // JS) car en accordéon seulement : au desktop (popover) la sous-liste reste visible.
     visibility: hidden;
 
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      width: 1px;
-      background-color: hsl(var(--nav-dropdown-hierarchy-line-color));
-      opacity: 0.3;
-    }
+    @include nav-hierarchy-line;
 
     &--expanded {
       visibility: visible;

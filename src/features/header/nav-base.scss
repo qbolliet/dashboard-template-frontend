@@ -28,7 +28,7 @@
   // === Typographie commune ===
   // Couleur/graisse par défaut (rang racine) ; les niveaux imbriqués les surchargent.
   color: hsl(var(--nav-link-color));
-  font-size: var(--header-nav-link-font-size);
+  font-size: var(--nav-link-font-size);
   font-weight: var(--nav-link-font-weight);
   // line-height unique : référence du calc de padding-y (hauteur de rangée = toggle).
   line-height: var(--line-height-tight);
@@ -151,5 +151,122 @@
   svg {
     display: block;
     flex-shrink: 0;
+  }
+}
+
+// =================================================================
+// TRIGGER HAMBURGER (ouverture/fermeture de la navigation)
+// =================================================================
+// Bouton commun à la sidebar ET à la topbar (mécanisme 3 lignes → X). Apparence pilotée
+// par les tokens --nav-trigger-* (features/header/_tokens.scss). Le PLACEMENT et la
+// VISIBILITÉ responsive (absolu côté topbar, masquage desktop…) restent portés par les
+// composants via une classe de positionnement (ex. .mobile-nav-toggle, .sidebar-trigger).
+.nav-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: var(--nav-trigger-size);
+  height: var(--nav-trigger-size);
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--nav-trigger-border-radius);
+  cursor: pointer;
+  transition: all var(--transition-normal) ease;
+
+  &:hover {
+    background-color: hsl(var(--nav-hamburger-bg-hover));
+    border-color: hsl(var(--color-border-hover));
+  }
+
+  // Focus clavier : bordure + halo (cohérent avec les feuilles de la sidebar).
+  &:focus {
+    outline: none;
+    border-color: hsl(var(--color-focus));
+    box-shadow: 0 0 0 2px hsl(var(--color-focus-shadow) / 0.2);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// Boîte des 3 lignes (empilées verticalement et centrées).
+.nav-trigger-icon {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: var(--nav-trigger-icon-size);
+  height: var(--nav-trigger-icon-size);
+}
+
+// Lignes du hamburger.
+.nav-trigger-line {
+  display: block;
+  width: 100%;
+  height: var(--nav-trigger-line-thickness);
+  background-color: hsl(var(--nav-hamburger-color));
+  border-radius: var(--border-radius-sm);
+  transition: all var(--transition-normal) ease;
+  transform-origin: center;
+
+  // Écart vertical entre les lignes (pilote aussi la translation du « X »).
+  &--top,
+  &--middle {
+    margin-bottom: var(--nav-trigger-line-gap);
+  }
+}
+
+// État fermé : hamburger normal.
+.nav-trigger--closed .nav-trigger-line {
+  &.nav-trigger-line--top { transform: translateY(0) rotate(0deg); opacity: 1; }
+  &.nav-trigger-line--middle { transform: scaleX(1); opacity: 1; }
+  &.nav-trigger-line--bottom { transform: translateY(0) rotate(0deg); opacity: 1; }
+}
+
+// État ouvert : transformation en « X ». La translation est DÉRIVÉE de l'écart + l'épaisseur
+// (--nav-trigger-cross-offset) → croisement net à toutes les tailles responsive.
+.nav-trigger--open .nav-trigger-line {
+  &.nav-trigger-line--top {
+    transform: translateY(var(--nav-trigger-cross-offset)) rotate(45deg);
+  }
+
+  &.nav-trigger-line--middle {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+
+  &.nav-trigger-line--bottom {
+    transform: translateY(calc(-1 * var(--nav-trigger-cross-offset))) rotate(-45deg);
+  }
+}
+
+// =================================================================
+// RAIL DE REDIMENSIONNEMENT (bord glissable)
+// =================================================================
+// Poignée verticale fine révélée au survol pour redimensionner un tiroir de navigation
+// (bord droit de la sidebar, bord gauche du tiroir topbar en medium). La logique de
+// glisser vit dans le hook useResizable ; la RÉVÉLATION au survol du conteneur reste
+// portée par chaque composant (sélecteurs de conteneur différents).
+.nav-rail {
+  position: absolute;
+  top: 0;
+  width: var(--nav-rail-width);
+  height: 100%;
+  cursor: col-resize;
+  background-color: hsl(var(--color-primary-500));
+  opacity: 0;
+  transition: opacity var(--transition-fast) ease;
+  // Décalé vers l'extérieur (moitié de sa largeur) pour chevaucher le bord du tiroir.
+  &--right { right: calc(var(--nav-rail-width) / -2); }
+  &--left { left: calc(var(--nav-rail-width) / -2); }
+
+  // Toujours visible pendant la saisie directe (survol/drag du rail lui-même).
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    outline: none;
   }
 }

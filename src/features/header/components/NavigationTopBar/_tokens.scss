@@ -1,13 +1,17 @@
 // ===== TOKENS DE NAVIGATIONTOPBAR =====
 // Variables partagées entre tous les sous-composants de NavigationTopBar
-// (TopbarContainer, TopbarMenu, TopbarItem, TopbarGroup, TopbarNode, TopbarGroupSection, TopbarGroupItem, TopbarToggleButton, TopbarTrigger, TopbarOverlay)
+// (TopbarContainer, TopbarMenu, TopbarItem, TopbarGroup, TopbarNode, TopbarGroupSection, TopbarGroupItem, TopbarToggleButton, TopbarOverlay)
 //
-// Chaque alias reprend un token canonique header (--header-nav-*) en préfixant
-// `--topbar-` ; le motif var(--header-nav-*, <valeur-desktop>) préserve le rendu
-// desktop tout en héritant des valeurs harmonisées medium/small. Surcharger ici
-// n'affecte QUE la topbar, jamais la topbar.
-// Pour modifier à la fois la sidebar et la topbar, il faut modifier les valeurs des
-// variables dans src/features/header/_tokens.scss
+// CONVENTION DE NOMMAGE :
+// - Les tokens PARTAGÉS entre topbar et sidebar sont définis au niveau header
+//   (features/header/_tokens.scss) et préfixés `--nav-*`.
+// - Les tokens SPÉCIFIQUES à la topbar (définis ici ou dans un sous-composant) sont
+//   préfixés `--topbar-*` afin d'éviter toute confusion avec les tokens `--nav-*`.
+//
+// Chaque alias `--topbar-*` ci-dessous reprend un token canonique header `--nav-*` ; le
+// motif var(--nav-*, <valeur-desktop>) préserve le rendu desktop tout en héritant des
+// valeurs harmonisées medium/small. Surcharger un alias ici n'affecte QUE la topbar,
+// jamais la sidebar. Pour modifier les deux, éditer features/header/_tokens.scss.
 //
 // ⚠️ RÈGLE : Si une variable n'est utilisée que dans UN sous-composant, la mettre dans
 // features/header/components/NavigationTopBar/[SousComposant]/_tokens.scss
@@ -15,49 +19,34 @@
 @use '@/styles/utils/breakpoints' as *;
 
 :root {
-  // ===== DIMENSIONS PRINCIPALES =====
-  // Largeur du menu mobile sur tablette /!\ peut-être le même pour la sidebar
-  --nav-topbar-mobile-width: 280px;
-
   // Note : les graisses (--nav-link-font-weight*) et le focus (--nav-focus-outline-*)
   // partagés sont définis au niveau header (features/header/_tokens.scss) car la classe
   // de rôle .nav-link les utilise aussi côté sidebar.
 
+  // ===== Z-INDEX DU TIROIR MOBILE =====
+  // Référence partagée par TopbarContainer (tiroir + toggles) et TopbarOverlay.
+  // Spécifique à la topbar : la sidebar gère son z-index indépendamment.
+  --topbar-drawer-z-index: var(--z-modal);  // 1050
+
   // =================================================================
   // ALIAS SCOPÉS — NAVIGATION TOPBAR (cf. features/header/_tokens.scss)
   // =================================================================
-  // Chaque alias reprend un token canonique header en préfixant `--topbar-` ; le motif
-  // var(--header-nav-*, <valeur-desktop>) préserve le rendu desktop tout en héritant des
-  // valeurs harmonisées medium/small. Surcharger ici n'affecte QUE la topbar.
 
   // Taille du toggle/chevron (carré : 24 / 28 / 40 px).
-  --topbar-toggle-size: var(--header-nav-toggle-size);
+  --topbar-toggle-size: var(--nav-toggle-size);
 
   // Rangs « parents » (lien racine + en-tête de groupe, portent un toggle/chevron) :
   // padding-y dérivé (hauteur de rangée = taille du toggle) sur les 3 écrans.
-  --topbar-group-padding-y: var(--header-nav-row-padding-y);
-  --topbar-group-padding-x: var(--header-nav-group-padding-x, var(--spacing-sm));
+  --topbar-group-padding-y: var(--nav-row-padding-y);
+  --topbar-group-padding-x: var(--nav-group-padding-x, var(--spacing-sm));
 
   // Feuilles dans un dropdown (liens de liste simple + sous-liens de groupe) :
   // desktop sm/md (plus hautes que le toggle → exception « feuille »), medium/small
   // alignées sur le padding-y dérivé via les tokens header.
-  --topbar-link-padding-y: var(--header-nav-link-padding-y, var(--spacing-sm));
-  --topbar-link-padding-x: var(--header-nav-link-padding-x, var(--spacing-md));
+  --topbar-link-padding-y: var(--nav-link-padding-y, var(--spacing-sm));
+  --topbar-link-padding-x: var(--nav-link-padding-x, var(--spacing-md));
 
   // Feuilles de la liste simple horizontale (NavigationItem) : padding horizontal plus
   // généreux au desktop. C'est le seul lien dont la hauteur ne s'aligne pas sur le toggle.
-  --topbar-simple-padding-x: var(--header-nav-link-padding-x, var(--spacing-lg));
-}
-
-// =================================================================
-// RESPONSIVE - MOBILE (small et moins)
-// =================================================================
-// Ajustements pour écrans mobiles :
-// - Largeur du composant
-
-@include breakpoint-down('small') {
-  :root {
-    // Position horizontale selon le viewport
-    --nav-topbar-mobile-width: 100vw; // Occupe tout l'écran sur mobile
-  }
+  --topbar-simple-padding-x: var(--nav-link-padding-x, var(--spacing-lg));
 }

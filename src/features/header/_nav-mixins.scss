@@ -11,8 +11,8 @@
 // À appeler dans le sélecteur du conteneur de liste (ex. .sidebar-list, .topbar-content).
 @mixin nav-mobile-separator {
   & > li:not(:last-child) {
-    padding-bottom: var(--header-nav-separator-gap);
-    margin-bottom: var(--header-nav-separator-gap);
+    padding-bottom: var(--nav-separator-gap);
+    margin-bottom: var(--nav-separator-gap);
     border-bottom: 1px solid hsl(var(--nav-mobile-separator));
     border-radius: 0;
   }
@@ -48,5 +48,74 @@
   &:has(> #{$header}:hover) > #{$toggle},
   &:has(> #{$toggle}:hover) > #{$toggle} {
     border-right-color: currentColor;
+  }
+}
+
+// ----- Accordéon : animation de hauteur par piste de grille -----
+// Motif partagé sidebar (groupes) ⇄ topbar (rangée racine + groupes imbriqués en
+// medium/small) : la rangée est une grille `auto 0fr` (en-tête + contenu écrasé), le
+// contenu se résolvant à sa hauteur RÉELLE (0fr → 1fr) quand le groupe est déplié. Durée
+// + courbe communes (--transition-slow + --ease-collapse) → ouverture/fermeture homogènes.
+//
+// $expanded : suffixe de classe de l'état déplié (ex. '.sidebar-group--expanded',
+// '.topbar-group--open'). À appeler dans le sélecteur du conteneur de groupe (la grille).
+@mixin nav-collapse-rows($expanded) {
+  grid-template-rows: auto 0fr;
+  transition: grid-template-rows var(--transition-slow) var(--ease-collapse);
+
+  &#{$expanded} {
+    grid-template-rows: auto 1fr;
+  }
+}
+
+// ----- Accordéon : panneau de contenu écrasable -----
+// À appliquer au <ul>/contenu animé par la piste de grille du parent (cf. nav-collapse-rows).
+// overflow:hidden masque le contenu pendant le repli ; min-height:0 lève le minimum
+// automatique d'un élément de grille (autorise la piste 0fr à l'écraser à 0) ; align-self
+// rétablit l'étirement (la grille parente impose souvent `align-items: center`).
+// Le placement (grid-column/row), le fondu et l'indentation restent portés par le composant.
+@mixin nav-collapse-panel {
+  align-self: stretch;
+  overflow: hidden;
+  min-height: 0;
+}
+
+// ----- Barre verticale de hiérarchie (niveaux imbriqués) -----
+// Trait gris à gauche d'une sous-liste indiquant l'imbrication. Le conteneur doit être
+// `position: relative`. Couleur via le token PARTAGÉ --nav-hierarchy-line-color.
+@mixin nav-hierarchy-line {
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 1px;
+    background-color: hsl(var(--nav-hierarchy-line-color));
+    opacity: 0.3;
+  }
+}
+
+// ----- Scrollbar personnalisée fine (webkit) -----
+// Factorise la scrollbar des zones défilables de navigation (menu sidebar, dropdown du
+// switcher). $thumb : couleur du pouce (var() de token) ; $thumb-hover : optionnel.
+@mixin nav-scrollbar($thumb, $thumb-hover: null) {
+  &::-webkit-scrollbar {
+    width: calc(var(--spacing-2px) * 2);  // 4px
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: hsl(#{$thumb});
+    border-radius: var(--border-radius-sm);
+
+    @if $thumb-hover {
+      &:hover {
+        background-color: hsl(#{$thumb-hover});
+      }
+    }
   }
 }

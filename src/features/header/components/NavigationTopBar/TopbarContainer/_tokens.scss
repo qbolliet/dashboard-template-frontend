@@ -25,28 +25,29 @@
 
   // ----- Position du bouton hamburger -----
   // Position verticale centrée du toggle
-  --nav-toggle-position-top: 50%;
+  --topbar-toggle-position-top: 50%;
 
   // Position horizontale selon le viewport
-  --nav-toggle-position-right: var(--spacing-lg);  // 16px - Tablette et plus
+  --topbar-toggle-position-right: var(--spacing-lg);  // 16px - Tablette et plus
 
   // =================================================================
   // DIMENSIONS DU MENU MOBILE
   // =================================================================
 
-  // ----- Largeurs du menu selon viewport -----
-  // Largeur par défaut sur tablette (réutilise le token partagé)
-  --nav-mobile-width: var(--nav-topbar-mobile-width);  // 280px depuis NavigationTopBar/_tokens.scss
+  // ----- Largeur du tiroir -----
+  // Réutilise la largeur de tiroir PARTAGÉE avec la sidebar (280px tablette, 100vw mobile).
+  // Surchargeable ici sans impacter la sidebar ; pilotée en JS lors du redimensionnement.
+  --topbar-drawer-width: var(--nav-drawer-width);
 
   // ----- Padding interne du menu mobile -----
   // Espacement supérieur : doit laisser de la place pour le bouton de fermeture fixe
-  --nav-mobile-padding-top: calc(var(--spacing-6xl) + var(--spacing-lg));  // 56px + 16px = 72px
+  --topbar-drawer-padding-top: calc(var(--spacing-6xl) + var(--spacing-lg));  // 56px + 16px = 72px
 
   // Espacement latéral
-  --nav-mobile-padding-x: var(--spacing-lg);  // 16px
+  --topbar-drawer-padding-x: var(--spacing-lg);  // 16px
 
   // Espacement inférieur
-  --nav-mobile-padding-bottom: var(--spacing-xl);  // 20px
+  --topbar-drawer-padding-bottom: var(--spacing-xl);  // 20px
 
   // =================================================================
   // ANIMATIONS
@@ -54,10 +55,10 @@
 
   // ----- Transitions du menu mobile -----
   // Durée de l'animation de slide in/out
-  --nav-transition-duration: var(--transition-normal);  // 0.2s
+  --topbar-drawer-transition-duration: var(--transition-normal);  // 0.2s
 
   // Durée de l'animation d'apparition du bouton
-  --nav-toggle-transition-duration: var(--transition-fast); // 0.1s
+  --topbar-toggle-transition-duration: var(--transition-fast); // 0.1s
 
   // =================================================================
   // Z-INDEX
@@ -65,13 +66,13 @@
 
   // ----- Superposition des couches -----
   // Conteneur principal de navigation
-  --nav-container-z-index: var(--z-fixed);  // 1030
+  --topbar-container-z-index: var(--z-fixed);  // 1030
 
   // Toggle mobile (menu fermé) - au-dessus du menu mobile
-  --nav-toggle-z-index: calc(var(--nav-mobile-z-index) + 1);  // 1051
+  --topbar-toggle-z-index: calc(var(--topbar-drawer-z-index) + 1);  // 1051
 
   // Toggle mobile (menu ouvert) - doit être au-dessus de tout
-  --nav-toggle-open-z-index: calc(var(--nav-mobile-z-index) + 2);  // 1052
+  --topbar-toggle-open-z-index: calc(var(--topbar-drawer-z-index) + 2);  // 1052
 }
 
 
@@ -84,6 +85,6 @@
 @include breakpoint-down('small') {
   :root {
     // Position horizontale selon le viewport
-    --nav-toggle-position-right: var(--spacing-md);  // 12px - Petits écrans
+    --topbar-toggle-position-right: var(--spacing-md);  // 12px - Petits écrans
   }
 }

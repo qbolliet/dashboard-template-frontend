@@ -40,7 +40,7 @@
 .navigation-container {
     // === Positionnement ===
     position: relative;
-    z-index: var(--nav-container-z-index);
+    z-index: var(--topbar-container-z-index);
 
     // === Responsive Layout ===
     // Sur mobile/tablet, étendre sur toute la largeur pour positionner le toggle
@@ -75,15 +75,15 @@
         @include breakpoint-down('medium') {
             // Positionnement absolu dans le conteneur
             position: absolute;
-            top: var(--nav-toggle-position-top);
-            right: var(--nav-toggle-position-right);
+            top: var(--topbar-toggle-position-top);
+            right: var(--topbar-toggle-position-right);
             transform: translateY(-50%);  // Centrage vertical
-            z-index: var(--nav-toggle-z-index);
+            z-index: var(--topbar-toggle-z-index);
         }
 
         // Ajustement pour très petits écrans
         @include breakpoint-down('small') {
-            right: var(--nav-toggle-position-right);
+            right: var(--topbar-toggle-position-right);
         }
     }
 
@@ -117,22 +117,22 @@
             position: fixed;
             top: 0;
             right: 0;
-            width: var(--nav-mobile-width);
+            width: var(--topbar-drawer-width);
             height: 100vh;
-            z-index: var(--nav-mobile-z-index);
+            z-index: var(--topbar-drawer-z-index);
 
             // === Apparence ===
-            background-color: hsl(var(--nav-mobile-bg));
-            box-shadow: -4px 0 20px hsla(var(--nav-mobile-shadow) / 0.1);
+            background-color: hsl(var(--topbar-drawer-bg));
+            box-shadow: -4px 0 20px hsla(var(--topbar-drawer-shadow) / 0.1);
 
             // === Padding ===
             // Vertical : place pour le bouton de fermeture fixe en haut. 
-            // Horizontal : cadre de liste partagé avec la sidebar (--header-nav-list-padding-x : md/sm)
+            // Horizontal : cadre de liste partagé avec la sidebar (--nav-list-padding-x : md/sm)
             // → les toggles de dropdown ne touchent plus le bord droit.
-            padding-top: var(--nav-mobile-padding-top);
-            padding-bottom: var(--nav-mobile-padding-bottom);
-            padding-left: var(--header-nav-list-padding-x);
-            padding-right: var(--header-nav-list-padding-x);
+            padding-top: var(--topbar-drawer-padding-top);
+            padding-bottom: var(--topbar-drawer-padding-bottom);
+            padding-left: var(--nav-list-padding-x);
+            padding-right: var(--nav-list-padding-x);
 
             // === Gestion du défilement ===
             // Permettre le scroll vertical si le contenu dépasse
@@ -142,7 +142,7 @@
             // === Animation de slide ===
             // État fermé par défaut - menu hors de l'écran à droite
             transform: translateX(100%);
-            transition: transform var(--nav-transition-duration) ease;
+            transition: transform var(--topbar-drawer-transition-duration) ease;
 
             // État ouvert - menu glisse dans l'écran
             &.topbar-list--open {
@@ -150,4 +150,23 @@
             }
         }
     }
+}
+
+
+// =================================================================
+// RAIL DE REDIMENSIONNEMENT DU TIROIR (bord gauche, medium uniquement)
+// =================================================================
+// Apparence + révélation au survol via la classe de rôle .nav-rail (nav-base.scss).
+// Ici : placement fixe au bord gauche du tiroir (ancré à droite), pour rester aligné
+// quelle que soit la position de scroll du tiroir. Rendu en JS uniquement en plage medium.
+.topbar-rail {
+    position: fixed;
+    top: 0;
+    height: 100vh;
+    // Bord gauche du tiroir, centré sur l'arête (moitié du rail vers l'extérieur).
+    left: calc(100vw - var(--topbar-drawer-width) - var(--nav-rail-width) / 2);
+    // Au-dessus du tiroir pour rester saisissable.
+    z-index: calc(var(--topbar-drawer-z-index) + 1);
+    // Le conteneur a pointer-events:none en medium → on réactive le rail.
+    pointer-events: auto;
 }

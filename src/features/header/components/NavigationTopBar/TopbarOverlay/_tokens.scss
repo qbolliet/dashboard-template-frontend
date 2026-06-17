@@ -11,15 +11,15 @@
   // ===== OPACITÉ =====
   // Transparence du background de l'overlay
   // Valeur entre 0 (transparent) et 1 (opaque)
-  --nav-overlay-opacity: 0.5;
+  --topbar-overlay-opacity: 0.5;
 
   // ===== Z-INDEX =====
   // Positionnement en couches : en dessous du menu mobile mais au-dessus du contenu
-  // Calculé à partir de --nav-mobile-z-index défini dans features/header/_tokens.scss
-  --nav-overlay-z-index: calc(var(--nav-mobile-z-index) - 1);
+  // Calculé à partir de --topbar-drawer-z-index (défini dans NavigationTopBar/_tokens.scss)
+  --topbar-overlay-z-index: calc(var(--topbar-drawer-z-index) - 1);
 
   // ===== TRANSITIONS =====
   // Animation d'apparition/disparition de l'overlay
   // Utilise --transition-normal défini dans styles/globals/typography.scss
-  --nav-overlay-transition-duration: var(--transition-normal);
+  --topbar-overlay-transition-duration: var(--transition-normal);
 }

@@ -7,4 +7,3 @@ export { default as SidebarMenu } from './SidebarMenu/SidebarMenu';
 export { default as SidebarGroup } from './SidebarGroup/SidebarGroup';
 export { default as SidebarItem } from './SidebarItem/SidebarItem';
 export { default as SidebarNode } from './SidebarNode/SidebarNode';
-export { default as SidebarTrigger } from './SidebarTrigger/SidebarTrigger';
