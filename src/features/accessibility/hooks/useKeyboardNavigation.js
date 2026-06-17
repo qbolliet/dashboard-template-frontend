@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 /**
  * useKeyboardNavigation Hook
@@ -36,33 +36,30 @@ const useKeyboardNavigation = ({
   const typeAheadTimeout = useRef(null);
 
   // Réinitialise le buffer de type-ahead
-  const clearTypeAheadBuffer = useCallback(() => {
+  const clearTypeAheadBuffer = () => {
     typeAheadBuffer.current = '';
     if (typeAheadTimeout.current) {
       clearTimeout(typeAheadTimeout.current);
     }
-  }, []);
+  };
 
   // Recherche par type-ahead
-  const findItemByText = useCallback(
-    (searchText) => {
-      const normalizedSearch = searchText.toLowerCase();
-      const startIndex = focusedIndex + 1;
+  const findItemByText = (searchText) => {
+    const normalizedSearch = searchText.toLowerCase();
+    const startIndex = focusedIndex + 1;
 
-      // Recherche à partir de l'élément suivant
-      for (let i = 0; i < items.length; i++) {
-        const index = (startIndex + i) % items.length;
-        const itemText = getItemText(items[index]).toLowerCase();
+    // Recherche à partir de l'élément suivant
+    for (let i = 0; i < items.length; i++) {
+      const index = (startIndex + i) % items.length;
+      const itemText = getItemText(items[index]).toLowerCase();
 
-        if (itemText.startsWith(normalizedSearch)) {
-          return index;
-        }
+      if (itemText.startsWith(normalizedSearch)) {
+        return index;
       }
+    }
 
-      return -1;
-    },
-    [items, focusedIndex, getItemText]
-  );
+    return -1;
+  };
 
   /**
    * Calcule le prochain index basé sur la direction
@@ -71,48 +68,44 @@ const useKeyboardNavigation = ({
    * @param {('next'|'previous'|'first'|'last')} direction - Direction du mouvement
    * @returns {number} Le nouvel index
    */
-  const getNextIndex = useCallback(
-    (currentIndex, direction) => {
-      const itemCount = items.length;
+  const getNextIndex = (currentIndex, direction) => {
+    const itemCount = items.length;
 
-      if (itemCount === 0) return -1;
+    if (itemCount === 0) return -1;
 
-      switch (direction) {
-        case 'first':
-          return 0;
+    switch (direction) {
+      case 'first':
+        return 0;
 
-        case 'last':
-          return itemCount - 1;
+      case 'last':
+        return itemCount - 1;
 
-        case 'next': {
-          if (currentIndex === itemCount - 1) {
-            return loop ? 0 : currentIndex;
-          }
-          return currentIndex + 1;
+      case 'next': {
+        if (currentIndex === itemCount - 1) {
+          return loop ? 0 : currentIndex;
         }
-
-        case 'previous': {
-          if (currentIndex <= 0) {
-            return loop ? itemCount - 1 : 0;
-          }
-          return currentIndex - 1;
-        }
-
-        default:
-          return currentIndex;
+        return currentIndex + 1;
       }
-    },
-    [items.length, loop]
-  );
+
+      case 'previous': {
+        if (currentIndex <= 0) {
+          return loop ? itemCount - 1 : 0;
+        }
+        return currentIndex - 1;
+      }
+
+      default:
+        return currentIndex;
+    }
+  };
 
   /**
    * Handler pour les événements clavier
    *
    * @param {KeyboardEvent} event - L'événement clavier
    */
-  const handleKeyDown = useCallback(
-    (event) => {
-      const isVertical = orientation === 'vertical';
+  const handleKeyDown = (event) => {
+    const isVertical = orientation === 'vertical';
       const nextKey = isVertical ? 'ArrowDown' : 'ArrowRight';
       const prevKey = isVertical ? 'ArrowUp' : 'ArrowLeft';
 
@@ -163,16 +156,7 @@ const useKeyboardNavigation = ({
         const newIndex = getNextIndex(focusedIndex, direction);
         setFocusedIndex(newIndex);
       }
-    },
-    [
-      orientation,
-      focusedIndex,
-      getNextIndex,
-      typeAhead,
-      findItemByText,
-      clearTypeAheadBuffer,
-    ]
-  );
+  };
 
   // Cleanup du timeout au démontage
   useEffect(() => {
@@ -191,7 +175,7 @@ const useKeyboardNavigation = ({
     /** Handler d'événement clavier à attacher au conteneur */
     handleKeyDown,
     /** Handler pour réinitialiser le focus */
-    resetFocus: useCallback(() => setFocusedIndex(-1), []),
+    resetFocus: () => setFocusedIndex(-1),
   };
 };
 

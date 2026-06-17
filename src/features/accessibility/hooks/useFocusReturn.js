@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useRef } from 'react';
 
 /**
  * useFocusReturn Hook
@@ -38,16 +38,16 @@ const useFocusReturn = () => {
    *
    * @param {HTMLElement} [element] - Élément à sauvegarder (par défaut: document.activeElement)
    */
-  const saveFocus = useCallback((element = null) => {
+  const saveFocus = (element = null) => {
     savedFocusElement.current = element || document.activeElement;
-  }, []);
+  };
 
   /**
    * Restaure le focus sur l'élément précédemment sauvegardé
    *
    * @returns {boolean} true si le focus a été restauré, false sinon
    */
-  const restoreFocus = useCallback(() => {
+  const restoreFocus = () => {
     if (
       savedFocusElement.current &&
       typeof savedFocusElement.current.focus === 'function'
@@ -61,14 +61,14 @@ const useFocusReturn = () => {
       }
     }
     return false;
-  }, []);
+  };
 
   /**
    * Nettoie la référence à l'élément sauvegardé
    */
-  const clearSavedFocus = useCallback(() => {
+  const clearSavedFocus = () => {
     savedFocusElement.current = null;
-  }, []);
+  };
 
   return {
     saveFocus,
