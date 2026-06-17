@@ -6,7 +6,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.scss";
 import Header from '../features/header/components/Header/Header';
 import ThemeProvider from '../features/theme/providers/ThemeProvider';
-import navigationData from '../../config/navigation_new.json';
+import navigationData from '../../config/navigation_new.json'; // '../../config/navigation_new.json';
 import Footer from '../features/footer/components/Footer/Footer';
 
 const geistSans = Geist({
@@ -50,7 +50,8 @@ export default function RootLayout({
           <Header 
               navigationData={navigationData.main_menu}
               onNavigationItemClick={handleNavigationClick}
-              navigationType='sidebar'//'topbar'
+              navigationType='sidebar' //'sidebar'//'topbar'
+              useSwitcher={false} //false //true
           />
           {children}
           <Footer copyrightText="© 2025 Dashboard Template" />
