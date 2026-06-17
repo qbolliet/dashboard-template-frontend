@@ -8,7 +8,7 @@
 
 :root {
   // ===== DIMENSIONS =====
-  --theme-toggle-size: var(--font-size-2xl);        // 1.5rem (24px) - Taille du bouton carré
+  --theme-toggle-size: calc(var(--header-control-size) - 0.5rem);        // 1.75rem (28px) - Taille du bouton carré
   --theme-toggle-icon-size: var(--font-size-xl);    // Taille de l'icône (lune/soleil)
   --theme-toggle-spinner-size: var(--font-size-xs); // Taille du spinner de transition
 

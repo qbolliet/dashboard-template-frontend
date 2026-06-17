@@ -8,7 +8,9 @@
 
 :root {
   // ===== DIMENSIONS =====
-  --search-height: 2.25rem;
+  // Hauteur pilotée par le token partagé du header → alignée sur le logo et le dark-light
+  // toggle (cf. --header-control-size dans features/header/_tokens.scss).
+  --search-height: var(--header-control-size);
   --search-max-width: 20rem;
 
   // ===== SPACING =====
@@ -52,7 +54,6 @@
   :root {
     // ===== DIMENSIONS =====
     --search-max-width: 12.5rem;
-    --search-height: 2rem;
     // ===== ICÔNES =====
     --search-icon-x: var(--spacing-sm);            // 0.5rem
     --search-icon-size: var(--font-size-sm);       // 0.875rem : Taille des icones search et clear

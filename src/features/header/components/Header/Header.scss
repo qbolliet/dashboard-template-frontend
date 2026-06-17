@@ -39,7 +39,9 @@
       }
       
       .logo {
-        height: 40px; // Garde la taille en px pour la cohérence d'affichage
+        // Hauteur pilotée par le token partagé → alignée sur la recherche et le dark-light
+        // toggle (36px desktop ; 32px = bouton hamburger en medium/small).
+        height: var(--header-control-size);
         width: auto;
         object-fit: contain;
         // Filtre conditionnel basé sur le thème (invert en clair, none en sombre)
@@ -136,10 +138,6 @@
 
     .left-container {
       gap: var(--spacing-lg);
-
-      .logo {
-        height: 32px; // Garde en px pour la cohérence
-      }
     }
 
     // Marge à droite uniquement en mode topbar (pas en mode sidebar)
@@ -160,10 +158,6 @@
 
     .left-container {
       gap: var(--spacing-sm);
-
-      .logo {
-        height: 28px; // Garde en px pour la cohérence
-      }
 
       // Trigger légèrement décalé du bord du header (placement propre à la sidebar ;
       // l'apparence du bouton vient de la classe de rôle partagée .nav-trigger).

@@ -15,6 +15,11 @@
     inline-size: var(--theme-toggle-size);
     block-size: var(--theme-toggle-size);
     aspect-ratio: 1;
+    // Bouton de taille fixe : on interdit la compression flex pour qu'il garde toujours
+    // --theme-toggle-size. Sans ça, dans .right-container la searchbar (width:100%) le
+    // comprimait en medium (≈27px au lieu de 32px) → taille incohérente avec la searchbar
+    // et le trigger. C'est la searchbar (flex-shrink:1 + max-width) qui absorbe la réduction.
+    flex-shrink: 0;
     border-radius: var(--theme-toggle-border-radius);
     box-sizing: border-box;
 

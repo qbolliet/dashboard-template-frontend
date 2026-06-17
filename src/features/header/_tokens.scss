@@ -12,9 +12,9 @@
   --header-height: 4rem;
   --header-padding-x: var(--spacing-3xl);  // 2rem - padding horizontal appliqué au header
 
-  // Note: --header-padding-y est utilisé uniquement pour les calculs (comme --header-content-height)
-  // Le header utilise height: var(--header-height) et centre le contenu avec flexbox
-  --header-padding-y: var(--spacing-md);  // 0.75rem - pour calculs uniquement
+  // Note: le header utilise height: var(--header-height) et centre le contenu avec flexbox.
+  // --header-padding-y documente le padding vertical de référence (réservé aux calculs éventuels).
+  --header-padding-y: var(--spacing-md);  // 0.75rem
 
   --right-container-gap: var(--spacing-2xl);
 
@@ -26,16 +26,15 @@
   --header-gap: var(--spacing-md);        // Gap entre les éléments principaux
   --header-logo-gap: var(--spacing-sm);   // Gap autour du logo
 
-  // ===== DIMENSIONS CALCULÉES =====
-  // Hauteur du contenu interne (en tenant compte du padding vertical)
-  --header-content-height: calc(var(--header-height) - (var(--header-padding-y) * 2));
-
   // ===== Z-INDEX =====
   --header-z-index: var(--z-sticky);
 
-  // ===== LOGO =====
-  // Hauteur maximale du logo (80% de la hauteur du contenu)
-  --header-logo-max-height: calc(var(--header-content-height) * 0.8);
+  // ===== CONTRÔLES DU HEADER — TAILLE PARTAGÉE =====
+  // PILOTE UNIQUE de la taille des contrôles interactifs du header (logo, hauteur de
+  // la barre de recherche, bouton dark-light) → apparence homogène entre composants.
+  // Desktop : aligné sur la hauteur de la barre de recherche (2.25rem).
+  // Medium/small : aligné sur le bouton hamburger (cf. --nav-trigger-size ci-dessous).
+  --header-control-size: 2.25rem;  // 36px (grand écran)
 
   // =================================================================
   // NAVIGATION — ESPACEMENT PARTAGÉ (sidebar ⇄ topbar)
@@ -118,6 +117,10 @@
     --header-padding-x: var(--spacing-lg);  // 1rem (même qu'en desktop)
     --header-padding-y: var(--spacing-md);  // 0.75rem
 
+    // Contrôles du header (logo, recherche, dark-light) alignés sur le bouton hamburger.
+    // Couvre medium ET small (max-width 1149px) ; le hamburger en dérive juste en dessous.
+    --header-control-size: var(--spacing-3xl);  // 32px
+
     // ----- Navigation partagée (medium) -----
     --nav-toggle-size: calc(var(--spacing-2xl) + var(--spacing-md));  // 36px (2.25rem)
     // Padding-y des feuilles aligné sur le padding-y dérivé des parents → toutes les
@@ -128,7 +131,8 @@
     --nav-list-padding-x: var(--spacing-md);   // cadre des listes (12px)
 
     // ----- Trigger hamburger (medium) : boîte et lignes plus compactes -----
-    --nav-trigger-size: var(--spacing-3xl);  // 32px
+    // Couplé au token partagé → logo / recherche / dark-light s'alignent sur le hamburger.
+    --nav-trigger-size: var(--header-control-size);  // 32px
     --nav-trigger-icon-size: 18px;           // boîte des lignes réduite
     --nav-trigger-line-gap: 3px;             // écart réduit → cross-offset = 3px + 2px = 5px
   }
@@ -152,7 +156,7 @@
 
     // ----- Tiroir plein écran (mobile) : commun sidebar ⇄ topbar -----
     --nav-drawer-width: 100vw;
-    // ----- Trigger hamburger (small) : aligné en hauteur sur la barre de recherche -----
-    --nav-trigger-size: var(--search-height);
+    // Le trigger hamburger reste piloté par --header-control-size (hérité du bloc medium) :
+    // logo / recherche / dark-light / hamburger partagent la même taille (32px) en small.
   }
 }
