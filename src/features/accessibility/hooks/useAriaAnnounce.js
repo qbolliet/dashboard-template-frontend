@@ -1,4 +1,3 @@
-import { useCallback } from 'react';
 import { ariaAnnouncer } from '../services/AriaAnnouncer';
 
 /**
@@ -29,9 +28,9 @@ const useAriaAnnounce = () => {
    *   - 'polite': attendra la fin de la lecture en cours (par défaut)
    *   - 'assertive': interrompt la lecture en cours
    */
-  const announce = useCallback((message, priority = 'polite') => {
+  const announce = (message, priority = 'polite') => {
     ariaAnnouncer.announce(message, priority);
-  }, []);
+  };
 
   return announce;
 };

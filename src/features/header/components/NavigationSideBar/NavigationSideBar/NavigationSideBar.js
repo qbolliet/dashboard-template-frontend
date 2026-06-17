@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, createContext, useContext, useEffect, useId, useRef, useCallback } from 'react';
+import { useState, createContext, useContext, useEffect, useId, useRef } from 'react';
 import Image from 'next/image';
 import { useNavigation } from '../../../hooks/useNavigation';
 import useResizable from '../../../hooks/useResizable';
@@ -103,12 +103,12 @@ const NavigationSideBar = ({
     const asideRef = useRef(null);
 
     // Ref combinée : alimente le focus trap ET la mesure de largeur pour le rail.
-    const setAsideRef = useCallback((node) => {
+    const setAsideRef = (node) => {
         asideRef.current = node;
         if (focusTrapRef) {
             focusTrapRef.current = node;
         }
-    }, [focusTrapRef]);
+    };
 
     // Bornes alignées sur les tokens --nav-drawer-width-min/max (features/header/_tokens.scss).
     const railHandlers = useResizable({
@@ -119,10 +119,12 @@ const NavigationSideBar = ({
         onResize: setOpenWidth,
     });
 
-    // Synchroniser l'état avec la prop defaultOpen quand elle change
-    useEffect(() => {
+    // Synchroniser l'état avec la prop defaultOpen quand elle change.
+    const [previousDefaultOpen, setPreviousDefaultOpen] = useState(defaultOpen);
+    if (defaultOpen !== previousDefaultOpen) {
+        setPreviousDefaultOpen(defaultOpen);
         setIsOpen(defaultOpen);
-    }, [defaultOpen]);
+    }
 
     // Verrouiller le scroll de la page quand la sidebar est ouverte en mode mobile
     // (le tiroir occupe tout l'écran sous le header ; on évite que la page défile derrière).
@@ -146,15 +148,15 @@ const NavigationSideBar = ({
     // Hook de navigation existant
     const navigationHook = useNavigation();
 
-    // Détecter si des icônes sont présentes dans les données de navigation
-    const hasIcons = React.useMemo(() => {
+    // Détecter si des icônes sont présentes dans les données de navigation.
+    const hasIcons = (() => {
         if (useSwitcher && selectedSwitcherItem) {
             // Si on utilise le switcher, vérifier les icônes dans l'item sélectionné
             return hasIconsInNavigationData(selectedSwitcherItem.children || []);
         }
         // Sinon, vérifier dans toutes les données de navigation
         return hasIconsInNavigationData(navigationData);
-    }, [navigationData, useSwitcher, selectedSwitcherItem]);
+    })();
 
     // Toggle de la sidebar avec annonce aux lecteurs d'écran
     const toggleSidebar = () => {

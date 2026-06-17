@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -73,8 +73,8 @@ const Header = ({
 
     const isSidebarMode = navigationType === 'sidebar';
 
-    // Fonction pour détecter si des icônes sont présentes dans les données de navigation
-    const hasIconsInNavigationData = React.useMemo(() => {
+    // Détecter si des icônes sont présentes dans les données de navigation.
+    const hasIconsInNavigationData = (() => {
         if (!navigationData || !Array.isArray(navigationData)) {
             return false;
         }
@@ -94,7 +94,7 @@ const Header = ({
         };
 
         return checkForIcons(navigationData);
-    }, [navigationData]);
+    })();
 
     // Calculer les classes CSS pour le header selon l'état de la sidebar
     const getHeaderClasses = () => {

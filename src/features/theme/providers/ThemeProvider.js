@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, useEffect, useEffectEvent } from 'react';
 
 // Contexte pour le thème
 const ThemeContext = createContext();
@@ -55,41 +55,41 @@ export const ThemeProvider = ({ children }) => {
      * Définir un thème spécifique
      * @param {string} newTheme - Le nouveau thème ('light' ou 'dark')
      */
-    const setSpecificTheme = useCallback((newTheme) => {
+    const setSpecificTheme = (newTheme) => {
         if (newTheme !== 'light' && newTheme !== 'dark') {
             console.warn('Thème non valide. Utilisez "light" ou "dark".');
             return;
         }
-        
+
         if (newTheme !== theme) {
             setIsTransitioning(true);
-            
+
             setTimeout(() => {
                 setTheme(newTheme);
             }, 50);
-            
+
             setTimeout(() => {
                 setIsTransitioning(false);
             }, 300);
         }
-    }, [theme]);
+    };
 
     /**
      * Détecter si le thème système a changé et l'adapter si aucun thème manuel n'est défini
      */
-    const syncWithSystemTheme = useCallback(() => {
+    const syncWithSystemTheme = () => {
         if (typeof window === 'undefined') return;
-        
+
         const hasManualTheme = localStorage.getItem('theme-manual');
         if (!hasManualTheme) {
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             const systemTheme = prefersDark ? 'dark' : 'light';
-            
+
             if (systemTheme !== theme) {
                 setSpecificTheme(systemTheme);
             }
         }
-    }, [theme, setSpecificTheme]);
+    };
 
     // Effet pour appliquer le thème au DOM et le sauvegarder
     useEffect(() => {
@@ -121,23 +121,30 @@ export const ThemeProvider = ({ children }) => {
         
     }, [theme, isTransitioning]);
 
-    // Effet pour écouter les changements du thème système
+    // Effect Event : isole la logique non-réactive de l'écoute système.
+    // Lit toujours le `theme` courant sans rendre l'effet d'abonnement réactif,
+    // ce qui évite de ré-abonner l'écouteur à chaque changement de thème.
+    const onSystemThemeChange = useEffectEvent(() => {
+        syncWithSystemTheme();
+    });
+
+    // Effet pour écouter les changements du thème système : abonnement unique
+    // au montage (deps vides) grâce à l'Effect Event ci-dessus.
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        
-        // Gestionnaire pour les changements du thème système
+
         const handleSystemThemeChange = () => {
-            syncWithSystemTheme();
+            onSystemThemeChange();
         };
-        
+
         mediaQuery.addEventListener('change', handleSystemThemeChange);
-        
+
         return () => {
             mediaQuery.removeEventListener('change', handleSystemThemeChange);
         };
-    }, [theme, syncWithSystemTheme]);
+    }, []);
 
     // Effet pour gérer les classes CSS de transition
     useEffect(() => {

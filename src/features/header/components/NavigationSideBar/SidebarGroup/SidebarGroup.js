@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useId } from 'react';
+import React, { useState, useId } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSidebar } from '../NavigationSideBar/NavigationSideBar';
@@ -30,12 +30,11 @@ const SidebarGroup = ({
     // pas montées) sans payer de montage/démontage RÉPÉTÉ ensuite. Une fois monté,
     // l'apparition/disparition redevient purement CSS (cf. grille du parent dans
     // SidebarGroup.scss). `hasBeenExpanded` ne redescend jamais à false.
+    // Verrou (latch) : passe à true au premier dépliage et n'en redescend jamais.
     const [hasBeenExpanded, setHasBeenExpanded] = useState(false);
-    useEffect(() => {
-        if (isExpanded) {
-            setHasBeenExpanded(true);
-        }
-    }, [isExpanded]);
+    if (isExpanded && !hasBeenExpanded) {
+        setHasBeenExpanded(true);
+    }
 
     // Contexte de la sidebar
     const { isOpen: sidebarIsOpen, hasIcons, isActivePath, hasActiveChildren } = useSidebar();

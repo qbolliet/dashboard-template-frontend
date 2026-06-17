@@ -1,9 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useSyncExternalStore } from 'react';
 import { useTheme } from '../../hooks/useTheme';
 import SunMoonIcon from '../../../../components/icons/SunMoonIcon/SunMoonIcon';
 import './ThemeToggleButton.scss';
+
+// Abonnement vide : l'état d'hydratation ne change qu'une fois (au montage client).
+const emptySubscribe = () => () => {};
 
 /**
  * Theme toggle button component for switching between light/dark themes.
@@ -15,14 +18,15 @@ const ThemeToggleButton = () => {
     // Récupération des fonctions et état du thème
     const { theme, toggleTheme, isTransitioning } = useTheme();
     
-    // État pour éviter les erreurs d'hydration
-    const [isMounted, setIsMounted] = useState(false);
-    
-    // Effet pour marquer le composant comme monté
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
-    
+    // Détecte la fin de l'hydratation sans setState-dans-effet : retourne false côté serveur
+    // et au premier rendu client (snapshot serveur), puis true une fois hydraté. Évite ainsi
+    // toute divergence d'hydration sur les labels dépendant du thème.
+    const isMounted = useSyncExternalStore(
+        emptySubscribe,
+        () => true,   // snapshot client
+        () => false,  // snapshot serveur
+    );
+
     // Déterminer les labels d'accessibilité seulement après hydration
     const currentThemeLabel = isMounted ? (theme === 'light' ? 'light' : 'dark') : 'light';
     const nextThemeLabel = isMounted ? (theme === 'light' ? 'dark' : 'light') : 'dark';

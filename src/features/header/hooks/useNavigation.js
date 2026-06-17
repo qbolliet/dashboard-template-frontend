@@ -12,9 +12,16 @@ import { usePathname } from 'next/navigation';
 export const useNavigation = () => {
     // État pour gérer l'affichage du menu mobile
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    
+
     // Récupération du chemin actuel avec Next.js
     const pathname = usePathname();
+
+    // Fermer le menu mobile quand on change de page.
+    const [previousPathname, setPreviousPathname] = useState(pathname);
+    if (pathname !== previousPathname) {
+        setPreviousPathname(pathname);
+        setIsMobileMenuOpen(false);
+    }
 
     /**
      * Toggle mobile menu state.
@@ -66,11 +73,6 @@ export const useNavigation = () => {
             )
         );
     };
-
-    // Fermer le menu mobile quand on change de page
-    useEffect(() => {
-        setIsMobileMenuOpen(false);
-    }, [pathname]);
 
     // Fermer le menu mobile lors du redimensionnement de la fenêtre
     useEffect(() => {
