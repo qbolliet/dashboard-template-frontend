@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden/VisuallyHidden';
 import { useSelectOptions } from './useSelectOptions';
 import './SelectMenu.scss';
@@ -45,7 +45,7 @@ const ChevronIcon = ({ open }) => (
  * @param {string}   [placeholder]
  * @returns {JSX.Element}
  */
-export default function SelectMenu({
+const SelectMenu = ({
   fieldName,
   catalog,
   allowMulti = false,
@@ -55,7 +55,7 @@ export default function SelectMenu({
   onChange,
   disabled = false,
   placeholder = 'Sélectionner…',
-}) {
+}) => {
   // État local : ouverture du dropdown, terme de recherche, curseur clavier
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState('');
@@ -70,18 +70,16 @@ export default function SelectMenu({
     fieldName, catalog, grouped, groupField, searchTerm: filter,
   });
 
-  // Ensemble des valeurs sélectionnées — accès O(1) lors du rendu des options
-  const selectedSet = useMemo(() => new Set(value.map((v) => v.value)), [value]);
+  // Ensemble des valeurs sélectionnées — accès O(1) lors du rendu des options.
+  // (Pas de useMemo : le React Compiler s'en charge — cf. next.config.ts.)
+  const selectedSet = new Set(value.map((v) => v.value));
 
   // Liste à plat de toutes les options visibles (utile au « tout sélectionner »)
-  const flatVisible = useMemo(
-    () => (grouped ? groups.flatMap((g) => g.options) : options),
-    [grouped, groups, options],
-  );
+  const flatVisible = grouped ? groups.flatMap((g) => g.options) : options;
 
   // Construction des lignes navigables du dropdown :
   // « all » (multi), en-têtes de groupe, puis options. L'ordre dicte la nav clavier.
-  const navRows = useMemo(() => {
+  const buildNavRows = () => {
     const rows = [];
     if (allowMulti && flatVisible.length > 0) rows.push({ kind: 'all' });
     if (grouped) {
@@ -93,7 +91,8 @@ export default function SelectMenu({
       options.forEach((opt) => rows.push({ kind: 'option', opt }));
     }
     return rows;
-  }, [allowMulti, grouped, groups, options, flatVisible.length]);
+  };
+  const navRows = buildNavRows();
 
   // Présence d'au moins une option réelle (sinon message « aucun résultat »)
   const hasOptionRows = navRows.some((r) => r.kind === 'option');
@@ -101,8 +100,9 @@ export default function SelectMenu({
   // ── Mutations de sélection ──────────────────────────────────────
   // Toutes émettent un nouveau tableau [{value, label}] via onChange.
 
-  // Bascule d'une option : remplace la sélection en single, l'ajoute/retire en multi
-  const toggle = useCallback((opt) => {
+  // Bascule d'une option : remplace la sélection en single, l'ajoute/retire en multi.
+  // (Pas de useCallback : le React Compiler s'en charge — cf. next.config.ts.)
+  const toggle = (opt) => {
     if (disabled) return;
     const isSelected = selectedSet.has(opt.value);
     const next = allowMulti
@@ -111,10 +111,10 @@ export default function SelectMenu({
     onChange?.(next);
     // En single, la sélection ferme le dropdown
     if (!allowMulti) setOpen(false);
-  }, [allowMulti, disabled, onChange, selectedSet, value]);
+  };
 
   // « Tout sélectionner » : coche/décoche l'ensemble des options visibles
-  const toggleAll = useCallback(() => {
+  const toggleAll = () => {
     if (disabled) return;
     const allIn = flatVisible.length > 0 && flatVisible.every((o) => selectedSet.has(o.value));
     const visibleSet = new Set(flatVisible.map((o) => o.value));
@@ -124,10 +124,10 @@ export default function SelectMenu({
       // Cochage : on complète la sélection avec les visibles manquantes
       : [...value, ...flatVisible.filter((o) => !selectedSet.has(o.value))];
     onChange?.(next);
-  }, [disabled, flatVisible, onChange, selectedSet, value]);
+  };
 
   // Bascule d'un groupe entier (multi uniquement) avec préservation du hors-groupe
-  const toggleGroup = useCallback((groupOptions) => {
+  const toggleGroup = (groupOptions) => {
     if (disabled || !allowMulti) return;
     const ids = new Set(groupOptions.map((o) => o.value));
     const allIn = groupOptions.every((o) => selectedSet.has(o.value));
@@ -135,14 +135,14 @@ export default function SelectMenu({
       ? value.filter((v) => !ids.has(v.value))
       : [...value, ...groupOptions.filter((o) => !selectedSet.has(o.value))];
     onChange?.(next);
-  }, [allowMulti, disabled, onChange, selectedSet, value]);
+  };
 
   // Suppression d'un tag — stoppe la propagation pour ne pas rouvrir le champ
-  const remove = useCallback((val, e) => {
+  const remove = (val, e) => {
     e.stopPropagation();
     if (disabled) return;
     onChange?.(value.filter((v) => v.value !== val));
-  }, [disabled, onChange, value]);
+  };
 
   // ── Effets ──────────────────────────────────────────────────────
 
@@ -157,8 +157,11 @@ export default function SelectMenu({
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // Navigation clavier active uniquement dropdown ouvert
-  useEffect(() => {
+  // Navigation clavier — gérée via onKeyDown sur le conteneur (le focus est dans
+  // l'input de filtre quand le dropdown est ouvert), plutôt qu'un listener global.
+  // Évite un useEffect dépendant des handlers de mutation (inutile sous le React
+  // Compiler) et confine la capture clavier au composant.
+  const handleKeyDown = (e) => {
     if (!open) return;
 
     // Une ligne est navigable si ce n'est pas un en-tête de groupe non interactif (single)
@@ -176,23 +179,19 @@ export default function SelectMenu({
       return prev;
     });
 
-    const handler = (e) => {
-      if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
-      else if (e.key === 'Enter') {
-        e.preventDefault();
-        const row = navRows[highlighted];
-        if (!row) return;
-        if (row.kind === 'all') toggleAll();
-        else if (row.kind === 'group') toggleGroup(row.options);
-        else toggle(row.opt);
-      } else if (e.key === 'Escape') {
-        setOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [open, highlighted, navRows, allowMulti, toggle, toggleAll, toggleGroup]);
+    if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
+    else if (e.key === 'Enter') {
+      e.preventDefault();
+      const row = navRows[highlighted];
+      if (!row) return;
+      if (row.kind === 'all') toggleAll();
+      else if (row.kind === 'group') toggleGroup(row.options);
+      else toggle(row.opt);
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+    }
+  };
 
   // ── Rendu ───────────────────────────────────────────────────────
 
@@ -309,6 +308,7 @@ export default function SelectMenu({
       ref={containerRef}
       className={containerClass}
       role="combobox"
+      onKeyDown={handleKeyDown}
       aria-expanded={open}
       aria-haspopup="listbox"
       aria-controls={listboxId}
@@ -367,4 +367,6 @@ export default function SelectMenu({
       )}
     </div>
   );
-}
+};
+
+export default SelectMenu;

@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import './CalendarMonth.scss';
 
 // ── Libellés français ────────────────────────────────────────────
@@ -96,7 +95,7 @@ const sameDay = (a, b) => a && b && a.toDateString() === b.toDateString();
  * @param {boolean}       [navRight]    - Show the next-month chevron.
  * @returns {JSX.Element}
  */
-export default function CalendarMonth({
+const CalendarMonth = ({
   year,
   month,
   onMonthChange,
@@ -109,15 +108,13 @@ export default function CalendarMonth({
   onSelect,
   navLeft = true,
   navRight = true,
-}) {
-  const today = useMemo(() => new Date(), []);
-  const weeks = useMemo(() => buildWeeks(year, month), [year, month]);
+}) => {
+  // Le React Compiler (cf. next.config.ts) mémoïse ces dérivations : pas de useMemo.
+  const today = new Date();
+  const weeks = buildWeeks(year, month);
 
   // Plage d'années du sélecteur : année courante −5 à +14 (20 ans)
-  const years = useMemo(
-    () => Array.from({ length: 20 }, (_, i) => today.getFullYear() - 5 + i),
-    [today],
-  );
+  const years = Array.from({ length: 20 }, (_, i) => today.getFullYear() - 5 + i);
 
   // Date réelle d'une cellule (résout le report d'année/mois pour les cellules « autres »)
   const cellDate = (cell) => {
@@ -243,4 +240,6 @@ export default function CalendarMonth({
       </table>
     </div>
   );
-}
+};
+
+export default CalendarMonth;

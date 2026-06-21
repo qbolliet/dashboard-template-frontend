@@ -11,7 +11,7 @@ import './Tooltip.scss';
  * @param {'top'|'bottom'|'left'|'right'} [position='top'] - Bubble placement.
  * @param {boolean} [disabled=false] - When true, renders children with no tooltip.
  */
-export default function Tooltip({ children, content, position = 'top', disabled = false }) {
+const Tooltip = ({ children, content, position = 'top', disabled = false }) => {
   // État de visibilité de la bulle
   const [visible, setVisible] = useState(false);
 
@@ -34,4 +34,6 @@ export default function Tooltip({ children, content, position = 'top', disabled 
       )}
     </span>
   );
-}
+};
+
+export default Tooltip;
