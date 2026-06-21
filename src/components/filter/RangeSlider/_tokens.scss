@@ -1,0 +1,18 @@
+// ===== TOKENS DIMENSIONNELS — RangeSlider =====
+// Variables propres au slider numérique (rail, thumb, inputs).
+// Importées par RangeSlider.scss via @use './_tokens'.
+// Les tokens partagés du groupe filter vivent dans ../_tokens.scss.
+
+:root {
+  --slider-rail-height: 4px;
+  --slider-rail-radius: 2px;
+  --slider-thumb-size: 10px;
+  --slider-thumb-ring-size: 4px;            // taille du ring au survol/drag
+  --slider-track-height: 1.5rem;            // hauteur de la zone contenant rail + thumbs
+  --slider-input-font: var(--font-mono);
+  --slider-label-size: 10px;
+  --slider-label-spacing: 0.06em;
+  --slider-inputs-gap: var(--spacing-sm);
+  --slider-input-padding-x: var(--spacing-sm);
+  --slider-input-padding-y: 0.3rem;
+}

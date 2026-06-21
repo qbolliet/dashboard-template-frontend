@@ -1,0 +1,154 @@
+// =================================================================
+// RANGE SLIDER — slider numérique simple ou double borne
+// =================================================================
+// .range-slider        : wrapper global (colonne)
+// .range-slider__track : zone de clic contenant rail + fill + thumbs
+// .range-slider__rail  : fond gris total
+// .range-slider__fill  : portion colorée (primaire)
+// .range-slider__thumb : cercle draggable
+// .range-slider__inputs : ligne des inputs numériques
+@use '../tokens' as *;
+@use '../colors' as *;
+@use './tokens' as *;
+@use './colors' as *;
+
+// ── Wrapper global ───────────────────────────────────────────────
+.range-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: var(--filter-control-width);
+
+  &--disabled {
+    opacity: 0.45;
+    pointer-events: none;
+    filter: grayscale(0.3);
+  }
+}
+
+// ── Zone de track (rail + fill + thumbs) ─────────────────────────
+// position: relative pour positionner les éléments absolus.
+// cursor: pointer pour indiquer la cliquabilité du rail.
+.range-slider__track {
+  position: relative;
+  height: var(--slider-track-height);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+// ── Rail (fond gris) ─────────────────────────────────────────────
+.range-slider__rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--slider-rail-height);
+  background: hsl(var(--slider-rail-bg));
+  border-radius: var(--slider-rail-radius);
+}
+
+// ── Fill (portion colorée) ───────────────────────────────────────
+// pointer-events: none pour laisser les clics traverser vers le rail.
+.range-slider__fill {
+  position: absolute;
+  height: var(--slider-rail-height);
+  background: hsl(var(--slider-fill-color));
+  border-radius: var(--slider-rail-radius);
+  pointer-events: none;
+}
+
+// ── Thumb ────────────────────────────────────────────────────────
+// translateX(-50%) centre le cercle sur la position en %.
+// touch-action: none nécessaire pour que Pointer Events fonctionnent sur mobile.
+.range-slider__thumb {
+  position: absolute;
+  width: var(--slider-thumb-size);
+  height: var(--slider-thumb-size);
+  background: hsl(var(--slider-thumb-color));
+  border: none;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  cursor: grab;
+  transition: box-shadow var(--transition-fast);
+  z-index: 2;
+  touch-action: none;
+
+  &:hover,
+  &--dragging {
+    box-shadow: 0 0 0 var(--slider-thumb-ring-size) hsl(var(--slider-thumb-ring-color));
+  }
+
+  &--dragging { cursor: grabbing; }
+}
+
+// ── Zone des inputs numériques ───────────────────────────────────
+.range-slider__inputs {
+  display: flex;
+  gap: var(--slider-inputs-gap);
+  align-items: center;
+}
+
+// ── Groupe input (label + champ) ─────────────────────────────────
+.range-slider__input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+}
+
+// ── Label Min / Max / Valeur ─────────────────────────────────────
+.range-slider__input-label {
+  font-size: var(--slider-label-size);
+  font-weight: 500;
+  color: hsl(var(--slider-label-color));
+  text-transform: uppercase;
+  letter-spacing: var(--slider-label-spacing);
+}
+
+// ── Champ numérique ──────────────────────────────────────────────
+.range-slider__input {
+  border: 1.5px solid hsl(var(--filter-border));
+  border-radius: var(--filter-radius);
+  padding: var(--slider-input-padding-y) var(--slider-input-padding-x);
+  font-size: var(--font-size-sm);
+  font-family: var(--slider-input-font);
+  color: hsl(var(--color-text-primary));
+  background: hsl(var(--filter-surface));
+  text-align: right;
+  width: 100%;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  outline: none;
+
+  &:focus {
+    border-color: hsl(var(--filter-border-focus));
+    box-shadow: 0 0 0 3px hsl(var(--filter-focus-shadow));
+  }
+
+  // Masque les flèches natives des inputs number
+  appearance: textfield;
+  -moz-appearance: textfield;
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+
+  &--error {
+    border-color: hsl(var(--filter-border-error));
+    box-shadow: 0 0 0 3px var(--slider-error-shadow);
+  }
+
+  &--success {
+    border-color: hsl(var(--filter-border-success));
+    box-shadow: 0 0 0 3px var(--slider-success-shadow);
+  }
+}
+
+// ── Séparateur "—" entre les deux inputs (mode range) ────────────
+// padding-top: aligne visuellement le tiret avec les champs (décalage label 10px)
+.range-slider__sep {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-tertiary));
+  padding-top: 1.2rem;
+  flex-shrink: 0;
+}

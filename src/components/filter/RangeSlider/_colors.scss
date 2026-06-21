@@ -1,0 +1,16 @@
+// ===== TOKENS DE COULEURS — RangeSlider =====
+// Couleurs propres au slider (rail, fill, thumb, labels).
+// Importées par RangeSlider.scss.
+
+:root {
+  // ===== RAIL & FILL =====
+  --slider-rail-bg:         var(--color-gray-200);      // fond du rail inactif
+  --slider-fill-color:      var(--color-primary-500);   // fill actif
+  --slider-thumb-color:     var(--color-primary-500);   // cercle du thumb
+  --slider-thumb-ring-color: var(--color-primary-100);  // halo au survol/drag
+  --slider-label-color:     var(--color-text-tertiary); // labels Min/Max/Valeur
+
+  // ===== HALOS D'ÉTAT DES INPUTS (ring 3px) =====
+  --slider-success-shadow: hsl(138 76% 47% / 0.12);
+  --slider-error-shadow:   hsl(0 84% 60% / 0.12);
+}
