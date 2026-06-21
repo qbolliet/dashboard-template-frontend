@@ -1,0 +1,15 @@
+// ===== TOKENS DU COMPOSANT TOOLTIP =====
+
+:root {
+  --tooltip-bg:             var(--color-gray-800);   // Fond de la bulle (sombre invariant)
+  --tooltip-color:          var(--color-white);      // Texte de la bulle
+  --tooltip-radius:         var(--border-radius-md);
+  --tooltip-padding-y:      0.35rem;                 // exception : valeur fine hors échelle
+  --tooltip-padding-x:      var(--spacing-sm);       // 8px
+  --tooltip-font-size:      var(--font-size-xs);     // 12px
+  --tooltip-shadow:         var(--shadow-md);
+  --tooltip-z-index:        var(--z-tooltip);        // 1070
+  --tooltip-offset:         8px;                     // distance bulle ↔ cible
+  --tooltip-caret-size:     6px;                     // côté du carré formant le caret
+  --tooltip-slide-distance: 4px;                     // décalage initial de l'animation
+}

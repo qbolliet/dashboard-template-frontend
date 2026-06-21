@@ -1,0 +1,26 @@
+// ===== TOKENS DIMENSIONNELS — COMPOSANTS DE FILTRE =====
+// Partagés entre tous les composants du groupe filter (Select, TypeAwareInput, RangeSlider…)
+// Utiliser @use '../_tokens' as filter dans les scss enfants qui en ont besoin.
+
+:root {
+  // Largeur standard des contrôles de filtre
+  --filter-control-width: 16.25rem;                          // 260px
+
+  // Hauteur minimale des contrôles
+  --filter-control-min-height: 2.25rem;                      // 36px
+
+  // Padding interne horizontal des contrôles
+  --filter-control-padding-x: var(--spacing-sm);             // 8px
+
+  // Padding interne vertical
+  --filter-control-padding-y: var(--spacing-xs);             // 4px
+
+  // Largeur du bouton chevron/toggle
+  --filter-toggle-width: 2rem;                               // 32px
+
+  // Hauteur max du dropdown
+  --filter-dropdown-max-height: 13.75rem;                    // 220px
+
+  // Border radius des contrôles (= border-radius-md global)
+  --filter-radius: var(--border-radius-md);
+}

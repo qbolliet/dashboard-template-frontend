@@ -1,0 +1,42 @@
+// ===== TOKENS DE COULEURS — COMPOSANTS DE FILTRE =====
+// Partagés entre tous les composants du groupe filter.
+//
+// ⚠️ RÈGLE : Si une couleur n'est utilisée que dans UN composant,
+// la mettre dans components/filter/[Composant]/_colors.scss
+
+:root {
+  // ===== BORDURES =====
+  --filter-border:         var(--color-border);         // Bordure par défaut
+  --filter-border-focus:   var(--color-primary-500);    // Bordure au focus
+  --filter-border-success: var(--color-success-500);    // Bordure état succès
+  --filter-border-error:   var(--color-error-500);      // Bordure état erreur
+
+  // Ombre de focus (ring 3px)
+  --filter-focus-shadow: var(--color-primary-100);
+
+  // ===== SURFACES =====
+  --filter-surface: var(--color-surface);               // Fond des contrôles
+
+  // ===== OPTIONS =====
+  --filter-option-hover-bg:       var(--color-gray-100);     // Fond au survol d'une option
+  --filter-option-selected-color: var(--color-primary-500);  // Couleur texte option sélectionnée
+
+  // ===== TAGS MULTI-SÉLECTION =====
+  --filter-tag-bg:    var(--color-primary-100);  // Fond des tags
+  --filter-tag-color: var(--color-primary-500);  // Texte des tags
+
+  // ===== EN-TÊTES DE GROUPE =====
+  --filter-group-header-bg: var(--color-gray-100);  // Fond des en-têtes de groupe
+
+  // ===== PLACEHOLDER =====
+  --filter-placeholder-color: var(--color-text-tertiary);
+}
+
+// ===== THÈME SOMBRE =====
+// On ne surcharge que ce qui change visuellement : les tokens qui référencent des
+// primitives sémantiques s'adaptent déjà via la cascade de [data-theme="dark"].
+[data-theme="dark"] {
+  // gray-100 devient très sombre en dark → utiliser gray-200 pour les fonds interactifs
+  --filter-option-hover-bg:  var(--color-gray-200);
+  --filter-group-header-bg:  var(--color-gray-200);
+}
