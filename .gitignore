@@ -48,6 +48,5 @@ skills-lock.json
 
 # old repository
 old_src/*
-shadcn-ui-sidebar-02-example/*
-shadcn-ui-sidebar-07-example/*
+design-system/*
 old_components/*
