@@ -1,5 +1,16 @@
-// ===== TOOLTIP =====
-// Pas d'import direct des tokens globaux : ils sont injectés via _tokens.scss
+// =================================================================
+// TOOLTIP — bulle d'information positionnée autour d'un élément cible
+// =================================================================
+// .tooltip-wrap   : wrapper inline-flex, ancre de positionnement absolu.
+// .tooltip-bubble : bulle de texte avec caret (pseudo-élément ::after pivoté 45°).
+//
+// Positions disponibles via modificateurs BEM :
+//   --top | --bottom | --left | --right
+// Chaque modificateur surcharge les variables locales --tooltip-slide-from / --to
+// pour adapter l'animation d'entrée à la direction.
+//
+// Pour les tokens, voir ./_tokens.scss.
+// Pas d'import direct des tokens globaux : ils transitent tous par _tokens.scss.
 @use './_tokens';
 
 @keyframes tooltip-in {
@@ -8,12 +19,14 @@
 }
 
 .tooltip-wrap {
+  // Ancre de positionnement absolu pour la bulle
   position: relative;
+  // inline-flex conserve le flux du texte autour de l'élément déclencheur
   display: inline-flex;
 }
 
 .tooltip-bubble {
-  // Valeur par défaut des variables d'animation (sans position = pas de slide)
+  // Valeurs par défaut de l'animation : pas de translation avant surcharge par modificateur
   --tooltip-slide-from: translateY(0);
   --tooltip-slide-to:   translateY(0);
 
@@ -25,12 +38,14 @@
   line-height: 1.4;
   padding: var(--tooltip-padding-y) var(--tooltip-padding-x);
   border-radius: var(--tooltip-radius);
+  // Empêche la bulle d'élargir son conteneur sur les labels longs
   white-space: nowrap;
+  // La bulle ne capte pas les événements souris (sinon elle déclencherait onMouseLeave)
   pointer-events: none;
   box-shadow: var(--tooltip-shadow);
   animation: tooltip-in var(--transition-fast) ease;
 
-  // Caret commun à toutes les positions (carré pivoté)
+  // Caret commun à toutes les positions : carré pivoté 45°, même fond que la bulle
   &::after {
     content: '';
     position: absolute;
@@ -40,7 +55,7 @@
     transform: rotate(45deg);
   }
 
-  // ── Position : top ──
+  // ── Position : top — bulle au-dessus, caret pointe vers le bas ──
   &--top {
     bottom: calc(100% + var(--tooltip-offset));
     left: 50%;
@@ -54,7 +69,7 @@
     }
   }
 
-  // ── Position : bottom ──
+  // ── Position : bottom — bulle en dessous, caret pointe vers le haut ──
   &--bottom {
     top: calc(100% + var(--tooltip-offset));
     left: 50%;
@@ -68,7 +83,7 @@
     }
   }
 
-  // ── Position : left ──
+  // ── Position : left — bulle à gauche, caret pointe vers la droite ──
   &--left {
     right: calc(100% + var(--tooltip-offset));
     top: 50%;
@@ -82,7 +97,7 @@
     }
   }
 
-  // ── Position : right ──
+  // ── Position : right — bulle à droite, caret pointe vers la gauche ──
   &--right {
     left: calc(100% + var(--tooltip-offset));
     top: 50%;

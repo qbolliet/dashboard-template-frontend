@@ -1,6 +1,7 @@
 // ===== TOKENS DIMENSIONNELS — COMPOSANTS DE FILTRE =====
-// Partagés entre tous les composants du groupe filter (Select, TypeAwareInput, RangeSlider…)
-// Utiliser @use '../_tokens' as filter dans les scss enfants qui en ont besoin.
+// Partagés entre tous les composants du groupe filter (Select, TypeAwareInput, RangeSlider…).
+// Import dans les scss enfants : @use '../_tokens' as filter
+// Pour les tokens de couleurs, voir src/components/filter/_colors.scss.
 
 :root {
   // Largeur standard des contrôles de filtre

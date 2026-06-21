@@ -12,17 +12,21 @@ import './Tooltip.scss';
  * @param {boolean} [disabled=false] - When true, renders children with no tooltip.
  */
 export default function Tooltip({ children, content, position = 'top', disabled = false }) {
+  // État de visibilité de la bulle
   const [visible, setVisible] = useState(false);
 
+  // Rendu neutre si désactivé ou sans contenu : pas de wrapper supplémentaire
   if (disabled || !content) return children;
 
   return (
+    // Wrapper inline — sert d'ancre de positionnement absolu pour la bulle
     <span
       className="tooltip-wrap"
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={() => setVisible(false)}
     >
       {children}
+      {/* Bulle — rendue uniquement si visible, positionnée en absolu selon `position` */}
       {visible && (
         <span className={`tooltip-bubble tooltip-bubble--${position}`}>
           {content}

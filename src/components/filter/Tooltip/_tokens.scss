@@ -1,4 +1,7 @@
 // ===== TOKENS DU COMPOSANT TOOLTIP =====
+// Variables locales de la bulle. Importées uniquement par Tooltip.scss via @use './_tokens'.
+// Les tokens globaux (--spacing-*, --font-size-*, --shadow-*, --z-tooltip, etc.)
+// sont disponibles via typography.scss injecté dans le layout racine.
 
 :root {
   --tooltip-bg:             var(--color-gray-800);   // Fond de la bulle (sombre invariant)

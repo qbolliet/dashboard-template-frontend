@@ -1,8 +1,9 @@
 // ===== TOKENS DE COULEURS — COMPOSANTS DE FILTRE =====
 // Partagés entre tous les composants du groupe filter.
 //
-// ⚠️ RÈGLE : Si une couleur n'est utilisée que dans UN composant,
-// la mettre dans components/filter/[Composant]/_colors.scss
+// RÈGLE : si une couleur n'est utilisée que dans UN composant,
+// la déclarer dans components/filter/[Composant]/_colors.scss.
+// Pour les tokens dimensionnels, voir src/components/filter/_tokens.scss.
 
 :root {
   // ===== BORDURES =====
