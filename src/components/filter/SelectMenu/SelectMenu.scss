@@ -1,0 +1,301 @@
+// =================================================================
+// SELECT MENU — menu déroulant de sélection (simple/multiple, groupé)
+// =================================================================
+// .select-container : ancre de positionnement + bordure d'état (focus/succès/erreur).
+// .select-field     : zone de saisie/tags à gauche ; .select-toggle : chevron à droite.
+// .select-dropdown  : panneau d'options (<ul role="listbox">) ancré sous le container.
+//
+// Les couleurs et dimensions partagées transitent par les tokens du groupe filter
+// (../_tokens.scss, ../_colors.scss) ; les variables propres au composant sont
+// dans ./_tokens.scss et ./_colors.scss.
+@use '../tokens' as *;
+@use '../colors' as *;
+@use './tokens' as *;
+@use './colors' as *;
+
+// ── Container ────────────────────────────────────────────────────
+// inline-flex : champ + chevron sur une seule ligne ; align-items flex-start
+// pour que le chevron longe le champ même quand les tags passent à la ligne.
+.select-container {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  width: var(--filter-control-width);
+  border: 1px solid hsl(var(--filter-border));
+  border-radius: var(--filter-radius);
+  background: hsl(var(--filter-surface));
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+
+  // Focus clavier/souris : bordure primaire + halo (ring 3px)
+  &:focus-within {
+    border-color: hsl(var(--filter-border-focus));
+    box-shadow: 0 0 0 3px hsl(var(--filter-focus-shadow));
+  }
+
+  // Ouvert : on raccorde visuellement au dropdown (coins bas droits, bordure basse masquée)
+  &--open {
+    border-radius: var(--filter-radius) var(--filter-radius) 0 0;
+    border-bottom-color: transparent;
+  }
+
+  // États de validité — priment sur la bordure par défaut (le focus reste prioritaire)
+  &--success { border-color: hsl(var(--filter-border-success)); }
+  &--error   { border-color: hsl(var(--filter-border-error)); }
+
+  // Désactivé interactif : grisé et neutralisé (le cas « single avec valeur »
+  // est rendu séparément via .select-static)
+  &--disabled {
+    opacity: 0.45;
+    pointer-events: none;
+    filter: grayscale(0.3);
+  }
+}
+
+// ── Champ de saisie / tags ───────────────────────────────────────
+// flex-wrap : les tags multi-sélection débordent sur plusieurs lignes ;
+// l'input de filtre reste le dernier élément flexible de la zone.
+.select-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex: 1;
+  min-height: var(--filter-control-min-height);
+  padding: var(--filter-control-padding-y) var(--filter-control-padding-x);
+  cursor: text;
+
+  // Mode single avec valeur : label centré, l'input réduit à 0 est sorti du flux
+  &--centered { justify-content: center; }
+}
+
+// ── Tags (mode multi) ────────────────────────────────────────────
+// display: contents — la <ul> s'efface du rendu pour que les <li> participent
+// directement au flex du champ, tout en conservant la sémantique de liste.
+.select-tags {
+  display: contents;
+}
+
+.select-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  background: hsl(var(--filter-tag-bg));
+  color: hsl(var(--filter-tag-color));
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  // 2px vertical / 6px horizontal : compact, dérivé de l'échelle d'espacement
+  padding: var(--spacing-2px) calc(var(--spacing-sm) - var(--spacing-2px));
+  border-radius: calc(var(--filter-radius) - var(--spacing-px));
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+// Croix de suppression — opacité atténuée au repos, pleine au survol
+.select-tag-remove {
+  cursor: pointer;
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  line-height: 1;
+  transition: opacity var(--transition-fast);
+
+  &:hover { opacity: 1; }
+  svg { width: 10px; height: 10px; }
+}
+
+// ── Valeur unique (mode single sélectionné) ──────────────────────
+.select-single {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-primary));
+  flex: none;
+  text-align: center;
+  padding: 0 var(--spacing-xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ── Input de filtre ──────────────────────────────────────────────
+.select-filter {
+  flex: 1;
+  min-width: 3.75rem;          // 60px — réserve de saisie même avec des tags
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-primary));
+  padding: 0 var(--spacing-xs);
+  line-height: 1;
+
+  &::placeholder { color: hsl(var(--filter-placeholder-color)); }
+
+  // Masqué en single sélectionné : conservé pour la frappe mais retiré du flux
+  &--hidden {
+    width: 0;
+    min-width: 0;
+    padding: 0;
+    opacity: 0;
+    position: absolute;
+  }
+}
+
+// ── Bouton chevron ───────────────────────────────────────────────
+// align-self: stretch — occupe toute la hauteur du champ ; séparé par une bordure verticale.
+.select-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--filter-toggle-width);
+  flex-shrink: 0;
+  align-self: stretch;
+  color: hsl(var(--select-toggle-color));
+  border-left: 1px solid hsl(var(--filter-border));
+  border-radius: 0 var(--filter-radius) var(--filter-radius) 0;
+  transition: color var(--transition-fast), background var(--transition-fast);
+
+  &:hover {
+    color: hsl(var(--color-text-primary));
+    background: hsl(var(--select-toggle-hover-bg));
+  }
+  svg { width: 14px; height: 14px; }
+}
+
+// ── Dropdown ─────────────────────────────────────────────────────
+// Ancré sous le container (top: 100% - 1px pour fusionner les bordures) ;
+// déborde de ±1px pour s'aligner sur la bordure du container.
+.select-dropdown {
+  position: absolute;
+  top: calc(100% - 1px);
+  left: -1px;
+  right: -1px;
+  background: hsl(var(--filter-surface));
+  border: 1px solid hsl(var(--filter-border-focus));
+  border-top: none;
+  border-radius: 0 0 var(--filter-radius) var(--filter-radius);
+  max-height: var(--filter-dropdown-max-height);
+  overflow-y: auto;
+  z-index: var(--z-dropdown);
+  box-shadow: var(--shadow-lg);
+}
+
+// ── Option ───────────────────────────────────────────────────────
+.select-option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--select-option-padding-y) var(--select-option-padding-x);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-primary));
+  cursor: pointer;
+  transition: background var(--transition-fast);
+
+  // Survol souris et curseur clavier partagent le même fond
+  &:hover,
+  &--highlighted { background: hsl(var(--filter-option-hover-bg)); }
+
+  // Sélectionnée : couleur primaire + graisse renforcée
+  &--selected {
+    color: hsl(var(--filter-option-selected-color));
+    font-weight: 500;
+  }
+
+  // Enfant d'un groupe : retrait pour aligner sous l'en-tête
+  &--child { padding-left: var(--select-child-indent); }
+
+  // « Tout sélectionner » : première ligne, séparée du reste, libellé renforcé
+  &--all {
+    border-bottom: 1px solid hsl(var(--filter-border));
+    font-weight: 500;
+  }
+}
+
+// Icône ✓ du mode single, posée à gauche du label sélectionné
+.select-single-check {
+  width: var(--select-single-check-size);
+  height: var(--select-single-check-size);
+  color: hsl(var(--filter-option-selected-color));
+  flex-shrink: 0;
+}
+
+// ── Case à cocher (mode multi) ───────────────────────────────────
+.select-check {
+  width: var(--select-checkbox-size);
+  height: var(--select-checkbox-size);
+  border: 1.5px solid hsl(var(--select-checkbox-border));
+  border-radius: var(--select-checkbox-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+
+  // Cochée ET indéterminée partagent le même remplissage plein
+  &--checked,
+  &--indeterminate {
+    background: hsl(var(--select-checkbox-fill));
+    border-color: hsl(var(--select-checkbox-fill));
+  }
+  &--checked svg {
+    width: var(--select-check-icon-size);
+    height: var(--select-check-icon-size);
+    color: hsl(var(--select-check-icon));
+  }
+}
+
+// Tiret de l'état indéterminé (groupe partiellement sélectionné)
+.select-check-dash {
+  width: 8px;
+  height: 2px;
+  background: hsl(var(--select-check-icon));
+  border-radius: 1px;
+}
+
+// Libellé d'option occupant l'espace restant
+.select-label { flex: 1; }
+
+// ── En-tête de groupe ────────────────────────────────────────────
+.select-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--select-option-padding-y) var(--select-option-padding-x);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--color-text-tertiary));
+  background: hsl(var(--filter-group-header-bg));
+
+  // Interactif uniquement en multi (case de groupe cliquable)
+  &--interactive { cursor: pointer; transition: background var(--transition-fast); }
+  &--highlighted {
+    background: hsl(var(--select-group-highlight-bg));
+    color: hsl(var(--color-text-secondary));
+  }
+}
+
+.select-group-label { flex: 1; }
+
+// ── Message « aucun résultat » ───────────────────────────────────
+.select-empty {
+  padding: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-tertiary));
+  text-align: center;
+}
+
+// ── Cas désactivé « single avec valeur » ─────────────────────────
+// Pas de container interactif : juste le label centré et renforcé.
+.select-static {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--filter-control-width);
+  min-height: var(--filter-control-min-height);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: hsl(var(--color-text-primary));
+  text-align: center;
+}
