@@ -1,0 +1,25 @@
+@use '../../styles/globals/typography' as *;
+@use '../../styles/utils/breakpoints' as *;
+
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--spacing-6xl) var(--spacing-3xl) var(--spacing-9xl);
+}
+
+.pageHeader {
+  margin-bottom: var(--spacing-6xl);
+}
+
+.title {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  color: hsl(var(--color-text-primary));
+  margin: 0 0 var(--spacing-xs);
+}
+
+.subtitle {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-tertiary));
+  margin: 0;
+}

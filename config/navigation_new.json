@@ -63,6 +63,12 @@
       ]
     },
     {
+      "path": "/filter-primitives",
+      "name": "Filter Primitives",
+      "type": "indicator_group",
+      "children": null
+    },
+    {
       "path": "/about",
       "name": "À propos",
       "type": "about",
