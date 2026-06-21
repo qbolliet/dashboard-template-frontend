@@ -1,0 +1,20 @@
+// ===== TOKENS DE COULEURS — TypeAwareInput =====
+// Couleurs propres au champ adaptatif (au-delà des tokens partagés du groupe
+// filter, voir ../_colors.scss). Importées par TypeAwareInput.scss.
+
+:root {
+  // ===== BOUTON CALENDRIER =====
+  --type-input-cal-color:       var(--color-text-tertiary);  // icône au repos
+  --type-input-cal-hover-color: var(--color-primary-500);    // icône au survol
+  --type-input-cal-hover-bg:    var(--color-gray-100);        // fond au survol
+
+  // ===== HALOS D'ÉTAT (ring 3px) =====
+  // Teintes succès/erreur fixes (12 % d'opacité) — indépendantes du halo de focus.
+  --type-input-success-shadow: hsl(138 76% 47% / 0.12);
+  --type-input-error-shadow:   hsl(0 84% 60% / 0.12);
+}
+
+// ===== THÈME SOMBRE =====
+[data-theme="dark"] {
+  --type-input-cal-hover-bg: var(--color-gray-200);
+}

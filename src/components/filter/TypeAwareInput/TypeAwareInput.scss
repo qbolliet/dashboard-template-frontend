@@ -1,0 +1,120 @@
+// =================================================================
+// TYPE-AWARE INPUT — champ de saisie adaptatif selon le type attendu
+// =================================================================
+// .type-input-wrap : ancre de positionnement (popover calendrier) + colonne
+//                    champ / message.
+// .type-input      : cadre bordé (input + éventuel bouton calendrier).
+//
+// Les dimensions/couleurs propres au composant sont dans ./_tokens.scss et
+// ./_colors.scss ; les bordures d'état réutilisent les tokens du groupe filter.
+@use '../tokens' as *;
+@use '../colors' as *;
+@use './tokens' as *;
+@use './colors' as *;
+
+// ── Conteneur ────────────────────────────────────────────────────
+// position: relative pour ancrer le popover ; colonne pour empiler le message
+// d'état sous le champ. inline-block pour ne pas occuper toute la largeur.
+.type-input-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--type-input-message-gap);
+}
+
+// ── Cadre du champ ───────────────────────────────────────────────
+.type-input {
+  display: inline-flex;
+  align-items: center;
+  min-width: var(--type-input-min-width);
+  background: hsl(var(--filter-surface));
+  border: 1.5px solid hsl(var(--filter-border));
+  border-radius: var(--filter-radius);
+  overflow: hidden;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+
+  // Focus clavier/souris : bordure primaire + halo (ring 3px)
+  &:focus-within {
+    border-color: hsl(var(--filter-border-focus));
+    box-shadow: 0 0 0 3px hsl(var(--filter-focus-shadow));
+  }
+
+  // États de validité — teinte la bordure et le halo (succès / erreur)
+  &--success {
+    border-color: hsl(var(--filter-border-success));
+    box-shadow: 0 0 0 3px var(--type-input-success-shadow);
+  }
+  &--error {
+    border-color: hsl(var(--filter-border-error));
+    box-shadow: 0 0 0 3px var(--type-input-error-shadow);
+  }
+
+  // Désactivé : grisé et neutralisé
+  &--disabled {
+    opacity: 0.45;
+    pointer-events: none;
+    filter: grayscale(0.3);
+  }
+}
+
+// ── Champ de saisie ──────────────────────────────────────────────
+.type-input__field {
+  flex: 1;
+  min-width: 0;
+  padding: var(--type-input-padding-y) var(--type-input-padding-x);
+  min-height: var(--filter-control-min-height);
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-primary));
+
+  &::placeholder { color: hsl(var(--filter-placeholder-color)); }
+
+  // Masque les flèches natives des inputs number (intégrer/decimal)
+  &[type='number'] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+  &[type='number']::-webkit-outer-spin-button,
+  &[type='number']::-webkit-inner-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+}
+
+// ── Bouton calendrier ────────────────────────────────────────────
+// Séparé du champ par une bordure gauche ; occupe toute la hauteur (stretch).
+.type-input__cal-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--type-input-cal-btn-width);
+  align-self: stretch;
+  flex-shrink: 0;
+  color: hsl(var(--type-input-cal-color));
+  border-left: 1px solid hsl(var(--filter-border));
+  transition: color var(--transition-fast), background var(--transition-fast);
+
+  &:hover {
+    color: hsl(var(--type-input-cal-hover-color));
+    background: hsl(var(--type-input-cal-hover-bg));
+  }
+  svg { width: 14px; height: 14px; }
+}
+
+// ── Message d'état (validation) ──────────────────────────────────
+.type-input__message {
+  display: flex;
+  align-items: center;
+  gap: var(--type-input-message-gap);
+  font-size: var(--font-size-xs);
+
+  svg {
+    width: var(--type-input-message-icon-size);
+    height: var(--type-input-message-icon-size);
+  }
+
+  &--success { color: hsl(var(--filter-border-success)); }
+  &--error { color: hsl(var(--filter-border-error)); }
+}

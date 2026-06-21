@@ -1,0 +1,13 @@
+// ===== TOKENS DIMENSIONNELS — TypeAwareInput =====
+// Variables propres au champ adaptatif (saisie + bouton calendrier + message).
+// Importées par TypeAwareInput.scss via @use './_tokens'.
+// Les tokens partagés du groupe filter vivent dans ../_tokens.scss.
+
+:root {
+  --type-input-min-width: 200px;            // largeur minimale du champ
+  --type-input-padding-x: 0.6rem;           // padding horizontal de la zone de saisie
+  --type-input-padding-y: 0.4rem;           // padding vertical de la zone de saisie
+  --type-input-cal-btn-width: 2.25rem;      // largeur du bouton calendrier
+  --type-input-message-gap: 0.25rem;        // espace icône / texte du message d'état
+  --type-input-message-icon-size: 11px;     // taille de l'icône du message d'état
+}
