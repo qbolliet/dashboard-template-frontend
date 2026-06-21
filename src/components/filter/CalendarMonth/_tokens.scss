@@ -1,0 +1,17 @@
+// ===== TOKENS DIMENSIONNELS — CalendarMonth =====
+// Variables propres à la grille calendrier et au popover qui l'enveloppe.
+// Importées par CalendarMonth.scss via @use './_tokens'.
+// Les tokens partagés du groupe filter vivent dans ../_tokens.scss.
+
+:root {
+  // ===== GRILLE =====
+  --calendar-day-size: 2rem;          // côté des cellules de jours (carré cliquable)
+  --calendar-nav-size: 1.75rem;       // côté des boutons précédent/suivant
+  --calendar-cell-padding: 1.5px 0;   // padding vertical fin des <td> (densité)
+  --calendar-header-gap: 0.25rem;     // espacement entre les <select> de l'en-tête
+  --calendar-min-width: 220px;        // largeur minimale d'un mois affiché
+
+  // ===== POPOVER =====
+  --calendar-popover-padding: 1rem;   // marge interne du panneau flottant
+  --calendar-range-gap: 1.5rem;       // espace entre les deux mois en mode plage
+}

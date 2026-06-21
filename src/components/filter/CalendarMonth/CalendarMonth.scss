@@ -1,0 +1,176 @@
+// =================================================================
+// CALENDAR MONTH — grille calendrier mensuelle (date simple / plage)
+// =================================================================
+// .calendar         : un mois (en-tête de navigation + table des jours).
+// .calendar-popover : panneau flottant qui enveloppe un ou deux mois ;
+//                     rendu par TypeAwareInput, ancré sous le champ.
+//
+// Les dimensions propres au composant sont dans ./_tokens.scss ; les couleurs
+// réutilisent les tokens globaux (gris, primaire, texte) directement.
+@use '../tokens' as *;
+@use './tokens' as *;
+
+// ── Popover ──────────────────────────────────────────────────────
+// Ancré sous le champ déclencheur (top: 100% + 6px). En mode plage, les deux
+// mois sont posés côte à côte via flex.
+.calendar-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: var(--z-popover);
+  padding: var(--calendar-popover-padding);
+  background: hsl(var(--filter-surface));
+  border: 1px solid hsl(var(--filter-border));
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-xl);
+  user-select: none;
+
+  &--range {
+    display: flex;
+    gap: var(--calendar-range-gap);
+  }
+}
+
+// ── Mois ─────────────────────────────────────────────────────────
+.calendar {
+  min-width: var(--calendar-min-width);
+}
+
+// ── En-tête : navigation + sélecteurs mois/année ─────────────────
+.calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-md);
+}
+
+// Boutons chevron précédent/suivant
+.calendar__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--calendar-nav-size);
+  height: var(--calendar-nav-size);
+  color: hsl(var(--color-text-secondary));
+  border-radius: var(--border-radius-md);
+  transition: background var(--transition-fast), color var(--transition-fast);
+
+  &:hover {
+    background: hsl(var(--color-gray-100));
+    color: hsl(var(--color-text-primary));
+  }
+  svg { width: 14px; height: 14px; }
+}
+
+// Réserve l'espace d'un chevron masqué (alignement des deux mois en mode plage)
+.calendar__nav-spacer {
+  width: var(--calendar-nav-size);
+}
+
+// Conteneur des deux <select> (mois + année)
+.calendar__title {
+  display: flex;
+  align-items: center;
+  gap: var(--calendar-header-gap);
+}
+
+// <select> natifs stylés au minimum : ni bordure ni fond, héritent de la graisse
+.calendar__select {
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--color-text-primary));
+  padding: 0 0.2rem;
+  border: none;
+  outline: none;
+  background: transparent;
+  cursor: pointer;
+
+  &:hover { color: hsl(var(--filter-border-focus)); }
+}
+
+// ── Grille des jours ─────────────────────────────────────────────
+.calendar__grid {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+// En-tête des jours de la semaine (Di, Lu…)
+.calendar__weekday {
+  width: var(--calendar-day-size);
+  padding: var(--spacing-xs) 0;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  text-align: center;
+  color: hsl(var(--color-text-tertiary));
+}
+
+.calendar__cell {
+  padding: var(--calendar-cell-padding);
+  text-align: center;
+}
+
+// ── Cellule jour ─────────────────────────────────────────────────
+// Cercle cliquable centré ; l'arrondi varie selon l'appartenance à une plage.
+.calendar__day {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--calendar-day-size);
+  height: var(--calendar-day-size);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-primary));
+  border-radius: var(--border-radius-full);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+
+  // Survol d'un jour ordinaire (ni sélectionné, ni borne de plage)
+  &:hover:not(.calendar__day--other):not(.calendar__day--selected):not(.calendar__day--range-start):not(.calendar__day--range-end) {
+    background: hsl(var(--color-gray-100));
+  }
+
+  // Jours hors du mois affiché : atténués et inertes (pas de onClick)
+  &--other {
+    color: hsl(var(--color-text-tertiary));
+    cursor: default;
+  }
+
+  // Aujourd'hui : simple renforcement de graisse
+  &--today { font-weight: 700; }
+
+  // Sélection unique / bornes de plage : pastille sombre, texte clair
+  &--selected,
+  &--range-start,
+  &--range-end {
+    background: hsl(var(--color-gray-900));
+    color: hsl(var(--color-white));
+    font-weight: 600;
+  }
+
+  // Jours strictement à l'intérieur de la plage : fond gris clair, coins droits
+  &--in-range {
+    background: hsl(var(--color-gray-100));
+    color: hsl(var(--color-text-primary));
+    border-radius: 0;
+  }
+
+  // Coins arrondis sur le côté extérieur des bornes ; les deux côtés si borne unique
+  &--range-start { border-radius: 50% 0 0 50%; }
+  &--range-end { border-radius: 0 50% 50% 0; }
+  &--range-start.calendar__day--range-end { border-radius: 50%; }
+}
+
+// ── Thème sombre ─────────────────────────────────────────────────
+// En clair, --color-gray-900 est foncé (texte blanc lisible). En sombre il
+// s'inverse en clair : on bascule la pastille sur la couleur primaire pour
+// conserver un contraste suffisant avec le texte blanc.
+[data-theme="dark"] {
+  .calendar__day--selected,
+  .calendar__day--range-start,
+  .calendar__day--range-end {
+    background: hsl(var(--color-primary-500));
+  }
+  .calendar__day--in-range {
+    background: hsl(var(--color-gray-200));
+  }
+}
