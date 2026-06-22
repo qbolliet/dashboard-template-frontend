@@ -23,6 +23,12 @@
   position: relative;
   // inline-flex conserve le flux du texte autour de l'élément déclencheur
   display: inline-flex;
+
+  // Plein-largeur : nécessaire quand le tooltip enveloppe une ligne complète
+  &--block {
+    display: block;
+    width: 100%;
+  }
 }
 
 .tooltip-bubble {

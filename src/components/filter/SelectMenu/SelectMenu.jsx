@@ -39,10 +39,13 @@ const ChevronIcon = ({ open }) => (
  * @param {boolean}  [allowMulti] - Active la sélection multiple.
  * @param {boolean}  [grouped]    - Active le mode options groupées.
  * @param {string}   [groupField] - Champ de groupe pour le mode groupé.
+ * @param {{value: string, label: string}[]} [options] - Liste statique d'options ;
+ *   si fournie, court-circuite useSelectOptions (filtrage client uniquement, groupé non supporté).
  * @param {Array}    value        - Tableau des valeurs sélectionnées [{value, label}].
  * @param {Function} onChange     - Callback(newValues: [{value, label}][]).
  * @param {boolean}  [disabled]
  * @param {string}   [placeholder]
+ * @param {boolean}  [compact]    - Variante compacte (hauteur réduite, mono, centré).
  * @returns {JSX.Element}
  */
 const SelectMenu = ({
@@ -51,10 +54,12 @@ const SelectMenu = ({
   allowMulti = false,
   grouped = false,
   groupField,
+  options,
   value = [],
   onChange,
   disabled = false,
   placeholder = 'Sélectionner…',
+  compact = false,
 }) => {
   // État local : ouverture du dropdown, terme de recherche, curseur clavier
   const [open, setOpen] = useState(false);
@@ -65,17 +70,27 @@ const SelectMenu = ({
   const containerRef = useRef(null);
   const filterRef = useRef(null);
 
-  // Récupération des options (mock pour l'instant), filtrées par le terme de recherche
-  const { options, groups } = useSelectOptions({
+  // Récupération des options via hook — ignorée quand `options` prop est fournie.
+  const { options: hookOptions, groups: hookGroups } = useSelectOptions({
     fieldName, catalog, grouped, groupField, searchTerm: filter,
   });
+
+  // Mode statique : filtrage client sur la prop `options` ; groupé non supporté.
+  const filteredStatic = options
+    ? (filter
+        ? options.filter((o) => o.label.toLowerCase().includes(filter.toLowerCase()))
+        : options)
+    : null;
+
+  const displayOptions = filteredStatic ?? hookOptions;
+  const displayGroups  = options ? [] : hookGroups;
 
   // Ensemble des valeurs sélectionnées — accès O(1) lors du rendu des options.
   // (Pas de useMemo : le React Compiler s'en charge — cf. next.config.ts.)
   const selectedSet = new Set(value.map((v) => v.value));
 
   // Liste à plat de toutes les options visibles (utile au « tout sélectionner »)
-  const flatVisible = grouped ? groups.flatMap((g) => g.options) : options;
+  const flatVisible = grouped ? displayGroups.flatMap((g) => g.options) : displayOptions;
 
   // Construction des lignes navigables du dropdown :
   // « all » (multi), en-têtes de groupe, puis options. L'ordre dicte la nav clavier.
@@ -83,12 +98,12 @@ const SelectMenu = ({
     const rows = [];
     if (allowMulti && flatVisible.length > 0) rows.push({ kind: 'all' });
     if (grouped) {
-      groups.forEach((g) => {
+      displayGroups.forEach((g) => {
         rows.push({ kind: 'group', group: g.group, options: g.options });
         g.options.forEach((opt) => rows.push({ kind: 'option', opt }));
       });
     } else {
-      options.forEach((opt) => rows.push({ kind: 'option', opt }));
+      displayOptions.forEach((opt) => rows.push({ kind: 'option', opt }));
     }
     return rows;
   };
@@ -197,7 +212,11 @@ const SelectMenu = ({
 
   // Cas spécial : single désactivé avec une valeur → label statique, sans contrôle
   if (disabled && !allowMulti && value.length === 1) {
-    return <span className="select-static">{value[0].label}</span>;
+    return (
+      <span className={`select-static${compact ? ' select-static--compact' : ''}`}>
+        {value[0].label}
+      </span>
+    );
   }
 
   // Ouvre/ferme le dropdown puis place le focus sur l'input de filtre.
@@ -215,6 +234,7 @@ const SelectMenu = ({
   const isSingleSelected = !allowMulti && value.length === 1;
   const containerClass = [
     'select-container',
+    compact && 'select-container--compact',
     open && 'select-container--open',
     value.length > 0 && 'select-container--success',
     disabled && 'select-container--disabled',

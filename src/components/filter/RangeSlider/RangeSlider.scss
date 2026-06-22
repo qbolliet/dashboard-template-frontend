@@ -7,6 +7,8 @@
 // .range-slider__fill  : portion colorée (primaire)
 // .range-slider__thumb : cercle draggable
 // .range-slider__inputs : ligne des inputs numériques
+
+// Importation des variables
 @use '../tokens' as *;
 @use '../colors' as *;
 @use './tokens' as *;

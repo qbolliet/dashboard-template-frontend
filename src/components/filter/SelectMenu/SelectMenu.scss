@@ -298,4 +298,38 @@
   font-weight: 700;
   color: hsl(var(--color-text-primary));
   text-align: center;
+
+  // Variante compacte (connecteurs AND/OR) : mono, hauteur réduite, centré
+  &--compact {
+    min-height: 1.9rem;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    letter-spacing: 0.04em;
+  }
+}
+
+// ── Variante compacte du container interactif ─────────────────────
+// Utilisée pour les sélecteurs de connecteurs AND/OR entre les cartes du MCM.
+.select-container--compact {
+  .select-field {
+    min-height: 1.9rem;
+    padding: 0.1rem 0.2rem 0.1rem 0.4rem;
+    justify-content: center;
+  }
+
+  .select-single {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: var(--font-size-xs);
+    text-align: center;
+    letter-spacing: 0.04em;
+    padding: 0;
+  }
+
+  .select-toggle {
+    width: 1.5rem;
+
+    svg { width: 12px; height: 12px; }
+  }
 }

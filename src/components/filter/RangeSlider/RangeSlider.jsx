@@ -6,15 +6,17 @@ import './RangeSlider.scss';
 /**
  * Numeric slider with single value or min/max range.
  *
- * @param {boolean}  [rangeMode]  - false = single value, true = min/max range.
- * @param {number}   [min]        - Minimum allowed value (default: 0).
- * @param {number}   [max]        - Maximum allowed value (default: 100).
- * @param {number}   [step]       - Step increment (default: 1).
- * @param {boolean}  [validate]   - Enable success/error state on numeric inputs.
- * @param {number}   valueLo      - Current low value (or single value).
- * @param {number}   [valueHi]    - Current high value (rangeMode only).
- * @param {Function} onChange     - ({ value } | { min, max }) => void.
+ * @param {boolean}  [rangeMode]   - false = single value, true = min/max range.
+ * @param {number}   [min]         - Minimum allowed value (default: 0).
+ * @param {number}   [max]         - Maximum allowed value (default: 100).
+ * @param {number}   [step]        - Step increment (default: 1).
+ * @param {boolean}  [validate]    - Enable success/error state on numeric inputs.
+ * @param {number}   valueLo       - Current low value (or single value).
+ * @param {number}   [valueHi]     - Current high value (rangeMode only).
+ * @param {Function} onChange      - ({ value } | { min, max }) => void.
  * @param {boolean}  [disabled]
+ * @param {boolean}  [showSlider]  - When false, hides the track and thumbs but keeps
+ *   the numeric inputs (useful in space-constrained criterion cards).
  * @returns {JSX.Element}
  */
 const RangeSlider = ({
@@ -27,7 +29,9 @@ const RangeSlider = ({
   valueHi,
   onChange,
   disabled = false,
+  showSlider = true,
 }) => {
+  // Valeurs initiales
   const initLo = valueLo !== undefined ? valueLo : rangeMode ? 20 : 40;
   const initHi = valueHi !== undefined ? valueHi : 80;
 
@@ -46,7 +50,9 @@ const RangeSlider = ({
   // Thumb en cours de drag ('lo' | 'hi' | null)
   const [dragging, setDragging] = useState(null);
 
+  // Référence associée au rail coloré du range
   const railRef = useRef(null);
+
 
   // ── Utilitaires ───────────────────────────────────────────────
   const pct = (v) => ((v - min) / (max - min)) * 100;
@@ -58,6 +64,7 @@ const RangeSlider = ({
     return Math.round(raw / step) * step;
   };
 
+
   // ── Validation d'une valeur saisie ────────────────────────────
   const validateInput = (val, isLo) => {
     const n = parseFloat(val);
@@ -68,6 +75,7 @@ const RangeSlider = ({
     return 'success';
   };
 
+
   // ── Helpers : mise à jour coordonnée valeur + texte du thumb lo ──
   const applyLo = (nv) => {
     setLo(nv);
@@ -77,6 +85,7 @@ const RangeSlider = ({
     setHi(nv);
     setInputHi(String(nv));
   };
+
 
   // ── Click sur le rail — déplace le thumb le plus proche ───────
   const handleRailPointer = (e) => {
@@ -104,6 +113,7 @@ const RangeSlider = ({
       onChange?.({ min: lo, max: nv });
     }
   };
+
 
   // ── Drag via Pointer Events sur window ────────────────────────
   // fromPct est inliné ici pour éviter de l'ajouter aux dépendances (elle change
@@ -139,7 +149,9 @@ const RangeSlider = ({
     };
   }, [dragging, lo, hi, rangeMode, min, max, step, disabled, onChange]);
 
+
   // ── Handlers des inputs numériques ───────────────────────────
+  // Mise à jour de la valeur inférieure (et singleton)
   const handleInputLo = (e) => {
     if (disabled) return;
     const raw = e.target.value;
@@ -153,6 +165,7 @@ const RangeSlider = ({
     }
   };
 
+  // Mise à jour de la valeur supérieure
   const handleInputHi = (e) => {
     if (disabled) return;
     const raw = e.target.value;
@@ -166,48 +179,54 @@ const RangeSlider = ({
     }
   };
 
+
   // ── Calcul du fill ────────────────────────────────────────────
+  // Barre à remplir en mode singleton
   const fillLeft = rangeMode ? pct(lo) : 0;
+  // Barre à remplir en mode range
   const fillWidth = (rangeMode ? pct(hi) : pct(lo)) - fillLeft;
 
+  // Classnames
   const loClass = validate && loState !== 'default' ? ` range-slider__input--${loState}` : '';
   const hiClass = validate && hiState !== 'default' ? ` range-slider__input--${hiState}` : '';
 
   return (
     <div className={`range-slider${disabled ? ' range-slider--disabled' : ''}`}>
-      <div
-        className="range-slider__track"
-        ref={railRef}
-        onPointerDown={handleRailPointer}
-      >
-        <div className="range-slider__rail" />
+      {showSlider && (
         <div
-          className="range-slider__fill"
-          style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
-        />
-        <div
-          className={`range-slider__thumb range-slider__thumb--lo${dragging === 'lo' ? ' range-slider__thumb--dragging' : ''}`}
-          style={{ left: `${pct(lo)}%` }}
-          role="slider"
-          aria-valuemin={min}
-          aria-valuemax={rangeMode ? hi : max}
-          aria-valuenow={lo}
-          aria-label={rangeMode ? 'Valeur minimale' : 'Valeur'}
-          onPointerDown={(e) => { e.stopPropagation(); setDragging('lo'); }}
-        />
-        {rangeMode && (
+          className="range-slider__track"
+          ref={railRef}
+          onPointerDown={handleRailPointer}
+        >
+          <div className="range-slider__rail" />
           <div
-            className={`range-slider__thumb range-slider__thumb--hi${dragging === 'hi' ? ' range-slider__thumb--dragging' : ''}`}
-            style={{ left: `${pct(hi)}%` }}
-            role="slider"
-            aria-valuemin={lo}
-            aria-valuemax={max}
-            aria-valuenow={hi}
-            aria-label="Valeur maximale"
-            onPointerDown={(e) => { e.stopPropagation(); setDragging('hi'); }}
+            className="range-slider__fill"
+            style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
           />
-        )}
-      </div>
+          <div
+            className={`range-slider__thumb range-slider__thumb--lo${dragging === 'lo' ? ' range-slider__thumb--dragging' : ''}`}
+            style={{ left: `${pct(lo)}%` }}
+            role="slider"
+            aria-valuemin={min}
+            aria-valuemax={rangeMode ? hi : max}
+            aria-valuenow={lo}
+            aria-label={rangeMode ? 'Valeur minimale' : 'Valeur'}
+            onPointerDown={(e) => { e.stopPropagation(); setDragging('lo'); }}
+          />
+          {rangeMode && (
+            <div
+              className={`range-slider__thumb range-slider__thumb--hi${dragging === 'hi' ? ' range-slider__thumb--dragging' : ''}`}
+              style={{ left: `${pct(hi)}%` }}
+              role="slider"
+              aria-valuemin={lo}
+              aria-valuemax={max}
+              aria-valuenow={hi}
+              aria-label="Valeur maximale"
+              onPointerDown={(e) => { e.stopPropagation(); setDragging('hi'); }}
+            />
+          )}
+        </div>
+      )}
 
       <div className="range-slider__inputs">
         <div className="range-slider__input-group">

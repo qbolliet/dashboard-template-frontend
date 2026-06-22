@@ -10,8 +10,10 @@ import './Tooltip.scss';
  * @param {string|React.ReactNode} content - Content shown inside the bubble.
  * @param {'top'|'bottom'|'left'|'right'} [position='top'] - Bubble placement.
  * @param {boolean} [disabled=false] - When true, renders children with no tooltip.
+ * @param {boolean} [block=false] - When true, the wrapper is block-level (full width),
+ *   useful when wrapping full-width elements like criterion rows.
  */
-const Tooltip = ({ children, content, position = 'top', disabled = false }) => {
+const Tooltip = ({ children, content, position = 'top', disabled = false, block = false }) => {
   // État de visibilité de la bulle
   const [visible, setVisible] = useState(false);
 
@@ -21,7 +23,7 @@ const Tooltip = ({ children, content, position = 'top', disabled = false }) => {
   return (
     // Wrapper inline — sert d'ancre de positionnement absolu pour la bulle
     <span
-      className="tooltip-wrap"
+      className={`tooltip-wrap${block ? ' tooltip-wrap--block' : ''}`}
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={() => setVisible(false)}
     >
