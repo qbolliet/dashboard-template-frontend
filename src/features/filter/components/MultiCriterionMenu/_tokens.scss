@@ -1,0 +1,25 @@
+// ===== TOKENS DIMENSIONNELS — COMPOSANT MULTI CRITERION MENU =====
+// Valeurs propres à la disposition du builder uniquement. Les dimensions partagées
+// avec le CriterionMenu (slot, traits de connecteur, taille du bouton +) sont au
+// niveau feature (src/features/filter/_tokens.scss, section MCM).
+//
+// ⚠️ Les valeurs réellement arbitraires (sous le barème global d'espacement) vivent
+// ici, annotées, plutôt que d'être codées en dur dans le corps du SCSS.
+
+:root {
+  // ===== Rangée du builder =====
+  --mcm-row-pad-top:   2.25rem;  // arbitraire - réserve pour le × débordant des cartes
+  --mcm-row-max-width: 560px;    // arbitraire - largeur max de la pile verticale
+
+  // ===== Connecteur logique =====
+  --mcm-connector-select-width: 82px;     // arbitraire - largeur du select compact AND/OR
+  --mcm-connector-h-gap:        6px;       // arbitraire - écart traits ↔ select (horizontal)
+  --mcm-connector-v-gap:        5px;       // arbitraire - écart traits ↔ select (vertical)
+  --mcm-connector-static-pad-x: 0.6rem;    // arbitraire - padding horizontal du libellé figé
+
+  // ===== Trait de raccordement au bouton + (vertical) =====
+  --mcm-add-connector-v-line: 16px;        // arbitraire - longueur du trait vertical
+
+  // ===== Bouton + =====
+  --mcm-add-border-width: 1.5px;           // arbitraire - épaisseur de la bordure pointillée
+}

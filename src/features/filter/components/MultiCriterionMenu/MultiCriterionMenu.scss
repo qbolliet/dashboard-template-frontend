@@ -1,0 +1,198 @@
+// =================================================================
+// MULTI CRITERION MENU — disposition du builder de critères
+// =================================================================
+// .mcm-builder        : conteneur global ;
+// .mcm-row            : rangée des cartes (horizontale défilante/wrap ou verticale) ;
+// .mcm-slot           : emplacement d'une carte CriterionMenu ;
+// .mcm-connector      : connecteur logique (traits + select/libellé) entre deux cartes ;
+// .mcm-gap            : espace de remplacement quand les connecteurs sont masqués ;
+// .mcm-add-connector  : trait reliant la dernière carte au bouton + ;
+// .mcm-add            : bouton d'ajout de critère.
+//
+// Tokens partagés de la feature (../../tokens, ../../colors) + tokens propres au
+// composant (./tokens, ./colors), à l'image de SelectMenu.scss / CriterionMenu.scss.
+@use '../../tokens' as *;
+@use '../../colors' as *;
+@use './tokens' as *;
+@use './colors' as *;
+
+// ── Conteneur global ─────────────────────────────────────────────
+.mcm-builder {
+  margin-top: var(--spacing-xl);
+}
+
+// ── Rangée des cartes ────────────────────────────────────────────
+.mcm-row {
+  display: flex;
+}
+
+// Horizontal : défilement par défaut ; padding-top réserve la place du × débordant.
+.mcm-row--horizontal {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+  overflow-x: auto;
+  padding-top: var(--mcm-row-pad-top);
+  padding-bottom: var(--spacing-md);
+}
+
+// Horizontal + wrap : retour à la ligne automatique, plus de défilement.
+.mcm-row--horizontal.mcm-row--wrap {
+  flex-wrap: wrap;
+  overflow-x: visible;
+  align-items: flex-start;
+  row-gap: var(--spacing-xl);
+  padding-bottom: 0;
+}
+
+// Vertical : pile bornée en largeur.
+.mcm-row--vertical {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  max-width: var(--mcm-row-max-width);
+}
+
+// ── Emplacement d'une carte ──────────────────────────────────────
+.mcm-slot {
+  position: relative;
+  display: flex;
+
+  > * { width: 100%; }
+}
+.mcm-row--horizontal .mcm-slot {
+  flex: 0 0 var(--mcm-slot-width);
+  width: var(--mcm-slot-width);
+}
+.mcm-row--vertical .mcm-slot {
+  width: 100%;
+}
+
+// ── Connecteur logique ───────────────────────────────────────────
+.mcm-connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mcm-connector__line {
+  background: hsl(var(--mcm-connector-line));
+  flex-shrink: 0;
+}
+
+// Orientation horizontale : traits en ligne de part et d'autre du select.
+.mcm-connector--horizontal {
+  flex-direction: row;
+  align-self: center;
+  padding: 0 var(--spacing-xs);
+  gap: var(--mcm-connector-h-gap);
+
+  .mcm-connector__line { width: var(--mcm-connector-h-line); height: 1px; }
+}
+
+// Orientation verticale : traits empilés au-dessus/au-dessous du select.
+.mcm-connector--vertical {
+  flex-direction: column;
+  align-self: center;
+  padding: var(--spacing-sm) 0;
+  gap: var(--mcm-connector-v-gap);
+
+  .mcm-connector__line { width: 1px; height: var(--mcm-connector-v-line); }
+}
+
+.mcm-connector__select {
+  width: var(--mcm-connector-select-width);
+}
+
+// Connecteur figé : libellé mono non interactif.
+.mcm-connector__static {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.04em;
+  color: hsl(var(--mcm-connector-static-text));
+  background: hsl(var(--mcm-connector-static-bg));
+  border: 1px solid hsl(var(--mcm-connector-static-border));
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-xs) var(--mcm-connector-static-pad-x);
+  white-space: nowrap;
+}
+
+// ── Espace quand les connecteurs sont masqués ────────────────────
+.mcm-gap {
+  flex-shrink: 0;
+  align-self: center;
+}
+.mcm-gap--horizontal { width: var(--spacing-lg); }
+.mcm-gap--vertical { height: var(--spacing-lg); }
+
+// ── Trait reliant la dernière carte au bouton + ──────────────────
+// Réutilise les modificateurs d'orientation du connecteur pour la cohérence.
+.mcm-add-connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  align-self: center;
+
+  &.mcm-connector--horizontal {
+    padding: 0 var(--mcm-connector-h-gap);
+
+    .mcm-connector__line { width: var(--mcm-connector-h-line); height: 1px; }
+  }
+  &.mcm-connector--vertical {
+    padding: var(--spacing-sm) 0;
+
+    .mcm-connector__line { width: 1px; height: var(--mcm-add-connector-v-line); }
+  }
+}
+
+// ── Bouton + ─────────────────────────────────────────────────────
+.mcm-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--mcm-add-size);
+  height: var(--mcm-add-size);
+  flex-shrink: 0;
+  border: var(--mcm-add-border-width) dashed hsl(var(--mcm-add-border));
+  border-radius: var(--border-radius-md);
+  background: transparent;
+  color: hsl(var(--mcm-add-color));
+  cursor: pointer;
+  transition: border-color var(--transition-fast),
+              color var(--transition-fast),
+              background var(--transition-fast);
+
+  &:hover {
+    border-color: hsl(var(--mcm-add-hover-border));
+    color: hsl(var(--mcm-add-hover-color));
+    background: hsl(var(--mcm-add-hover-bg));
+  }
+  svg { width: 16px; height: 16px; }
+}
+.mcm-add--horizontal { align-self: center; }
+.mcm-add--vertical {
+  align-self: center;
+  margin-top: var(--spacing-xs);
+}
+
+// Le wrapper de tooltip du bouton + ne doit pas s'étirer sur la hauteur de la carte
+// (sinon la bulle s'ancre tout en haut et sort du conteneur).
+.mcm-add-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  align-self: center;
+
+  .tooltip-wrap { align-self: center; }
+}
+
+// ── Note « maximum atteint » ─────────────────────────────────────
+.mcm-max-note {
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--mcm-max-note-color));
+  font-style: italic;
+}
