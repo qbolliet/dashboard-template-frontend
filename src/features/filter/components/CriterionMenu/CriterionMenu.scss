@@ -21,6 +21,7 @@
   position: relative;  // ancre du bouton × en position absolue
   display: flex;
   flex-direction: column;
+  width: var(--criterion-width);  // largeur paramétrable (défaut 100% = conteneur)
   overflow: visible;
   background: hsl(var(--criterion-bg));
   border: 1px solid hsl(var(--criterion-border-default));
@@ -59,6 +60,19 @@
 }
 .criterion-row:last-child { border-bottom: none; }
 
+// Les contrôles internes (select, input adaptatif, slider) épousent la largeur de la
+// ligne — sinon le SelectMenu garde sa largeur fixe (--filter-control-width) et le
+// TypeAwareInput son seul min-width, d'où des champs de tailles différentes.
+.criterion-row {
+  .select-container,
+  .select-static,
+  .type-input-wrap,
+  .type-input,
+  .range-slider {
+    width: 100%;
+  }
+}
+
 // ── Libellé + pastille d'étape ───────────────────────────────────
 .criterion-row__label {
   display: flex;
@@ -90,10 +104,13 @@
   display: flex;
   align-items: stretch;
   gap: 0;
+  width: var(--criterion-width);  // la largeur paramétrable s'applique à l'ensemble encadré
 }
-// La carte centrale perd ses bords latéraux et ses arrondis → effet « sandwich »
+// La carte centrale perd ses bords latéraux et ses arrondis → effet « sandwich ».
+// width:auto neutralise le token sur la carte : c'est le wrap qui porte la largeur.
 .criterion-paren-wrap > .criterion-card {
   flex: 1;
+  width: auto;
   min-width: 0;
   border-radius: 0;
   border-left: none;

@@ -28,6 +28,8 @@ import ValueField from './ValueField';
  * @param {boolean} [lockedVariable] - Disables the variable select.
  * @param {boolean} [lockedOperation] - Disables the operation select.
  * @param {boolean} [showOperation] - Renders the operation row.
+ * @param {boolean} [showSlider] - Continuous type only: render the value as a RangeSlider
+ *   (numeric inputs on top, track below) instead of bare numeric inputs.
  * @returns {JSX.Element}
  */
 const CriterionMenu = ({
@@ -44,11 +46,17 @@ const CriterionMenu = ({
   lockedVariable = false,
   lockedOperation = false,
   showOperation = true,
+  showSlider = false,
 }) => {
   // Méta de la variable sélectionnée → source du type courant
   const varMeta = variables.find((v) => v.value === criterion.variable) ?? null;
   const type = varMeta?.type ?? null;
   const ops = type ? (operationsByType[type] ?? []) : [];
+
+  // Bornes du RangeSlider (type continu) — issues de la variable, défaut 0..100 step 1
+  const sliderMin = varMeta?.min ?? 0;
+  const sliderMax = varMeta?.max ?? 100;
+  const sliderStep = varMeta?.step ?? 1;
 
   // Options de valeurs catégorielles (fetch asynchrone).
   // Pas de mémoïsation manuelle (React Compiler) : un état porteur + dérivations.
@@ -132,6 +140,7 @@ const CriterionMenu = ({
           options={variables}
           value={variableSelVal}
           disabled={lockedVariable}
+          validate={validate}
           placeholder="Sélectionner une variable…"
           onChange={(items) => onVariable(items[0]?.value ?? null)} />
       </CriterionRow>
@@ -143,6 +152,7 @@ const CriterionMenu = ({
           options={ops}
           value={operationSelVal}
           disabled={!type || lockedOperation}
+          validate={validate}
           placeholder="Opération…"
           onChange={(items) => onOperation(items[0]?.value ?? null)} />
       </CriterionRow>
@@ -156,7 +166,11 @@ const CriterionMenu = ({
           onChange={(v) => patch({ value: v })}
           valueOptions={valueOptions}
           loadingValues={loadingValues}
-          validate={validate} />
+          validate={validate}
+          showSlider={showSlider}
+          sliderMin={sliderMin}
+          sliderMax={sliderMax}
+          sliderStep={sliderStep} />
       </CriterionRow>
 
     </CriterionCard>

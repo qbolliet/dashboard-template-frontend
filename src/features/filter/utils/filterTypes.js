@@ -16,14 +16,16 @@ const DATE_RANGE_RE = /^\d{2}\/\d{2}\/\d{4} → \d{2}\/\d{2}\/\d{4}$/;
 // Listes [{ value, label, type }] — chaque entrée porte son `type` afin que le
 // CriterionMenu retrouve le type d'une variable sélectionnée sans table annexe.
 
+// Les champs min/max/step sont OPTIONNELS : ils bornent le RangeSlider du
+// CriterionMenu (type continu). Absents, le slider retombe sur 0..100 step 1.
 /** Variables continues (numériques). */
 export const CONTINUOUS_VARS = [
-  { value: 'gdp', label: 'Croissance du PIB (%)', type: 'continuous' },
-  { value: 'inflation', label: "Taux d'inflation (%)", type: 'continuous' },
-  { value: 'chomage', label: 'Taux de chômage (%)', type: 'continuous' },
-  { value: 'dette_pib', label: 'Dette publique / PIB (%)', type: 'continuous' },
-  { value: 'prod_indus', label: 'Production industrielle (idx)', type: 'continuous' },
-  { value: 'taux_dir', label: 'Taux directeur (%)', type: 'continuous' },
+  { value: 'gdp', label: 'Croissance du PIB (%)', type: 'continuous', min: -10, max: 15, step: 0.1 },
+  { value: 'inflation', label: "Taux d'inflation (%)", type: 'continuous', min: -2, max: 20, step: 0.1 },
+  { value: 'chomage', label: 'Taux de chômage (%)', type: 'continuous', min: 0, max: 30, step: 0.1 },
+  { value: 'dette_pib', label: 'Dette publique / PIB (%)', type: 'continuous', min: 0, max: 200, step: 1 },
+  { value: 'prod_indus', label: 'Production industrielle (idx)', type: 'continuous', min: 0, max: 200, step: 1 },
+  { value: 'taux_dir', label: 'Taux directeur (%)', type: 'continuous', min: 0, max: 10, step: 0.05 },
 ];
 
 /** Variables de date. */

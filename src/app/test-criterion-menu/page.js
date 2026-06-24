@@ -10,6 +10,7 @@ import {
   TEXT_VARS,
   OPS_BY_TYPE,
 } from '@/features/filter/utils/filterTypes';
+import './page.scss';
 
 // Valeurs catégorielles fictives (simule un backend)
 const MOCK_VALUES = {
@@ -78,7 +79,8 @@ const TestCriterionMenuPage = () => {
   const [critParen, setCritParen] = useState(INIT_PAREN);
 
   // Props partagées entre toutes les cartes de la grille
-  const shared = { validate, showLabels, parentheses, operationsByType: OPS_BY_TYPE };
+  // (showSlider n'a d'effet que sur le type continu ; ignoré par les autres types)
+  const shared = { validate, showLabels, parentheses, showSlider, operationsByType: OPS_BY_TYPE };
 
   // hideOperationWhenSet simulé via showOperation (prop native du CriterionMenu)
   const opVisible = (crit) => !hideOperationWhenSet || !crit.operation;
@@ -192,95 +194,6 @@ const TestCriterionMenuPage = () => {
         </section>
 
       </main>
-
-      {/* Un seul bloc global avec préfixe tp- (scope styled-jsx ne traverse pas les composants). */}
-      <style jsx global>{`
-        .tp-ctrl-btn {
-          padding: 0.25rem 0.75rem;
-          font-size: 0.75rem;
-          border-radius: 4px;
-          border: 1px solid #d1d5db;
-          background: #ffffff;
-          color: #4b5563;
-          cursor: pointer;
-          transition: background 120ms, border-color 120ms, color 120ms;
-          font-family: inherit;
-        }
-        .tp-ctrl-btn:hover { border-color: #9ca3af; color: #111827; }
-        .tp-ctrl-btn--active {
-          background: #eff6ff !important;
-          border-color: #3b82f6 !important;
-          color: #1d4ed8 !important;
-          font-weight: 500;
-        }
-        .tp-main {
-          max-width: 900px;
-          margin: 0 auto;
-          padding: var(--spacing-2xl, 2rem) var(--spacing-lg, 1rem);
-          display: flex;
-          flex-direction: column;
-          gap: var(--spacing-2xl, 2rem);
-        }
-        .tp-section {
-          display: flex;
-          flex-direction: column;
-          gap: var(--spacing-lg, 1rem);
-        }
-        .tp-h2 {
-          font-size: var(--font-size-lg, 1.125rem);
-          font-weight: 600;
-          color: hsl(var(--color-text-primary));
-          border-bottom: 1px solid hsl(var(--color-border));
-          padding-bottom: var(--spacing-sm, 0.5rem);
-        }
-        .tp-h3 {
-          font-size: var(--font-size-sm, 0.875rem);
-          font-weight: 500;
-          color: hsl(var(--color-text-secondary));
-          margin-bottom: var(--spacing-sm, 0.5rem);
-        }
-        .tp-h3 span {
-          font-weight: 400;
-          color: hsl(var(--color-text-tertiary));
-        }
-        .tp-desc {
-          font-size: var(--font-size-sm, 0.875rem);
-          color: hsl(var(--color-text-tertiary));
-        }
-        .ctrl-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-        }
-        .tp-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: var(--spacing-xl, 1.5rem);
-          align-items: start;
-        }
-        .tp-card-wrap {
-          display: flex;
-          flex-direction: column;
-        }
-        .tp-paren-demo {
-          max-width: 32rem;
-        }
-        .tp-json {
-          background: hsl(var(--color-gray-50));
-          border: 1px solid hsl(var(--color-border));
-          border-radius: var(--border-radius-md, 6px);
-          padding: var(--spacing-md, 0.75rem) var(--spacing-lg, 1rem);
-          font-family: var(--font-mono, monospace);
-          font-size: var(--font-size-xs, 0.75rem);
-          line-height: 1.6;
-          color: hsl(var(--color-text-secondary));
-          max-width: 32rem;
-          white-space: pre-wrap;
-        }
-        @media (max-width: 680px) {
-          .tp-grid { grid-template-columns: 1fr; }
-        }
-      `}</style>
     </ThemeProvider>
   );
 };

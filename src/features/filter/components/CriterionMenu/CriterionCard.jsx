@@ -55,12 +55,14 @@ const CriterionCard = ({
   // Mode simple : pas de parenthèses, on rend la carte telle quelle
   if (!parentheses) return card;
 
-  // Mode groupement : deux boutons-parenthèses encadrent la carte
+  // Mode groupement : deux boutons-parenthèses encadrent la carte. Leur bordure
+  // reprend l'accent (la carte perd ses bords latéraux ici) → contour complet coloré.
   return (
     <div className="criterion-paren-wrap">
       <button
         type="button"
         className={`criterion-paren criterion-paren--left ${parenLeft ? 'criterion-paren--active' : ''}`}
+        style={{ borderColor: accent }}
         aria-pressed={parenLeft}
         title="Parenthèse ouvrante"
         onClick={() => onToggleParen?.('left')}>
@@ -72,6 +74,7 @@ const CriterionCard = ({
       <button
         type="button"
         className={`criterion-paren criterion-paren--right ${parenRight ? 'criterion-paren--active' : ''}`}
+        style={{ borderColor: accent }}
         aria-pressed={parenRight}
         title="Parenthèse fermante"
         onClick={() => onToggleParen?.('right')}>

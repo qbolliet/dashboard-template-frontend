@@ -4,6 +4,7 @@ import { useState } from 'react';
 import ThemeProvider from '@/features/theme/providers/ThemeProvider';
 import MultiCriterionMenu from '@/features/filter/components/MultiCriterionMenu/MultiCriterionMenu';
 import { CONTINUOUS_VARS, DATE_VARS, OPS_BY_TYPE } from '@/features/filter/utils/filterTypes';
+import './page.scss';
 
 // Catalogue complet : 4 continus + 2 dates + 3 catégoriels + 2 textes
 const ALL_VARIABLES = [
@@ -204,141 +205,6 @@ const TestMultiCriterionMenuPage = () => {
         )}
 
       </main>
-
-      {/* Un seul bloc global avec préfixe tp- pour éviter les collisions.
-          Nécessaire car <style jsx> ne traverse pas les frontières de composant
-          (CtrlBtn, CtrlRadio sont des composants séparés). */}
-      <style jsx global>{`
-        .tp-ctrl-btn {
-          padding: 0.25rem 0.75rem;
-          font-size: 0.75rem;
-          border-radius: 4px;
-          border: 1px solid #d1d5db;
-          background: #ffffff;
-          color: #4b5563;
-          cursor: pointer;
-          transition: background 120ms, border-color 120ms, color 120ms;
-          font-family: inherit;
-          white-space: nowrap;
-        }
-        .tp-ctrl-btn:hover { border-color: #9ca3af; color: #111827; }
-        .tp-ctrl-btn--active {
-          background: #eff6ff !important;
-          border-color: #3b82f6 !important;
-          color: #1d4ed8 !important;
-          font-weight: 500;
-        }
-        .tp-main {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: var(--spacing-2xl, 2rem) var(--spacing-lg, 1rem);
-          display: flex;
-          flex-direction: column;
-          gap: var(--spacing-2xl, 2rem);
-        }
-        .tp-h1 {
-          font-size: var(--font-size-xl, 1.25rem);
-          font-weight: 700;
-          color: hsl(var(--color-text-primary));
-        }
-        .tp-section {
-          display: flex;
-          flex-direction: column;
-          gap: var(--spacing-lg, 1rem);
-        }
-        .tp-h2 {
-          font-size: var(--font-size-lg, 1.125rem);
-          font-weight: 600;
-          color: hsl(var(--color-text-primary));
-          border-bottom: 1px solid hsl(var(--color-border));
-          padding-bottom: var(--spacing-sm, 0.5rem);
-        }
-        .ctrl-row {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          gap: 0.5rem;
-        }
-        .ctrl-group {
-          display: flex;
-          align-items: center;
-          gap: 0.25rem;
-        }
-        .ctrl-label {
-          font-size: 0.75rem;
-          color: #6b7280;
-          margin-right: 0.25rem;
-          white-space: nowrap;
-        }
-        .ctrl-number {
-          width: 4.5rem;
-          padding: 0.2rem 0.4rem;
-          font-size: 0.75rem;
-          border: 1px solid #d1d5db;
-          border-radius: 4px;
-          background: white;
-          color: #111827;
-          outline: none;
-          font-family: inherit;
-        }
-        .ctrl-number:focus {
-          border-color: #3b82f6;
-          outline: none;
-        }
-        .tp-output-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: var(--spacing-xl, 1.5rem);
-          align-items: start;
-        }
-        .tp-output {
-          border: 1px solid hsl(var(--color-border));
-          border-radius: var(--border-radius-lg, 8px);
-          background: hsl(var(--color-surface));
-          overflow: hidden;
-        }
-        .tp-output-head {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: var(--spacing-md, 0.75rem);
-          padding: var(--spacing-sm, 0.5rem) var(--spacing-lg, 1rem);
-          background: hsl(var(--color-gray-50));
-          border-bottom: 1px solid hsl(var(--color-border));
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          color: hsl(var(--color-text-tertiary));
-        }
-        .tp-output-body {
-          padding: var(--spacing-lg, 1rem);
-          font-family: var(--font-mono, monospace);
-          font-size: var(--font-size-xs, 0.75rem);
-          line-height: 1.65;
-          color: hsl(var(--color-text-secondary));
-          white-space: pre-wrap;
-          overflow-x: auto;
-          max-height: 380px;
-          overflow-y: auto;
-          margin: 0;
-        }
-        .tp-sql {
-          color: hsl(var(--color-text-primary));
-          word-break: break-word;
-        }
-        .badge {
-          font-size: var(--font-size-xs, 0.75rem);
-          font-weight: 500;
-          text-transform: none;
-          letter-spacing: 0;
-        }
-        .badge--ok   { color: hsl(var(--color-success-500)); }
-        .badge--warn { color: hsl(var(--color-error-500)); }
-        @media (max-width: 860px) {
-          .tp-output-grid { grid-template-columns: 1fr; }
-        }
-      `}</style>
     </ThemeProvider>
   );
 };

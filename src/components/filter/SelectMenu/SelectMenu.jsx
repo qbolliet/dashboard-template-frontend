@@ -46,6 +46,8 @@ const ChevronIcon = ({ open }) => (
  * @param {boolean}  [disabled]
  * @param {string}   [placeholder]
  * @param {boolean}  [compact]    - Variante compacte (hauteur réduite, mono, centré).
+ * @param {boolean}  [validate]   - Active la coloration succès quand une valeur est choisie.
+ *   Désactivé (false), le container reste neutre même renseigné.
  * @returns {JSX.Element}
  */
 const SelectMenu = ({
@@ -60,6 +62,7 @@ const SelectMenu = ({
   disabled = false,
   placeholder = 'Sélectionner…',
   compact = false,
+  validate = true,
 }) => {
   // État local : ouverture du dropdown, terme de recherche, curseur clavier
   const [open, setOpen] = useState(false);
@@ -236,7 +239,7 @@ const SelectMenu = ({
     'select-container',
     compact && 'select-container--compact',
     open && 'select-container--open',
-    value.length > 0 && 'select-container--success',
+    validate && value.length > 0 && 'select-container--success',
     disabled && 'select-container--disabled',
   ].filter(Boolean).join(' ');
 

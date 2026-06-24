@@ -9,6 +9,7 @@
 
 :root {
   // ===== CRITERION MENU — carte de critère =====
+  --criterion-width:         100%;                // largeur du menu (100% = épouse le conteneur)
   --criterion-padding:       var(--spacing-lg);   // 16px - padding interne des lignes
   --criterion-gap:           var(--spacing-sm);   // 8px - gap label → champ
   --criterion-paren-width:   1.15rem;             // arbitraire - largeur des parenthèses

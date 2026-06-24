@@ -1,3 +1,4 @@
+import RangeSlider from '@/components/filter/RangeSlider/RangeSlider';
 import SelectMenu from '@/components/filter/SelectMenu/SelectMenu';
 import TypeAwareInput from '@/components/filter/TypeAwareInput/TypeAwareInput';
 
@@ -14,6 +15,10 @@ import TypeAwareInput from '@/components/filter/TypeAwareInput/TypeAwareInput';
  * @param {{value: string, label: string}[]} [valueOptions] - Options for categorical values.
  * @param {boolean} [loadingValues] - True while categorical options are being fetched.
  * @param {boolean} [validate] - Enables real-time validation on inputs.
+ * @param {boolean} [showSlider] - Continuous type only: render a RangeSlider instead of inputs.
+ * @param {number} [sliderMin] - Lower bound of the slider (continuous + showSlider).
+ * @param {number} [sliderMax] - Upper bound of the slider.
+ * @param {number} [sliderStep] - Step increment of the slider.
  * @returns {JSX.Element}
  */
 const ValueField = ({
@@ -24,6 +29,10 @@ const ValueField = ({
   valueOptions = [],
   loadingValues = false,
   validate = false,
+  showSlider = false,
+  sliderMin = 0,
+  sliderMax = 100,
+  sliderStep = 1,
 }) => {
   // ── Type non défini : aucune variable choisie ──
   if (!type) {
@@ -32,8 +41,38 @@ const ValueField = ({
 
   // ── Continu ──
   if (type === 'continuous') {
+    const isRange = operation === 'between';
+
+    // Slider activé : le RangeSlider devient le contrôle unique (inputs en haut,
+    // piste en dessous). On le remonte (key) au changement d'opération/bornes pour
+    // réinitialiser son état interne sur les nouvelles valeurs contrôlées.
+    if (showSlider) {
+      const lo = isRange ? value?.min : value;
+      const hi = isRange ? value?.max : undefined;
+      // Conversion texte → nombre pour amorcer le slider (NaN → laissé indéfini)
+      const num = (v) => (v === '' || v == null || Number.isNaN(Number(v)) ? undefined : Number(v));
+      return (
+        <RangeSlider
+          key={`${operation}-${sliderMin}-${sliderMax}`}
+          rangeMode={isRange}
+          min={sliderMin}
+          max={sliderMax}
+          step={sliderStep}
+          validate={validate}
+          inputsOnTop
+          valueLo={num(lo)}
+          valueHi={num(hi)}
+          // Réémission au format interne du critère (chaînes ; objet { min, max } en plage)
+          onChange={(out) => onChange(
+            isRange
+              ? { min: String(out.min), max: String(out.max) }
+              : String(out.value),
+          )} />
+      );
+    }
+
     // Plage : deux champs numériques min/max reliés par une flèche
-    if (operation === 'between') {
+    if (isRange) {
       return (
         <div className="criterion-dual">
           <input
@@ -83,6 +122,7 @@ const ValueField = ({
           options={valueOptions}
           allowMulti
           value={selVal}
+          validate={validate}
           placeholder={loadingValues ? 'Chargement…' : 'Sélectionner des valeurs…'}
           onChange={(items) => onChange(items.map((i) => i.value))} />
       );
@@ -96,6 +136,7 @@ const ValueField = ({
       <SelectMenu
         options={valueOptions}
         value={selVal}
+        validate={validate}
         placeholder={loadingValues ? 'Chargement…' : 'Sélectionner une valeur…'}
         onChange={(items) => onChange(items[0]?.value ?? null)} />
     );

@@ -312,6 +312,10 @@
 // ── Variante compacte du container interactif ─────────────────────
 // Utilisée pour les sélecteurs de connecteurs AND/OR entre les cartes du MCM.
 .select-container--compact {
+  // Le compact épouse la largeur de son conteneur (wrapper du connecteur) au lieu
+  // de la largeur fixe par défaut (--filter-control-width).
+  width: 100%;
+
   .select-field {
     min-height: 1.9rem;
     padding: 0.1rem 0.2rem 0.1rem 0.4rem;

@@ -17,6 +17,8 @@ import './RangeSlider.scss';
  * @param {boolean}  [disabled]
  * @param {boolean}  [showSlider]  - When false, hides the track and thumbs but keeps
  *   the numeric inputs (useful in space-constrained criterion cards).
+ * @param {boolean}  [inputsOnTop] - When true, renders the numeric inputs above the
+ *   track (instead of below) — used by the CriterionMenu (inputs then slider).
  * @returns {JSX.Element}
  */
 const RangeSlider = ({
@@ -30,6 +32,7 @@ const RangeSlider = ({
   onChange,
   disabled = false,
   showSlider = true,
+  inputsOnTop = false,
 }) => {
   // Valeurs initiales
   const initLo = valueLo !== undefined ? valueLo : rangeMode ? 20 : 40;
@@ -191,7 +194,7 @@ const RangeSlider = ({
   const hiClass = validate && hiState !== 'default' ? ` range-slider__input--${hiState}` : '';
 
   return (
-    <div className={`range-slider${disabled ? ' range-slider--disabled' : ''}`}>
+    <div className={`range-slider${disabled ? ' range-slider--disabled' : ''}${inputsOnTop ? ' range-slider--inputs-top' : ''}`}>
       {showSlider && (
         <div
           className="range-slider__track"

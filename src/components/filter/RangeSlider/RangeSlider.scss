@@ -26,6 +26,11 @@
     pointer-events: none;
     filter: grayscale(0.3);
   }
+
+  // Inputs au-dessus, piste en dessous (ordre source conservé, affichage inversé).
+  &--inputs-top {
+    flex-direction: column-reverse;
+  }
 }
 
 // ── Zone de track (rail + fill + thumbs) ─────────────────────────
