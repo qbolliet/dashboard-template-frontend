@@ -10,8 +10,8 @@
 // pour adapter l'animation d'entrée à la direction.
 //
 // Pour les tokens, voir ./_tokens.scss.
-// Pas d'import direct des tokens globaux : ils transitent tous par _tokens.scss.
-@use './_tokens';
+@use './tokens' as *;
+@use './colors' as *;
 
 @keyframes tooltip-in {
   from { opacity: 0; transform: var(--tooltip-slide-from); }

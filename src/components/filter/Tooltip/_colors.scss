@@ -1,0 +1,8 @@
+// ===== TOKENS DE COULEURS — Tooltip =====
+// Couleurs utilisées uniquement par ce composant (au-delà des tokens partagés
+// du groupe filter, voir ../_colors.scss). Importées par Tooltip.scss.
+
+:root {
+  --tooltip-bg:    var(--color-gray-800); // fond de la bulle (sombre invariant)
+  --tooltip-color: var(--color-white);    // texte de la bulle
+}

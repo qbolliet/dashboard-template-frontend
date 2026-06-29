@@ -4,8 +4,6 @@
 // sont disponibles via typography.scss injecté dans le layout racine.
 
 :root {
-  --tooltip-bg:             var(--color-gray-800);   // Fond de la bulle (sombre invariant)
-  --tooltip-color:          var(--color-white);      // Texte de la bulle
   --tooltip-radius:         var(--border-radius-md);
   --tooltip-padding-y:      0.35rem;                 // exception : valeur fine hors échelle
   --tooltip-padding-x:      var(--spacing-sm);       // 8px
