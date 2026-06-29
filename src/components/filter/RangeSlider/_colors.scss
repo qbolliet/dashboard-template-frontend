@@ -11,6 +11,6 @@
   --slider-label-color:     var(--color-text-tertiary); // labels Min/Max/Valeur
 
   // ===== HALOS D'ÉTAT DES INPUTS (ring 3px) =====
-  --slider-success-shadow: hsl(138 76% 47% / 0.12);
-  --slider-error-shadow:   hsl(0 84% 60% / 0.12);
+  --slider-success-shadow: var(--filter-success-shadow);
+  --slider-error-shadow:   var(--filter-error-shadow);
 }

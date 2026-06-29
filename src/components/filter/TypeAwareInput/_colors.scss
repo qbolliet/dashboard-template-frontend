@@ -10,8 +10,8 @@
 
   // ===== HALOS D'ÉTAT (ring 3px) =====
   // Teintes succès/erreur fixes (12 % d'opacité) — indépendantes du halo de focus.
-  --type-input-success-shadow: hsl(138 76% 47% / 0.12);
-  --type-input-error-shadow:   hsl(0 84% 60% / 0.12);
+  --type-input-success-shadow: var(--filter-success-shadow);
+  --type-input-error-shadow:   var(--filter-error-shadow);
 }
 
 // ===== THÈME SOMBRE =====
