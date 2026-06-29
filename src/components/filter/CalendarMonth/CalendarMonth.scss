@@ -9,6 +9,7 @@
 // réutilisent les tokens globaux (gris, primaire, texte) directement.
 @use '../tokens' as *;
 @use './tokens' as *;
+@use './colors' as *;
 
 // ── Popover ──────────────────────────────────────────────────────
 // Ancré sous le champ déclencheur (top: 100% + 6px). En mode plage, les deux
@@ -74,16 +75,18 @@
   gap: var(--calendar-header-gap);
 }
 
-// <select> natifs stylés au minimum : ni bordure ni fond, héritent de la graisse
+// <select> natifs : bordure fine arrondie + légère ombre pour mieux les intégrer
 .calendar__select {
   font: inherit;
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: hsl(var(--color-text-primary));
-  padding: 0 0.2rem;
-  border: none;
+  padding: var(--calendar-select-padding);
+  border: 1px solid hsl(var(--filter-border));
+  border-radius: var(--calendar-select-radius);
   outline: none;
   background: transparent;
+  box-shadow: var(--shadow-sm);
   cursor: pointer;
 
   &:hover { color: hsl(var(--filter-border-focus)); }
@@ -111,7 +114,7 @@
 }
 
 // ── Cellule jour ─────────────────────────────────────────────────
-// Cercle cliquable centré ; l'arrondi varie selon l'appartenance à une plage.
+// Carré arrondi cliquable centré ; l'arrondi varie selon l'appartenance à une plage.
 .calendar__day {
   display: inline-flex;
   align-items: center;
@@ -120,7 +123,7 @@
   height: var(--calendar-day-size);
   font-size: var(--font-size-sm);
   color: hsl(var(--color-text-primary));
-  border-radius: var(--border-radius-full);
+  border-radius: var(--calendar-day-radius);
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast);
 
@@ -138,39 +141,24 @@
   // Aujourd'hui : simple renforcement de graisse
   &--today { font-weight: 700; }
 
-  // Sélection unique / bornes de plage : pastille sombre, texte clair
+  // Sélection unique / bornes de plage : pastille colorée, texte clair
   &--selected,
   &--range-start,
   &--range-end {
-    background: hsl(var(--color-gray-900));
-    color: hsl(var(--color-white));
+    background: hsl(var(--calendar-day-selected-bg));
+    color: hsl(var(--calendar-day-selected-fg));
     font-weight: 600;
   }
 
-  // Jours strictement à l'intérieur de la plage : fond gris clair, coins droits
+  // Jours strictement à l'intérieur de la plage : fond clair, coins droits
   &--in-range {
-    background: hsl(var(--color-gray-100));
+    background: hsl(var(--calendar-in-range-bg));
     color: hsl(var(--color-text-primary));
     border-radius: 0;
   }
 
   // Coins arrondis sur le côté extérieur des bornes ; les deux côtés si borne unique
-  &--range-start { border-radius: 50% 0 0 50%; }
-  &--range-end { border-radius: 0 50% 50% 0; }
-  &--range-start.calendar__day--range-end { border-radius: 50%; }
-}
-
-// ── Thème sombre ─────────────────────────────────────────────────
-// En clair, --color-gray-900 est foncé (texte blanc lisible). En sombre il
-// s'inverse en clair : on bascule la pastille sur la couleur primaire pour
-// conserver un contraste suffisant avec le texte blanc.
-[data-theme="dark"] {
-  .calendar__day--selected,
-  .calendar__day--range-start,
-  .calendar__day--range-end {
-    background: hsl(var(--color-primary-500));
-  }
-  .calendar__day--in-range {
-    background: hsl(var(--color-gray-200));
-  }
+  &--range-start { border-radius: var(--calendar-day-radius) 0 0 var(--calendar-day-radius); }
+  &--range-end { border-radius: 0 var(--calendar-day-radius) var(--calendar-day-radius) 0; }
+  &--range-start.calendar__day--range-end { border-radius: var(--calendar-day-radius); }
 }

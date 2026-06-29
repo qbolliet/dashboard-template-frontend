@@ -10,6 +10,11 @@
   --calendar-cell-padding: 1.5px 0;   // padding vertical fin des <td> (densité)
   --calendar-header-gap: 0.25rem;     // espacement entre les <select> de l'en-tête
   --calendar-min-width: 220px;        // largeur minimale d'un mois affiché
+  --calendar-day-radius: var(--border-radius-md); // arrondi des bornes/jours sélectionnés (carré adouci)
+
+  // ===== SÉLECTEURS MOIS/ANNÉE =====
+  --calendar-select-radius: var(--border-radius-sm);               // arrondi léger des <select> en-tête
+  --calendar-select-padding: var(--spacing-2px) var(--spacing-xs); // padding interne (2px / 4px)
 
   // ===== POPOVER =====
   --calendar-popover-padding: 1rem;   // marge interne du panneau flottant

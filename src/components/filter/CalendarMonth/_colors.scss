@@ -1,0 +1,17 @@
+// ===== TOKENS DE COULEURS — CalendarMonth =====
+// Couleurs d'intention propres aux états des jours (sélection, plage).
+// Importées par CalendarMonth.scss.
+
+:root {
+  --calendar-day-selected-bg: var(--color-gray-900);   // fond des jours sélectionnés / bornes de plage
+  --calendar-day-selected-fg: var(--color-white);      // texte sur fond sélectionné
+  --calendar-in-range-bg:     var(--color-gray-100);   // fond des jours intérieurs à la plage
+}
+
+// ===== THÈME SOMBRE =====
+// En clair gray-900 est foncé (texte blanc lisible) ; en sombre il s'inverse → on
+// bascule la pastille sur la couleur primaire et le fond de plage sur gray-200.
+[data-theme="dark"] {
+  --calendar-day-selected-bg: var(--color-primary-500);
+  --calendar-in-range-bg:     var(--color-gray-200);
+}

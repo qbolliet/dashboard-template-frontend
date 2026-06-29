@@ -80,6 +80,8 @@ const sameDay = (a, b) => a && b && a.toDateString() === b.toDateString();
  * @param {Function}      onSelect      - (date: Date) => void.
  * @param {boolean}       [navLeft]     - Show the previous-month chevron.
  * @param {boolean}       [navRight]    - Show the next-month chevron.
+ * @param {number}        [minYear]     - Earliest selectable year (default: current year − 30).
+ * @param {number}        [maxYear]     - Latest selectable year (default: current year + 5).
  * @returns {JSX.Element}
  */
 const CalendarMonth = ({
@@ -95,14 +97,19 @@ const CalendarMonth = ({
   onSelect,
   navLeft = true,
   navRight = true,
+  minYear,
+  maxYear,
 }) => {
   // Initialisation de la date du jour
   const today = new Date();
   // Initialisation des semaines d'intérêt
   const weeks = buildWeeks(year, month);
 
-  // Plage d'années du sélecteur : année courante −5 à +14 (20 ans)
-  const years = Array.from({ length: 20 }, (_, i) => today.getFullYear() - 5 + i);
+  // Plage d'années du sélecteur : paramétrable via minYear/maxYear.
+  // Défauts : année courante −30 à +5 (la plage n'a pas à couvrir l'année courante).
+  const minY = minYear ?? today.getFullYear() - 30;
+  const maxY = maxYear ?? today.getFullYear() + 5;
+  const years = Array.from({ length: maxY - minY + 1 }, (_, i) => minY + i);
 
   // Date réelle d'une cellule (résout le report d'année/mois pour les cellules « autres »)
   const cellDate = (cell) => {
@@ -187,6 +194,7 @@ const CalendarMonth = ({
             className="calendar__select"
             value={year}
             onChange={(e) => onYearChange(Number(e.target.value))}
+            disabled={minY === maxY}
             aria-label="Année">
             {years.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
