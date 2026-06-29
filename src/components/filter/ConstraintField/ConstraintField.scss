@@ -1,12 +1,12 @@
 // =================================================================
-// RANGE SLIDER — slider numérique simple ou double borne
+// CONSTRAINT FIELD — champ de contrainte typé (1 ou 2 TypeAwareInput + slider)
 // =================================================================
-// .range-slider        : wrapper global (colonne)
-// .range-slider__track : zone de clic contenant rail + fill + thumbs
-// .range-slider__rail  : fond gris total
-// .range-slider__fill  : portion colorée (primaire)
-// .range-slider__thumb : cercle draggable
-// .range-slider__inputs : ligne des inputs numériques
+// .constraint-field         : wrapper global (colonne)
+// .constraint-field__track  : zone de clic contenant rail + fill + thumbs
+// .constraint-field__rail   : fond gris total
+// .constraint-field__fill   : portion colorée (primaire)
+// .constraint-field__thumb  : cercle draggable (--low / --high)
+// .constraint-field__inputs : <fieldset> portant les TypeAwareInput
 
 // Importation des variables
 @use '../tokens' as *;
@@ -15,7 +15,7 @@
 @use './colors' as *;
 
 // ── Wrapper global ───────────────────────────────────────────────
-.range-slider {
+.constraint-field {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -36,42 +36,42 @@
 // ── Zone de track (rail + fill + thumbs) ─────────────────────────
 // position: relative pour positionner les éléments absolus.
 // cursor: pointer pour indiquer la cliquabilité du rail.
-.range-slider__track {
+.constraint-field__track {
   position: relative;
-  height: var(--slider-track-height);
+  height: var(--constraint-track-height);
   display: flex;
   align-items: center;
   cursor: pointer;
 }
 
 // ── Rail (fond gris) ─────────────────────────────────────────────
-.range-slider__rail {
+.constraint-field__rail {
   position: absolute;
   left: 0;
   right: 0;
-  height: var(--slider-rail-height);
-  background: hsl(var(--slider-rail-bg));
-  border-radius: var(--slider-rail-radius);
+  height: var(--constraint-rail-height);
+  background: hsl(var(--constraint-rail-bg));
+  border-radius: var(--constraint-rail-radius);
 }
 
 // ── Fill (portion colorée) ───────────────────────────────────────
 // pointer-events: none pour laisser les clics traverser vers le rail.
-.range-slider__fill {
+.constraint-field__fill {
   position: absolute;
-  height: var(--slider-rail-height);
-  background: hsl(var(--slider-fill-color));
-  border-radius: var(--slider-rail-radius);
+  height: var(--constraint-rail-height);
+  background: hsl(var(--constraint-fill-color));
+  border-radius: var(--constraint-rail-radius);
   pointer-events: none;
 }
 
 // ── Thumb ────────────────────────────────────────────────────────
 // translateX(-50%) centre le cercle sur la position en %.
 // touch-action: none nécessaire pour que Pointer Events fonctionnent sur mobile.
-.range-slider__thumb {
+.constraint-field__thumb {
   position: absolute;
-  width: var(--slider-thumb-size);
-  height: var(--slider-thumb-size);
-  background: hsl(var(--slider-thumb-color));
+  width: var(--constraint-thumb-size);
+  height: var(--constraint-thumb-size);
+  background: hsl(var(--constraint-thumb-color));
   border: none;
   border-radius: 50%;
   transform: translateX(-50%);
@@ -82,80 +82,67 @@
 
   &:hover,
   &--dragging {
-    box-shadow: 0 0 0 var(--slider-thumb-ring-size) hsl(var(--slider-thumb-ring-color));
+    box-shadow: 0 0 0 var(--constraint-thumb-ring-size) hsl(var(--constraint-thumb-ring-color));
   }
 
   &--dragging { cursor: grabbing; }
 }
 
-// ── Zone des inputs numériques ───────────────────────────────────
-.range-slider__inputs {
+// ── Zone des inputs (fieldset) ───────────────────────────────────
+// Reset des styles natifs du <fieldset> (bordure/marge/padding).
+.constraint-field__inputs {
   display: flex;
-  gap: var(--slider-inputs-gap);
-  align-items: center;
+  gap: var(--constraint-inputs-gap);
+  align-items: flex-start;
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+// ── Légende accessible (masquée visuellement) ────────────────────
+// Le <legend> décrit le groupe pour les lecteurs d'écran ; les <label> par champ
+// suffisent visuellement.
+.constraint-field__legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 // ── Groupe input (label + champ) ─────────────────────────────────
-.range-slider__input-group {
+// Les TypeAwareInput doivent pouvoir rétrécir dans la largeur du contrôle :
+// on neutralise leur min-width pour qu'ils suivent le flex.
+.constraint-field__input-group {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
   flex: 1;
+  min-width: 0;
+
+  .type-input-wrap { width: 100%; }
+  .type-input { min-width: 0; }
 }
 
-// ── Label Min / Max / Valeur ─────────────────────────────────────
-.range-slider__input-label {
-  font-size: var(--slider-label-size);
+// ── Label Min / Max / Valeur / Date / Plage ──────────────────────
+.constraint-field__input-label {
+  font-size: var(--constraint-label-size);
   font-weight: 500;
-  color: hsl(var(--slider-label-color));
+  color: hsl(var(--constraint-label-color));
   text-transform: uppercase;
-  letter-spacing: var(--slider-label-spacing);
+  letter-spacing: var(--constraint-label-spacing);
 }
 
-// ── Champ numérique ──────────────────────────────────────────────
-.range-slider__input {
-  border: 1.5px solid hsl(var(--filter-border));
-  border-radius: var(--filter-radius);
-  padding: var(--slider-input-padding-y) var(--slider-input-padding-x);
-  font-size: var(--font-size-sm);
-  font-family: var(--slider-input-font);
-  color: hsl(var(--color-text-primary));
-  background: hsl(var(--filter-surface));
-  text-align: right;
-  width: 100%;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-  outline: none;
-
-  &:focus {
-    border-color: hsl(var(--filter-border-focus));
-    box-shadow: 0 0 0 3px hsl(var(--filter-focus-shadow));
-  }
-
-  // Masque les flèches natives des inputs number
-  appearance: textfield;
-  -moz-appearance: textfield;
-  &::-webkit-outer-spin-button,
-  &::-webkit-inner-spin-button {
-    appearance: none;
-    margin: 0;
-  }
-
-  &--error {
-    border-color: hsl(var(--filter-border-error));
-    box-shadow: 0 0 0 3px var(--slider-error-shadow);
-  }
-
-  &--success {
-    border-color: hsl(var(--filter-border-success));
-    box-shadow: 0 0 0 3px var(--slider-success-shadow);
-  }
-}
-
-// ── Séparateur "—" entre les deux inputs (mode range) ────────────
-// padding-top: aligne visuellement le tiret avec les champs (décalage label 10px)
-.range-slider__sep {
+// ── Séparateur "—" entre les deux inputs (plage numérique) ───────
+// padding-top: aligne visuellement le tiret avec les champs (décalage label).
+.constraint-field__sep {
   font-size: var(--font-size-sm);
   color: hsl(var(--color-text-tertiary));
-  padding-top: 1.2rem;
+  padding-top: 1.4rem;
   flex-shrink: 0;
 }

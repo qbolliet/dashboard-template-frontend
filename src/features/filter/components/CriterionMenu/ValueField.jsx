@@ -1,4 +1,4 @@
-import RangeSlider from '@/components/filter/RangeSlider/RangeSlider';
+import ConstraintField from '@/components/filter/ConstraintField/ConstraintField';
 import SelectMenu from '@/components/filter/SelectMenu/SelectMenu';
 import TypeAwareInput from '@/components/filter/TypeAwareInput/TypeAwareInput';
 
@@ -15,7 +15,7 @@ import TypeAwareInput from '@/components/filter/TypeAwareInput/TypeAwareInput';
  * @param {{value: string, label: string}[]} [valueOptions] - Options for categorical values.
  * @param {boolean} [loadingValues] - True while categorical options are being fetched.
  * @param {boolean} [validate] - Enables real-time validation on inputs.
- * @param {boolean} [showSlider] - Continuous type only: render a RangeSlider instead of inputs.
+ * @param {boolean} [showSlider] - Continuous type only: render a ConstraintField slider bar.
  * @param {number} [sliderMin] - Lower bound of the slider (continuous + showSlider).
  * @param {number} [sliderMax] - Upper bound of the slider.
  * @param {number} [sliderStep] - Step increment of the slider.
@@ -43,31 +43,24 @@ const ValueField = ({
   if (type === 'continuous') {
     const isRange = operation === 'between';
 
-    // Slider activé : le RangeSlider devient le contrôle unique (inputs en haut,
+    // Slider activé : le ConstraintField devient le contrôle unique (inputs en haut,
     // piste en dessous). On le remonte (key) au changement d'opération/bornes pour
     // réinitialiser son état interne sur les nouvelles valeurs contrôlées.
     if (showSlider) {
-      const lo = isRange ? value?.min : value;
-      const hi = isRange ? value?.max : undefined;
-      // Conversion texte → nombre pour amorcer le slider (NaN → laissé indéfini)
-      const num = (v) => (v === '' || v == null || Number.isNaN(Number(v)) ? undefined : Number(v));
       return (
-        <RangeSlider
+        <ConstraintField
           key={`${operation}-${sliderMin}-${sliderMax}`}
+          valueType="float"
           rangeMode={isRange}
           min={sliderMin}
           max={sliderMax}
           step={sliderStep}
           validate={validate}
           inputsOnTop
-          valueLo={num(lo)}
-          valueHi={num(hi)}
-          // Réémission au format interne du critère (chaînes ; objet { min, max } en plage)
-          onChange={(out) => onChange(
-            isRange
-              ? { min: String(out.min), max: String(out.max) }
-              : String(out.value),
-          )} />
+          valueLow={isRange ? value?.min : value}
+          valueHigh={isRange ? value?.max : undefined}
+          // Réémission au format interne du critère (ConstraintField émet déjà des chaînes)
+          onChange={(out) => onChange(isRange ? { min: out.min, max: out.max } : out.value)} />
       );
     }
 

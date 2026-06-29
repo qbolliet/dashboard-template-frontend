@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import SelectMenu from '../../components/filter/SelectMenu/SelectMenu'
 import TypeAwareInput from '../../components/filter/TypeAwareInput/TypeAwareInput'
-import RangeSlider from '../../components/filter/RangeSlider/RangeSlider'
+import ConstraintField from '../../components/filter/ConstraintField/ConstraintField'
 import Tooltip from '../../components/filter/Tooltip/Tooltip'
 import styles from './FilterPrimitivesShowcase.module.scss'
 
@@ -175,18 +175,35 @@ const FilterPrimitivesShowcase = () => {
         </ShowcaseCell>
       </ShowcaseSection>
 
-      {/* ── Range Slider ─────────────────────────────────────────── */}
-      <ShowcaseSection title="Range Slider">
-        <ShowcaseCell label="Valeur unique">
-          <RangeSlider rangeMode={false} />
+      {/* ── Constraint Field ─────────────────────────────────────── */}
+      <ShowcaseSection title="Constraint Field">
+        <ShowcaseCell label="Float · valeur unique">
+          <ConstraintField valueType="float" rangeMode={false} step={0.1} />
         </ShowcaseCell>
 
-        <ShowcaseCell label="Intervalle">
-          <RangeSlider rangeMode={true} />
+        <ShowcaseCell label="Float · intervalle">
+          <ConstraintField valueType="float" rangeMode={true} step={0.1} />
         </ShowcaseCell>
 
-        <ShowcaseCell label="Intervalle · validation">
-          <RangeSlider rangeMode={true} validate={true} />
+        <ShowcaseCell label="Entier · intervalle · validation">
+          <ConstraintField valueType="integer" rangeMode={true} validate={true} min={0} max={50} />
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Float · sans slider">
+          <ConstraintField valueType="float" rangeMode={true} showSlider={false} validate={true} />
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Date · plage (calendrier + slider)">
+          <ConstraintField
+            valueType="date"
+            rangeMode={true}
+            validate={true}
+            min="01/01/2024"
+            max="31/12/2024" />
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Float · bornes via API (useRangeBounds)">
+          <ConstraintField valueType="float" rangeMode={true} fieldName="gdp" />
         </ShowcaseCell>
       </ShowcaseSection>
     </>

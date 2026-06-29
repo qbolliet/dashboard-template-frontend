@@ -16,7 +16,7 @@ const DATE_RANGE_RE = /^\d{2}\/\d{2}\/\d{4} → \d{2}\/\d{2}\/\d{4}$/;
 // Listes [{ value, label, type }] — chaque entrée porte son `type` afin que le
 // CriterionMenu retrouve le type d'une variable sélectionnée sans table annexe.
 
-// Les champs min/max/step sont OPTIONNELS : ils bornent le RangeSlider du
+// Les champs min/max/step sont OPTIONNELS : ils bornent le ConstraintField du
 // CriterionMenu (type continu). Absents, le slider retombe sur 0..100 step 1.
 /** Variables continues (numériques). */
 export const CONTINUOUS_VARS = [

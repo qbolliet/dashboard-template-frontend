@@ -1,269 +1,360 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import './RangeSlider.scss';
+import { useEffect, useId, useRef, useState } from 'react';
+import TypeAwareInput from '../TypeAwareInput/TypeAwareInput';
+import { DATE_RANGE_SEP, formatDate, parseDate } from '../utils/dateParse';
+import { useRangeBounds } from './useRangeBounds';
+import './ConstraintField.scss';
 
 /**
- * Numeric slider with single value or min/max range.
+ * Typed constraint field: composes one or two {@link TypeAwareInput} controls and
+ * owns the VALUE validation (bounds, `low ≤ high`, membership in `[min, max]`) on top
+ * of the per-input TYPE validation. An optional slider bar mirrors the values on a
+ * numeric axis (timestamps for dates).
  *
- * @param {boolean}  [rangeMode]   - false = single value, true = min/max range.
- * @param {number}   [min]         - Minimum allowed value (default: 0).
- * @param {number}   [max]         - Maximum allowed value (default: 100).
- * @param {number}   [step]        - Step increment (default: 1).
- * @param {boolean}  [validate]    - Enable success/error state on numeric inputs.
- * @param {number}   valueLo       - Current low value (or single value).
- * @param {number}   [valueHi]     - Current high value (rangeMode only).
- * @param {Function} onChange      - ({ value } | { min, max }) => void.
+ * Responsibility split: each `TypeAwareInput` validates the TYPE of its own value;
+ * `ConstraintField` re-projects valid values onto a numeric axis to validate the VALUE
+ * and drive the slider. Value verdicts are pushed back to the inputs via their
+ * `forcedState`/`forcedMessage` props (border tint + message).
+ *
+ * Layout per (valueType × rangeMode):
+ * - numeric single → 1 input + 1 thumb; numeric range → 2 inputs (low/high) + 2 thumbs.
+ * - date single → 1 input (single calendar); date range → 1 input (range calendar).
+ *   The slider bar is added for dates only when bounds are known.
+ *
+ * @param {"integer"|"float"|"date"} [valueType] - Value type fed to TypeAwareInput.
+ * @param {boolean}  [rangeMode]   - false = single value, true = low/high range.
+ * @param {number|string} [min]    - Lower bound (number, or DD/MM/YYYY for dates).
+ *   Takes precedence over the API-loaded bound.
+ * @param {number|string} [max]    - Upper bound (same format as `min`).
+ * @param {number}   [step]        - Slider step (ms for dates).
+ * @param {string}   [fieldName]   - API field name for {@link useRangeBounds}.
+ * @param {string}   [catalog]     - API catalog for {@link useRangeBounds}.
+ * @param {boolean}  [validate]    - Enable type + value validation feedback.
+ * @param {string|number} [valueLow]  - Initial low value (or single value).
+ * @param {string|number} [valueHigh] - Initial high value (numeric range only).
+ * @param {Function} onChange      - ({ value } | { min, max }) => void, string payloads.
  * @param {boolean}  [disabled]
- * @param {boolean}  [showSlider]  - When false, hides the track and thumbs but keeps
- *   the numeric inputs (useful in space-constrained criterion cards).
- * @param {boolean}  [inputsOnTop] - When true, renders the numeric inputs above the
- *   track (instead of below) — used by the CriterionMenu (inputs then slider).
+ * @param {boolean}  [showSlider]  - Render the slider bar when the type/bounds allow it.
+ * @param {boolean}  [inputsOnTop] - Render the inputs above the track (instead of below).
  * @returns {JSX.Element}
  */
-const RangeSlider = ({
+const ConstraintField = ({
+  valueType = 'float',
   rangeMode = false,
-  min = 0,
-  max = 100,
-  step = 1,
+  min,
+  max,
+  step,
+  fieldName,
+  catalog,
   validate = false,
-  valueLo,
-  valueHi,
+  valueLow,
+  valueHigh,
   onChange,
   disabled = false,
   showSlider = true,
   inputsOnTop = false,
 }) => {
-  // Valeurs initiales
-  const initLo = valueLo !== undefined ? valueLo : rangeMode ? 20 : 40;
-  const initHi = valueHi !== undefined ? valueHi : 80;
+  const isDate = valueType === 'date';
+  // En plage de dates, UN seul TypeAwareInput (calendrier double) porte « A → B »
+  const isDateRange = isDate && rangeMode;
+  // Deux champs distincts uniquement pour les plages numériques
+  const dualInputs = rangeMode && !isDate;
 
-  // Valeurs numériques du slider
-  const [lo, setLo] = useState(initLo);
-  const [hi, setHi] = useState(initHi);
+  // ── Bornes : API (hook) court-circuitée par les props explicites ────────
+  const api = useRangeBounds({ fieldName, catalog });
 
-  // Texte affiché dans les inputs — diverge de lo/hi pendant la saisie libre
-  const [inputLo, setInputLo] = useState(String(initLo));
-  const [inputHi, setInputHi] = useState(String(initHi));
+  // Convertit une borne (nombre, ou date JJ/MM/AAAA) en nombre de l'axe slider
+  const boundToNum = (b) => {
+    if (b == null || b === '') return NaN;
+    if (typeof b === 'number') return b;
+    if (isDate) { const d = parseDate(b); return d ? d.getTime() : NaN; }
+    return Number(b);
+  };
+  // Résolution : prop explicite > valeur API > repli
+  const resolve = (explicit, apiVal, fallback) => {
+    const e = boundToNum(explicit);
+    if (Number.isFinite(e)) return e;
+    const a = boundToNum(apiVal);
+    if (Number.isFinite(a)) return a;
+    return fallback;
+  };
+  const minN = resolve(min, api.min, isDate ? NaN : 0);
+  const maxN = resolve(max, api.max, isDate ? NaN : 100);
+  const stepN = (() => {
+    const e = Number(step);
+    if (Number.isFinite(e) && e > 0) return e;
+    const a = Number(api.step);
+    if (Number.isFinite(a) && a > 0) return a;
+    return isDate ? 86_400_000 : 1; // 1 jour en ms pour les dates
+  })();
 
-  // État de validation ('default' | 'success' | 'error')
-  const [loState, setLoState] = useState('default');
-  const [hiState, setHiState] = useState('default');
+  // Bornes exploitables (axe valide) ⇒ la barre slider peut être rendue
+  const boundsKnown = Number.isFinite(minN) && Number.isFinite(maxN) && maxN > minN;
+  const renderTrack = showSlider && boundsKnown;
 
-  // Thumb en cours de drag ('lo' | 'hi' | null)
+  // ── État contrôlé (chaînes fournies aux TypeAwareInput) ─────────────────
+  // `low` = valeur unique / borne basse / « A → B » (plage de dates).
+  // `high` = borne haute (plage numérique uniquement).
+  const seedLow = () => {
+    if (isDateRange && valueLow && valueHigh) return `${valueLow}${DATE_RANGE_SEP}${valueHigh}`;
+    return valueLow != null ? String(valueLow) : '';
+  };
+  const [low, setLow] = useState(seedLow);
+  const [high, setHigh] = useState(valueHigh != null ? String(valueHigh) : '');
+
+  // Thumb en cours de drag ('low' | 'high' | null)
   const [dragging, setDragging] = useState(null);
-
-  // Référence associée au rail coloré du range
   const railRef = useRef(null);
 
+  // Identifiants stables pour lier <label htmlFor> ↔ inputs
+  const uid = useId();
+  const lowId = `${uid}-low`;
+  const highId = `${uid}-high`;
 
-  // ── Utilitaires ───────────────────────────────────────────────
-  const pct = (v) => ((v - min) / (max - min)) * 100;
+  // ── Adaptateurs type ⇄ nombre (axe du slider) ───────────────────────────
+  const toNumber = (str) => {
+    if (str == null || str === '') return NaN;
+    if (isDate) { const d = parseDate(str.trim()); return d ? d.getTime() : NaN; }
+    return parseFloat(str);
+  };
+  const fromNumber = (n) => {
+    if (isDate) return formatDate(new Date(n));
+    if (valueType === 'integer') return String(Math.round(n));
+    // float : on neutralise les artefacts binaires (0.300000004) sans sur-arrondir
+    return String(parseFloat(n.toFixed(6)));
+  };
+
+  // ── Validité de TYPE (miroir de TypeAwareInput, pour décider la val. de valeur) ──
+  const typeValidNumber = (str) => {
+    if (str == null || str.trim?.() === '') return false;
+    if (valueType === 'integer') return Number.isInteger(Number(str));
+    return !Number.isNaN(parseFloat(str));
+  };
+  const dateRangeParts = (str) => {
+    const [a, b] = (str || '').split(DATE_RANGE_SEP);
+    const da = a ? parseDate(a.trim()) : null;
+    const db = b ? parseDate(b.trim()) : null;
+    return da && db ? [da.getTime(), db.getTime()] : null;
+  };
+
+  // ── Couple numérique courant (positions des thumbs) ─────────────────────
+  const currentPair = () => {
+    if (isDateRange) {
+      const parts = dateRangeParts(low);
+      return parts ? { lowN: parts[0], highN: parts[1] } : { lowN: NaN, highN: NaN };
+    }
+    return { lowN: toNumber(low), highN: rangeMode ? toNumber(high) : undefined };
+  };
+
+  // ── Utilitaires axe ─────────────────────────────────────────────────────
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const pct = (v) => clamp(((v - minN) / (maxN - minN)) * 100, 0, 100);
+  const snap = (raw) => clamp(Math.round(raw / stepN) * stepN, minN, maxN);
 
-  // Convertit un pourcentage rail → valeur snappée au step
-  const fromPct = (p) => {
-    const raw = min + (p / 100) * (max - min);
-    return Math.round(raw / step) * step;
+  // ── Émission vers le parent (chaînes) ───────────────────────────────────
+  const emitSingle = (str) => onChange?.({ value: str });
+  const emitNumericRange = (lo, hi) => onChange?.({ min: lo, max: hi });
+
+  // ── Écriture d'un couple depuis le slider ───────────────────────────────
+  const writePair = (aN, bN) => {
+    if (isDateRange) {
+      const s = `${fromNumber(aN)}${DATE_RANGE_SEP}${fromNumber(bN)}`;
+      setLow(s);
+      emitSingle(s);
+    } else {
+      const aStr = fromNumber(aN);
+      const bStr = fromNumber(bN);
+      setLow(aStr);
+      setHigh(bStr);
+      emitNumericRange(aStr, bStr);
+    }
   };
 
-
-  // ── Validation d'une valeur saisie ────────────────────────────
-  const validateInput = (val, isLo) => {
-    const n = parseFloat(val);
-    if (Number.isNaN(n)) return 'error';
-    if (n < min || n > max) return 'error';
-    if (isLo && rangeMode && n > hi) return 'error';
-    if (!isLo && rangeMode && n < lo) return 'error';
-    return 'success';
+  // Applique une valeur d'axe `v` au thumb `which` ('low' | 'high')
+  const applyThumb = (which, v) => {
+    if (!rangeMode) {
+      const nv = snap(v);
+      const str = fromNumber(nv);
+      setLow(str);
+      emitSingle(str);
+      return;
+    }
+    const { lowN, highN } = currentPair();
+    if (which === 'low') {
+      const nv = snap(Number.isFinite(highN) ? Math.min(v, highN) : v);
+      writePair(nv, Number.isFinite(highN) ? highN : nv);
+    } else {
+      const nv = snap(Number.isFinite(lowN) ? Math.max(v, lowN) : v);
+      writePair(Number.isFinite(lowN) ? lowN : nv, nv);
+    }
   };
 
-
-  // ── Helpers : mise à jour coordonnée valeur + texte du thumb lo ──
-  const applyLo = (nv) => {
-    setLo(nv);
-    setInputLo(String(nv));
-  };
-  const applyHi = (nv) => {
-    setHi(nv);
-    setInputHi(String(nv));
-  };
-
-
-  // ── Click sur le rail — déplace le thumb le plus proche ───────
+  // ── Click sur le rail — déplace le thumb le plus proche ─────────────────
   const handleRailPointer = (e) => {
     if (disabled || !railRef.current) return;
     e.preventDefault();
     const rect = railRef.current.getBoundingClientRect();
     const p = clamp(((e.clientX - rect.left) / rect.width) * 100, 0, 100);
-    const v = clamp(fromPct(p), min, max);
+    const v = snap(minN + (p / 100) * (maxN - minN));
 
-    if (!rangeMode) {
-      applyLo(v);
-      onChange?.({ value: v });
-      return;
-    }
-
-    const dLo = Math.abs(v - lo);
-    const dHi = Math.abs(v - hi);
-    if (dLo <= dHi) {
-      const nv = Math.min(v, hi);
-      applyLo(nv);
-      onChange?.({ min: nv, max: hi });
-    } else {
-      const nv = Math.max(v, lo);
-      applyHi(nv);
-      onChange?.({ min: lo, max: nv });
-    }
+    if (!rangeMode) { applyThumb('low', v); return; }
+    const { lowN, highN } = currentPair();
+    const dLow = Math.abs(v - lowN);
+    const dHigh = Math.abs(v - highN);
+    applyThumb(dLow <= dHigh ? 'low' : 'high', v);
   };
 
-
-  // ── Drag via Pointer Events sur window ────────────────────────
-  // fromPct est inliné ici pour éviter de l'ajouter aux dépendances (elle change
-  // à chaque render, ce qui déclencherait le cleanup/re-add inutilement).
+  // ── Drag via Pointer Events sur window ──────────────────────────────────
+  // (cf. ancienne implémentation : on évite d'ajouter `snap`/`applyThumb` aux deps,
+  //  qui changent à chaque render — la logique est ré-inlinée ici.)
   useEffect(() => {
-    if (!dragging || disabled) return;
-
+    if (!dragging || disabled) return undefined;
     const move = (e) => {
       if (!railRef.current) return;
       const rect = railRef.current.getBoundingClientRect();
       const p = clamp(((e.clientX - rect.left) / rect.width) * 100, 0, 100);
-      const raw = min + (p / 100) * (max - min);
-      const v = clamp(Math.round(raw / step) * step, min, max);
-
-      if (dragging === 'lo') {
-        const nv = rangeMode ? Math.min(v, hi) : v;
-        applyLo(nv);
-        onChange?.(rangeMode ? { min: nv, max: hi } : { value: nv });
-      } else {
-        const nv = Math.max(v, lo);
-        applyHi(nv);
-        onChange?.({ min: lo, max: nv });
-      }
+      const v = snap(minN + (p / 100) * (maxN - minN));
+      applyThumb(dragging, v);
     };
-
     const up = () => setDragging(null);
-
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
     return () => {
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
     };
-  }, [dragging, lo, hi, rangeMode, min, max, step, disabled, onChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dragging, low, high, rangeMode, minN, maxN, stepN, disabled, onChange]);
 
-
-  // ── Handlers des inputs numériques ───────────────────────────
-  // Mise à jour de la valeur inférieure (et singleton)
-  const handleInputLo = (e) => {
+  // ── Handlers de saisie clavier (via TypeAwareInput) ─────────────────────
+  const handleLowChange = (v) => {
     if (disabled) return;
-    const raw = e.target.value;
-    setInputLo(raw);
-    const s = validate ? validateInput(raw, true) : 'default';
-    setLoState(s);
-    if (s === 'success') {
-      const nv = clamp(parseFloat(raw), min, rangeMode ? hi : max);
-      setLo(nv);
-      onChange?.(rangeMode ? { min: nv, max: hi } : { value: nv });
-    }
+    setLow(v);
+    if (dualInputs) emitNumericRange(v, high);
+    else emitSingle(v);
+  };
+  const handleHighChange = (v) => {
+    if (disabled) return;
+    setHigh(v);
+    emitNumericRange(low, v);
   };
 
-  // Mise à jour de la valeur supérieure
-  const handleInputHi = (e) => {
-    if (disabled) return;
-    const raw = e.target.value;
-    setInputHi(raw);
-    const s = validate ? validateInput(raw, false) : 'default';
-    setHiState(s);
-    if (s === 'success') {
-      const nv = clamp(parseFloat(raw), lo, max);
-      setHi(nv);
-      onChange?.({ min: lo, max: nv });
+  // ── Validation de VALEUR → verdict transmis aux inputs (forcedState) ────
+  // Étiquette lisible des bornes pour les messages d'erreur.
+  const boundLabel = isDate
+    ? `${formatDate(new Date(minN))} – ${formatDate(new Date(maxN))}`
+    : `${minN} – ${maxN}`;
+
+  // Verdict du champ « low » (valeur unique, borne basse, ou plage de dates combinée).
+  const lowForced = () => {
+    if (!validate) return {};
+    if (isDateRange) {
+      const parts = dateRangeParts(low);
+      if (!parts) return {}; // type invalide → TypeAwareInput affiche son erreur
+      const [a, b] = parts;
+      if (a > b) return { forcedState: 'error', forcedMessage: 'Début après la fin' };
+      if (boundsKnown && (a < minN || b > maxN)) return { forcedState: 'error', forcedMessage: `Hors de ${boundLabel}` };
+      return { forcedState: 'success', forcedMessage: '' };
     }
+    if (isDate ? !parseDate((low ?? '').trim()) : !typeValidNumber(low)) return {};
+    const n = toNumber(low);
+    if (boundsKnown && (n < minN || n > maxN)) return { forcedState: 'error', forcedMessage: `Hors de ${boundLabel}` };
+    if (dualInputs && typeValidNumber(high) && n > toNumber(high)) {
+      return { forcedState: 'error', forcedMessage: 'Doit être ≤ max' };
+    }
+    return { forcedState: 'success', forcedMessage: '' };
   };
 
+  // Verdict du champ « high » (plage numérique uniquement).
+  const highForced = () => {
+    if (!validate || !dualInputs) return {};
+    if (!typeValidNumber(high)) return {};
+    const n = toNumber(high);
+    if (boundsKnown && (n < minN || n > maxN)) return { forcedState: 'error', forcedMessage: `Hors de ${boundLabel}` };
+    if (typeValidNumber(low) && n < toNumber(low)) return { forcedState: 'error', forcedMessage: 'Doit être ≥ min' };
+    return { forcedState: 'success', forcedMessage: '' };
+  };
 
-  // ── Calcul du fill ────────────────────────────────────────────
-  // Barre à remplir en mode singleton
-  const fillLeft = rangeMode ? pct(lo) : 0;
-  // Barre à remplir en mode range
-  const fillWidth = (rangeMode ? pct(hi) : pct(lo)) - fillLeft;
+  // ── Positions du fill et des thumbs ─────────────────────────────────────
+  const { lowN, highN } = currentPair();
+  const fillLeft = rangeMode ? (Number.isFinite(lowN) ? pct(lowN) : 0) : 0;
+  const fillRight = rangeMode
+    ? (Number.isFinite(highN) ? pct(highN) : 0)
+    : (Number.isFinite(lowN) ? pct(lowN) : 0);
+  const fillWidth = Math.max(0, fillRight - fillLeft);
 
-  // Classnames
-  const loClass = validate && loState !== 'default' ? ` range-slider__input--${loState}` : '';
-  const hiClass = validate && hiState !== 'default' ? ` range-slider__input--${hiState}` : '';
+  // Libellés des champs selon le mode
+  const lowLabel = isDateRange ? 'Plage' : rangeMode ? 'Min' : isDate ? 'Date' : 'Valeur';
 
   return (
-    <div className={`range-slider${disabled ? ' range-slider--disabled' : ''}${inputsOnTop ? ' range-slider--inputs-top' : ''}`}>
-      {showSlider && (
+    <div className={`constraint-field${disabled ? ' constraint-field--disabled' : ''}${inputsOnTop ? ' constraint-field--inputs-top' : ''}`}>
+      {renderTrack && (
         <div
-          className="range-slider__track"
+          className="constraint-field__track"
           ref={railRef}
-          onPointerDown={handleRailPointer}
-        >
-          <div className="range-slider__rail" />
+          onPointerDown={handleRailPointer}>
+          <div className="constraint-field__rail" />
           <div
-            className="range-slider__fill"
-            style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
-          />
+            className="constraint-field__fill"
+            style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }} />
           <div
-            className={`range-slider__thumb range-slider__thumb--lo${dragging === 'lo' ? ' range-slider__thumb--dragging' : ''}`}
-            style={{ left: `${pct(lo)}%` }}
+            className={`constraint-field__thumb constraint-field__thumb--low${dragging === 'low' ? ' constraint-field__thumb--dragging' : ''}`}
+            style={{ left: `${Number.isFinite(lowN) ? pct(lowN) : 0}%` }}
             role="slider"
-            aria-valuemin={min}
-            aria-valuemax={rangeMode ? hi : max}
-            aria-valuenow={lo}
+            aria-valuemin={minN}
+            aria-valuemax={rangeMode && Number.isFinite(highN) ? highN : maxN}
+            aria-valuenow={Number.isFinite(lowN) ? lowN : minN}
             aria-label={rangeMode ? 'Valeur minimale' : 'Valeur'}
-            onPointerDown={(e) => { e.stopPropagation(); setDragging('lo'); }}
-          />
+            onPointerDown={(e) => { e.stopPropagation(); setDragging('low'); }} />
           {rangeMode && (
             <div
-              className={`range-slider__thumb range-slider__thumb--hi${dragging === 'hi' ? ' range-slider__thumb--dragging' : ''}`}
-              style={{ left: `${pct(hi)}%` }}
+              className={`constraint-field__thumb constraint-field__thumb--high${dragging === 'high' ? ' constraint-field__thumb--dragging' : ''}`}
+              style={{ left: `${Number.isFinite(highN) ? pct(highN) : 100}%` }}
               role="slider"
-              aria-valuemin={lo}
-              aria-valuemax={max}
-              aria-valuenow={hi}
+              aria-valuemin={Number.isFinite(lowN) ? lowN : minN}
+              aria-valuemax={maxN}
+              aria-valuenow={Number.isFinite(highN) ? highN : maxN}
               aria-label="Valeur maximale"
-              onPointerDown={(e) => { e.stopPropagation(); setDragging('hi'); }}
-            />
+              onPointerDown={(e) => { e.stopPropagation(); setDragging('high'); }} />
           )}
         </div>
       )}
 
-      <div className="range-slider__inputs">
-        <div className="range-slider__input-group">
-          <span className="range-slider__input-label">{rangeMode ? 'Min' : 'Valeur'}</span>
-          <input
-            className={`range-slider__input${loClass}`}
-            type="number"
-            value={inputLo}
-            min={min}
-            max={rangeMode ? hi : max}
-            step={step}
-            onChange={handleInputLo}
-          />
+      <fieldset className="constraint-field__inputs">
+        <legend className="constraint-field__legend">{rangeMode ? 'Bornes' : 'Valeur'}</legend>
+        <div className="constraint-field__input-group">
+          <label className="constraint-field__input-label" htmlFor={lowId}>{lowLabel}</label>
+          <TypeAwareInput
+            id={lowId}
+            inputType={valueType}
+            dateMode={isDateRange ? 'range' : 'single'}
+            value={low}
+            validate={validate}
+            disabled={disabled}
+            onChange={handleLowChange}
+            {...lowForced()} />
         </div>
-        {rangeMode && (
+
+        {dualInputs && (
           <>
-            <span className="range-slider__sep">—</span>
-            <div className="range-slider__input-group">
-              <span className="range-slider__input-label">Max</span>
-              <input
-                className={`range-slider__input${hiClass}`}
-                type="number"
-                value={inputHi}
-                min={lo}
-                max={max}
-                step={step}
-                onChange={handleInputHi}
-              />
+            <span className="constraint-field__sep">—</span>
+            <div className="constraint-field__input-group">
+              <label className="constraint-field__input-label" htmlFor={highId}>Max</label>
+              <TypeAwareInput
+                id={highId}
+                inputType={valueType}
+                value={high}
+                validate={validate}
+                disabled={disabled}
+                onChange={handleHighChange}
+                {...highForced()} />
             </div>
           </>
         )}
-      </div>
+      </fieldset>
     </div>
   );
 };
 
-export default RangeSlider;
+export default ConstraintField;

@@ -1,16 +1,16 @@
-// ===== TOKENS DE COULEURS — RangeSlider =====
-// Couleurs propres au slider (rail, fill, thumb, labels).
-// Importées par RangeSlider.scss.
+// ===== TOKENS DE COULEURS — ConstraintField =====
+// Couleurs propres au champ de contrainte (rail, fill, thumb, labels).
+// Importées par ConstraintField.scss.
+// Les halos d'état des inputs sont gérés par TypeAwareInput (tokens partagés
+// --filter-success-shadow / --filter-error-shadow).
 
 :root {
   // ===== RAIL & FILL =====
-  --slider-rail-bg:         var(--color-gray-200);      // fond du rail inactif
-  --slider-fill-color:      var(--color-primary-500);   // fill actif
-  --slider-thumb-color:     var(--color-primary-500);   // cercle du thumb
-  --slider-thumb-ring-color: var(--color-primary-100);  // halo au survol/drag
-  --slider-label-color:     var(--color-text-tertiary); // labels Min/Max/Valeur
+  --constraint-rail-bg:          var(--color-gray-200);     // fond du rail inactif
+  --constraint-fill-color:       var(--color-primary-500);  // fill actif
+  --constraint-thumb-color:      var(--color-primary-500);  // cercle du thumb
+  --constraint-thumb-ring-color: var(--color-primary-100);  // halo au survol/drag
 
-  // ===== HALOS D'ÉTAT DES INPUTS (ring 3px) =====
-  --slider-success-shadow: var(--filter-success-shadow);
-  --slider-error-shadow:   var(--filter-error-shadow);
+  // ===== LABELS =====
+  --constraint-label-color:      var(--color-text-tertiary); // labels Min/Max/Valeur
 }

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden/VisuallyHidden';
 import { CalendarIcon, CheckIcon, InfoIcon } from '@/components/icons';
 import CalendarMonth from '../CalendarMonth/CalendarMonth';
+import { DATE_SINGLE_RE, DATE_RANGE_RE, formatDate, parseDate } from '../utils/dateParse';
 import './TypeAwareInput.scss';
 
 // ── Configurations de saisie par type ────────────────────────────
@@ -16,29 +17,8 @@ const TYPE_CONFIG = {
   date: { placeholder: 'JJ/MM/AAAA', inputMode: 'text', html: 'text', step: undefined },
 };
 
-// ── Formats de date attendus (saisie manuelle) ──
-const DATE_SINGLE_RE = /^\d{2}\/\d{2}\/\d{4}$/;
-const DATE_RANGE_RE = /^\d{2}\/\d{2}\/\d{4} → \d{2}\/\d{2}\/\d{4}$/;
 // Suffixe affiché après le choix de la première borne d'une plage
 const RANGE_PENDING = ' → …';
-
-// Formate une Date en chaîne JJ/MM/AAAA
-const formatDate = (date) => {
-  const d = String(date.getDate()).padStart(2, '0');
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  return `${d}/${m}/${date.getFullYear()}`;
-};
-
-// Analyse une chaîne JJ/MM/AAAA → Date valide, ou null si la date n'existe pas
-const parseDate = (str) => {
-  const parts = str.trim().split('/');
-  if (parts.length !== 3 || parts.some((x) => !x || Number.isNaN(Number(x)))) return null;
-  const [d, m, y] = parts.map(Number);
-  const date = new Date(y, m - 1, d);
-  // Re-vérifie les composantes pour rejeter les débordements (ex: 31/02)
-  const valid = date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
-  return valid ? date : null;
-};
 
 /**
  * Type-adaptive input: text, integer, float or date (single/range).
@@ -48,6 +28,11 @@ const parseDate = (str) => {
  * range mode builds a `"A → B"` string across two synchronised months. Real-time
  * validation (optional) reflects success/error inline.
  *
+ * Validation scope: this component validates the TYPE of a single value only.
+ * A parent that owns a higher-level VALUE verdict (bounds, ordering…) can override
+ * the displayed state via `forcedState`/`forcedMessage`; the override wins over the
+ * internal type verdict (the parent is expected to set it only once the type is valid).
+ *
  * @param {"text"|"integer"|"float"|"date"} [inputType] - Expected value type.
  * @param {"single"|"range"} [dateMode] - Date selection mode (date type only).
  * @param {boolean}  [validate] - Enable real-time validation feedback.
@@ -55,6 +40,10 @@ const parseDate = (str) => {
  * @param {string}   value      - Controlled value.
  * @param {Function} onChange   - (value: string) => void.
  * @param {boolean}  [disabled]
+ * @param {string}   [id]       - Input id, for an external <label htmlFor>.
+ * @param {"success"|"error"} [forcedState] - External VALUE verdict overriding the
+ *   internal type state for the border/message display.
+ * @param {string}   [forcedMessage] - Message shown alongside `forcedState`.
  * @returns {JSX.Element}
  */
 const TypeAwareInput = ({
@@ -65,6 +54,9 @@ const TypeAwareInput = ({
   value = '',
   onChange,
   disabled = false,
+  id,
+  forcedState,
+  forcedMessage,
 }) => {
   // Extraction de la configuration associé au type demandé
   const cfg = TYPE_CONFIG[inputType] || TYPE_CONFIG.text;
@@ -226,13 +218,19 @@ const TypeAwareInput = ({
     ? parseDate(value)
     : null;
 
-  // Classe d'état appliquée au cadre du champ (uniquement si validation active)
-  const stateClass = validate && state !== 'default' ? `type-input--${state}` : '';
+  // État effectif affiché : un verdict de VALEUR externe (forcedState) prime sur
+  // l'état de TYPE interne. Sinon, l'état interne n'est montré que si validate est actif.
+  const effectiveState = forcedState ?? (validate ? state : 'default');
+  const effectiveMessage = forcedState ? (forcedMessage ?? '') : (validate ? message : '');
+
+  // Classe d'état appliquée au cadre du champ (uniquement hors état neutre)
+  const stateClass = effectiveState !== 'default' ? `type-input--${effectiveState}` : '';
 
   return (
     <div className="type-input-wrap" ref={wrapRef}>
       <span className={`type-input ${stateClass} ${disabled ? 'type-input--disabled' : ''}`}>
         <input
+          id={id}
           className="type-input__field"
           type={isNumber ? 'number' : 'text'}
           inputMode={cfg.inputMode}
@@ -257,10 +255,10 @@ const TypeAwareInput = ({
         )}
       </span>
 
-      {validate && message && (
-        <span className={`type-input__message type-input__message--${state}`}>
-          {state === 'success' ? <CheckIcon strokeWidth={2.5} /> : <InfoIcon />}
-          {message}
+      {effectiveMessage && (
+        <span className={`type-input__message type-input__message--${effectiveState}`}>
+          {effectiveState === 'success' ? <CheckIcon strokeWidth={2.5} /> : <InfoIcon />}
+          {effectiveMessage}
         </span>
       )}
 

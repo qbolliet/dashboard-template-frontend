@@ -28,8 +28,8 @@ import ValueField from './ValueField';
  * @param {boolean} [lockedVariable] - Disables the variable select.
  * @param {boolean} [lockedOperation] - Disables the operation select.
  * @param {boolean} [showOperation] - Renders the operation row.
- * @param {boolean} [showSlider] - Continuous type only: render the value as a RangeSlider
- *   (numeric inputs on top, track below) instead of bare numeric inputs.
+ * @param {boolean} [showSlider] - Continuous type only: render the value as a ConstraintField
+ *   slider (numeric inputs on top, track below) instead of bare numeric inputs.
  * @returns {JSX.Element}
  */
 const CriterionMenu = ({
@@ -53,7 +53,7 @@ const CriterionMenu = ({
   const type = varMeta?.type ?? null;
   const ops = type ? (operationsByType[type] ?? []) : [];
 
-  // Bornes du RangeSlider (type continu) — issues de la variable, défaut 0..100 step 1
+  // Bornes du ConstraintField (type continu) — issues de la variable, défaut 0..100 step 1
   const sliderMin = varMeta?.min ?? 0;
   const sliderMax = varMeta?.max ?? 100;
   const sliderStep = varMeta?.step ?? 1;
