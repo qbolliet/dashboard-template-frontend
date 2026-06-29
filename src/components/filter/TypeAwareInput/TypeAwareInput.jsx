@@ -3,6 +3,7 @@
 // Importation des modules
 import { useEffect, useRef, useState } from 'react';
 import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden/VisuallyHidden';
+import { CalendarIcon, CheckIcon, InfoIcon } from '@/components/icons';
 import CalendarMonth from '../CalendarMonth/CalendarMonth';
 import './TypeAwareInput.scss';
 
@@ -38,31 +39,6 @@ const parseDate = (str) => {
   const valid = date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d;
   return valid ? date : null;
 };
-
-// ── Icônes SVG inline (taille pilotée par le CSS) ──
-// Calendrier — déclencheur du popover de dates
-const CalendarIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <rect x="3" y="4" width="18" height="18" rx="2" />
-    <path d="M16 2v4M8 2v4M3 10h18" />
-  </svg>
-);
-
-// ✓ — message de succès
-const SuccessIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-    <path d="M20 6 9 17l-5-5" />
-  </svg>
-);
-
-// ⓘ — message d'erreur
-const ErrorIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 8v4M12 16h.01" />
-  </svg>
-);
 
 /**
  * Type-adaptive input: text, integer, float or date (single/range).
@@ -283,7 +259,7 @@ const TypeAwareInput = ({
 
       {validate && message && (
         <span className={`type-input__message type-input__message--${state}`}>
-          {state === 'success' ? <SuccessIcon /> : <ErrorIcon />}
+          {state === 'success' ? <CheckIcon strokeWidth={2.5} /> : <InfoIcon />}
           {message}
         </span>
       )}

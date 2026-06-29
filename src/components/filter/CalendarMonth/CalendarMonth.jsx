@@ -1,5 +1,7 @@
 'use client';
 
+import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden/VisuallyHidden';
+import { ChevronIcon } from '@/components/icons';
 import './CalendarMonth.scss';
 
 // ── Libellés français ────────────────────────────────────────────
@@ -10,23 +12,6 @@ const MONTHS_FR = [
 ];
 // Jours : index 0 = Dimanche (aligné sur Date.getDay()).
 const DAYS_FR = ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'];
-
-// ── Icônes SVG inline (taille pilotée par le CSS) ──
-// Chevron gauche — navigation vers le mois précédent
-const ChevronLeftIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="m15 6-6 6 6 6" />
-  </svg>
-);
-
-// Chevron droit — navigation vers le mois suivant
-const ChevronRightIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="m9 6 6 6-6 6" />
-  </svg>
-);
 
 /**
  * Builds the visible weeks of a month (Sunday in column 0).
@@ -182,8 +167,9 @@ const CalendarMonth = ({
     <div className="calendar">
       <header className="calendar__header">
         {navLeft ? (
-          <button type="button" className="calendar__nav" onClick={goPrev} aria-label="Mois précédent">
-            <ChevronLeftIcon />
+          <button type="button" className="calendar__nav" onClick={goPrev}>
+            <ChevronIcon direction="left" />
+            <VisuallyHidden>Mois précédent</VisuallyHidden>
           </button>
         ) : (
           <span className="calendar__nav-spacer" aria-hidden="true" />
@@ -207,8 +193,9 @@ const CalendarMonth = ({
         </span>
 
         {navRight ? (
-          <button type="button" className="calendar__nav" onClick={goNext} aria-label="Mois suivant">
-            <ChevronRightIcon />
+          <button type="button" className="calendar__nav" onClick={goNext}>
+            <ChevronIcon direction="right" />
+            <VisuallyHidden>Mois suivant</VisuallyHidden>
           </button>
         ) : (
           <span className="calendar__nav-spacer" aria-hidden="true" />

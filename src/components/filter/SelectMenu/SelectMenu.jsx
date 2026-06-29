@@ -3,33 +3,9 @@
 // Importation des modules
 import { useEffect, useRef, useState } from 'react';
 import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden/VisuallyHidden';
+import { CheckIcon, CrossIcon, ChevronIcon } from '@/components/icons';
 import { useSelectOptions } from './useSelectOptions';
 import './SelectMenu.scss';
-
-// ── Icônes SVG inline (taille pilotée par le CSS du conteneur) ──
-// ✓ — coche, réutilisée pour la case multi et l'option single sélectionnée
-const CheckIcon = (props) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
-    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
-    <path d="M20 6 9 17l-5-5" />
-  </svg>
-);
-
-// ✕ — croix de suppression d'un tag
-const CrossIcon = (props) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
-    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
-    <path d="M18 6 6 18M6 6l12 12" />
-  </svg>
-);
-
-// Chevron — orienté vers le haut (ouvert) ou le bas (fermé)
-const ChevronIcon = ({ open }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    {open ? <path d="m18 15-6-6-6 6" /> : <path d="m6 9 6 6 6-6" />}
-  </svg>
-);
 
 /**
  * Menu déroulant de sélection (simple ou multiple) avec support de recherche
@@ -376,7 +352,7 @@ const SelectMenu = ({
 
       {/* Bouton chevron — non atteignable au Tab (le champ porte déjà le focus) */}
       <button type="button" className="select-toggle" onClick={openAndFocus} tabIndex={-1}>
-        <ChevronIcon open={open} />
+        <ChevronIcon direction={open ? 'up' : 'down'} />
         <VisuallyHidden>{open ? 'Fermer' : 'Ouvrir'} la liste</VisuallyHidden>
       </button>
 
