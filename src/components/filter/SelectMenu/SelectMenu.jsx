@@ -1,5 +1,6 @@
 'use client';
 
+// Importation des modules
 import { useEffect, useRef, useState } from 'react';
 import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden/VisuallyHidden';
 import { useSelectOptions } from './useSelectOptions';
@@ -84,12 +85,12 @@ const SelectMenu = ({
         ? options.filter((o) => o.label.toLowerCase().includes(filter.toLowerCase()))
         : options)
     : null;
-
+    
+  // Initialisation des options et des groupes affichés
   const displayOptions = filteredStatic ?? hookOptions;
   const displayGroups  = options ? [] : hookGroups;
 
   // Ensemble des valeurs sélectionnées — accès O(1) lors du rendu des options.
-  // (Pas de useMemo : le React Compiler s'en charge — cf. next.config.ts.)
   const selectedSet = new Set(value.map((v) => v.value));
 
   // Liste à plat de toutes les options visibles (utile au « tout sélectionner »)
@@ -118,8 +119,8 @@ const SelectMenu = ({
   // ── Mutations de sélection ──────────────────────────────────────
   // Toutes émettent un nouveau tableau [{value, label}] via onChange.
 
-  // Bascule d'une option : remplace la sélection en single, l'ajoute/retire en multi.
-  // (Pas de useCallback : le React Compiler s'en charge — cf. next.config.ts.)
+  // Bascule d'une option : remplace la sélection en mode single-option, 
+  // l'ajoute/retire en mode multi-select.
   const toggle = (opt) => {
     if (disabled) return;
     const isSelected = selectedSet.has(opt.value);
@@ -176,9 +177,7 @@ const SelectMenu = ({
   }, []);
 
   // Navigation clavier — gérée via onKeyDown sur le conteneur (le focus est dans
-  // l'input de filtre quand le dropdown est ouvert), plutôt qu'un listener global.
-  // Évite un useEffect dépendant des handlers de mutation (inutile sous le React
-  // Compiler) et confine la capture clavier au composant.
+  // l'input de filtre quand le dropdown est ouvert).
   const handleKeyDown = (e) => {
     if (!open) return;
 
@@ -381,7 +380,7 @@ const SelectMenu = ({
         <VisuallyHidden>{open ? 'Fermer' : 'Ouvrir'} la liste</VisuallyHidden>
       </button>
 
-      {/* Dropdown : liste ARIA des options (jamais un <select> natif) */}
+      {/* Dropdown : liste ARIA des options */}
       {open && (
         <ul id={listboxId} className="select-dropdown" role="listbox" aria-multiselectable={allowMulti || undefined}>
           {navRows.map((row, i) => renderRow(row, i))}

@@ -45,10 +45,12 @@ function buildWeeks(year, month) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const daysInPrev = new Date(year, month, 0).getDate();
 
+  // Initialisation de al liste des semaines
   const weeks = [];
   let day = 1;
   let nextDay = 1;
 
+  // Parcours des jours
   for (let row = 0; row < 6; row += 1) {
     const week = [];
     for (let col = 0; col < 7; col += 1) {
@@ -109,8 +111,9 @@ const CalendarMonth = ({
   navLeft = true,
   navRight = true,
 }) => {
-  // Le React Compiler (cf. next.config.ts) mémoïse ces dérivations : pas de useMemo.
+  // Initialisation de la date du jour
   const today = new Date();
+  // Initialisation des semaines d'intérêt
   const weeks = buildWeeks(year, month);
 
   // Plage d'années du sélecteur : année courante −5 à +14 (20 ans)

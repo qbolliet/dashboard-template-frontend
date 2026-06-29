@@ -1,5 +1,6 @@
 'use client';
 
+// Importation des modules
 import { useState } from 'react';
 import './Tooltip.scss';
 

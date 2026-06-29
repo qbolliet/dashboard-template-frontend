@@ -1,5 +1,6 @@
 'use client';
 
+// Importation des modules
 import { useEffect, useRef, useState } from 'react';
 import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden/VisuallyHidden';
 import CalendarMonth from '../CalendarMonth/CalendarMonth';
@@ -89,7 +90,9 @@ const TypeAwareInput = ({
   onChange,
   disabled = false,
 }) => {
+  // Extraction de la configuration associé au type demandé
   const cfg = TYPE_CONFIG[inputType] || TYPE_CONFIG.text;
+  // Extraction du type de l'entrée
   const isDate = inputType === 'date';
   const isNumber = inputType === 'integer' || inputType === 'float';
 
@@ -116,7 +119,6 @@ const TypeAwareInput = ({
 
   // ── Validation ──────────────────────────────────────────────────
   // Met à jour state/message à partir d'une valeur. Vide ⇒ état neutre.
-  // (Pas de useCallback : le React Compiler s'en charge — cf. next.config.ts.)
   const validateValue = (val) => {
     if (!validate || !val) { setState('default'); setMessage(''); return; }
 
