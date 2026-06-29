@@ -85,6 +85,12 @@
     box-shadow: 0 0 0 var(--constraint-thumb-ring-size) hsl(var(--constraint-thumb-ring-color));
   }
 
+  // Anneau de focus clavier (thumbs opérables au clavier)
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 var(--constraint-thumb-ring-size) hsl(var(--constraint-thumb-ring-color));
+  }
+
   &--dragging { cursor: grabbing; }
 }
 

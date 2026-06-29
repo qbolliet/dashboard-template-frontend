@@ -207,6 +207,10 @@ const SelectMenu = ({
 
   // Identifiant du listbox, exposé via aria-controls sur le combobox
   const listboxId = `select-${fieldName || 'options'}-listbox`;
+  // Id stable d'une ligne navigable, ciblé par aria-activedescendant
+  const rowId = (i) => `${listboxId}-row-${i}`;
+  // Ligne actuellement surlignée (pour aria-activedescendant de l'input)
+  const activeDescendant = open && highlighted >= 0 ? rowId(highlighted) : undefined;
 
   // État de validité : succès dès qu'une valeur est sélectionnée
   const isSingleSelected = !allowMulti && value.length === 1;
@@ -232,7 +236,7 @@ const SelectMenu = ({
         someChecked && 'select-check--indeterminate',
       ].filter(Boolean).join(' ');
       return (
-        <li key="__all" role="option" aria-selected={allChecked}
+        <li key="__all" id={rowId(i)} role="option" aria-selected={allChecked}
           className={`select-option select-option--all ${isHL ? 'select-option--highlighted' : ''}`}
           onMouseEnter={() => setHighlighted(i)}
           onClick={toggleAll}>
@@ -249,7 +253,7 @@ const SelectMenu = ({
       // Single : simple titre non interactif
       if (!allowMulti) {
         return (
-          <li key={`g-${row.group.value}`} role="presentation" className="select-group">
+          <li key={`g-${row.group.value}`} id={rowId(i)} role="presentation" className="select-group">
             <span className="select-group-label">{row.group.label}</span>
           </li>
         );
@@ -263,7 +267,7 @@ const SelectMenu = ({
         someIn && 'select-check--indeterminate',
       ].filter(Boolean).join(' ');
       return (
-        <li key={`g-${row.group.value}`} role="presentation"
+        <li key={`g-${row.group.value}`} id={rowId(i)} role="presentation"
           className={`select-group select-group--interactive ${isHL ? 'select-group--highlighted' : ''}`}
           onMouseEnter={() => setHighlighted(i)}
           onClick={() => toggleGroup(row.options)}>
@@ -285,7 +289,7 @@ const SelectMenu = ({
       isHL && 'select-option--highlighted',
     ].filter(Boolean).join(' ');
     return (
-      <li key={opt.value} role="option" aria-selected={isSelected}
+      <li key={opt.value} id={rowId(i)} role="option" aria-selected={isSelected}
         className={optionClass}
         onMouseEnter={() => setHighlighted(i)}
         onClick={() => toggle(opt)}>
@@ -305,12 +309,7 @@ const SelectMenu = ({
     <div
       ref={containerRef}
       className={containerClass}
-      role="combobox"
-      onKeyDown={handleKeyDown}
-      aria-expanded={open}
-      aria-haspopup="listbox"
-      aria-controls={listboxId}
-      aria-disabled={disabled || undefined}>
+      onKeyDown={handleKeyDown}>
 
       {/* Zone champ : tags (multi) ou valeur unique (single) + input de filtre */}
       <div
@@ -346,6 +345,12 @@ const SelectMenu = ({
           disabled={disabled}
           onChange={(e) => { setFilter(e.target.value); setOpen(true); setHighlighted(-1); }}
           onFocus={() => setOpen(true)}
+          role="combobox"
+          aria-expanded={open}
+          aria-haspopup="listbox"
+          aria-controls={listboxId}
+          aria-autocomplete="list"
+          aria-activedescendant={activeDescendant}
           aria-label={fieldName ? `Filtrer ${fieldName}` : 'Filtrer les options'}
         />
       </div>

@@ -1,8 +1,10 @@
 'use client';
 
 // Importation des modules
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden/VisuallyHidden';
+import useFocusTrap from '@/features/accessibility/hooks/useFocusTrap';
+import { ariaAnnouncer } from '@/features/accessibility/services/AriaAnnouncer';
 import { CalendarIcon, CheckIcon, InfoIcon } from '@/components/icons';
 import CalendarMonth from '../CalendarMonth/CalendarMonth';
 import { DATE_SINGLE_RE, DATE_RANGE_RE, formatDate, parseDate } from '../utils/dateParse';
@@ -84,6 +86,12 @@ const TypeAwareInput = ({
   const [hoverDate, setHoverDate] = useState(null);
 
   const wrapRef = useRef(null);
+
+  // Identifiant stable du popover (lié au bouton via aria-controls)
+  const popoverId = useId();
+  // Piège + retour de focus : le focus entre dans le calendrier à l'ouverture et
+  // revient au bouton déclencheur à la fermeture.
+  const popoverRef = useFocusTrap({ active: calOpen, returnFocus: true, autoFocus: true });
 
   // ── Validation ──────────────────────────────────────────────────
   // Met à jour state/message à partir d'une valeur. Vide ⇒ état neutre.
@@ -223,6 +231,15 @@ const TypeAwareInput = ({
   const effectiveState = forcedState ?? (validate ? state : 'default');
   const effectiveMessage = forcedState ? (forcedMessage ?? '') : (validate ? message : '');
 
+  // ── Annonce des verdicts aux lecteurs d'écran ───────────────────
+  // L'affichage inline reste inchangé ; on double le message d'une annonce live
+  // (assertive pour une erreur, polite pour un succès). Singleton importé ⇒ pas
+  // de dépendance instable dans l'effet.
+  useEffect(() => {
+    if (!effectiveMessage) return;
+    ariaAnnouncer.announce(effectiveMessage, effectiveState === 'error' ? 'assertive' : 'polite');
+  }, [effectiveState, effectiveMessage]);
+
   // Classe d'état appliquée au cadre du champ (uniquement hors état neutre)
   const stateClass = effectiveState !== 'default' ? `type-input--${effectiveState}` : '';
 
@@ -248,7 +265,9 @@ const TypeAwareInput = ({
             className="type-input__cal-btn"
             onClick={() => setCalOpen((o) => !o)}
             disabled={disabled}
-            tabIndex={-1}>
+            aria-haspopup="dialog"
+            aria-expanded={calOpen}
+            aria-controls={popoverId}>
             <CalendarIcon />
             <VisuallyHidden>Ouvrir le calendrier</VisuallyHidden>
           </button>
@@ -263,7 +282,13 @@ const TypeAwareInput = ({
       )}
 
       {isDate && calOpen && (
-        <div className={`calendar-popover ${dateMode === 'range' ? 'calendar-popover--range' : ''}`}>
+        <div
+          ref={popoverRef}
+          id={popoverId}
+          role="dialog"
+          aria-label="Calendrier"
+          className={`calendar-popover ${dateMode === 'range' ? 'calendar-popover--range' : ''}`}
+          onKeyDown={(e) => { if (e.key === 'Escape') setCalOpen(false); }}>
           <CalendarMonth
             year={calYear}
             month={calMonth}

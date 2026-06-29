@@ -116,6 +116,14 @@
 // ── Cellule jour ─────────────────────────────────────────────────
 // Carré arrondi cliquable centré ; l'arrondi varie selon l'appartenance à une plage.
 .calendar__day {
+  // Reset du style natif <button> (les jours cliquables sont des boutons pour
+  // l'accessibilité clavier) afin de préserver le rendu d'origine.
+  appearance: none;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -126,6 +134,12 @@
   border-radius: var(--calendar-day-radius);
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast);
+
+  // Anneau de focus clavier (roving tabindex)
+  &:focus-visible {
+    outline: 2px solid hsl(var(--filter-border-focus));
+    outline-offset: 1px;
+  }
 
   // Survol d'un jour ordinaire (ni sélectionné, ni borne de plage)
   &:hover:not(.calendar__day--other):not(.calendar__day--selected):not(.calendar__day--range-start):not(.calendar__day--range-end) {

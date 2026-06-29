@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden/VisuallyHidden';
 import { ChevronIcon } from '@/components/icons';
 import './CalendarMonth.scss';
@@ -105,6 +106,33 @@ const CalendarMonth = ({
   // Initialisation des semaines d'intérêt
   const weeks = buildWeeks(year, month);
 
+  // ── Roving tabindex : un seul jour focusable à la fois ─────────────
+  // Nombre de jours du mois affiché (borne le jour focalisable).
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  // Jour portant tabIndex=0. Init : sélection / borne de plage / aujourd'hui si
+  // présents dans le mois affiché, sinon le 1er.
+  const initialFocusDay = () => {
+    const inMonth = (d) => d && d.getFullYear() === year && d.getMonth() === month;
+    if (inMonth(selected)) return selected.getDate();
+    if (inMonth(rangeStart)) return rangeStart.getDate();
+    if (inMonth(today)) return today.getDate();
+    return 1;
+  };
+  const [focusedDay, setFocusedDay] = useState(initialFocusDay);
+  // Le jour focusable est borné au mois courant (le parent peut changer de mois).
+  const tabbableDay = Math.min(Math.max(focusedDay, 1), daysInMonth);
+
+  // Réf de la grille + drapeau « déplacer réellement le focus » : posé par la
+  // navigation clavier uniquement, pour ne pas voler le focus aux rendus normaux.
+  const gridRef = useRef(null);
+  const shouldFocusRef = useRef(false);
+  useEffect(() => {
+    // Focus impératif du jour focusable seulement après une action clavier.
+    if (!shouldFocusRef.current) return;
+    shouldFocusRef.current = false;
+    gridRef.current?.querySelector('button.calendar__day[tabindex="0"]')?.focus();
+  });
+
   // Plage d'années du sélecteur : paramétrable via minYear/maxYear.
   // Défauts : année courante −30 à +5 (la plage n'a pas à couvrir l'année courante).
   const minY = minYear ?? today.getFullYear() - 30;
@@ -170,6 +198,46 @@ const CalendarMonth = ({
     else onMonthChange(month + 1);
   };
 
+  // Bascule vers le jour `day` du mois courant et demande le focus impératif.
+  const focusDay = (day) => { setFocusedDay(day); shouldFocusRef.current = true; };
+
+  // Applique un jour cible : si `target` déborde du mois, on bascule de mois et
+  // on recale le jour relatif ; sinon on reste dans le mois courant.
+  const navigate = (target, daysInPrev) => {
+    if (target < 1) { goPrev(); focusDay(daysInPrev + target); }
+    else if (target > daysInMonth) { goNext(); focusDay(target - daysInMonth); }
+    else focusDay(target);
+  };
+
+  // ── Navigation clavier dans la grille (pattern grille WAI-ARIA) ─────
+  // Flèches = ±1 jour / ±1 semaine ; Home/End = début/fin de semaine ;
+  // PageUp/PageDown = mois précédent/suivant ; Enter/Espace = sélection.
+  // Le franchissement d'une borne de mois recale le mois via onMonthChange.
+  const handleGridKeyDown = (e) => {
+    const daysInPrev = new Date(year, month, 0).getDate();
+    const daysInNext = new Date(year, month + 2, 0).getDate();
+    const weekday = new Date(year, month, tabbableDay).getDay();
+
+    switch (e.key) {
+      case 'ArrowLeft': e.preventDefault(); navigate(tabbableDay - 1, daysInPrev); break;
+      case 'ArrowRight': e.preventDefault(); navigate(tabbableDay + 1, daysInPrev); break;
+      case 'ArrowUp': e.preventDefault(); navigate(tabbableDay - 7, daysInPrev); break;
+      case 'ArrowDown': e.preventDefault(); navigate(tabbableDay + 7, daysInPrev); break;
+      // Début/fin de semaine, bornés au mois affiché
+      case 'Home': e.preventDefault(); focusDay(Math.max(1, tabbableDay - weekday)); break;
+      case 'End': e.preventDefault(); focusDay(Math.min(daysInMonth, tabbableDay + (6 - weekday))); break;
+      // Mois précédent/suivant en conservant le jour (clampé sur la longueur du mois)
+      case 'PageUp': e.preventDefault(); goPrev(); focusDay(Math.min(tabbableDay, daysInPrev)); break;
+      case 'PageDown': e.preventDefault(); goNext(); focusDay(Math.min(tabbableDay, daysInNext)); break;
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        onSelect(new Date(year, month, tabbableDay));
+        break;
+      default:
+    }
+  };
+
   return (
     <div className="calendar">
       <header className="calendar__header">
@@ -210,7 +278,7 @@ const CalendarMonth = ({
         )}
       </header>
 
-      <table className="calendar__grid">
+      <table className="calendar__grid" role="grid" onKeyDown={handleGridKeyDown} ref={gridRef}>
         <thead>
           <tr>
             {DAYS_FR.map((label) => <th key={label} scope="col" className="calendar__weekday">{label}</th>)}
@@ -220,15 +288,36 @@ const CalendarMonth = ({
           {weeks.map((week, ri) => (
             <tr key={ri}>
               {week.map((cell, ci) => {
+                // Jours « autres mois » : visuels mais inertes (hors arbre a11y)
+                if (cell.other) {
+                  return (
+                    <td key={ci} className="calendar__cell">
+                      <span className={dayClass(cell)} aria-hidden="true">{cell.d}</span>
+                    </td>
+                  );
+                }
                 const date = cellDate(cell);
+                const cls = dayClass(cell);
+                // État ARIA dérivé des classes (évite de recalculer la logique de plage)
+                const isSelected = /--selected|--range-start|--range-end/.test(cls);
+                const isToday = /--today/.test(cls);
                 return (
                   <td key={ci} className="calendar__cell">
-                    <span
-                      className={dayClass(cell)}
-                      onClick={() => !cell.other && onSelect(date)}
-                      onMouseEnter={() => !cell.other && onHover?.(date)}>
+                    <button
+                      type="button"
+                      className={cls}
+                      // Date complète lisible pour les lecteurs d'écran
+                      aria-label={`${cell.d} ${MONTHS_FR[month]} ${year}`}
+                      // Bouton bascule : « pressé » = jour sélectionné / borne de plage
+                      // (aria-pressed est valable sur un button, contrairement à aria-selected)
+                      aria-pressed={isSelected}
+                      aria-current={isToday ? 'date' : undefined}
+                      // Roving tabindex : un seul jour atteignable au Tab
+                      tabIndex={cell.d === tabbableDay ? 0 : -1}
+                      onClick={() => { setFocusedDay(cell.d); onSelect(date); }}
+                      onMouseEnter={() => onHover?.(date)}>
                       {cell.d}
-                    </span>
+                    </button>
                   </td>
                 );
               })}

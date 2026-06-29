@@ -49,25 +49,25 @@ const FilterPrimitivesShowcase = () => {
       <ShowcaseSection title="Tooltip">
         <ShowcaseCell label="Top">
           <Tooltip content="Texte d'info" position="top">
-            <span className={styles.tooltipDemo}>Survoler</span>
+            <span className={styles.tooltipDemo} tabIndex={0}>Survoler</span>
           </Tooltip>
         </ShowcaseCell>
 
         <ShowcaseCell label="Bottom">
           <Tooltip content="Texte d'info" position="bottom">
-            <span className={styles.tooltipDemo}>Survoler</span>
+            <span className={styles.tooltipDemo} tabIndex={0}>Survoler</span>
           </Tooltip>
         </ShowcaseCell>
 
         <ShowcaseCell label="Left">
           <Tooltip content="Texte d'info" position="left">
-            <span className={styles.tooltipDemo}>Survoler</span>
+            <span className={styles.tooltipDemo} tabIndex={0}>Survoler</span>
           </Tooltip>
         </ShowcaseCell>
 
         <ShowcaseCell label="Right">
           <Tooltip content="Texte d'info" position="right">
-            <span className={styles.tooltipDemo}>Survoler</span>
+            <span className={styles.tooltipDemo} tabIndex={0}>Survoler</span>
           </Tooltip>
         </ShowcaseCell>
       </ShowcaseSection>

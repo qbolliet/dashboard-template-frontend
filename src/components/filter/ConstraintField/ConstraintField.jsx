@@ -190,6 +190,30 @@ const ConstraintField = ({
     }
   };
 
+  // ── Opération clavier d'un thumb (flèches / Home / End / PageUp-Down) ───
+  // Lit la valeur courante du thumb, calcule la cible et délègue à `applyThumb`
+  // (qui snappe, clampe low≤high et émet vers le parent).
+  const handleThumbKey = (which, e) => {
+    if (disabled) return;
+    const { lowN, highN } = currentPair();
+    const curr = which === 'low' ? lowN : highN;
+    const base = Number.isFinite(curr) ? curr : (which === 'low' ? minN : maxN);
+    const big = stepN * 10; // pas large pour PageUp/PageDown
+
+    let next;
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowUp': next = base + stepN; break;
+      case 'ArrowLeft': case 'ArrowDown': next = base - stepN; break;
+      case 'PageUp': next = base + big; break;
+      case 'PageDown': next = base - big; break;
+      case 'Home': next = minN; break;
+      case 'End': next = maxN; break;
+      default: return;
+    }
+    e.preventDefault();
+    applyThumb(which, next);
+  };
+
   // ── Click sur le rail — déplace le thumb le plus proche ─────────────────
   const handleRailPointer = (e) => {
     if (disabled || !railRef.current) return;
@@ -302,20 +326,26 @@ const ConstraintField = ({
             className={`constraint-field__thumb constraint-field__thumb--low${dragging === 'low' ? ' constraint-field__thumb--dragging' : ''}`}
             style={{ left: `${Number.isFinite(lowN) ? pct(lowN) : 0}%` }}
             role="slider"
+            tabIndex={disabled ? -1 : 0}
             aria-valuemin={minN}
             aria-valuemax={rangeMode && Number.isFinite(highN) ? highN : maxN}
             aria-valuenow={Number.isFinite(lowN) ? lowN : minN}
+            aria-valuetext={fromNumber(Number.isFinite(lowN) ? lowN : minN)}
             aria-label={rangeMode ? 'Valeur minimale' : 'Valeur'}
+            onKeyDown={(e) => handleThumbKey('low', e)}
             onPointerDown={(e) => { e.stopPropagation(); setDragging('low'); }} />
           {rangeMode && (
             <div
               className={`constraint-field__thumb constraint-field__thumb--high${dragging === 'high' ? ' constraint-field__thumb--dragging' : ''}`}
               style={{ left: `${Number.isFinite(highN) ? pct(highN) : 100}%` }}
               role="slider"
+              tabIndex={disabled ? -1 : 0}
               aria-valuemin={Number.isFinite(lowN) ? lowN : minN}
               aria-valuemax={maxN}
               aria-valuenow={Number.isFinite(highN) ? highN : maxN}
+              aria-valuetext={fromNumber(Number.isFinite(highN) ? highN : maxN)}
               aria-label="Valeur maximale"
+              onKeyDown={(e) => handleThumbKey('high', e)}
               onPointerDown={(e) => { e.stopPropagation(); setDragging('high'); }} />
           )}
         </div>
