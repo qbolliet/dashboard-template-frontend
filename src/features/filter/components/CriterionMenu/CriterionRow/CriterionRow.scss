@@ -1,0 +1,55 @@
+// =================================================================
+// CRITERION ROW — une ligne (libellé optionnel + champ)
+// =================================================================
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
+
+// ── Ligne ────────────────────────────────────────────────────────
+.criterion-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--criterion-gap);
+  padding: var(--criterion-padding);
+  overflow: visible;
+  border-bottom: 1px solid hsl(var(--criterion-row-separator));
+}
+.criterion-row:last-child { border-bottom: none; }
+
+// Les contrôles internes (select, input adaptatif, slider) épousent la largeur de la
+// ligne — sinon le SelectMenu garde sa largeur fixe (--filter-control-width) et le
+// TypeAwareInput son seul min-width, d'où des champs de tailles différentes.
+.criterion-row {
+  .select-container,
+  .select-static,
+  .type-input-wrap,
+  .type-input,
+  .constraint-field {
+    width: 100%;
+  }
+}
+
+// ── Libellé + pastille d'étape ───────────────────────────────────
+.criterion-row__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--criterion-label-font-size);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--criterion-label-letter-spacing);
+  color: hsl(var(--criterion-label-color));
+}
+.criterion-step {
+  display: inline-grid;
+  place-items: center;
+  width: var(--criterion-step-size);
+  height: var(--criterion-step-size);
+  border-radius: 50%;
+  background: hsl(var(--criterion-step-bg));
+  color: hsl(var(--criterion-step-color));
+  font-family: var(--font-mono);
+  font-size: var(--criterion-step-font-size);
+  font-weight: 600;
+}

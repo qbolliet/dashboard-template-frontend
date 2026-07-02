@@ -19,8 +19,10 @@ import './Tooltip.scss';
  * @param {boolean} [disabled=false] - When true, renders children with no tooltip.
  * @param {boolean} [block=false] - When true, the wrapper is block-level (full width),
  *   useful when wrapping full-width elements like criterion rows.
+ * @param {string} [className] - Additional class(es) merged on the wrapper.
+ * @param {Object} [style] - Additional inline styles merged on the wrapper.
  */
-const Tooltip = ({ children, content, position = 'top', disabled = false, block = false }) => {
+const Tooltip = ({ children, content, position = 'top', disabled = false, block = false, className = '', style }) => {
   // État de visibilité de la bulle
   const [visible, setVisible] = useState(false);
   // Identifiant stable liant le déclencheur (aria-describedby) à la bulle
@@ -52,7 +54,8 @@ const Tooltip = ({ children, content, position = 'top', disabled = false, block 
     // Wrapper inline — ancre de positionnement absolu + capteur souris/clavier.
     // onFocus/onBlur remontent depuis l'élément focusable enfant (events délégués).
     <span
-      className={`tooltip-wrap${block ? ' tooltip-wrap--block' : ''}`}
+      className={`tooltip-wrap${block ? ' tooltip-wrap--block' : ''}${className ? ` ${className}` : ''}`}
+      style={style}
       onMouseEnter={show}
       onMouseLeave={hide}
       onFocus={show}

@@ -34,9 +34,13 @@ import './ConstraintField.scss';
  * @param {string|number} [valueLow]  - Initial low value (or single value).
  * @param {string|number} [valueHigh] - Initial high value (numeric range only).
  * @param {Function} onChange      - ({ value } | { min, max }) => void, string payloads.
+ * @param {Function} [onValidityChange] - (valid: boolean) => void. VALUE verdict emitted
+ *   alongside each onChange (filled AND consistent: type ok, low ≤ high, within bounds).
  * @param {boolean}  [disabled]
  * @param {boolean}  [showSlider]  - Render the slider bar when the type/bounds allow it.
  * @param {boolean}  [inputsOnTop] - Render the inputs above the track (instead of below).
+ * @param {string}   [className]   - Additional class(es) merged on the root element.
+ * @param {Object}   [style]       - Additional inline styles merged on the root element.
  * @returns {JSX.Element}
  */
 const ConstraintField = ({
@@ -51,9 +55,12 @@ const ConstraintField = ({
   valueLow,
   valueHigh,
   onChange,
+  onValidityChange,
   disabled = false,
   showSlider = true,
   inputsOnTop = false,
+  className = '',
+  style,
 }) => {
   const isDate = valueType === 'date';
   // En plage de dates, UN seul TypeAwareInput (calendrier double) porte « A → B »
@@ -152,9 +159,38 @@ const ConstraintField = ({
   const pct = (v) => clamp(((v - minN) / (maxN - minN)) * 100, 0, 100);
   const snap = (raw) => clamp(Math.round(raw / stepN) * stepN, minN, maxN);
 
+  // ── Verdict de VALEUR (booléen) émis au parent avec chaque onChange ─────
+  // Miroir booléen de lowForced()/highForced() : rempli ET cohérent (type ok,
+  // low ≤ high, dans les bornes si connues). Calculé sur les valeurs ÉMISES
+  // (l'état low/high étant asynchrone) → remontée événementielle, sans effet
+  const validFor = (lowStr, highStr) => {
+    if (isDateRange) {
+      const parts = dateRangeParts(lowStr);
+      if (!parts) return false;
+      const [a, b] = parts;
+      if (a > b) return false;
+      if (boundsKnown && (a < minN || b > maxN)) return false;
+      return true;
+    }
+    if (dualInputs) {
+      if (!typeValidNumber(lowStr) || !typeValidNumber(highStr)) return false;
+      const lo = toNumber(lowStr);
+      const hi = toNumber(highStr);
+      if (lo > hi) return false;
+      if (boundsKnown && (lo < minN || lo > maxN || hi < minN || hi > maxN)) return false;
+      return true;
+    }
+    // Valeur unique (numérique ou date simple)
+    const typeOk = isDate ? !!parseDate((lowStr ?? '').trim()) : typeValidNumber(lowStr);
+    if (!typeOk) return false;
+    const n = toNumber(lowStr);
+    if (boundsKnown && (n < minN || n > maxN)) return false;
+    return true;
+  };
+
   // ── Émission vers le parent (chaînes) ───────────────────────────────────
-  const emitSingle = (str) => onChange?.({ value: str });
-  const emitNumericRange = (lo, hi) => onChange?.({ min: lo, max: hi });
+  const emitSingle = (str) => { onChange?.({ value: str }); onValidityChange?.(validFor(str, high)); };
+  const emitNumericRange = (lo, hi) => { onChange?.({ min: lo, max: hi }); onValidityChange?.(validFor(lo, hi)); };
 
   // ── Écriture d'un couple depuis le slider ───────────────────────────────
   const writePair = (aN, bN) => {
@@ -312,7 +348,9 @@ const ConstraintField = ({
   const lowLabel = isDateRange ? 'Plage' : rangeMode ? 'Min' : isDate ? 'Date' : 'Valeur';
 
   return (
-    <div className={`constraint-field${disabled ? ' constraint-field--disabled' : ''}${inputsOnTop ? ' constraint-field--inputs-top' : ''}`}>
+    <div
+      className={`constraint-field${disabled ? ' constraint-field--disabled' : ''}${inputsOnTop ? ' constraint-field--inputs-top' : ''}${className ? ` ${className}` : ''}`}
+      style={style}>
       {renderTrack && (
         <div
           className="constraint-field__track"

@@ -1,5 +1,6 @@
 // Importation de la Tooltip
 import Tooltip from '@/components/filter/Tooltip/Tooltip';
+import './CriterionRow.scss';
 
 /**
  * Single row of a criterion card: an optional label (with step badge) above its

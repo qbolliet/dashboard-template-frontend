@@ -1,46 +1,15 @@
-// ===== TOKENS DE COULEURS — FEATURE FILTER =====
-// Couleurs partagées entre CriterionMenu ET MultiCriterionMenu (MCM).
-// Import dans les scss enfants : @use '../../colors' as *
+// ===== TOKENS DE COULEURS — FEATURE FILTER (maille module) =====
+// Couleurs MUTUALISÉES entre CriterionMenu et MultiCriterionMenu. Chaque composant
+// définit ses tokens préfixés (--criterion-* / --multi-criterion-*) qui reprennent
+// PAR DÉFAUT ces valeurs mais peuvent être ajustés localement (cf. header).
 //
-// ⚠️ RÈGLE : une couleur propre à UN seul composant doit aller dans le
-// _colors.scss de ce composant, pas ici.
+// ⚠️ RÈGLE : une couleur propre à UN seul composant vit dans le _colors.scss de ce
+// composant, pas ici.
 
 :root {
-  // ===== CRITERION MENU — carte =====
-  --criterion-bg:             var(--color-surface);
-  --criterion-border-default: var(--color-border);
-  --criterion-row-separator:  var(--color-border);
-  --criterion-label-color:    var(--color-text-tertiary);
-  --criterion-step-bg:        var(--color-gray-100);
-  --criterion-step-color:     var(--color-text-secondary);
-
-  // ===== Parenthèses (mode groupement) =====
-  // Au repos : tracé blanc sur fond gris très clair → quasi invisible.
-  // Cliquée : tracé gris-900 plein sur fond surface.
-  --criterion-paren-bg:              var(--color-gray-100);
-  --criterion-paren-hover-bg:        var(--color-gray-200);
-  --criterion-paren-active-bg:       var(--color-surface);
-  --criterion-paren-active-bg-hover: var(--color-gray-50);
-  --criterion-paren-border:          var(--color-border-hover);
-  --criterion-paren-color:           var(--color-white);    // repos : invisible
-  --criterion-paren-active-color:    var(--color-gray-900); // active : pleine
-
-  // ===== Bouton suppression (×) =====
-  --criterion-remove-bg:           var(--color-surface);
-  --criterion-remove-border:       var(--color-border-hover);
-  --criterion-remove-color:        var(--color-text-tertiary);
-  --criterion-remove-hover-color:  var(--color-error-500);
-  --criterion-remove-hover-border: var(--color-error-500);
-
-  // ===== MCM — connecteur logique (Prompt 3) =====
-  --mcm-connector-line:          var(--color-border-hover);
-  --mcm-connector-static-bg:     var(--color-gray-100);
-  --mcm-connector-static-border: var(--color-border);
-  --mcm-connector-static-text:   var(--color-text-secondary);
-  --mcm-add-border:              var(--color-border-hover);
-  --mcm-add-color:               var(--color-text-tertiary);
-  --mcm-add-hover-border:        var(--color-primary-500);
-  --mcm-add-hover-color:         var(--color-primary-500);
-  --mcm-add-hover-bg:            var(--color-primary-100);
-  --mcm-max-note-color:          var(--color-text-tertiary);
+  // ===== Surfaces & bordures de filtre (base commune) =====
+  --filter-bg:            var(--color-surface);
+  --filter-border:        var(--color-border);
+  --filter-border-strong: var(--color-border-hover);
+  --filter-label-color:   var(--color-text-tertiary);
 }

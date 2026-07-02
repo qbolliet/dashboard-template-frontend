@@ -3,59 +3,18 @@
 import { useState } from 'react';
 import ThemeProvider from '@/features/theme/providers/ThemeProvider';
 import MultiCriterionMenu from '@/features/filter/components/MultiCriterionMenu/MultiCriterionMenu';
-import { CONTINUOUS_VARS, DATE_VARS, OPS_BY_TYPE } from '@/features/filter/utils/filterTypes';
+import { useCatalogSchema, schemaToVariables } from '@/features/filter/sources/useCatalogSchema';
+import { treeToSQL } from '@/features/filter/utils/filterEngine';
+import operations from '../../../config/filter/operations.json';
 import './page.scss';
 
-// Catalogue complet : 4 continus + 2 dates + 3 catégoriels + 2 textes
-const ALL_VARIABLES = [
-  ...CONTINUOUS_VARS.slice(0, 4),
-  ...DATE_VARS.slice(0, 2),
-  { value: 'country',   label: 'Pays',                type: 'categorical' },
-  { value: 'sector',    label: "Secteur d'activité",  type: 'categorical' },
-  { value: 'indicator', label: 'Indicateur',          type: 'categorical' },
-  { value: 'libelle',   label: 'Libellé',             type: 'text' },
-  { value: 'source',    label: 'Source',              type: 'text' },
+// Sous-ensemble de démonstration : 4 numériques + 2 dates + 3 catégoriels + 2 textes.
+const DEMO_FIELDS = [
+  'gdp', 'inflation', 'chomage', 'dette_pib',
+  'date_obs', 'date_pub',
+  'country', 'sector', 'indicator',
+  'libelle', 'source',
 ];
-
-// Valeurs catégorielles fictives (même que page 1, complétées)
-const MOCK_VALUES = {
-  indicator: [
-    { value: 'pib',      label: 'PIB' },
-    { value: 'conso',    label: 'Consommation' },
-    { value: 'invest',   label: 'Investissement' },
-    { value: 'export',   label: 'Exportations' },
-    { value: 'emploi',   label: 'Emploi' },
-    { value: 'taux_dir', label: 'Taux directeur' },
-  ],
-  country: [
-    { value: 'fr', label: 'France' },
-    { value: 'de', label: 'Allemagne' },
-    { value: 'it', label: 'Italie' },
-    { value: 'es', label: 'Espagne' },
-    { value: 'nl', label: 'Pays-Bas' },
-    { value: 'be', label: 'Belgique' },
-    { value: 'pt', label: 'Portugal' },
-    { value: 'pl', label: 'Pologne' },
-    { value: 'se', label: 'Suède' },
-  ],
-  sector: [
-    { value: 'agri',    label: 'Agriculture' },
-    { value: 'indus',   label: 'Industrie' },
-    { value: 'serv',    label: 'Services' },
-    { value: 'finance', label: 'Finance' },
-    { value: 'energie', label: 'Énergie' },
-  ],
-  source: [
-    { value: 'bce',      label: 'BCE' },
-    { value: 'ocde',     label: 'OCDE' },
-    { value: 'insee',    label: 'INSEE' },
-    { value: 'eurostat', label: 'Eurostat' },
-  ],
-};
-
-// Simule la latence réseau (300ms)
-const mockFetchValues = (id) =>
-  new Promise((res) => setTimeout(() => res(MOCK_VALUES[id] ?? []), 300));
 
 // ── Composants du panneau de contrôle (classes globales tp-ctrl-btn) ──
 
@@ -97,6 +56,13 @@ const CtrlNumber = ({ label, value, min, max, onChange }) => (
 );
 
 const TestMultiCriterionMenuPage = () => {
+  // ── Catalogue de variables (métadonnées API mockées) ──
+  const { fields } = useCatalogSchema();
+  const allVars = schemaToVariables(fields);
+  const variables = DEMO_FIELDS
+    .map((name) => allVars.find((v) => v.value === name))
+    .filter(Boolean);
+
   // ── Panneau de contrôle ──
   const [orientation,    setOrientation]    = useState('horizontal');
   const [wrap,           setWrap]           = useState(false);
@@ -105,16 +71,21 @@ const TestMultiCriterionMenuPage = () => {
   const [addMode,        setAddMode]        = useState('button');
   const [maxMenusRaw,    setMaxMenusRaw]    = useState(0);
   const [validate,       setValidate]       = useState(true);
+  const [footer,         setFooter]         = useState(false);
   const [showLabels,     setShowLabels]     = useState(false);
   const [showOperations, setShowOperations] = useState(true);
   const [showJson,       setShowJson]       = useState(true);
   const [showSql,        setShowSql]        = useState(true);
 
-  // Résultat structuré produit par MultiCriterionMenu
+  // Résultat structuré produit par MultiCriterionMenu ({ tree, balanced, serial })
   const [result, setResult] = useState(null);
 
   // 0 = illimité → null pour le composant
   const maxMenus = maxMenusRaw > 0 ? maxMenusRaw : null;
+
+  // Le SQL de démonstration est dérivé ICI (côté page) à partir de l'arbre : le
+  // MultiCriterionMenu n'expose que le JSON, cible à terme du seul échange avec l'API.
+  const sql = result?.tree ? treeToSQL(result.tree) : '';
 
   return (
     <ThemeProvider>
@@ -144,6 +115,7 @@ const TestMultiCriterionMenuPage = () => {
 
           <div className="ctrl-row">
             <CtrlBtn label="validate"       value={validate}       onChange={setValidate} />
+            <CtrlBtn label="footer"         value={footer}         onChange={setFooter} />
             <CtrlBtn label="showLabels"     value={showLabels}     onChange={setShowLabels} />
             <CtrlBtn label="showOperations" value={showOperations} onChange={setShowOperations} />
           </div>
@@ -162,13 +134,13 @@ const TestMultiCriterionMenuPage = () => {
             wrap={wrap}
             parentheses={parentheses}
             showConnectors={showConnectors}
-            variables={ALL_VARIABLES}
-            operationsByType={OPS_BY_TYPE}
-            fetchValues={mockFetchValues}
+            variables={variables}
+            operationsByType={operations}
             showOperations={showOperations}
             addMode={addMode}
             maxMenus={maxMenus}
             validate={validate}
+            footer={footer}
             showLabels={showLabels}
             onChange={setResult} />
         </section>
@@ -184,7 +156,7 @@ const TestMultiCriterionMenuPage = () => {
                   <div className="tp-output-head">
                     <span>Valeur structurée (JSON)</span>
                     <span className={result?.balanced ? 'badge badge--ok' : 'badge badge--warn'}>
-                      {result?.balanced ? 'parenthèses équilibrées' : 'parenthèses déséquilibrées'}
+                      {result?.balanced ? 'crochets équilibrés' : 'crochets déséquilibrés'}
                     </span>
                   </div>
                   <pre className="tp-output-body">{result ? JSON.stringify(result.serial, null, 2) : '—'}</pre>
@@ -193,9 +165,9 @@ const TestMultiCriterionMenuPage = () => {
 
               {showSql && (
                 <div className="tp-output">
-                  <div className="tp-output-head">WHERE — SQL généré</div>
+                  <div className="tp-output-head">WHERE — SQL généré (dérivé en page)</div>
                   <pre className="tp-output-body tp-sql">
-                    {result?.sql ? `WHERE ${result.sql}` : '—'}
+                    {sql ? `WHERE ${sql}` : '—'}
                   </pre>
                 </div>
               )}

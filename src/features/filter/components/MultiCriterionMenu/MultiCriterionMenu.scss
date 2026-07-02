@@ -4,13 +4,12 @@
 // .mcm-builder        : conteneur global ;
 // .mcm-row            : rangée des cartes (horizontale défilante/wrap ou verticale) ;
 // .mcm-slot           : emplacement d'une carte CriterionMenu ;
-// .mcm-connector      : connecteur logique (traits + select/libellé) entre deux cartes ;
-// .mcm-gap            : espace de remplacement quand les connecteurs sont masqués ;
 // .mcm-add-connector  : trait reliant la dernière carte au bouton + ;
 // .mcm-add            : bouton d'ajout de critère.
 //
-// Tokens partagés de la feature (../../tokens, ../../colors) + tokens propres au
-// composant (./tokens, ./colors), à l'image de SelectMenu.scss / CriterionMenu.scss.
+// Le connecteur logique (.mcm-connector*) a ses styles propres dans Connector/Connector.scss.
+//
+// Tokens partagés feature (../../tokens, ../../colors) + tokens composant (./tokens, ./colors).
 @use '../../tokens' as *;
 @use '../../colors' as *;
 @use './tokens' as *;
@@ -32,7 +31,7 @@
   align-items: stretch;
   gap: 0;
   overflow-x: auto;
-  padding-top: var(--mcm-row-pad-top);
+  padding-top: var(--multi-criterion-row-pad-top);
   padding-bottom: var(--spacing-md);
 }
 
@@ -50,7 +49,7 @@
   flex-direction: column;
   align-items: stretch;
   gap: 0;
-  max-width: var(--mcm-row-max-width);
+  max-width: var(--multi-criterion-row-max-width);
 }
 
 // ── Emplacement d'une carte ──────────────────────────────────────
@@ -61,73 +60,22 @@
   > * { width: 100%; }
 }
 .mcm-row--horizontal .mcm-slot {
-  flex: 0 0 var(--mcm-slot-width);
-  width: var(--mcm-slot-width);
+  flex: 0 0 var(--multi-criterion-slot-width);
+  width: var(--multi-criterion-slot-width);
 }
 .mcm-row--vertical .mcm-slot {
   width: 100%;
 }
 
-// ── Connecteur logique ───────────────────────────────────────────
-.mcm-connector {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.mcm-connector__line {
-  background: hsl(var(--mcm-connector-line));
-  flex-shrink: 0;
-}
-
-// Orientation horizontale : traits en ligne de part et d'autre du select.
-.mcm-connector--horizontal {
-  flex-direction: row;
-  align-self: center;
-  padding: 0 var(--spacing-xs);
-  gap: var(--mcm-connector-h-gap);
-
-  .mcm-connector__line { width: var(--mcm-connector-h-line); height: 1px; }
-}
-
-// Orientation verticale : traits empilés au-dessus/au-dessous du select.
-.mcm-connector--vertical {
-  flex-direction: column;
-  align-self: center;
-  padding: var(--spacing-sm) 0;
-  gap: var(--mcm-connector-v-gap);
-
-  .mcm-connector__line { width: 1px; height: var(--mcm-connector-v-line); }
-}
-
-.mcm-connector__select {
-  width: var(--mcm-connector-select-width);
-}
-
-// Connecteur figé : libellé mono non interactif.
-.mcm-connector__static {
-  font-family: var(--font-mono);
-  font-weight: 600;
-  font-size: var(--font-size-xs);
-  letter-spacing: 0.04em;
-  color: hsl(var(--mcm-connector-static-text));
-  background: hsl(var(--mcm-connector-static-bg));
-  border: 1px solid hsl(var(--mcm-connector-static-border));
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-xs) var(--mcm-connector-static-pad-x);
-  white-space: nowrap;
-}
-
-// ── Espace quand les connecteurs sont masqués ────────────────────
-.mcm-gap {
-  flex-shrink: 0;
-  align-self: center;
-}
-.mcm-gap--horizontal { width: var(--spacing-lg); }
-.mcm-gap--vertical { height: var(--spacing-lg); }
+// Espace inter-cartes quand les connecteurs sont masqués : deux slots ne sont frères
+// ADJACENTS que sans connecteur entre eux (sinon le Connector s'intercale) → la marge
+// ne s'applique qu'à ce cas, sans div de remplissage.
+.mcm-row--horizontal .mcm-slot + .mcm-slot { margin-inline-start: var(--multi-criterion-gap); }
+.mcm-row--vertical .mcm-slot + .mcm-slot { margin-block-start: var(--multi-criterion-gap); }
 
 // ── Trait reliant la dernière carte au bouton + ──────────────────
-// Réutilise les modificateurs d'orientation du connecteur pour la cohérence.
+// Réutilise les modificateurs d'orientation du connecteur (.mcm-connector--*,
+// définis dans Connector.scss) pour la cohérence.
 .mcm-add-connector {
   display: flex;
   align-items: center;
@@ -136,14 +84,14 @@
   align-self: center;
 
   &.mcm-connector--horizontal {
-    padding: 0 var(--mcm-connector-h-gap);
+    padding: 0 var(--multi-criterion-connector-h-gap);
 
-    .mcm-connector__line { width: var(--mcm-connector-h-line); height: 1px; }
+    .mcm-connector__line { width: var(--multi-criterion-connector-h-line); height: 1px; }
   }
   &.mcm-connector--vertical {
     padding: var(--spacing-sm) 0;
 
-    .mcm-connector__line { width: 1px; height: var(--mcm-add-connector-v-line); }
+    .mcm-connector__line { width: 1px; height: var(--multi-criterion-add-connector-v-line); }
   }
 }
 
@@ -152,24 +100,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--mcm-add-size);
-  height: var(--mcm-add-size);
+  width: var(--multi-criterion-add-size);
+  height: var(--multi-criterion-add-size);
   flex-shrink: 0;
-  border: var(--mcm-add-border-width) dashed hsl(var(--mcm-add-border));
+  border: var(--multi-criterion-add-border-width) dashed hsl(var(--multi-criterion-add-border));
   border-radius: var(--border-radius-md);
   background: transparent;
-  color: hsl(var(--mcm-add-color));
+  color: hsl(var(--multi-criterion-add-color));
   cursor: pointer;
   transition: border-color var(--transition-fast),
               color var(--transition-fast),
               background var(--transition-fast);
 
   &:hover {
-    border-color: hsl(var(--mcm-add-hover-border));
-    color: hsl(var(--mcm-add-hover-color));
-    background: hsl(var(--mcm-add-hover-bg));
+    border-color: hsl(var(--multi-criterion-add-hover-border));
+    color: hsl(var(--multi-criterion-add-hover-color));
+    background: hsl(var(--multi-criterion-add-hover-bg));
   }
-  svg { width: 16px; height: 16px; }
+  svg {
+    width: var(--multi-criterion-add-icon-size);
+    height: var(--multi-criterion-add-icon-size);
+  }
 }
 .mcm-add--horizontal { align-self: center; }
 .mcm-add--vertical {
@@ -193,6 +144,6 @@
 .mcm-max-note {
   margin-top: var(--spacing-md);
   font-size: var(--font-size-sm);
-  color: hsl(var(--mcm-max-note-color));
+  color: hsl(var(--multi-criterion-max-note-color));
   font-style: italic;
 }

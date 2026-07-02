@@ -46,6 +46,8 @@ const RANGE_PENDING = ' → …';
  * @param {"success"|"error"} [forcedState] - External VALUE verdict overriding the
  *   internal type state for the border/message display.
  * @param {string}   [forcedMessage] - Message shown alongside `forcedState`.
+ * @param {string}   [className] - Additional class(es) merged on the root wrapper.
+ * @param {Object}   [style]     - Additional inline styles merged on the root wrapper.
  * @returns {JSX.Element}
  */
 const TypeAwareInput = ({
@@ -59,6 +61,8 @@ const TypeAwareInput = ({
   id,
   forcedState,
   forcedMessage,
+  className = '',
+  style,
 }) => {
   // Extraction de la configuration associé au type demandé
   const cfg = TYPE_CONFIG[inputType] || TYPE_CONFIG.text;
@@ -244,7 +248,7 @@ const TypeAwareInput = ({
   const stateClass = effectiveState !== 'default' ? `type-input--${effectiveState}` : '';
 
   return (
-    <div className="type-input-wrap" ref={wrapRef}>
+    <div className={`type-input-wrap${className ? ` ${className}` : ''}`} style={style} ref={wrapRef}>
       <span className={`type-input ${stateClass} ${disabled ? 'type-input--disabled' : ''}`}>
         <input
           id={id}

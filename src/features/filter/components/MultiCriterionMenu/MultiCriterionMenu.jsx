@@ -3,19 +3,12 @@
 // Importation des modules
 import { Fragment, useEffect, useState } from 'react';
 import Tooltip from '@/components/filter/Tooltip/Tooltip';
-import { DEFAULT_CONNECTORS, defaultValue, isComplete } from '../../utils/filterTypes';
-import { buildTree, serialize, treeToSQL } from '../../utils/filterEngine';
+import { PlusIcon } from '@/components/icons';
+import { DEFAULT_CONNECTORS, defaultValue, isComplete, resolveOperations } from '../../utils/filterTypes';
+import { buildTree, serialize } from '../../utils/filterEngine';
 import CriterionMenu from '../CriterionMenu/CriterionMenu';
-import Connector from './Connector';
+import Connector from './Connector/Connector';
 import './MultiCriterionMenu.scss';
-
-// ── Icône + (bouton d'ajout) ──
-const PlusIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"
-    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M12 5v14M5 12h14" />
-  </svg>
-);
 
 // Identifiant unique d'une carte = (plus grand id présent) + 1. Suffit à garantir des
 // clés React stables (unicité parmi les cartes courantes) SANS variable de module ni
@@ -29,28 +22,32 @@ const makeBlank = (id) => ({
   variable: null,
   operation: null,
   value: null,
-  type: null,
-  parenLeft: false,
-  parenRight: false,
+  sql_type: null,
+  is_categorical: false,
+  bracketLeft: false,
+  bracketRight: false,
 });
 
 /**
  * Combines several CriterionMenu cards linked by logical connectors, with optional
- * grouping parentheses, and exposes a structured value (depth/group tree) plus a
- * generated SQL WHERE clause.
+ * grouping brackets, and exposes a structured value (depth/group tree + serialisation).
+ * The SQL clause is intentionally NOT computed here: the target is to pass only the JSON
+ * to the API, which rewrites the underlying SQL (a demo page may still derive SQL from
+ * `tree` via filterEngine.treeToSQL).
  *
  * @param {'horizontal'|'vertical'} [orientation='horizontal'] - Layout direction.
  * @param {boolean} [wrap=false] - Horizontal only: wrap cards instead of scrolling.
- * @param {boolean} [parentheses=true] - Enables the grouping parentheses on cards.
+ * @param {boolean} [parentheses=true] - Enables the grouping brackets on cards.
  * @param {{value: string, label: string}[]} [connectorOptions=DEFAULT_CONNECTORS] -
  *   Options of the connector select.
  * @param {?string} [fixedConnector=null] - Single connector applied between every
  *   card (renders connectors as static labels). null = free choice.
  * @param {boolean} [showConnectors=true] - Renders the connector between cards.
- * @param {{value: string, label: string, type: string}[]} [variables=[]] - Variable catalog.
- * @param {object} [operationsByType={}] - Operation options indexed by variable type.
- * @param {function(string): Promise<{value: string, label: string}[]>} [fetchValues] -
- *   Async loader of categorical value options.
+ * @param {{value: string, label: string, sql_type: string, is_categorical: boolean}[]} [variables=[]] -
+ *   Variable catalog.
+ * @param {Object<string, {value: string, label: string}[]>} [operationsByType={}] -
+ *   Operations indexed by sql_type / "categorical".
+ * @param {string} [catalog] - API catalog forwarded to the cards' value primitives.
  * @param {?string[]} [lockedVariables=null] - Variable ids freezing each card (fixed
  *   number of cards). null = free.
  * @param {?string[]} [lockedOperations=null] - Operation ids aligned on lockedVariables.
@@ -58,9 +55,10 @@ const makeBlank = (id) => ({
  * @param {'button'|'auto'} [addMode='button'] - Card adding strategy.
  * @param {?number} [maxMenus=null] - Maximum number of cards (null = unlimited).
  * @param {boolean} [validate=false] - Colors card validity.
+ * @param {boolean} [footer=false] - Renders each card's validity footer (with `validate`).
  * @param {boolean} [showLabels=false] - Shows the Variable/Operation/Value labels.
- * @param {function({tree: object, balanced: boolean, sql: string, serial: object}): void} [onChange] -
- *   Receives the structured value + SQL whenever it changes.
+ * @param {function({tree: object, balanced: boolean, serial: object}): void} [onChange] -
+ *   Receives the structured value whenever it changes.
  * @returns {JSX.Element}
  */
 const MultiCriterionMenu = ({
@@ -72,13 +70,14 @@ const MultiCriterionMenu = ({
   showConnectors = true,
   variables = [],
   operationsByType = {},
-  fetchValues,
+  catalog,
   lockedVariables = null,
   lockedOperations = null,
   showOperations = true,
   addMode = 'button',
   maxMenus = null,
   validate = false,
+  footer = false,
   showLabels = false,
   onChange,
 }) => {
@@ -95,18 +94,20 @@ const MultiCriterionMenu = ({
 
   // Critère figé sur une variable (+ opération éventuellement imposée)
   const makeLocked = (variableId, lockedOp, id) => {
-    const meta = variables.find((v) => v.value === variableId);
-    const t = meta ? meta.type : null;
-    const ops = t ? operationsByType[t] || [] : [];
+    const meta = variables.find((v) => v.value === variableId) ?? null;
+    const t = meta?.sql_type ?? null;
+    const cat = meta?.is_categorical ?? false;
+    const ops = resolveOperations(t, cat, operationsByType);
     const op = lockedOp || (ops[0] ? ops[0].value : null);
     return {
       id,
       variable: variableId,
       operation: op,
-      value: defaultValue(t, op),
-      type: t,
-      parenLeft: false,
-      parenRight: false,
+      value: defaultValue(t, cat, op),
+      sql_type: t,
+      is_categorical: cat,
+      bracketLeft: false,
+      bracketRight: false,
     };
   };
 
@@ -189,20 +190,22 @@ const MultiCriterionMenu = ({
   const setConnector = (idx, val) =>
     setConnectors((prev) => prev.map((c, i) => (i === idx ? val : c)));
 
-  // ── Valeur structurée + SQL ──
+  // ── Valeur structurée ──
   // Dérivation directe (pas de useMemo : le React Compiler mémoïse cette valeur et
   // garde une référence stable tant que les critères/connecteurs ne changent pas).
+  // Le SQL n'est PAS calculé ici (cf. docstring) : seuls tree/serial sont exposés.
   const items = criteria.map((c, i) => ({
     variable: c.variable,
     operation: c.operation,
     value: c.value,
-    type: c.type,
-    parenLeft: parentheses ? !!c.parenLeft : false,
-    parenRight: parentheses ? !!c.parenRight : false,
+    sql_type: c.sql_type,
+    is_categorical: c.is_categorical,
+    bracketLeft: parentheses ? !!c.bracketLeft : false,
+    bracketRight: parentheses ? !!c.bracketRight : false,
     connectorBefore: i === 0 ? null : fixedConnector || connectors[i - 1] || defaultConn,
   }));
   const { tree, balanced } = buildTree(items);
-  const structure = { tree, balanced, sql: treeToSQL(tree), serial: serialize(tree) };
+  const structure = { tree, balanced, serial: serialize(tree) };
 
   // Remontée de la valeur : effet dépendant de la valeur dérivée `structure`
   useEffect(() => {
@@ -220,7 +223,8 @@ const MultiCriterionMenu = ({
       <div className={rowClass}>
         {criteria.map((c, i) => (
           <Fragment key={c.id}>
-            {/* Connecteur logique entre deux cartes */}
+            {/* Connecteur logique entre deux cartes (l'espacement sans connecteur est
+                porté par CSS sur les .mcm-slot adjacents, sans div de remplissage). */}
             {i > 0 && showConnectors && (
               <Connector
                 orientation={orientation}
@@ -228,10 +232,6 @@ const MultiCriterionMenu = ({
                 value={fixedConnector || connectors[i - 1] || defaultConn}
                 options={effectiveOptions}
                 onChange={(v) => setConnector(i - 1, v)} />
-            )}
-            {/* Espace simple quand les connecteurs sont masqués */}
-            {i > 0 && !showConnectors && (
-              <div className={`mcm-gap mcm-gap--${orientation}`} aria-hidden="true" />
             )}
 
             <div className="mcm-slot">
@@ -242,9 +242,10 @@ const MultiCriterionMenu = ({
                 removable={!lockedVars && criteria.length > 1}
                 variables={variables}
                 operationsByType={operationsByType}
-                fetchValues={fetchValues}
+                catalog={catalog}
                 parentheses={parentheses}
                 validate={validate}
+                footer={footer}
                 showLabels={showLabels}
                 lockedVariable={!!lockedVars}
                 lockedOperation={!!(lockedOperations && lockedOperations.length)}

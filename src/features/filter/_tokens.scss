@@ -1,24 +1,16 @@
-// ===== TOKENS DIMENSIONNELS — FEATURE FILTER =====
-// Variables partagées entre CriterionMenu ET MultiCriterionMenu (MCM).
-// Import dans les scss enfants : @use '../../tokens' as *
-// Pour les couleurs partagées, voir src/features/filter/_colors.scss.
+// ===== TOKENS DIMENSIONNELS — FEATURE FILTER (maille module) =====
+// Valeurs MUTUALISÉES entre CriterionMenu et MultiCriterionMenu. Chaque composant
+// définit ses propres tokens préfixés (--criterion-* / --multi-criterion-*) qui
+// REPRENNENT PAR DÉFAUT ces valeurs mais peuvent être ajustés localement — à l'image
+// du header (features/header/_tokens.scss + composants).
 //
-// ⚠️ RÈGLE DE DÉRIVATION : toute dimension alignée sur le barème global passe par
-// var(--spacing-*) ou calc(). Seules les valeurs réellement arbitraires (largeurs
-// de slot, longueurs de traits du connecteur) restent en px brut, TOUJOURS annotées.
+// ⚠️ RÈGLE : une dimension propre à UN seul composant vit dans le _tokens.scss de ce
+// composant, pas ici. Les valeurs alignées sur le barème global passent par
+// var(--spacing-*) ; les valeurs arbitraires restent annotées côté composant.
 
 :root {
-  // ===== CRITERION MENU — carte de critère =====
-  --criterion-width:         100%;                // largeur du menu (100% = épouse le conteneur)
-  --criterion-padding:       var(--spacing-lg);   // 16px - padding interne des lignes
-  --criterion-gap:           var(--spacing-sm);   // 8px - gap label → champ
-  --criterion-paren-width:   1.15rem;             // arbitraire - largeur des parenthèses
-  --criterion-remove-size:   var(--spacing-xl);   // 20px - taille du bouton ×
-  --criterion-remove-offset: -9px;                // arbitraire - décalage hors de la carte
-
-  // ===== MULTI CRITERION MENU — disposition horizontale (Prompt 3) =====
-  --mcm-slot-width:       312px;  // arbitraire - largeur d'un slot horizontal
-  --mcm-connector-h-line: 14px;   // arbitraire - longueur du trait horizontal
-  --mcm-connector-v-line: 13px;   // arbitraire - longueur du trait vertical
-  --mcm-add-size:         34px;   // arbitraire - taille du bouton +
+  // ===== Carte de filtre (base commune) =====
+  --filter-card-width:   100%;                // largeur (100% = épouse le conteneur)
+  --filter-card-padding: var(--spacing-lg);   // 16px - padding interne des lignes
+  --filter-card-gap:     var(--spacing-sm);   // 8px - gap label → champ
 }

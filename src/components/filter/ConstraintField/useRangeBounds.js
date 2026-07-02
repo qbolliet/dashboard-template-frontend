@@ -4,6 +4,24 @@ import { useEffect, useState } from 'react';
 // Repli local exerçant le même cycle loading→données que l'API GraphQL réelle.
 const MOCK_BOUNDS = { min: 0, max: 100, step: 1 };
 
+// ── Bornes mock par champ ──
+// Imite getFieldBounds(fieldName) (dérivé des `extents` du dataset côté API).
+// Numériques : {min,max,step} chiffrés. Dates : bornes en JJ/MM/AAAA + step en ms
+// (ConstraintField sait projeter des dates sur son axe numérique). Repli : MOCK_BOUNDS.
+const MS_PER_DAY = 86_400_000;
+const MOCK_BOUNDS_BY_FIELD = {
+  gdp:        { min: -10, max: 15,  step: 0.1 },
+  inflation:  { min: -2,  max: 20,  step: 0.1 },
+  chomage:    { min: 0,   max: 30,  step: 0.1 },
+  dette_pib:  { min: 0,   max: 200, step: 1 },
+  prod_indus: { min: 0,   max: 200, step: 1 },
+  taux_dir:   { min: 0,   max: 10,  step: 0.05 },
+  date_obs:   { min: '01/01/2000', max: '31/12/2025', step: MS_PER_DAY },
+  date_pub:   { min: '01/01/2000', max: '31/12/2025', step: MS_PER_DAY },
+  date_rev:   { min: '01/01/2000', max: '31/12/2025', step: MS_PER_DAY },
+  date_maj:   { min: '01/01/2000', max: '31/12/2025', step: MS_PER_DAY },
+};
+
 /**
  * Fetches the numeric/date bounds (min, max, step) that drive ConstraintField's slider.
  *
@@ -34,8 +52,8 @@ export function useRangeBounds({ fieldName, catalog } = {}) {
     const key = `${fieldName}|${catalog}`;
 
     // --- Fallback mock : résolu en asynchrone pour exercer le même cycle
-    //     loading→données que l'API GraphQL réelle. ---
-    const promise = Promise.resolve(MOCK_BOUNDS);
+    //     loading→données que l'API GraphQL réelle. Bornes indexées par champ. ---
+    const promise = Promise.resolve(MOCK_BOUNDS_BY_FIELD[fieldName] ?? MOCK_BOUNDS);
 
     // ====================================================================
     // INTÉGRATION GRAPHQL RÉELLE — à décommenter pour brancher l'API

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MOCK_FLAT_OPTIONS, MOCK_GROUPED_OPTIONS } from './mockData';
+import { MOCK_FLAT_OPTIONS, MOCK_GROUPED_OPTIONS, MOCK_OPTIONS_BY_FIELD } from './mockData';
 
 /**
  * Fetches the options displayed by SelectMenu (flat or two-level grouped).
@@ -52,10 +52,12 @@ export function useSelectOptions({ fieldName, catalog, grouped, groupField, sear
           .filter((g) => g.options.length > 0);
         return { flat: [], groups };
       }
-      // Mode plat : filtrage direct de la liste d'options.
+      // Mode plat : options du champ demandé (repli sur la liste générique), puis
+      // filtrage direct par le terme de recherche.
+      const source = MOCK_OPTIONS_BY_FIELD[fieldName] ?? MOCK_FLAT_OPTIONS;
       const flat = term
-        ? MOCK_FLAT_OPTIONS.filter((o) => o.label.toLowerCase().includes(term))
-        : MOCK_FLAT_OPTIONS;
+        ? source.filter((o) => o.label.toLowerCase().includes(term))
+        : source;
       return { flat, groups: [] };
     });
 

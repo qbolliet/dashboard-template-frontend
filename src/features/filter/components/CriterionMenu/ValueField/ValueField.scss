@@ -1,0 +1,16 @@
+// =================================================================
+// VALUE FIELD — champ de valeur adaptatif
+// =================================================================
+// Le rendu délègue aux primitives (SelectMenu / ConstraintField / TypeAwareInput) ;
+// seul le placeholder « aucune variable » est propre à ce composant.
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+
+// ── Placeholder « aucune variable choisie » ──────────────────────
+.criterion-placeholder {
+  margin: 0;
+  padding: var(--spacing-sm) 0;
+  font-style: italic;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-tertiary));
+}

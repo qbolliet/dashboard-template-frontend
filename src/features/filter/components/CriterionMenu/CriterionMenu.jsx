@@ -1,35 +1,38 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import SelectMenu from '@/components/filter/SelectMenu/SelectMenu';
-import { defaultValue, isComplete } from '../../utils/filterTypes';
-import CriterionCard from './CriterionCard';
-import CriterionRow from './CriterionRow';
-import ValueField from './ValueField';
+import { defaultValue, isComplete, resolveOperations, toSelectValue } from '../../utils/filterTypes';
+import CriterionCard from './CriterionCard/CriterionCard';
+import CriterionRow from './CriterionRow/CriterionRow';
+import ValueField from './ValueField/ValueField';
 
 /**
- * Controlled criterion card: three rows (variable, operation, value) whose value
- * type drives the value field. State lives entirely in the parent through
- * `criterion` / `onChange`; this component only derives display data and patches.
+ * Controlled criterion card: three rows (variable, operation, value) whose SQL type
+ * drives the value field. State lives entirely in the parent through `criterion` /
+ * `onChange`; this component only derives display data and patches. Categorical options
+ * and numeric/date bounds are loaded by the primitives themselves via `fieldName`
+ * (their internal mock/GraphQL hooks) — no data-loading prop here.
  *
- * @param {{variable: ?string, operation: ?string, value: *, type: ?string,
- *   parenLeft: boolean, parenRight: boolean}} criterion - Controlled criterion state.
+ * @param {{variable: ?string, operation: ?string, value: *, sql_type: ?string,
+ *   is_categorical: ?boolean, bracketLeft: boolean, bracketRight: boolean}} criterion -
+ *   Controlled criterion state.
  * @param {function(object): void} onChange - Receives the updated criterion.
  * @param {function(): void} [onRemove] - Removes the criterion.
  * @param {boolean} [removable] - Enables the removal button.
- * @param {{value: string, label: string, type: string}[]} variables - Variable catalog.
- * @param {{continuous: Array, date: Array, categorical: Array, text: Array}} operationsByType -
- *   Operation options indexed by variable type.
- * @param {function(string): Promise<{value: string, label: string}[]>} [fetchValues] -
- *   Async loader of categorical value options for a variable.
- * @param {boolean} [parentheses] - Enables the grouping parentheses.
+ * @param {{value: string, label: string, sql_type: string, is_categorical: boolean}[]} variables -
+ *   Variable catalog (from useCatalogSchema → schemaToVariables).
+ * @param {Object<string, {value: string, label: string}[]>} operationsByType - Operations
+ *   indexed by sql_type / "categorical" (config/filter/operations.json).
+ * @param {string} [catalog] - API catalog forwarded to the value primitives.
+ * @param {boolean} [parentheses] - Enables the grouping brackets.
+ * @param {boolean} [footer] - Renders the validity footer (with `validate`).
  * @param {boolean} [validate] - Enables validation (accent color + inline feedback).
  * @param {boolean} [showLabels] - Shows the row labels instead of tooltips.
  * @param {boolean} [lockedVariable] - Disables the variable select.
  * @param {boolean} [lockedOperation] - Disables the operation select.
  * @param {boolean} [showOperation] - Renders the operation row.
- * @param {boolean} [showSlider] - Continuous type only: render the value as a ConstraintField
- *   slider (numeric inputs on top, track below) instead of bare numeric inputs.
+ * @param {boolean} [showSlider] - Numeric/date value field: render the slider bar.
  * @returns {JSX.Element}
  */
 const CriterionMenu = ({
@@ -39,8 +42,9 @@ const CriterionMenu = ({
   removable = false,
   variables,
   operationsByType,
-  fetchValues,
+  catalog,
   parentheses = false,
+  footer = false,
   validate = false,
   showLabels = false,
   lockedVariable = false,
@@ -48,88 +52,73 @@ const CriterionMenu = ({
   showOperation = true,
   showSlider = false,
 }) => {
-  // Méta de la variable sélectionnée → source du type courant
+  // Méta de la variable sélectionnée → source du type SQL courant (catalogue autoritaire)
   const varMeta = variables.find((v) => v.value === criterion.variable) ?? null;
-  const type = varMeta?.type ?? null;
-  const ops = type ? (operationsByType[type] ?? []) : [];
+  const sqlType = varMeta?.sql_type ?? null;
+  const isCategorical = varMeta?.is_categorical ?? false;
+  const ops = resolveOperations(sqlType, isCategorical, operationsByType);
 
-  // Bornes du ConstraintField (type continu) — issues de la variable, défaut 0..100 step 1
-  const sliderMin = varMeta?.min ?? 0;
-  const sliderMax = varMeta?.max ?? 100;
-  const sliderStep = varMeta?.step ?? 1;
-
-  // Options de valeurs catégorielles (fetch asynchrone).
-  // On mémorise la variable d'origine des options → l'état de chargement et la liste
-  // visible se déduisent du rendu, sans setState synchrone dans l'effet (cascades).
-  const [valueState, setValueState] = useState({ forVariable: null, options: [] });
-
-  useEffect(() => {
-    // On ne charge que pour une variable catégorielle effectivement choisie
-    if (type !== 'categorical' || !criterion.variable || !fetchValues) return undefined;
-    let alive = true;
-    Promise.resolve(fetchValues(criterion.variable)).then((opts) => {
-      // setState confiné au callback asynchrone (et non dans le corps de l'effet)
-      if (alive) setValueState({ forVariable: criterion.variable, options: opts ?? [] });
-    });
-    return () => { alive = false; };
-    // fetchValues est stable (prop) → pas besoin de l'inclure
-  }, [criterion.variable, type]);
-
-  // Dérivations : options visibles uniquement si elles correspondent à la variable
-  // courante ; chargement tant que la variable catégorielle choisie n'a pas ses options.
-  const isCategorical = type === 'categorical';
-  const optionsReady = isCategorical && valueState.forVariable === criterion.variable;
-  const valueOptions = optionsReady ? valueState.options : [];
-  const loadingValues = isCategorical && !!criterion.variable && !optionsReady;
+  // Verdict de VALEUR remonté par le champ (ConstraintField). null = pas de verdict de
+  // champ (types sans validation croisée) → repli sur isComplete. Réinitialisé à chaque
+  // changement de variable/opération (le champ ré-émettra à la prochaine saisie).
+  const [fieldVerdict, setFieldVerdict] = useState(null);
 
   // Raccourci de mise à jour partielle du critère contrôlé
   const patch = (partial) => onChange({ ...criterion, ...partial });
 
   // Changement de variable : reset opération et valeur selon le nouveau type
   const onVariable = (id) => {
-    const meta = variables.find((v) => v.value === id);
-    const t = meta?.type ?? null;
-    const newOps = t ? (operationsByType[t] ?? []) : [];
+    const meta = variables.find((v) => v.value === id) ?? null;
+    const t = meta?.sql_type ?? null;
+    const cat = meta?.is_categorical ?? false;
+    const newOps = resolveOperations(t, cat, operationsByType);
     const op = newOps[0]?.value ?? null;
-    patch({ variable: id, type: t, operation: op, value: defaultValue(t, op) });
+    setFieldVerdict(null);
+    patch({ variable: id, sql_type: t, is_categorical: cat, operation: op, value: defaultValue(t, cat, op) });
   };
 
   // Changement d'opération : reset de la seule valeur
-  const onOperation = (op) => patch({ operation: op, value: defaultValue(type, op) });
+  const onOperation = (op) => {
+    setFieldVerdict(null);
+    patch({ operation: op, value: defaultValue(sqlType, isCategorical, op) });
+  };
 
-  // Toggle d'une parenthèse (gauche/droite)
-  const onToggleParen = (side) =>
+  // Toggle d'un crochet (gauche/droite)
+  const onToggleBracket = (side) =>
     patch(side === 'left'
-      ? { parenLeft: !criterion.parenLeft }
-      : { parenRight: !criterion.parenRight });
+      ? { bracketLeft: !criterion.bracketLeft }
+      : { bracketRight: !criterion.bracketRight });
 
-  // Couleur d'accent : neutre hors validation, sinon succès/erreur selon complétude
+  // Validité de la carte : verdict du champ s'il existe, sinon complétude « rempli ».
+  const complete = isComplete({
+    operation: criterion.operation,
+    value: criterion.value,
+    sql_type: sqlType,
+    is_categorical: isCategorical,
+  });
+  const valid = fieldVerdict != null ? fieldVerdict : complete;
+
+  // Couleur d'accent : neutre hors validation, sinon succès/erreur selon la validité
   const accent = !validate
     ? 'hsl(var(--criterion-border-default))'
-    : isComplete(criterion)
+    : valid
       ? 'hsl(var(--color-success-500))'
       : 'hsl(var(--color-error-500))';
 
-  // CONVERSION : variable interne → format SelectMenu [{value, label}]
-  const variableSelVal = criterion.variable
-    ? [{ value: criterion.variable, label: varMeta?.label ?? criterion.variable }]
-    : [];
-
-  // CONVERSION : opération interne → format SelectMenu [{value, label}]
-  const operationSelVal = criterion.operation
-    ? [{
-        value: criterion.operation,
-        label: ops.find((o) => o.value === criterion.operation)?.label ?? criterion.operation,
-      }]
-    : [];
+  // Adaptateurs id → format SelectMenu (les ids restent la donnée métier)
+  const variableSelVal = toSelectValue(criterion.variable, variables);
+  const operationSelVal = toSelectValue(criterion.operation, ops);
 
   return (
     <CriterionCard
       accent={accent}
+      valid={valid}
+      footer={footer}
+      validate={validate}
       parentheses={parentheses}
-      parenLeft={!!criterion.parenLeft}
-      parenRight={!!criterion.parenRight}
-      onToggleParen={onToggleParen}
+      bracketLeft={!!criterion.bracketLeft}
+      bracketRight={!!criterion.bracketRight}
+      onToggleBracket={onToggleBracket}
       onRemove={onRemove}
       removable={removable}>
 
@@ -150,7 +139,7 @@ const CriterionMenu = ({
         <SelectMenu
           options={ops}
           value={operationSelVal}
-          disabled={!type || lockedOperation}
+          disabled={!criterion.variable || lockedOperation}
           validate={validate}
           placeholder="Opération…"
           onChange={(items) => onOperation(items[0]?.value ?? null)} />
@@ -159,17 +148,16 @@ const CriterionMenu = ({
       <CriterionRow label="Valeur" step={showOperation ? 3 : 2} showLabel={showLabels}
         tooltipText="Valeur — valeur(s) comparée(s)">
         <ValueField
-          type={type}
+          sqlType={sqlType}
+          isCategorical={isCategorical}
           operation={criterion.operation}
           value={criterion.value}
           onChange={(v) => patch({ value: v })}
-          valueOptions={valueOptions}
-          loadingValues={loadingValues}
+          onFieldValidity={setFieldVerdict}
+          fieldName={criterion.variable}
+          catalog={catalog}
           validate={validate}
-          showSlider={showSlider}
-          sliderMin={sliderMin}
-          sliderMax={sliderMax}
-          sliderStep={sliderStep} />
+          showSlider={showSlider} />
       </CriterionRow>
 
     </CriterionCard>

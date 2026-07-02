@@ -1,25 +1,35 @@
 // ===== TOKENS DIMENSIONNELS — COMPOSANT MULTI CRITERION MENU =====
-// Valeurs propres à la disposition du builder uniquement. Les dimensions partagées
-// avec le CriterionMenu (slot, traits de connecteur, taille du bouton +) sont au
-// niveau feature (src/features/filter/_tokens.scss, section MCM).
+// Tokens préfixés --multi-criterion-* : disposition du builder. Reprennent les valeurs
+// mutualisées de la feature (--filter-*) quand pertinent, sinon valeurs propres.
 //
-// ⚠️ Les valeurs réellement arbitraires (sous le barème global d'espacement) vivent
-// ici, annotées, plutôt que d'être codées en dur dans le corps du SCSS.
+// Les valeurs arbitraires (largeur de slot, longueurs de traits) sont exprimées en rem
+// (÷16 depuis les px d'origine) pour respecter le barème du projet ; seules les
+// épaisseurs de trait (bordures ~1px) restent en px.
 
 :root {
   // ===== Rangée du builder =====
-  --mcm-row-pad-top:   2.25rem;  // Réserve pour le × débordant des cartes
-  --mcm-row-max-width: 560px;    // Largeur max de la pile verticale
+  --multi-criterion-row-pad-top:   2.25rem;  // Réserve pour le × débordant des cartes
+  --multi-criterion-row-max-width: 35rem;    // 560px - largeur max de la pile verticale
+
+  // ===== Emplacement d'une carte =====
+  --multi-criterion-slot-width:    19.5rem;  // 312px - largeur d'un slot horizontal
+
+  // ===== Espace inter-cartes (connecteurs masqués) =====
+  --multi-criterion-gap: var(--spacing-lg);  // 16px - espace de remplacement
 
   // ===== Connecteur logique =====
-  --mcm-connector-select-width: 72px;     // Largeur du select compact AND/OR
-  --mcm-connector-h-gap:        6px;       // Ecart traits ↔ select (horizontal)
-  --mcm-connector-v-gap:        5px;       // Ecart traits ↔ select (vertical)
-  --mcm-connector-static-pad-x: 0.6rem;    // Padding horizontal du libellé figé
+  --multi-criterion-connector-h-line:       0.875rem;  // 14px - longueur du trait horizontal
+  --multi-criterion-connector-v-line:       0.8125rem; // 13px - longueur du trait vertical
+  --multi-criterion-connector-select-width: 4.5rem;    // 72px - largeur du select compact AND/OR
+  --multi-criterion-connector-h-gap:        0.375rem;  // 6px - écart traits ↔ select (horizontal)
+  --multi-criterion-connector-v-gap:        0.3125rem; // 5px - écart traits ↔ select (vertical)
+  --multi-criterion-connector-static-pad-x: 0.6rem;    // Padding horizontal du libellé figé
 
   // ===== Trait de raccordement au bouton + (vertical) =====
-  --mcm-add-connector-v-line: 16px;        // Longueur du trait vertical
+  --multi-criterion-add-connector-v-line: 1rem;  // 16px - longueur du trait vertical
 
   // ===== Bouton + =====
-  --mcm-add-border-width: 1.5px;           // Epaisseur de la bordure pointillée
+  --multi-criterion-add-size:         2.125rem;  // 34px - taille du bouton +
+  --multi-criterion-add-border-width: 1.5px;     // Epaisseur de la bordure pointillée
+  --multi-criterion-add-icon-size:    1rem;      // 16px - taille du glyphe +
 }

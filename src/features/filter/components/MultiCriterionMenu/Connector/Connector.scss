@@ -1,0 +1,57 @@
+// =================================================================
+// CONNECTOR — connecteur logique entre deux cartes (traits + select/libellé)
+// =================================================================
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
+
+.mcm-connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mcm-connector__line {
+  background: hsl(var(--multi-criterion-connector-line));
+  flex-shrink: 0;
+}
+
+// Orientation horizontale : traits en ligne de part et d'autre du select.
+.mcm-connector--horizontal {
+  flex-direction: row;
+  align-self: center;
+  padding: 0 var(--spacing-xs);
+  gap: var(--multi-criterion-connector-h-gap);
+
+  .mcm-connector__line { width: var(--multi-criterion-connector-h-line); height: 1px; }
+}
+
+// Orientation verticale : traits empilés au-dessus/au-dessous du select.
+.mcm-connector--vertical {
+  flex-direction: column;
+  align-self: center;
+  padding: var(--spacing-sm) 0;
+  gap: var(--multi-criterion-connector-v-gap);
+
+  .mcm-connector__line { width: 1px; height: var(--multi-criterion-connector-v-line); }
+}
+
+// Largeur du select compact AND/OR (appliquée via className sur le SelectMenu).
+.mcm-connector__select {
+  width: var(--multi-criterion-connector-select-width);
+}
+
+// Connecteur figé : libellé mono non interactif.
+.mcm-connector__static {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.04em;
+  color: hsl(var(--multi-criterion-connector-static-text));
+  background: hsl(var(--multi-criterion-connector-static-bg));
+  border: 1px solid hsl(var(--multi-criterion-connector-static-border));
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-xs) var(--multi-criterion-connector-static-pad-x);
+  white-space: nowrap;
+}

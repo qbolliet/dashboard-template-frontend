@@ -25,6 +25,8 @@ import './SelectMenu.scss';
  * @param {boolean}  [compact]    - Variante compacte (hauteur réduite, mono, centré).
  * @param {boolean}  [validate]   - Active la coloration succès quand une valeur est choisie.
  *   Désactivé (false), le container reste neutre même renseigné.
+ * @param {string}   [className]  - Classe(s) additionnelle(s) fusionnée(s) sur le conteneur racine.
+ * @param {Object}   [style]      - Styles inline additionnels fusionnés sur le conteneur racine.
  * @returns {JSX.Element}
  */
 const SelectMenu = ({
@@ -40,6 +42,8 @@ const SelectMenu = ({
   placeholder = 'Sélectionner…',
   compact = false,
   validate = true,
+  className = '',
+  style,
 }) => {
   // État local : ouverture du dropdown, terme de recherche, curseur clavier
   const [open, setOpen] = useState(false);
@@ -71,6 +75,12 @@ const SelectMenu = ({
 
   // Liste à plat de toutes les options visibles (utile au « tout sélectionner »)
   const flatVisible = grouped ? displayGroups.flatMap((g) => g.options) : displayOptions;
+
+  // Résout le libellé d'une valeur sélectionnée depuis les options chargées : le
+  // parent peut ne transmettre qu'un id (`{ value }`) sans libellé lorsque les
+  // options sont chargées par le hook interne.
+  // Repli : libellé fourni, puis id brut.
+  const labelFor = (v) => flatVisible.find((o) => o.value === v.value)?.label ?? v.label ?? v.value;
 
   // Construction des lignes navigables du dropdown :
   // « all » (multi), en-têtes de groupe, puis options. L'ordre dicte la nav clavier.
@@ -191,8 +201,8 @@ const SelectMenu = ({
   // Cas spécial : single désactivé avec une valeur → label statique, sans contrôle
   if (disabled && !allowMulti && value.length === 1) {
     return (
-      <span className={`select-static${compact ? ' select-static--compact' : ''}`}>
-        {value[0].label}
+      <span className={`select-static${compact ? ' select-static--compact' : ''}${className ? ` ${className}` : ''}`} style={style}>
+        {labelFor(value[0])}
       </span>
     );
   }
@@ -220,6 +230,7 @@ const SelectMenu = ({
     open && 'select-container--open',
     validate && value.length > 0 && 'select-container--success',
     disabled && 'select-container--disabled',
+    className,
   ].filter(Boolean).join(' ');
 
   // Rendu d'une ligne du dropdown selon son type
@@ -309,6 +320,7 @@ const SelectMenu = ({
     <div
       ref={containerRef}
       className={containerClass}
+      style={style}
       onKeyDown={handleKeyDown}>
 
       {/* Zone champ : tags (multi) ou valeur unique (single) + input de filtre */}
@@ -321,11 +333,11 @@ const SelectMenu = ({
           <ul className="select-tags">
             {value.map((v) => (
               <li key={v.value} className="select-tag">
-                {v.label}
+                {labelFor(v)}
                 <button type="button" className="select-tag-remove"
                   onClick={(e) => remove(v.value, e)}>
                   <CrossIcon />
-                  <VisuallyHidden>Retirer {v.label}</VisuallyHidden>
+                  <VisuallyHidden>Retirer {labelFor(v)}</VisuallyHidden>
                 </button>
               </li>
             ))}
@@ -333,7 +345,7 @@ const SelectMenu = ({
         )}
 
         {/* Single : valeur sélectionnée affichée en clair */}
-        {isSingleSelected && <span className="select-single">{value[0].label}</span>}
+        {isSingleSelected && <span className="select-single">{labelFor(value[0])}</span>}
 
         {/* Input de filtre — masqué (mais focusable) quand une valeur single est affichée */}
         <input

@@ -1,0 +1,167 @@
+// =================================================================
+// CRITERION CARD — coque de la carte de critère
+// =================================================================
+// .criterion-card         : coque (bordure d'accent via --criterion-accent) ;
+// .criterion-card__body   : pile des lignes ;
+// .criterion-card__footer : footer de validité optionnel (pastille Valide/Non valide) ;
+// .criterion-bracket-*    : crochets du mode groupement ;
+// .criterion-remove       : bouton × débordant en haut à droite.
+//
+// Tokens partagés feature (../../../tokens, ../../../colors) + tokens composant
+// (../tokens, ../colors).
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
+
+// Valeur de repli de l'accent : bordure neutre quand la validation est inactive.
+// Le parent surcharge --criterion-accent (vert/rouge) en inline.
+.criterion-card,
+.criterion-bracket-wrap {
+  --criterion-accent: hsl(var(--criterion-border-default));
+}
+
+// ── Coque ────────────────────────────────────────────────────────
+// IMPÉRATIF : overflow visible — sinon les dropdowns du SelectMenu et les popover
+// du calendrier seraient rognés par la carte.
+.criterion-card {
+  position: relative;  // ancre du bouton × en position absolue
+  display: flex;
+  flex-direction: column;
+  width: var(--criterion-width);  // largeur paramétrable (défaut 100% = conteneur)
+  overflow: visible;
+  background: hsl(var(--criterion-bg));
+  border: 1px solid var(--criterion-accent);
+  border-radius: var(--border-radius-lg);
+  // Liseré d'accent (10 %) + ombre de base ; l'accent pilote la transition douce.
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--criterion-accent) 10%, transparent),
+    var(--shadow-sm);
+  transition: border-color var(--criterion-card-transition),
+              box-shadow var(--criterion-card-transition);
+}
+
+// ── Corps ────────────────────────────────────────────────────────
+.criterion-card__body {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+// Arrondis hérités de la carte sur les rangées extrêmes
+.criterion-card__body > .criterion-row:first-child {
+  border-top-left-radius: var(--border-radius-lg);
+  border-top-right-radius: var(--border-radius-lg);
+}
+.criterion-card__body:last-child > .criterion-row:last-child {
+  border-bottom-left-radius: var(--border-radius-lg);
+  border-bottom-right-radius: var(--border-radius-lg);
+}
+
+// ── Footer de validité ───────────────────────────────────────────
+// Bande légèrement grisée : pastille (bordure + point + texte à l'accent).
+.criterion-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: var(--spacing-md) var(--criterion-padding);
+  background: hsl(var(--criterion-footer-bg));
+  border-top: 1px solid hsl(var(--criterion-footer-border));
+  border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+}
+.criterion-card__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 0.2rem var(--spacing-md);
+  border-radius: var(--border-radius-full, 999px);
+  background: hsl(var(--criterion-footer-pill-bg));
+  border: 1px solid var(--criterion-accent);
+  color: var(--criterion-accent);
+  font-size: var(--criterion-footer-font-size);
+  font-weight: 500;
+}
+.criterion-card__dot {
+  width: var(--criterion-footer-dot-size);
+  height: var(--criterion-footer-dot-size);
+  border-radius: 50%;
+  background: var(--criterion-accent);
+  flex-shrink: 0;
+}
+
+// ── Bouton suppression (×) ───────────────────────────────────────
+// Position absolue HORS de la carte (offset négatif) → déborde en haut à droite.
+.criterion-remove {
+  position: absolute;
+  top: var(--criterion-remove-offset);
+  right: var(--criterion-remove-offset);
+  z-index: 5;
+  width: var(--criterion-remove-size);
+  height: var(--criterion-remove-size);
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: hsl(var(--criterion-remove-bg));
+  border: 1px solid hsl(var(--criterion-remove-border));
+  color: hsl(var(--criterion-remove-color));
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+.criterion-remove:hover {
+  color: hsl(var(--criterion-remove-hover-color));
+  border-color: hsl(var(--criterion-remove-hover-border));
+}
+.criterion-remove svg { width: 60%; height: 60%; }
+
+// ── Crochets (mode groupement) ───────────────────────────────────
+// Crochets collés aux menus (gap: 0). Au repos, le tracé blanc sur fond gris très
+// clair est quasi invisible ; cliqué (--active), il devient gris-900 plein.
+.criterion-bracket-wrap {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  width: var(--criterion-width);  // la largeur paramétrable s'applique à l'ensemble encadré
+}
+// La carte centrale perd ses bords latéraux et ses arrondis → effet « sandwich ».
+// width:auto neutralise le token sur la carte : c'est le wrap qui porte la largeur.
+.criterion-bracket-wrap > .criterion-card {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+}
+.criterion-bracket {
+  flex-shrink: 0;
+  width: var(--criterion-bracket-width);
+  align-self: stretch;            // le dessin prend toute la hauteur de la carte
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid var(--criterion-accent);  // bordure alignée sur l'accent de la carte
+  background: hsl(var(--criterion-bracket-bg));
+  color: hsl(var(--criterion-bracket-color));  // repos : crochet blanc → invisible
+  transition: color var(--transition-fast),
+              background var(--transition-fast),
+              border-color var(--transition-fast);
+}
+.criterion-bracket--left {
+  border-right: none;
+  border-radius: var(--border-radius-lg) 0 0 var(--border-radius-lg);
+}
+.criterion-bracket--right {
+  border-left: none;
+  border-radius: 0 var(--border-radius-lg) var(--border-radius-lg) 0;
+}
+.criterion-bracket svg { width: 100%; height: 100%; display: block; }
+.criterion-bracket:hover { background: hsl(var(--criterion-bracket-hover-bg)); }
+.criterion-bracket--active {
+  // cliqué : tracé noir sur fond surface, aucun fond coloré
+  color: hsl(var(--criterion-bracket-active-color));
+  background: hsl(var(--criterion-bracket-active-bg));
+}
+.criterion-bracket--active:hover { background: hsl(var(--criterion-bracket-active-bg-hover)); }
