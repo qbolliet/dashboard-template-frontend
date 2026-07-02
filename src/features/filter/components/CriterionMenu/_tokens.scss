@@ -7,19 +7,19 @@
 
 :root {
   // ===== Libellé de ligne (Variable / Opération / Valeur) =====
-  --criterion-label-font-size:      11px;    // arbitraire - sous le barème (xs = 12px)
-  --criterion-label-letter-spacing: 0.08em;  // arbitraire - interlettrage des capitales
+  --criterion-label-font-size:      11px;    // Sous le barème (xs = 12px)
+  --criterion-label-letter-spacing: 0.08em;  // Interlettrage des capitales
 
   // ===== Pastille de numéro d'étape =====
-  --criterion-step-size:      18px;  // arbitraire - diamètre de la pastille
-  --criterion-step-font-size: 10px;  // arbitraire - chiffre de l'étape
+  --criterion-step-size:      18px;  // Diamètre de la pastille
+  --criterion-step-font-size: 10px;  // Chiffre de l'étape
 
   // ===== Champs numériques duels (opération « Entre ») =====
-  --criterion-num-border-width: 1.5px;    // arbitraire - épaisseur de bordure (cf. TypeAwareInput)
-  --criterion-num-padding-y:    0.4rem;   // arbitraire - padding vertical du champ
-  --criterion-num-padding-x:    0.6rem;   // arbitraire - padding horizontal du champ
-  --criterion-num-focus-ring:   3px;      // arbitraire - épaisseur du halo de focus
+  --criterion-num-border-width: 1.5px;    // Epaisseur de bordure (cohérente avec le TypeAwareInput)
+  --criterion-num-padding-y:    0.4rem;   // Padding vertical du champ
+  --criterion-num-padding-x:    0.6rem;   // Padding horizontal du champ
+  --criterion-num-focus-ring:   3px;      // Epaisseur du halo de focus
 
   // ===== Coque =====
-  --criterion-card-transition: 120ms ease;  // arbitraire - réaction de la bordure d'accent
+  --criterion-card-transition: 120ms ease;  // Réaction de la bordure d'accent
 }

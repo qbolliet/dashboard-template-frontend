@@ -8,18 +8,18 @@
 
 :root {
   // ===== Rangée du builder =====
-  --mcm-row-pad-top:   2.25rem;  // arbitraire - réserve pour le × débordant des cartes
-  --mcm-row-max-width: 560px;    // arbitraire - largeur max de la pile verticale
+  --mcm-row-pad-top:   2.25rem;  // Réserve pour le × débordant des cartes
+  --mcm-row-max-width: 560px;    // Largeur max de la pile verticale
 
   // ===== Connecteur logique =====
-  --mcm-connector-select-width: 72px;     // arbitraire - largeur du select compact AND/OR
-  --mcm-connector-h-gap:        6px;       // arbitraire - écart traits ↔ select (horizontal)
-  --mcm-connector-v-gap:        5px;       // arbitraire - écart traits ↔ select (vertical)
-  --mcm-connector-static-pad-x: 0.6rem;    // arbitraire - padding horizontal du libellé figé
+  --mcm-connector-select-width: 72px;     // Largeur du select compact AND/OR
+  --mcm-connector-h-gap:        6px;       // Ecart traits ↔ select (horizontal)
+  --mcm-connector-v-gap:        5px;       // Ecart traits ↔ select (vertical)
+  --mcm-connector-static-pad-x: 0.6rem;    // Padding horizontal du libellé figé
 
   // ===== Trait de raccordement au bouton + (vertical) =====
-  --mcm-add-connector-v-line: 16px;        // arbitraire - longueur du trait vertical
+  --mcm-add-connector-v-line: 16px;        // Longueur du trait vertical
 
   // ===== Bouton + =====
-  --mcm-add-border-width: 1.5px;           // arbitraire - épaisseur de la bordure pointillée
+  --mcm-add-border-width: 1.5px;           // Epaisseur de la bordure pointillée
 }

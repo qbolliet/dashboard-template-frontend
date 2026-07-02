@@ -36,7 +36,7 @@ const CriterionCard = ({
   removable = false,
   children,
 }) => {
-  // Coque de base : bordure colorée par l'accent + halo léger (alpha 1a ≈ 10%)
+  // Coque de base
   const card = (
     <section
       className="criterion-card"
@@ -55,8 +55,7 @@ const CriterionCard = ({
   // Mode simple : pas de parenthèses, on rend la carte telle quelle
   if (!parentheses) return card;
 
-  // Mode groupement : deux boutons-parenthèses encadrent la carte. Leur bordure
-  // reprend l'accent (la carte perd ses bords latéraux ici) → contour complet coloré.
+  // Mode groupement : deux boutons-parenthèses encadrent la carte.
   return (
     <div className="criterion-paren-wrap">
       <button

@@ -59,7 +59,6 @@ const CriterionMenu = ({
   const sliderStep = varMeta?.step ?? 1;
 
   // Options de valeurs catégorielles (fetch asynchrone).
-  // Pas de mémoïsation manuelle (React Compiler) : un état porteur + dérivations.
   // On mémorise la variable d'origine des options → l'état de chargement et la liste
   // visible se déduisent du rendu, sans setState synchrone dans l'effet (cascades).
   const [valueState, setValueState] = useState({ forVariable: null, options: [] });

@@ -1,3 +1,4 @@
+// Importation des composants
 import ConstraintField from '@/components/filter/ConstraintField/ConstraintField';
 import SelectMenu from '@/components/filter/SelectMenu/SelectMenu';
 import TypeAwareInput from '@/components/filter/TypeAwareInput/TypeAwareInput';

@@ -1,5 +1,6 @@
 'use client';
 
+// Importation des modules
 import { Fragment, useEffect, useState } from 'react';
 import Tooltip from '@/components/filter/Tooltip/Tooltip';
 import { DEFAULT_CONNECTORS, defaultValue, isComplete } from '../../utils/filterTypes';
@@ -204,7 +205,6 @@ const MultiCriterionMenu = ({
   const structure = { tree, balanced, sql: treeToSQL(tree), serial: serialize(tree) };
 
   // Remontée de la valeur : effet dépendant de la valeur dérivée `structure`
-  // (mémoïsée par le compilateur → l'effet ne se déclenche qu'à un vrai changement).
   useEffect(() => {
     onChange?.(structure);
     // eslint-disable-next-line react-hooks/exhaustive-deps
