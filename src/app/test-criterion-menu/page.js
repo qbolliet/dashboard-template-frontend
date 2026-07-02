@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import ThemeProvider from '@/features/theme/providers/ThemeProvider';
 import CriterionMenu from '@/features/filter/components/CriterionMenu/CriterionMenu';
-import { useCatalogSchema, schemaToVariables } from '@/features/filter/sources/useCatalogSchema';
+import { useVariableMetadata, metadataToVariables } from '@/features/filter/sources/useVariableMetadata';
 import { isNumericSqlType, isDateSqlType } from '@/features/filter/utils/filterTypes';
 import operations from '../../../config/filter/operations.json';
 import './page.scss';
@@ -28,9 +28,9 @@ const CtrlBtn = ({ label, value, onChange }) => (
 );
 
 const TestCriterionMenuPage = () => {
-  // ── Catalogue de variables (métadonnées API mockées) ──
-  const { fields } = useCatalogSchema();
-  const allVars = schemaToVariables(fields);
+  // ── Métadonnées des variables (métadonnées API mockées) ──
+  const { fields } = useVariableMetadata();
+  const allVars = metadataToVariables(fields);
   // Sous-ensembles par type pour les cartes de démonstration
   const continuousVars  = allVars.filter((v) => !v.is_categorical && isNumericSqlType(v.sql_type));
   const dateVars        = allVars.filter((v) => isDateSqlType(v.sql_type));

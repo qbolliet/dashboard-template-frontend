@@ -21,7 +21,7 @@ import ValueField from './ValueField/ValueField';
  * @param {function(): void} [onRemove] - Removes the criterion.
  * @param {boolean} [removable] - Enables the removal button.
  * @param {{value: string, label: string, sql_type: string, is_categorical: boolean}[]} variables -
- *   Variable catalog (from useCatalogSchema → schemaToVariables).
+ *   Variable metadata list (from useVariableMetadata → metadataToVariables).
  * @param {Object<string, {value: string, label: string}[]>} operationsByType - Operations
  *   indexed by sql_type / "categorical" (config/filter/operations.json).
  * @param {string} [catalog] - API catalog forwarded to the value primitives.

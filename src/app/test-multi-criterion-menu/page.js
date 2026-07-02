@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import ThemeProvider from '@/features/theme/providers/ThemeProvider';
 import MultiCriterionMenu from '@/features/filter/components/MultiCriterionMenu/MultiCriterionMenu';
-import { useCatalogSchema, schemaToVariables } from '@/features/filter/sources/useCatalogSchema';
+import { useVariableMetadata, metadataToVariables } from '@/features/filter/sources/useVariableMetadata';
 import { treeToSQL } from '@/features/filter/utils/filterEngine';
 import operations from '../../../config/filter/operations.json';
 import './page.scss';
@@ -56,9 +56,9 @@ const CtrlNumber = ({ label, value, min, max, onChange }) => (
 );
 
 const TestMultiCriterionMenuPage = () => {
-  // ── Catalogue de variables (métadonnées API mockées) ──
-  const { fields } = useCatalogSchema();
-  const allVars = schemaToVariables(fields);
+  // ── Métadonnées des variables (métadonnées API mockées) ──
+  const { fields } = useVariableMetadata();
+  const allVars = metadataToVariables(fields);
   const variables = DEMO_FIELDS
     .map((name) => allVars.find((v) => v.value === name))
     .filter(Boolean);

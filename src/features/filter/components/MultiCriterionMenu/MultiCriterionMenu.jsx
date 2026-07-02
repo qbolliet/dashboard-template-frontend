@@ -44,7 +44,7 @@ const makeBlank = (id) => ({
  *   card (renders connectors as static labels). null = free choice.
  * @param {boolean} [showConnectors=true] - Renders the connector between cards.
  * @param {{value: string, label: string, sql_type: string, is_categorical: boolean}[]} [variables=[]] -
- *   Variable catalog.
+ *   Variable metadata list.
  * @param {Object<string, {value: string, label: string}[]>} [operationsByType={}] -
  *   Operations indexed by sql_type / "categorical".
  * @param {string} [catalog] - API catalog forwarded to the cards' value primitives.

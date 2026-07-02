@@ -1,20 +1,21 @@
 import { useEffect, useState } from 'react';
 
 // =================================================================
-// SOURCE — CATALOG SCHEMA (métadonnées de champs)
+// SOURCE — VARIABLE METADATA (métadonnées de champs)
 // =================================================================
-// Imite `getCatalogSchema(catalog, schema)` de l'API GraphQL, qui renvoie la liste
+// Imite `getVariableMetadata(catalog, schema)` de l'API GraphQL, qui renvoie la liste
 // des champs avec leurs métadonnées { name, label, python_type, sql_type,
-// is_categorical, is_primary_key }. Ces métadonnées pilotent DIRECTEMENT le
-// CriterionMenu (type de champ, opérations, widget) sans type intermédiaire.
+// is_categorical, is_primary_key } depuis la `metadata_table`. Ces métadonnées
+// pilotent DIRECTEMENT le CriterionMenu (type de champ, opérations, widget) sans type
+// intermédiaire. `catalog` / `schema` restent les coordonnées ducklake d'accès.
 //
 // Même cycle mock→API que SelectMenu/useSelectOptions.js : le dico ci-dessous sert
 // de repli tant que le client GraphQL n'est pas branché (bloc réel commenté).
 
-// ── Schéma mock (catalogue de démonstration) ──
+// ── Métadonnées mock (jeu de démonstration) ──
 // sql_type = type PostgreSQL renvoyé par l'API ; is_categorical distingue les
 // dimensions (SelectMenu + options) des mesures continues.
-export const MOCK_SCHEMA = [
+export const MOCK_METADATA = [
   // Mesures continues (double precision)
   { name: 'gdp',        label: 'Croissance du PIB (%)',        python_type: 'float', sql_type: 'double precision', is_categorical: false, is_primary_key: false },
   { name: 'inflation',  label: "Taux d'inflation (%)",         python_type: 'float', sql_type: 'double precision', is_categorical: false, is_primary_key: false },
@@ -48,10 +49,10 @@ export const MOCK_SCHEMA = [
  * Maps API field metadata to the `variables` shape consumed by CriterionMenu /
  * MultiCriterionMenu : `{ value, label, sql_type, is_categorical }` (value = field name).
  *
- * @param {Array} fields - Metadata list from {@link useCatalogSchema}.
+ * @param {Array} fields - Metadata list from {@link useVariableMetadata}.
  * @returns {{value: string, label: string, sql_type: string, is_categorical: boolean}[]}
  */
-export function schemaToVariables(fields = []) {
+export function metadataToVariables(fields = []) {
   return fields.map((f) => ({
     value: f.name,
     label: f.label,
@@ -61,23 +62,23 @@ export function schemaToVariables(fields = []) {
 }
 
 /**
- * Fetches the field metadata of a catalog/schema.
+ * Fetches the field metadata of a catalog/schema (rows of the `metadata_table`).
  *
  * Mirrors {@link useSelectOptions}: an effect resolves the request asynchronously and
  * stores the result in state, while `loading` is derived during render from a
  * request-key comparison. By default returns the local mock; swap it for the GraphQL
- * call `getCatalogSchema` (see the commented block).
+ * call `getVariableMetadata` (see the commented block).
  *
  * @param {Object}  [params]
- * @param {string}  [params.catalog] - API catalog (mock: ignored).
- * @param {string}  [params.schema]  - API schema (mock: ignored).
+ * @param {string}  [params.catalog] - Ducklake catalog (mock: ignored).
+ * @param {string}  [params.schema]  - Ducklake schema (mock: ignored).
  * @returns {{ fields: Array, loading: boolean, error: (Error|null) }}
  */
-export function useCatalogSchema({ catalog, schema } = {}) {
+export function useVariableMetadata({ catalog, schema } = {}) {
   // État du résultat courant. `key` identifie le jeu d'inputs qui l'a produit :
   // on s'en sert pour dériver `loading` sans setState synchrone dans l'effet
   // (interdit par les Rules of Hooks v6 — règle set-state-in-effect).
-  const [result, setResult] = useState({ key: null, fields: MOCK_SCHEMA, error: null });
+  const [result, setResult] = useState({ key: null, fields: MOCK_METADATA, error: null });
 
   const requestKey = `${catalog}|${schema}`;
 
@@ -88,7 +89,7 @@ export function useCatalogSchema({ catalog, schema } = {}) {
 
     // --- Fallback mock : résolu en asynchrone pour exercer le même cycle
     //     loading→données que l'API GraphQL réelle. ---
-    const promise = Promise.resolve(MOCK_SCHEMA);
+    const promise = Promise.resolve(MOCK_METADATA);
 
     // ====================================================================
     // INTÉGRATION GRAPHQL RÉELLE — à décommenter pour brancher l'API
@@ -98,23 +99,23 @@ export function useCatalogSchema({ catalog, schema } = {}) {
     // dans `src/features/filter/sources/`), puis REMPLACER le `const promise = ...`
     // du fallback mock ci-dessus par :
     //
-    //   const promise = getCatalogSchema({ catalog, schema });
+    //   const promise = getVariableMetadata({ catalog, schema });
     //
     // Exemple d'implémentation (graphql-request) :
     //
     //   import { request, gql } from 'graphql-request';
     //   const ENDPOINT = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
     //
-    //   const CATALOG_SCHEMA = gql`
-    //     query GetCatalogSchema($catalog: String, $schema: String) {
-    //       getCatalogSchema(catalog: $catalog, schema: $schema) {
+    //   const VARIABLE_METADATA = gql`
+    //     query GetVariableMetadata($catalog: String, $schema: String) {
+    //       getVariableMetadata(catalog: $catalog, schema: $schema) {
     //         name label python_type sql_type is_categorical is_primary_key
     //       }
     //     }`;
-    //   export async function getCatalogSchema({ catalog, schema }) {
+    //   export async function getVariableMetadata({ catalog, schema }) {
     //     const headers = catalog ? { 'X-Catalog-Id': catalog } : {};
-    //     const data = await request(ENDPOINT, CATALOG_SCHEMA, { catalog, schema }, headers);
-    //     return data.getCatalogSchema; // -> [{ name, label, python_type, sql_type, is_categorical, is_primary_key }]
+    //     const data = await request(ENDPOINT, VARIABLE_METADATA, { catalog, schema }, headers);
+    //     return data.getVariableMetadata; // -> [{ name, label, python_type, sql_type, is_categorical, is_primary_key }]
     //   }
     //
     // Le cycle { loading, error } est déjà câblé : `loading` se déduit de la

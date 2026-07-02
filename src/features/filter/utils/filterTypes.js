@@ -2,10 +2,10 @@
 // FILTER TYPES — helpers de type SQL, valeur initiale et validation
 // =================================================================
 // Module sans logique d'affichage. Le modèle de type suit désormais les métadonnées
-// de l'API GraphQL (getCatalogSchema → { sql_type, is_categorical }) : on route
+// de l'API GraphQL (getVariableMetadata → { sql_type, is_categorical }) : on route
 // DIRECTEMENT sur le type SQL et le drapeau catégoriel, sans type intermédiaire.
 //
-// Les catalogues de variables sont fournis par la source `sources/useCatalogSchema`.
+// Les métadonnées des variables sont fournies par la source `sources/useVariableMetadata`.
 // Les opérations par type vivent dans `config/filter/operations.json`.
 
 // ── Formats de date attendus (saisie manuelle) ──
