@@ -13,7 +13,7 @@
 ═══════════════════════════════════════════════════════════════════════════ */
 
 // Importation des modules
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { ParentSize } from '@visx/responsive';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { extent, mean } from 'd3-array';
@@ -29,6 +29,7 @@ import { resolveFormatter } from '../../utils/formatters';
 import { makeScale } from '../../utils/scales';
 import { useSeriesHover } from '../../hooks/useSeriesHover';
 import { useChartGeometry } from '../../hooks/useChartGeometry';
+import { useBrushZoom } from '../../hooks/useBrushZoom';
 
 import ChartAxisBottom from '../ChartAxis/ChartAxisBottom/ChartAxisBottom';
 import ChartAxisLeft from '../ChartAxis/ChartAxisLeft/ChartAxisLeft';
@@ -41,7 +42,30 @@ import DensityMarks from '../marks/DensityMarks/DensityMarks';
 import ViolinMarks from '../marks/ViolinMarks/ViolinMarks';
 import { VoronoiOverlay, DirectHoverOverlay, ActiveMark } from '../overlays/HoverOverlays/HoverOverlays';
 import ChartTooltip from '../ChartTooltip/ChartTooltip';
+import BrushMinimap from '../ChartMinimap/BrushMinimap/BrushMinimap';
+import MiniProjection from '../ChartMinimap/MiniProjection/MiniProjection';
+import MinimapToggle from '../ChartMinimap/MinimapToggle/MinimapToggle';
 import './Chart.scss';
+
+/* ────────────────────────── Cibles de survol (coordonnées de BASE) ────────
+   Pour line / density, les centroïdes sont calculés UNE fois sur les données
+   complètes en coordonnées de base : le diagramme de survol (voronoï) et les
+   contours KDE ne sont PAS recalculés au zoom, seulement transformés (cf. la
+   couche .chart-zoom-content). Porté de `baseHoverTargets` de chart.jsx. ───── */
+function computeBaseHoverTargets({
+  chartKind, data, channels, baseXScale, baseYScale, x, y, stackMini,
+}) {
+  const out = [];
+  for (const r of data) {
+    let py = baseYScale(r[y]);
+    if (stackMini && chartKind === 'line') {
+      const o = stackMini.offsets.get(seriesKey(r, channels) + '|' + xKeyOf(r[x]));
+      if (o) py = baseYScale(o.y1);
+    }
+    out.push({ px: baseXScale(r[x]), py, row: r, hit: { type: 'circle', r: 13 } });
+  }
+  return out.filter((t) => !isNaN(t.px) && !isNaN(t.py));
+}
 
 /* ────────────────────────── Cibles de survol ─────────────────────────────
    Centroïdes (déjà projetés en pixels) de chaque mark survolable, calculés par
@@ -238,36 +262,53 @@ const ChartCanvas = ({
   channels, hueCols, fill, effFill, stack, format, labels, maxLabelLength, maxLines,
   overlap, tickDensity, isSequentialZ, isViolinKind,
   cScale, styleScaleFn, hatchScaleFn, markerScaleFn,
-  hovered, voronoiRow, setVoronoiRow,
+  hovered, voronoiRow, setVoronoiRow, initialMinimapOpen,
 }) => {
-  const { margins, innerWidth, innerHeight, yTickW } = useChartGeometry({
+  // Ouverture des mini-vues (persiste tant que la largeur reste > 0 : ce
+  // sous-composant n'est pas remonté aux changements de largeur).
+  const [minimapOpen, setMinimapOpen] = useState(initialMinimapOpen);
+
+  // Calcul des dimensions du graphiques
+  const {
+    margins, innerWidth, innerHeight, yTickW,
+    svgH, showXMinimap, showYMinimap, miniH, yMinimapW, yMinimapGap, tickPadX,
+  } = useChartGeometry({
     chartKind, data, x, y, xType, yType, format, labels, maxLabelLength, maxLines,
-    overlap, tickDensity, width, height,
+    overlap, tickDensity, width, height, minimapOpen,
   });
+
+  // Ref du SVG : cible du zoom molette + rectangle de mesure (cf. useBrushZoom).
+  const svgRef = useRef(null);
 
   // État local de la marque active (survol) : position pixel + ancrage tooltip.
   const [activePos, setActivePos] = useState(null);
   const [activeCentroid, setActiveCentroid] = useState(null);
   const active = voronoiRow; // la row sous le curseur
 
+  const has2DBrush = chartKind === 'heatmap' || chartKind === 'density';
+  const isBarH = chartKind === 'bar-h';
+
   // Extension : les IC + la projection étendront le domaine de l'axe valeur.
   const augValExtent = null;
 
-  // ── Empilage (line / bar / bar-h) ────────────────────────────────────────
+  // ── Empilage : deux variantes ────────────────────────────────────────────
+  // stackMini — offsets sur les données COMPLÈTES (échelles de base, mini-vues,
+  //   cibles de survol en coordonnées de base) ; stackMain — sur les données
+  //   FILTRÉES par le brush (marks affichés). L'ordre de séries est partagé.
   const stackable = chartKind === 'line' || chartKind === 'bar' || chartKind === 'bar-h';
   const stackActive = stackable && stack && stack !== 'none';
   const stackPosKey = chartKind === 'bar-h' ? y : x;
   const stackValKey = chartKind === 'bar-h' ? x : y;
   const seriesOrder = groupSeries(data, channels).map((s) => s.key);
-  const stackMain = stackActive
+  const stackMini = stackActive
     ? buildStacks({ data, posKey: stackPosKey, valKey: stackValKey, channels, stackBy: stack, seriesOrder, aggregate: 'mean' })
     : null;
 
-  // ── Échelles de position (axe valeur ancré à 0 ; extension augValExtent) ──
+  // ── Échelles de position de BASE (domaine complet ; axe valeur ancré à 0) ──
   let baseXScale;
   if (chartKind === 'bar-h' && xType === 'number') {
     if (stackActive) {
-      let lo = 0, hi = stackMain.max;
+      let lo = 0, hi = stackMini.max;
       if (augValExtent) { lo = Math.min(lo, augValExtent[0]); hi = Math.max(hi, augValExtent[1]); }
       baseXScale = scaleLinear({ domain: [lo, hi], range: [0, innerWidth], nice: true });
     } else {
@@ -283,7 +324,7 @@ const ChartCanvas = ({
   let baseYScale;
   if ((chartKind === 'line' || chartKind === 'bar') && yType === 'number') {
     if (stackActive) {
-      let lo = 0, hi = stackMain.max;
+      let lo = 0, hi = stackMini.max;
       if (augValExtent) { lo = Math.min(lo, augValExtent[0]); hi = Math.max(hi, augValExtent[1]); }
       baseYScale = scaleLinear({ domain: [lo, hi], range: [innerHeight, 0], nice: true });
     } else {
@@ -297,21 +338,46 @@ const ChartCanvas = ({
     baseYScale = makeScale(yType, data, y, innerHeight, 'y', chartKind);
   }
 
-  // Extension : le zoom/brush filtrera les données et zoomera les échelles ici.
-  const xScale = baseXScale;
-  const yScale = baseYScale;
-  const filteredData = data;
+  // ── Zoom (brush + molette) : échelles zoomées, données filtrées, facteurs ──
+  // TODO(étape 7) : `zoomOn` sera piloté par l'outil « zoom » de la barre
+  // d'outils ; activé par défaut pour l'instant (molette toujours opérante).
+  const {
+    xSel, ySel, setXSel, setYSel, xScale, yScale, filteredData, axisZoom,
+  } = useBrushZoom({
+    data, x, y, xType, yType, chartKind,
+    baseXScale, baseYScale, innerWidth, innerHeight,
+    marginLeft: margins.left, marginTop: margins.top, width, svgRef, zoomOn: true,
+  });
+  const { zx, zy } = axisZoom;
+
+  // Graphiques « nuage » (line, density) : voronoï + KDE 2-D rendus dans une
+  // couche zoomée par transform (coordonnées de base, non recalculés au zoom).
+  const zoomLayer = chartKind === 'line' || chartKind === 'density';
+  const zoomTransform = `translate(${zx.t.toFixed(3)}, ${zy.t.toFixed(3)}) scale(${zx.k.toFixed(5)}, ${zy.k.toFixed(5)})`;
+
+  // ── Empilage des marks affichés (données filtrées par le brush) ───────────
+  const stackMain = stackActive
+    ? buildStacks({ data: filteredData, posKey: stackPosKey, valKey: stackValKey, channels, stackBy: stack, seriesOrder, aggregate: 'mean' })
+    : null;
 
   // ── Cibles de survol ──────────────────────────────────────────────────────
-  const hoverTargets = computeHoverTargets({
+  // Charts « nuage » (line/density) : coordonnées de BASE, sous la couche zoom.
+  // Autres : coordonnées zoomées, sur les données filtrées.
+  const baseHoverTargets = zoomLayer
+    ? computeBaseHoverTargets({ chartKind, data, channels, baseXScale, baseYScale, x, y, stackMini })
+    : [];
+  const hoverTargets = zoomLayer ? [] : computeHoverTargets({
     chartKind, filteredData, channels, xScale, yScale, x, y, z,
     stack, stackMain, innerWidth, innerHeight, fill,
   });
 
-  // Ancrage adaptatif : bulle du côté OPPOSÉ au point (flip près des bords).
-  const handleHover = (target) => {
+  // Ancrage adaptatif : bulle du côté OPPOSÉ au point (flip près des bords). En
+  // couche zoomée la cible est en coordonnées de BASE → projetée dans l'espace
+  // affiché (transform) pour positionner la marque active et la tooltip.
+  const handleHover = (target, fromZoomLayer) => {
     if (target) {
-      const cx = target.px, cy = target.py;
+      let cx = target.px, cy = target.py;
+      if (fromZoomLayer) { cx = zx.k * target.px + zx.t; cy = zy.k * target.py + zy.t; }
       setVoronoiRow(target.row);
       setActiveCentroid({ x: cx, y: cy });
       const flipX = cx > innerWidth / 2;
@@ -367,6 +433,10 @@ const ChartCanvas = ({
   }
 
   // ── Marks du kind détecté ────────────────────────────────────────────────
+  // La densité n'est PAS rendue ici : elle vit dans la couche zoomée (KDE en
+  // coordonnées de base + transform, jamais recalculée). Les charts à bandes
+  // consomment les données filtrées + échelles zoomées ; le violon garde les
+  // données complètes et se repositionne via l'échelle zoomée (KDE stable).
   let marks = null;
   if (chartKind === 'line') {
     marks = <LineMarks data={filteredData} x={x} y={y} channels={channels} xScale={xScale} yScale={yScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} fill={fill} stack={stackMain} />;
@@ -376,10 +446,43 @@ const ChartCanvas = ({
     marks = <BarMarks data={filteredData} x={x} y={y} channels={channels} xScale={xScale} yScale={yScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="h" fill={fill} stack={stackMain} />;
   } else if (chartKind === 'heatmap') {
     marks = <HeatmapMarks data={filteredData} x={x} y={y} z={z} xScale={xScale} yScale={yScale} colorScale={cScale} hovered={hovered} fill={effFill} />;
-  } else if (chartKind === 'density') {
-    marks = <DensityMarks data={data} x={x} y={y} z={z} channels={channels} xScale={baseXScale} yScale={baseYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} hovered={hovered} innerWidth={innerWidth} innerHeight={innerHeight} fill={effFill} zoom={{ kx: 1, ky: 1 }} />;
   } else if (isViolinKind) {
     marks = <ViolinMarks data={data} x={x} y={y} z={z} channels={channels} xScale={xScale} yScale={yScale} xScaleBase={baseXScale} yScaleBase={baseYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} orient={chartKind === 'violin-h' ? 'h' : 'v'} fill={effFill} stack={stack} hovered={hovered} />;
+  }
+
+  // Densité (KDE 2-D) rendue en coordonnées de BASE puis zoomée par le transform
+  // de la couche zoom (contours jamais recalculés, traits non-scaling-stroke,
+  // marqueurs contre-échelonnés par 1/zoom).
+  const densityZoomMarks = chartKind === 'density'
+    ? <DensityMarks data={data} x={x} y={y} z={z} channels={channels} xScale={baseXScale} yScale={baseYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} hovered={hovered} innerWidth={innerWidth} innerHeight={innerHeight} fill={effFill} zoom={{ kx: zx.k, ky: zy.k }} />
+    : null;
+
+  // ── Contenu des mini-vues : réplique miniature (2-D) ou projection (3-D) ──
+  let xMiniContent = null;
+  if (chartKind === 'line') {
+    const yMini = baseYScale.copy().range([miniH, 0]);
+    xMiniContent = <LineMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} fill={fill} stack={stackMini} mini />;
+  } else if (chartKind === 'bar') {
+    const yMini = baseYScale.copy().range([miniH, 0]);
+    xMiniContent = <BarMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="v" fill={fill} stack={stackMini} mini />;
+  } else if (has2DBrush) {
+    xMiniContent = <MiniProjection data={data} posCol={x} posType={xType} valCol={z} posScale={baseXScale} width={innerWidth} height={miniH} direction="x" mode="mean" />;
+  } else if (chartKind === 'violin-v') {
+    xMiniContent = <MiniProjection data={data} posCol={x} posType={xType} valCol={y} posScale={baseXScale} width={innerWidth} height={miniH} direction="x" mode="mean" />;
+  } else if (chartKind === 'violin-h') {
+    xMiniContent = <MiniProjection data={data} posCol={x} posType={xType} valCol={x} posScale={baseXScale} width={innerWidth} height={miniH} direction="x" mode="count" />;
+  }
+
+  let yMiniContent = null;
+  if (has2DBrush) {
+    yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={z} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="mean" />;
+  } else if (isBarH) {
+    const miniX = baseXScale.copy().range([0, Math.max(2, yMinimapW - 2)]);
+    yMiniContent = <BarMarks data={data} x={x} y={y} channels={channels} xScale={miniX} yScale={baseYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="h" fill={fill} stack={stackMini} mini />;
+  } else if (chartKind === 'violin-v') {
+    yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={y} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="count" />;
+  } else if (chartKind === 'violin-h') {
+    yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={x} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="count" />;
   }
 
   // Survol par défaut en v1 : tooltip sur le mark sous le curseur (survol direct).
@@ -389,13 +492,13 @@ const ChartCanvas = ({
 
   return (
     <>
-      <svg className="chart-svg" width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+      <svg ref={svgRef} className="chart-svg" width={width} height={svgH} viewBox={`0 0 ${width} ${svgH}`}>
         <g transform={`translate(${margins.left}, ${margins.top})`}>
           <ChartAxisLeft
             scale={yScale} type={yType} length={innerHeight} width={innerWidth}
             format={format.y} maxLabelLength={maxLabelLength.y} maxLines={maxLines.y || 2}
             overlap={overlap} tickDensity={tickDensity} label={labels.y}
-            tickPadX={0} labelOffset={yTickW + 10}
+            tickPadX={tickPadX} labelOffset={yTickW + 10}
           />
           <ChartAxisBottom
             scale={xScale} type={xType} length={innerWidth} height={innerHeight}
@@ -408,11 +511,26 @@ const ChartCanvas = ({
             </clipPath>
           </defs>
           <g clipPath={`url(#${clipId})`}>{marks}</g>
-          {/* Survol direct (v1) : une zone de captation par mark. Extension :
-              VoronoiOverlay (proximité) commutable via la barre d'outils. */}
-          {voronoiOn
-            ? <VoronoiOverlay points={hoverTargets} innerWidth={innerWidth} innerHeight={innerHeight} onHover={handleHover} />
-            : <DirectHoverOverlay targets={hoverTargets} onHover={handleHover} />}
+
+          {/* Couche ZOOM : densité (KDE 2-D) + survol (line/density) calculés en
+              coordonnées de BASE et agrandis par transform → jamais recalculés au
+              zoom (traits non-scaling-stroke via .chart-zoom-content). */}
+          {zoomLayer && (
+            <g clipPath={`url(#${clipId})`}>
+              <g className="chart-zoom-content" transform={zoomTransform}>
+                {densityZoomMarks}
+                {baseHoverTargets.length > 0 && (voronoiOn
+                  ? <VoronoiOverlay points={baseHoverTargets} innerWidth={innerWidth} innerHeight={innerHeight} onHover={(t) => handleHover(t, true)} />
+                  : <DirectHoverOverlay targets={baseHoverTargets} onHover={(t) => handleHover(t, true)} />)}
+              </g>
+            </g>
+          )}
+
+          {/* Survol direct (charts à bandes) : une zone de captation par mark. */}
+          {!zoomLayer && (voronoiOn
+            ? <VoronoiOverlay points={hoverTargets} innerWidth={innerWidth} innerHeight={innerHeight} onHover={(t) => handleHover(t, false)} />
+            : <DirectHoverOverlay targets={hoverTargets} onHover={(t) => handleHover(t, false)} />)}
+
           {active && (
             <ActiveMark
               pos={activeCentroid}
@@ -420,8 +538,34 @@ const ChartCanvas = ({
               marker={channels.marker ? markerScaleFn(active[channels.marker]) : 'circle'}
             />
           )}
+
+          {/* Mini-vue y — à gauche du tracé (entre les ticks et le bord). */}
+          {showYMinimap && minimapOpen && (
+            <g transform={`translate(${-(yMinimapW + yMinimapGap)}, 0)`}>
+              <BrushMinimap
+                direction="y" width={yMinimapW} height={innerHeight}
+                scale={baseYScale} selection={ySel} onChange={setYSel} content={yMiniContent}
+              />
+            </g>
+          )}
         </g>
+
+        {/* Mini-vue x — sous l'axe des abscisses. */}
+        {showXMinimap && minimapOpen && (
+          <g transform={`translate(${margins.left}, ${margins.top + innerHeight + margins.bottom + 8})`}>
+            <BrushMinimap
+              direction="x" width={innerWidth} height={miniH}
+              scale={baseXScale} selection={xSel} onChange={setXSel} content={xMiniContent}
+            />
+          </g>
+        )}
       </svg>
+
+      {/* Pastille de bascule des mini-vues (pied de page du corps). */}
+      {(showXMinimap || showYMinimap) && (
+        <MinimapToggle open={minimapOpen} onToggle={() => setMinimapOpen((o) => !o)} />
+      )}
+
       {active && activePos && tooltipModel && (
         <ChartTooltip model={tooltipModel} position={activePos} />
       )}
@@ -597,6 +741,7 @@ const Chart = ({
             isSequentialZ={isSequentialZ} isViolinKind={isViolinKind}
             cScale={cScale} styleScaleFn={styleScaleFn} hatchScaleFn={hatchScaleFn} markerScaleFn={markerScaleFn}
             hovered={hovered} voronoiRow={voronoiRow} setVoronoiRow={setVoronoiRow}
+            initialMinimapOpen={initialMinimapOpen}
           />
           ) : null
         )}

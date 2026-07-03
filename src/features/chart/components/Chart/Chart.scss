@@ -70,6 +70,14 @@
 }
 .chart-svg text { user-select: none; }
 
+// ── Couche de zoom : marks « pixel » (voronoï, KDE) agrandis par transform ───
+// Les traits gardent une épaisseur constante malgré la mise à l'échelle SVG
+// (transposé de .ca-zoom-content du prototype).
+.chart-zoom-content path,
+.chart-zoom-content line,
+.chart-zoom-content rect,
+.chart-zoom-content circle { vector-effect: non-scaling-stroke; }
+
 // ── Légende de droite : centrée verticalement sur le corps ───────────────
 .chart-legend-right {
   grid-area: legendR;

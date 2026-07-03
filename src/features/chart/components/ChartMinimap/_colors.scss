@@ -1,0 +1,23 @@
+// ===== TOKENS DE COULEURS — CHART MINIMAP =====
+// Sélection + poignées du brush et pastille de bascule.
+
+:root {
+  // Rectangle de sélection du brush (.visx-brush-selection).
+  --chart-minimap-selection-fill: var(--color-primary-500);
+  --chart-minimap-selection-fill-opacity: 0.1;
+  --chart-minimap-selection-stroke: var(--color-primary-500);
+
+  // Poignées de redimensionnement (.visx-brush-handle-*).
+  --chart-minimap-handle-fill: var(--color-primary-500);
+  --chart-minimap-handle-fill-opacity: 0.8;
+
+  // Contenu miniature (réplique / projection) — teinte neutre discrète.
+  --chart-minimap-content-color: var(--color-text-tertiary);
+
+  // Pastille de bascule (chevron).
+  --chart-minimap-toggle-color: var(--color-text-tertiary);
+  --chart-minimap-toggle-color-hover: var(--color-text-primary);
+  --chart-minimap-toggle-border: var(--color-border);
+  --chart-minimap-toggle-border-hover: var(--color-border-hover);
+  --chart-minimap-toggle-bg: var(--color-surface);
+}
