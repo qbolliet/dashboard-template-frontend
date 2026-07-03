@@ -1,6 +1,15 @@
 // Importation des modules
 import { markerPath } from '../../../utils/encoding';
 
+// Ce fichier code en dur des coordonnées SVG (viewBox,
+// x1/y1/x2/y2, rayons, largeurs de trait...), ce qui déroge en apparence à la
+// règle « apparence dans les .scss ». Il ne s'agit pas d'une exception : ces
+// valeurs sont de la géométrie (la FORME dessinée), pas du style CSS (qui ne
+// peut de toute façon pas piloter les coordonnées d'un <path>/<line>/<rect>).
+// Elles restent donc en JSX, comme les tracés `path d` des icônes de
+// src/components/icons/. Seules les vraies valeurs de style (color, opacity)
+// arrivent par props depuis utils/encoding.js.
+
 // Lignes de hachure d'un glyphe 22×14 (motifs diag / diag-rev / cross / horizontal
 // / vertical / grid) — partagées entre le canal 'ciband' et le canal 'style' en
 // mode hachure.
