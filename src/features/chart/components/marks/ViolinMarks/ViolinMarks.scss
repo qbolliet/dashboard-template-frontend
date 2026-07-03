@@ -1,0 +1,29 @@
+// =================================================================
+// VIOLIN MARKS — KDE 1D (Epanechnikov) + boxplot ; dodge / empilé / split
+// =================================================================
+// On tokenise ici l'estompage au survol (opacité + transition) et l'épaisseur 
+// de CONTOUR DU CORPS (aire pleine vs ligne) — modificateur porté par le <path> 
+// du corps, pas  par le groupe, pour ne pas écraser les largeurs inline du boxplot
+// (whisker, IQR, médiane). Couleurs et opacités de remplissage (data-driven) 
+// restent dans le JSX.
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
+
+// ── Estompage des séries au survol ──────────────────────────────
+.chart-marks-series {
+  transition: opacity var(--chart-marks-fade-duration);
+}
+.chart-marks-violin .chart-marks-series.is-faded {
+  opacity: var(--chart-marks-violin-faded-opacity);
+}
+
+// ── Contour du corps du violon ──────────────────────────────────
+// Aire pleine (fill='fill') : trait fin. Ligne (fill='line') : trait plus épais.
+.chart-marks-violin-body--fill {
+  stroke-width: var(--chart-marks-violin-fill-width);
+}
+.chart-marks-violin-body--line {
+  stroke-width: var(--chart-marks-violin-line-width);
+}

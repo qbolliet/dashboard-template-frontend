@@ -23,4 +23,16 @@
   // Contour de barre ÉVIDÉE / hachurée (BarMarks, fill='line').
   --chart-marks-bar-line-width: 1.6;
   --chart-marks-bar-line-width-mini: 1;
+
+  // Contour de cellule de heatmap : plein (fin) vs contours (épais).
+  --chart-marks-heatmap-fill-width: 0.5;
+  --chart-marks-heatmap-line-width: 2;
+
+  // Density : courbe de niveau (mode ligne) et bordure de définition (mode plein).
+  --chart-marks-density-contour-width: 1.4;
+  --chart-marks-density-border-width: 1.6;
+
+  // Contour du corps de violon : aire pleine (fin) vs ligne (épais).
+  --chart-marks-violin-fill-width: 1;
+  --chart-marks-violin-line-width: 1.6;
 }

@@ -1,0 +1,29 @@
+// =================================================================
+// DENSITY MARKS — KDE 2D (d3-contour), bandes pleines ou lignes de niveau
+// =================================================================
+//  On tokenise ici l'estompage au survol (opacité + transition) et les épaisseurs 
+// de trait CONSTANTES (courbe de niveau, bordure de définition). Les opacités 
+// de trait / remplissage variant avec le seuil (t) et les couleurs (data-driven) 
+// restent dans le JSX.
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
+
+// ── Estompage des couches au survol ─────────────────────────────
+.chart-marks-series {
+  transition: opacity var(--chart-marks-fade-duration);
+}
+.chart-marks-density .chart-marks-series.is-faded {
+  opacity: var(--chart-marks-density-faded-opacity);
+}
+
+// ── Courbe de niveau (mode ligne) ───────────────────────────────
+.chart-marks-density-contour {
+  stroke-width: var(--chart-marks-density-contour-width);
+}
+
+// ── Bordure de définition (mode plein, contour le plus externe, canal style) ──
+.chart-marks-density-band--border {
+  stroke-width: var(--chart-marks-density-border-width);
+}

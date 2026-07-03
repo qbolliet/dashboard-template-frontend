@@ -15,4 +15,11 @@
   // vs mini-vue (brush).
   --chart-marks-area-fill-opacity: 0.16;
   --chart-marks-area-fill-opacity-mini: 0.3;
+
+  // Opacité des couches ESTOMPÉES au survol (density, violin).
+  --chart-marks-density-faded-opacity: 0.18;
+  --chart-marks-violin-faded-opacity: 0.18;
+
+  // Opacité du trait blanc de séparation des cellules pleines (HeatmapMarks).
+  --chart-marks-heatmap-fill-stroke-opacity: 0.4;
 }
