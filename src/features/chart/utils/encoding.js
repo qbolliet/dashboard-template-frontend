@@ -8,6 +8,20 @@
 // comportement de `d3.scaleSequential().interpolator(...)` (interpolation
 // non bornée, sans clamp — cf. sequentialScale ci-dessous), en s'appuyant
 // uniquement sur `interpolateRgbBasis` de d3-interpolate.
+//
+// Exception documentée aux deux conventions couleur du repo (HSL + déclaration
+// dans styles/globals/colors.scss) : PALETTE/SEQUENTIAL restent des CONSTANTES
+// JS littérales (pas des `var(--…)`), car les échelles d3/visx doivent produire
+// une couleur concrète, calculable sans accès au DOM ni à la cascade CSS — en
+// particulier lors de l'export (rastérisation canvas, cf. exportImage.js) où
+// une valeur `var()` non résolue casserait le rendu. Elles restent toutefois
+// exprimées en HSL (et non en hex) pour respecter la convention de couleur du
+// repo, et sont numériquement identiques aux tokens CSS homonymes déclarés une
+// fois dans src/styles/globals/colors.scss (--color-navy, --color-brick, …),
+// eux-mêmes repris par features/chart/_colors.scss (--chart-cat-*/--chart-seq-*)
+// pour les éléments de chrome. Toute modification d'une teinte doit donc être
+// répercutée aux DEUX endroits (le nom du token CSS correspondant est rappelé
+// en commentaire ci-dessous).
 
 // Importation des modules
 import { scaleOrdinal } from '@visx/scale';
@@ -16,26 +30,39 @@ import { interpolateRgbBasis } from 'd3-interpolate';
 
 /* ───────────────────────────── Palette ────────────────────────────────── */
 
-// Palette catégorielle à 12 teintes — la première reprend --color-primary-500.
-// ≥10 teintes distinctes pour encoder une variable à nombreuses modalités
-// (exigence : au moins 10 couleurs). Au-delà, scaleOrdinal recycle le range.
+// Palette catégorielle à 12 teintes. ≥10 teintes distinctes pour encoder une
+// variable à nombreuses modalités (exigence : au moins 10 couleurs). Au-delà,
+// scaleOrdinal recycle le range. Chaque teinte correspond à un token nommé de
+// styles/globals/colors.scss.
+// Syntaxe `hsl(h, s%, l%)` à VIRGULES (legacy) et non `hsl(h s% l%)` (CSS Color
+// 4, espaces) : d3-color — utilisé par interpolateRgbBasis dans sequentialScale
+// ci-dessous — ne sait parser que la syntaxe legacy ; la syntaxe moderne y est
+// silencieusement interprétée comme noir (échec de parsing).
 export const PALETTE = [
-  '#0F3F66', // primary
-  '#BD2D28',
-  '#E6842A',
-  '#137B80',
-  '#708259',
-  '#8E6C8A',
-  '#3c6382',
-  '#7d5fff',
-  '#9A6D3F', // brun
-  '#4C9A52', // vert
-  '#C44E8E', // magenta
-  '#5B6B8C', // ardoise
+  'hsl(207, 74.4%, 22.9%)', // --color-navy
+  'hsl(2, 65.1%, 44.9%)',   // --color-brick
+  'hsl(29, 79%, 53.3%)',    // --color-amber
+  'hsl(183, 74.1%, 28.8%)', // --color-teal
+  'hsl(86, 18.7%, 42.9%)',  // --color-sage
+  'hsl(307, 13.6%, 49%)',   // --color-mauve
+  'hsl(207, 36.8%, 37.3%)', // --color-steel-blue
+  'hsl(251, 100%, 68.6%)',  // --color-indigo
+  'hsl(30, 41.9%, 42.5%)',  // --color-umber (brun)
+  'hsl(125, 33.9%, 45.1%)', // --color-forest (vert)
+  'hsl(327, 50%, 53.7%)',   // --color-magenta
+  'hsl(220, 21.2%, 45.3%)', // --color-slate (ardoise)
 ];
 
 // Rampe séquentielle pour heatmaps/density (clair → foncé, ton primaire).
-export const SEQUENTIAL = ['#F1F6FB', '#C8DAEE', '#7FA6CC', '#3C6FA1', '#0F3F66'];
+// Même correspondance : un token nommé par teinte dans colors.scss. Même
+// remarque de syntaxe (virgules) que PALETTE ci-dessus.
+export const SEQUENTIAL = [
+  'hsl(210, 55.6%, 96.5%)', // --color-frost
+  'hsl(212, 52.8%, 85.9%)', // --color-powder-blue
+  'hsl(210, 43%, 64.9%)',   // --color-sky
+  'hsl(210, 45.7%, 43.3%)', // --color-azure
+  'hsl(207, 74.4%, 22.9%)', // --color-navy (foncé — même teinte que PALETTE[0])
+];
 
 /**
  * Builds a categorical color scale over the given domain.

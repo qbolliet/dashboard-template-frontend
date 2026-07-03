@@ -8,9 +8,11 @@
 // légende, tooltip, barres de features). L'encodage des données (couleur de
 // série, rampe séquentielle heatmap/density) reste porté par les constantes JS
 // PALETTE / SEQUENTIAL de utils/encoding.js : les échelles d3/visx consomment
-// des chaînes hex directement, indépendamment du thème courant, pour que la
+// des chaînes directement, indépendamment du thème courant, pour que la
 // correspondance valeur → couleur soit stable et calculable hors DOM (export,
-// SSR). Les tokens ci-dessous DUPLIQUENT ces mêmes teintes en HSL brut, pour
+// SSR). Les tokens ci-dessous référencent les MÊMES teintes — déclarées une
+// seule fois, en HSL brut et nommées d'après la couleur qu'elles représentent,
+// dans src/styles/globals/colors.scss (--color-navy, --color-brick, …) — pour
 // les rares éléments de chrome qui doivent malgré tout référencer une couleur
 // de série en CSS pur (ex. classes .visx-pattern-lines générées, cf. HatchPatterns).
 //
@@ -19,34 +21,27 @@
 
 :root {
   // ===== Palette catégorielle (12 teintes, alignées sur PALETTE de encoding.js) =====
-  --chart-cat-1: 207 74.4% 22.9%;  // #0F3F66 - primary
-  --chart-cat-2: 2 65.1% 44.9%;    // #BD2D28
-  --chart-cat-3: 29 79% 53.3%;     // #E6842A
-  --chart-cat-4: 183 74.1% 28.8%;  // #137B80
-  --chart-cat-5: 86 18.7% 42.9%;   // #708259
-  --chart-cat-6: 307 13.6% 49%;    // #8E6C8A
-  --chart-cat-7: 207 36.8% 37.3%;  // #3c6382
-  --chart-cat-8: 251 100% 68.6%;   // #7d5fff
-  --chart-cat-9: 30 41.9% 42.5%;   // #9A6D3F - brun
-  --chart-cat-10: 125 33.9% 45.1%; // #4C9A52 - vert
-  --chart-cat-11: 327 50% 53.7%;   // #C44E8E - magenta
-  --chart-cat-12: 220 21.2% 45.3%; // #5B6B8C - ardoise
+  --chart-cat-1: var(--color-navy);
+  --chart-cat-2: var(--color-brick);
+  --chart-cat-3: var(--color-amber);
+  --chart-cat-4: var(--color-teal);
+  --chart-cat-5: var(--color-sage);
+  --chart-cat-6: var(--color-mauve);
+  --chart-cat-7: var(--color-steel-blue);
+  --chart-cat-8: var(--color-indigo);
+  --chart-cat-9: var(--color-umber);    // brun
+  --chart-cat-10: var(--color-forest);  // vert
+  --chart-cat-11: var(--color-magenta);
+  --chart-cat-12: var(--color-slate);   // ardoise
 
   // ===== Rampe séquentielle (5 stops, alignés sur SEQUENTIAL de encoding.js) =====
-  --chart-seq-1: 210 55.6% 96.5%;  // #F1F6FB - clair
-  --chart-seq-2: 212 52.8% 85.9%;  // #C8DAEE
-  --chart-seq-3: 210 43% 64.9%;    // #7FA6CC
-  --chart-seq-4: 210 45.7% 43.3%;  // #3C6FA1
-  --chart-seq-5: 207 74.4% 22.9%;  // #0F3F66 - foncé (= --color-primary-500)
+  --chart-seq-1: var(--color-frost);
+  --chart-seq-2: var(--color-powder-blue);
+  --chart-seq-3: var(--color-sky);
+  --chart-seq-4: var(--color-azure);
+  --chart-seq-5: var(--color-navy); // même teinte que --chart-cat-1 (foncé)
 
   // ===== Barres de feature (before/after, normalisation) =====
   --chart-bar-projection: var(--color-primary-500);
-  --chart-bar-normalize:  280 45% 48%;
-}
-
-// ===== THÈME SOMBRE =====
-[data-theme="dark"] {
-  // La palette catégorielle et la rampe séquentielle encodent des SÉRIES DE
-  // DONNÉES : elles restent inchangées entre thèmes (identification stable).
-  --chart-bar-normalize: 280 40% 68%;
+  --chart-bar-normalize: var(--color-violet); // redéfinie en mode sombre dans colors.scss
 }
