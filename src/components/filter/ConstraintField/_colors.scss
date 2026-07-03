@@ -1,0 +1,16 @@
+// ===== TOKENS DE COULEURS — ConstraintField =====
+// Couleurs propres au champ de contrainte (rail, fill, thumb, labels).
+// Importées par ConstraintField.scss.
+// Les halos d'état des inputs sont gérés par TypeAwareInput (tokens partagés
+// --filter-success-shadow / --filter-error-shadow).
+
+:root {
+  // ===== RAIL & FILL =====
+  --constraint-rail-bg:          var(--color-gray-200);     // fond du rail inactif
+  --constraint-fill-color:       var(--color-primary-500);  // fill actif
+  --constraint-thumb-color:      var(--color-primary-500);  // cercle du thumb
+  --constraint-thumb-ring-color: var(--color-primary-100);  // halo au survol/drag
+
+  // ===== LABELS =====
+  --constraint-label-color:      var(--color-text-tertiary); // labels Min/Max/Valeur
+}

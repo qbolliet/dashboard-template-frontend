@@ -1,0 +1,149 @@
+// =================================================================
+// MULTI CRITERION MENU — disposition du builder de critères
+// =================================================================
+// .mcm-builder        : conteneur global ;
+// .mcm-row            : rangée des cartes (horizontale défilante/wrap ou verticale) ;
+// .mcm-slot           : emplacement d'une carte CriterionMenu ;
+// .mcm-add-connector  : trait reliant la dernière carte au bouton + ;
+// .mcm-add            : bouton d'ajout de critère.
+//
+// Le connecteur logique (.mcm-connector*) a ses styles propres dans Connector/Connector.scss.
+//
+// Tokens partagés feature (../../tokens, ../../colors) + tokens composant (./tokens, ./colors).
+@use '../../tokens' as *;
+@use '../../colors' as *;
+@use './tokens' as *;
+@use './colors' as *;
+
+// ── Conteneur global ─────────────────────────────────────────────
+.mcm-builder {
+  margin-top: var(--spacing-xl);
+}
+
+// ── Rangée des cartes ────────────────────────────────────────────
+.mcm-row {
+  display: flex;
+}
+
+// Horizontal : défilement par défaut ; padding-top réserve la place du × débordant.
+.mcm-row--horizontal {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+  overflow-x: auto;
+  padding-top: var(--multi-criterion-row-pad-top);
+  padding-bottom: var(--spacing-md);
+}
+
+// Horizontal + wrap : retour à la ligne automatique, plus de défilement.
+.mcm-row--horizontal.mcm-row--wrap {
+  flex-wrap: wrap;
+  overflow-x: visible;
+  align-items: flex-start;
+  row-gap: var(--spacing-xl);
+  padding-bottom: 0;
+}
+
+// Vertical : pile bornée en largeur.
+.mcm-row--vertical {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  max-width: var(--multi-criterion-row-max-width);
+}
+
+// ── Emplacement d'une carte ──────────────────────────────────────
+.mcm-slot {
+  position: relative;
+  display: flex;
+
+  > * { width: 100%; }
+}
+.mcm-row--horizontal .mcm-slot {
+  flex: 0 0 var(--multi-criterion-slot-width);
+  width: var(--multi-criterion-slot-width);
+}
+.mcm-row--vertical .mcm-slot {
+  width: 100%;
+}
+
+// Espace inter-cartes quand les connecteurs sont masqués : deux slots ne sont frères
+// ADJACENTS que sans connecteur entre eux (sinon le Connector s'intercale) → la marge
+// ne s'applique qu'à ce cas, sans div de remplissage.
+.mcm-row--horizontal .mcm-slot + .mcm-slot { margin-inline-start: var(--multi-criterion-gap); }
+.mcm-row--vertical .mcm-slot + .mcm-slot { margin-block-start: var(--multi-criterion-gap); }
+
+// ── Trait reliant la dernière carte au bouton + ──────────────────
+// Réutilise les modificateurs d'orientation du connecteur (.mcm-connector--*,
+// définis dans Connector.scss) pour la cohérence.
+.mcm-add-connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  align-self: center;
+
+  &.mcm-connector--horizontal {
+    padding: 0 var(--multi-criterion-connector-h-gap);
+
+    .mcm-connector__line { width: var(--multi-criterion-connector-h-line); height: 1px; }
+  }
+  &.mcm-connector--vertical {
+    padding: var(--spacing-sm) 0;
+
+    .mcm-connector__line { width: 1px; height: var(--multi-criterion-add-connector-v-line); }
+  }
+}
+
+// ── Bouton + ─────────────────────────────────────────────────────
+.mcm-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--multi-criterion-add-size);
+  height: var(--multi-criterion-add-size);
+  flex-shrink: 0;
+  border: var(--multi-criterion-add-border-width) dashed hsl(var(--multi-criterion-add-border));
+  border-radius: var(--border-radius-md);
+  background: transparent;
+  color: hsl(var(--multi-criterion-add-color));
+  cursor: pointer;
+  transition: border-color var(--transition-fast),
+              color var(--transition-fast),
+              background var(--transition-fast);
+
+  &:hover {
+    border-color: hsl(var(--multi-criterion-add-hover-border));
+    color: hsl(var(--multi-criterion-add-hover-color));
+    background: hsl(var(--multi-criterion-add-hover-bg));
+  }
+  svg {
+    width: var(--multi-criterion-add-icon-size);
+    height: var(--multi-criterion-add-icon-size);
+  }
+}
+.mcm-add--horizontal { align-self: center; }
+.mcm-add--vertical {
+  align-self: center;
+  margin-top: var(--spacing-xs);
+}
+
+// Le wrapper de tooltip du bouton + ne doit pas s'étirer sur la hauteur de la carte
+// (sinon la bulle s'ancre tout en haut et sort du conteneur).
+.mcm-add-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  align-self: center;
+
+  .tooltip-wrap { align-self: center; }
+}
+
+// ── Note « maximum atteint » ─────────────────────────────────────
+.mcm-max-note {
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--multi-criterion-max-note-color));
+  font-style: italic;
+}

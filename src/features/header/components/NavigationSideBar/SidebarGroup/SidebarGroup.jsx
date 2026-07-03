@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSidebar } from '../NavigationSideBar/NavigationSideBar';
 import { AccessibleIcon } from '@/features/accessibility';
+import { ChevronIcon } from '@/components/icons';
 import SidebarNode from '../SidebarNode/SidebarNode';
 import './SidebarGroup.scss';
 
@@ -163,17 +164,12 @@ const SidebarGroup = ({
                 >
                     <AccessibleIcon
                         icon={
-                            <svg
+                            <ChevronIcon
+                                direction="right"
                                 className="sidebar-toggle-icon"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                            >
-                                <path d="m9 18 6-6-6-6" />
-                            </svg>
+                                width={16}
+                                height={16}
+                            />
                         }
                         label={isExpanded ? 'Fermer' : 'Ouvrir'}
                         decorative={true}

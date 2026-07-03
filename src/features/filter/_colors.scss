@@ -1,0 +1,15 @@
+// ===== TOKENS DE COULEURS — FEATURE FILTER (maille module) =====
+// Couleurs MUTUALISÉES entre CriterionMenu et MultiCriterionMenu. Chaque composant
+// définit ses tokens préfixés (--criterion-* / --multi-criterion-*) qui reprennent
+// PAR DÉFAUT ces valeurs mais peuvent être ajustés localement (cf. header).
+//
+// ⚠️ RÈGLE : une couleur propre à UN seul composant vit dans le _colors.scss de ce
+// composant, pas ici.
+
+:root {
+  // ===== Surfaces & bordures de filtre (base commune) =====
+  --filter-bg:            var(--color-surface);
+  --filter-border:        var(--color-border);
+  --filter-border-strong: var(--color-border-hover);
+  --filter-label-color:   var(--color-text-tertiary);
+}

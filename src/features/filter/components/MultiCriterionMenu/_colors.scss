@@ -1,0 +1,21 @@
+// ===== TOKENS DE COULEURS — COMPOSANT MULTI CRITERION MENU =====
+// Tokens préfixés --multi-criterion-* : reprennent par défaut les couleurs mutualisées
+// de la feature (--filter-*) ou les tokens globaux (--color-*), surchargeables ici.
+
+:root {
+  // ===== Connecteur logique =====
+  --multi-criterion-connector-line:          var(--filter-border-strong);
+  --multi-criterion-connector-static-bg:     var(--color-gray-100);
+  --multi-criterion-connector-static-border: var(--filter-border);
+  --multi-criterion-connector-static-text:   var(--color-text-secondary);
+
+  // ===== Bouton + =====
+  --multi-criterion-add-border:       var(--filter-border-strong);
+  --multi-criterion-add-color:        var(--color-text-tertiary);
+  --multi-criterion-add-hover-border: var(--color-primary-500);
+  --multi-criterion-add-hover-color:  var(--color-primary-500);
+  --multi-criterion-add-hover-bg:     var(--color-primary-100);
+
+  // ===== Note « maximum atteint » =====
+  --multi-criterion-max-note-color: var(--color-text-tertiary);
+}

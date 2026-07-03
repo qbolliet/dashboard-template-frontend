@@ -1,0 +1,16 @@
+// ===== TOKENS DIMENSIONNELS — FEATURE FILTER (maille module) =====
+// Valeurs MUTUALISÉES entre CriterionMenu et MultiCriterionMenu. Chaque composant
+// définit ses propres tokens préfixés (--criterion-* / --multi-criterion-*) qui
+// REPRENNENT PAR DÉFAUT ces valeurs mais peuvent être ajustés localement — à l'image
+// du header (features/header/_tokens.scss + composants).
+//
+// ⚠️ RÈGLE : une dimension propre à UN seul composant vit dans le _tokens.scss de ce
+// composant, pas ici. Les valeurs alignées sur le barème global passent par
+// var(--spacing-*) ; les valeurs arbitraires restent annotées côté composant.
+
+:root {
+  // ===== Carte de filtre (base commune) =====
+  --filter-card-width:   100%;                // largeur (100% = épouse le conteneur)
+  --filter-card-padding: var(--spacing-lg);   // 16px - padding interne des lignes
+  --filter-card-gap:     var(--spacing-sm);   // 8px - gap label → champ
+}

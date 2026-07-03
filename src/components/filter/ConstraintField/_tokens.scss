@@ -1,0 +1,22 @@
+// ===== TOKENS DIMENSIONNELS — ConstraintField =====
+// Variables propres au champ de contrainte (rail, thumb, inputs, labels).
+// Importées par ConstraintField.scss via @use './_tokens'.
+// Les tokens partagés du groupe filter vivent dans ../_tokens.scss.
+
+:root {
+  // ===== RAIL =====
+  --constraint-rail-height: 4px;
+  --constraint-rail-radius: 2px;
+  --constraint-track-height: 1.5rem;            // hauteur de la zone contenant rail + thumbs
+
+  // ===== THUMB =====
+  --constraint-thumb-size: 10px;
+  --constraint-thumb-ring-size: 4px;            // taille du ring au survol/drag
+
+  // ===== INPUTS =====
+  --constraint-inputs-gap: var(--spacing-sm);
+
+  // ===== LABELS =====
+  --constraint-label-size: 10px;
+  --constraint-label-spacing: 0.06em;
+}

@@ -1,0 +1,25 @@
+// ===== TOKENS DE COULEURS — SelectMenu =====
+// Couleurs utilisées uniquement par ce composant (au-delà des tokens partagés
+// du groupe filter, voir ../_colors.scss). Importées par SelectMenu.scss.
+
+:root {
+  // ===== CASES À COCHER =====
+  --select-checkbox-border: var(--color-border-hover);  // contour case décochée
+  --select-checkbox-fill:   var(--filter-border-focus); // remplissage case cochée/indéterminée
+  --select-check-icon:      var(--color-white);         // ✓ et tiret indéterminé
+
+  // ===== BOUTON CHEVRON =====
+  --select-toggle-color:    var(--color-text-tertiary); // couleur au repos
+  --select-toggle-hover-bg: var(--color-gray-100);      // fond au survol
+
+  // ===== EN-TÊTE DE GROUPE SURVOLÉ/ACTIF =====
+  --select-group-highlight-bg: var(--color-gray-200);   // fond au survol clavier/souris
+}
+
+// ===== THÈME SOMBRE =====
+// gray-100/200 s'assombrissent fortement en dark → on décale d'un cran les fonds
+// interactifs pour conserver un contraste lisible (cohérent avec ../_colors.scss).
+[data-theme="dark"] {
+  --select-toggle-hover-bg:    var(--color-gray-200);
+  --select-group-highlight-bg: var(--color-gray-300);
+}

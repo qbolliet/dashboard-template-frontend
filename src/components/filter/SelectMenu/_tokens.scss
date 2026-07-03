@@ -1,0 +1,26 @@
+// ===== TOKENS DIMENSIONNELS — SelectMenu =====
+// Variables propres au composant (dimensions/espacements internes du dropdown
+// et des cases à cocher). Importées par SelectMenu.scss via @use './_tokens'.
+// Les tokens partagés du groupe filter vivent dans ../_tokens.scss
+// (--filter-control-width, --filter-toggle-width, --filter-dropdown-max-height…).
+
+:root {
+  // ===== CASES À COCHER (mode multi) =====
+  --select-checkbox-size:   14px;   // côté de la case
+  --select-checkbox-radius: 3px;    // léger arrondi de la case
+
+  // Icône ✓ à l'intérieur de la case cochée
+  --select-check-icon-size: 9px;
+
+  // ===== OPTIONS =====
+  // Indentation des options enfants en mode groupé (case de groupe + retrait)
+  --select-child-indent: 1.75rem;
+
+  // Padding des options (x = échelle, y = valeur fine hors échelle)
+  --select-option-padding-x: var(--spacing-md);   // 0.75rem — aligné sur la spec
+  --select-option-padding-y: 0.45rem;             // exception : densité du dropdown
+
+  // ===== MODE SINGLE =====
+  // Icône ✓ affichée à gauche du label sélectionné
+  --select-single-check-size: 12px;
+}

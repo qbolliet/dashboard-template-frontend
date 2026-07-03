@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import TopbarGroupSection from '../TopbarGroupSection/TopbarGroupSection';
 import TopbarGroupItem from '../TopbarGroupItem/TopbarGroupItem';

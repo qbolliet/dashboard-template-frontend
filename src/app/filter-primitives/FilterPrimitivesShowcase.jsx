@@ -1,0 +1,214 @@
+'use client'
+
+import { useState } from 'react'
+import SelectMenu from '../../components/filter/SelectMenu/SelectMenu'
+import TypeAwareInput from '../../components/filter/TypeAwareInput/TypeAwareInput'
+import ConstraintField from '../../components/filter/ConstraintField/ConstraintField'
+import Tooltip from '../../components/filter/Tooltip/Tooltip'
+import styles from './FilterPrimitivesShowcase.module.scss'
+
+// ── Sous-composants de mise en page ──────────────────────────────
+
+function ShowcaseSection({ title, children }) {
+  return (
+    <section className={styles.section}>
+      <h2 className={styles.sectionTitle}>{title}</h2>
+      <div className={styles.row}>{children}</div>
+    </section>
+  )
+}
+
+function ShowcaseCell({ label, children }) {
+  return (
+    <div className={styles.cell}>
+      <span className={styles.cellLabel}>{label}</span>
+      {children}
+    </div>
+  )
+}
+
+// ── Showcase principal ────────────────────────────────────────────
+
+const FilterPrimitivesShowcase = () => {
+  // État des SelectMenu (composants contrôlés)
+  const [selSingle, setSelSingle] = useState([])
+  const [selMulti, setSelMulti] = useState([])
+  const [selSingleGrouped, setSelSingleGrouped] = useState([])
+  const [selMultiGrouped, setSelMultiGrouped] = useState([])
+
+  // État des TypeAwareInput (composants contrôlés)
+  const [valText, setValText] = useState('')
+  const [valInt, setValInt] = useState('')
+  const [valFloat, setValFloat] = useState('')
+  const [valDate, setValDate] = useState('')
+  const [valDateRange, setValDateRange] = useState('')
+
+  return (
+    <>
+      {/* ── Tooltip ─────────────────────────────────────────────── */}
+      <ShowcaseSection title="Tooltip">
+        <ShowcaseCell label="Top">
+          <Tooltip content="Texte d'info" position="top">
+            <span className={styles.tooltipDemo} tabIndex={0}>Survoler</span>
+          </Tooltip>
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Bottom">
+          <Tooltip content="Texte d'info" position="bottom">
+            <span className={styles.tooltipDemo} tabIndex={0}>Survoler</span>
+          </Tooltip>
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Left">
+          <Tooltip content="Texte d'info" position="left">
+            <span className={styles.tooltipDemo} tabIndex={0}>Survoler</span>
+          </Tooltip>
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Right">
+          <Tooltip content="Texte d'info" position="right">
+            <span className={styles.tooltipDemo} tabIndex={0}>Survoler</span>
+          </Tooltip>
+        </ShowcaseCell>
+      </ShowcaseSection>
+
+      {/* ── Select Menu ─────────────────────────────────────────── */}
+      <ShowcaseSection title="Select Menu">
+        <ShowcaseCell label="Sélection unique · simple">
+          <SelectMenu
+            fieldName="demo"
+            allowMulti={false}
+            validate
+            value={selSingle}
+            onChange={setSelSingle}
+          />
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Multi-sélection · simple">
+          <SelectMenu
+            fieldName="demo"
+            allowMulti={true}
+            validate
+            value={selMulti}
+            onChange={setSelMulti}
+          />
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Sélection unique · groupée">
+          <SelectMenu
+            fieldName="demo"
+            allowMulti={false}
+            groupField="group"
+            validate
+            value={selSingleGrouped}
+            onChange={setSelSingleGrouped}
+          />
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Multi-sélection · groupée">
+          <SelectMenu
+            fieldName="demo"
+            allowMulti={true}
+            groupField="group"
+            validate
+            value={selMultiGrouped}
+            onChange={setSelMultiGrouped}
+          />
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Désactivé">
+          <SelectMenu
+            fieldName="demo"
+            allowMulti={false}
+            disabled={true}
+            value={[{ value: 'fr', label: 'France' }]}
+            onChange={() => {}}
+          />
+        </ShowcaseCell>
+      </ShowcaseSection>
+
+      {/* ── Type-Aware Input ─────────────────────────────────────── */}
+      <ShowcaseSection title="Type-Aware Input">
+        <ShowcaseCell label="Texte">
+          <TypeAwareInput
+            inputType="text"
+            value={valText}
+            onChange={setValText}
+          />
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Entier · validation">
+          <TypeAwareInput
+            inputType="integer"
+            validate={true}
+            value={valInt}
+            onChange={setValInt}
+          />
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Décimal · validation">
+          <TypeAwareInput
+            inputType="float"
+            validate={true}
+            value={valFloat}
+            onChange={setValFloat}
+          />
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Date">
+          <TypeAwareInput
+            inputType="date"
+            dateMode="single"
+            validate={true}
+            value={valDate}
+            onChange={setValDate}
+          />
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Plage de dates">
+          <TypeAwareInput
+            inputType="date"
+            dateMode="range"
+            validate={true}
+            value={valDateRange}
+            onChange={setValDateRange}
+          />
+        </ShowcaseCell>
+      </ShowcaseSection>
+
+      {/* ── Constraint Field ─────────────────────────────────────── */}
+      <ShowcaseSection title="Constraint Field">
+        <ShowcaseCell label="Float · valeur unique">
+          <ConstraintField valueType="float" rangeMode={false} step={0.1} />
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Float · intervalle">
+          <ConstraintField valueType="float" rangeMode={true} step={0.1} />
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Entier · intervalle · validation">
+          <ConstraintField valueType="integer" rangeMode={true} validate={true} min={0} max={50} />
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Float · sans slider">
+          <ConstraintField valueType="float" rangeMode={true} showSlider={false} validate={true} />
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Date · plage (calendrier + slider)">
+          <ConstraintField
+            valueType="date"
+            rangeMode={true}
+            validate={true}
+            min="01/01/2024"
+            max="31/12/2024" />
+        </ShowcaseCell>
+
+        <ShowcaseCell label="Float · bornes via API (useRangeBounds)">
+          <ConstraintField valueType="float" rangeMode={true} fieldName="gdp" />
+        </ShowcaseCell>
+      </ShowcaseSection>
+    </>
+  )
+}
+
+export default FilterPrimitivesShowcase

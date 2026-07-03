@@ -1,0 +1,92 @@
+{
+  "_comment": "Opérations de filtre proposées par CriterionMenu, indexées DIRECTEMENT par le sql_type de l'API GraphQL (getCatalogSchema.sql_type). La clé 'categorical' s'applique à tout champ is_categorical, quel que soit son sql_type. Résolution : filterTypes.resolveOperations().",
+
+  "categorical": [
+    { "value": "in", "label": "IN" },
+    { "value": "not_in", "label": "NOT IN" },
+    { "value": "eq", "label": "=" }
+  ],
+
+  "integer": [
+    { "value": "eq", "label": "=" },
+    { "value": "gt", "label": ">" },
+    { "value": "gte", "label": "≥" },
+    { "value": "lt", "label": "<" },
+    { "value": "lte", "label": "≤" },
+    { "value": "between", "label": "Entre" }
+  ],
+  "bigint": [
+    { "value": "eq", "label": "=" },
+    { "value": "gt", "label": ">" },
+    { "value": "gte", "label": "≥" },
+    { "value": "lt", "label": "<" },
+    { "value": "lte", "label": "≤" },
+    { "value": "between", "label": "Entre" }
+  ],
+  "smallint": [
+    { "value": "eq", "label": "=" },
+    { "value": "gt", "label": ">" },
+    { "value": "gte", "label": "≥" },
+    { "value": "lt", "label": "<" },
+    { "value": "lte", "label": "≤" },
+    { "value": "between", "label": "Entre" }
+  ],
+  "numeric": [
+    { "value": "eq", "label": "=" },
+    { "value": "gt", "label": ">" },
+    { "value": "gte", "label": "≥" },
+    { "value": "lt", "label": "<" },
+    { "value": "lte", "label": "≤" },
+    { "value": "between", "label": "Entre" }
+  ],
+  "double precision": [
+    { "value": "eq", "label": "=" },
+    { "value": "gt", "label": ">" },
+    { "value": "gte", "label": "≥" },
+    { "value": "lt", "label": "<" },
+    { "value": "lte", "label": "≤" },
+    { "value": "between", "label": "Entre" }
+  ],
+  "real": [
+    { "value": "eq", "label": "=" },
+    { "value": "gt", "label": ">" },
+    { "value": "gte", "label": "≥" },
+    { "value": "lt", "label": "<" },
+    { "value": "lte", "label": "≤" },
+    { "value": "between", "label": "Entre" }
+  ],
+
+  "date": [
+    { "value": "eq", "label": "=" },
+    { "value": "before", "label": "Avant" },
+    { "value": "after", "label": "Après" },
+    { "value": "between", "label": "Entre" }
+  ],
+  "timestamp": [
+    { "value": "eq", "label": "=" },
+    { "value": "before", "label": "Avant" },
+    { "value": "after", "label": "Après" },
+    { "value": "between", "label": "Entre" }
+  ],
+  "timestamp without time zone": [
+    { "value": "eq", "label": "=" },
+    { "value": "before", "label": "Avant" },
+    { "value": "after", "label": "Après" },
+    { "value": "between", "label": "Entre" }
+  ],
+
+  "boolean": [
+    { "value": "eq", "label": "=" }
+  ],
+
+  "text": [
+    { "value": "eq", "label": "=" },
+    { "value": "contains", "label": "Contient" },
+    { "value": "starts", "label": "Commence par" }
+  ],
+  "character varying": [
+    { "value": "eq", "label": "=" },
+    { "value": "contains", "label": "Contient" },
+    { "value": "starts", "label": "Commence par" }
+  ]
+}
