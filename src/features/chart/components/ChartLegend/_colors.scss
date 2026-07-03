@@ -1,0 +1,14 @@
+// ===== TOKENS DE COULEURS — ChartLegend (ChannelLegend + SequentialLegend + LegendGlyph) =====
+// Chrome de légende uniquement (labels, fonds, bordures) — les couleurs de série
+// affichées PAR les glyphes (LegendGlyph) proviennent de utils/encoding.js
+// (PALETTE/SEQUENTIAL), cf. remarque de _colors.scss racine de la feature.
+
+:root {
+  --chart-legend-label-color: var(--color-text-tertiary);
+  --chart-legend-item-color: var(--color-text-secondary);
+  --chart-legend-item-hover-bg: var(--color-gray-100);
+  --chart-legend-item-hover-color: var(--color-text-primary);
+
+  --chart-seq-bar-border: var(--color-border);
+  --chart-seq-scale-color: var(--color-text-tertiary);
+}

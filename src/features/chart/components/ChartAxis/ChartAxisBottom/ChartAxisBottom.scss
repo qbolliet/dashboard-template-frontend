@@ -1,0 +1,29 @@
+// =================================================================
+// CHART AXIS BOTTOM — axe des abscisses (@visx/axis AxisBottom + @visx/grid GridColumns)
+// =================================================================
+// Stylise les classNames posés par visx (.visx-axis-bottom, .visx-axis-line,
+// .visx-axis-tick) + notre className sur GridColumns (.chart-axis-grid). Couleurs
+// et opacités reprises de ChartAxis/_colors.scss (partagées avec ChartAxisLeft).
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
+
+.visx-axis-bottom .visx-axis-line {
+  stroke: hsl(var(--chart-axis-color) / var(--chart-axis-line-opacity));
+}
+.visx-axis-bottom .visx-axis-tick line {
+  stroke: hsl(var(--chart-axis-color) / var(--chart-axis-tick-opacity));
+}
+.visx-axis-bottom .chart-axis-tick-label {
+  font-size: var(--chart-axis-tick-font-size);
+  fill: hsl(var(--chart-axis-color) / var(--chart-axis-tick-label-opacity));
+}
+.visx-axis-bottom .chart-axis-label {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  fill: hsl(var(--chart-axis-color) / var(--chart-axis-label-opacity));
+}
+.chart-axis-grid.visx-columns line {
+  stroke: hsl(var(--chart-axis-color) / var(--chart-axis-grid-opacity));
+}

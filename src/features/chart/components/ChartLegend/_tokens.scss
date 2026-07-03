@@ -1,0 +1,27 @@
+// ===== TOKENS DIMENSIONNELS — ChartLegend (ChannelLegend + SequentialLegend + LegendGlyph) =====
+// Valeurs converties depuis design-system/project/styles/charts.css (.ca-legend*,
+// .ca-seq-*), mutualisées entre les trois composants de légende.
+
+:root {
+  // ===== Légende par canal (ChannelLegend) =====
+  --chart-legend-gap: var(--spacing-xs);            // 4px - écart vertical (mode liste)
+  --chart-legend-gap-h: var(--spacing-md);          // écart horizontal (mode ligne)
+  --chart-legend-group-gap: var(--spacing-lg);      // écart entre groupes de canaux
+  --chart-legend-group-gap-h: var(--spacing-xl);    // écart entre groupes (mode ligne)
+  --chart-legend-glyph-width: 2.125rem;             // 34px - largeur réservée au glyphe
+  --chart-legend-item-padding-y: 0.1875rem;         // 3px
+  --chart-legend-item-padding-x: 0.375rem;          // 6px
+  --chart-legend-item-gap: 0.375rem;                // 6px - entre glyphe et texte
+  --chart-legend-text-max-width: 12em;
+  --chart-legend-swatch-size: 0.6875rem;            // 11px
+  --chart-legend-label-font-size: 10px;             // Sous le barème (xs = 12px)
+  --chart-legend-item-font-size: var(--font-size-xs); // 12px
+  --chart-legend-faded-opacity: 0.35;
+
+  // ===== Légende séquentielle (SequentialLegend) =====
+  --chart-seq-legend-min-width: 11.25rem;  // 180px
+  --chart-seq-bar-thickness: 0.625rem;     // 10px (orientation horizontale)
+  --chart-seq-bar-v-thickness: 0.75rem;    // 12px (orientation verticale)
+  --chart-seq-bar-v-height: 10rem;         // 160px
+  --chart-seq-scale-font-size: 10.5px;     // Sous le barème
+}
