@@ -98,7 +98,9 @@ const MiniProjection = ({
     <Area
       data={sorted}
       y={(d) => posScale(d.pos)}
-      x0={0}
+      // Accessor fonction (et non `0`) : @visx/shape ignore `x0` quand il est
+      // falsy (`if (x0)`), retombant sur l'accessor x par défaut → NaN.
+      x0={() => 0}
       x1={(d) => vLen(d.value)}
       curve={curveMonotoneY}
       fill={color}
