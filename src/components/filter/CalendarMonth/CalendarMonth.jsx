@@ -81,8 +81,12 @@ const sameDay = (a, b) => a && b && a.toDateString() === b.toDateString();
  * @param {Function}      onSelect      - (date: Date) => void.
  * @param {boolean}       [navLeft]     - Show the previous-month chevron.
  * @param {boolean}       [navRight]    - Show the next-month chevron.
- * @param {number}        [minYear]     - Earliest selectable year (default: current year − 30).
- * @param {number}        [maxYear]     - Latest selectable year (default: current year + 5).
+ * @param {Date}          [minDate]     - Earliest selectable date; earlier days render inert.
+ * @param {Date}          [maxDate]     - Latest selectable date; later days render inert.
+ * @param {number}        [minYear]     - Earliest selectable year (default: `minDate`'s
+ *   year when provided, else current year − 30).
+ * @param {number}        [maxYear]     - Latest selectable year (default: `maxDate`'s
+ *   year when provided, else current year + 5).
  * @returns {JSX.Element}
  */
 const CalendarMonth = ({
@@ -98,6 +102,8 @@ const CalendarMonth = ({
   onSelect,
   navLeft = true,
   navRight = true,
+  minDate = null,
+  maxDate = null,
   minYear,
   maxYear,
 }) => {
@@ -133,10 +139,16 @@ const CalendarMonth = ({
     gridRef.current?.querySelector('button.calendar__day[tabindex="0"]')?.focus();
   });
 
-  // Plage d'années du sélecteur : paramétrable via minYear/maxYear.
-  // Défauts : année courante −30 à +5 (la plage n'a pas à couvrir l'année courante).
-  const minY = minYear ?? today.getFullYear() - 30;
-  const maxY = maxYear ?? today.getFullYear() + 5;
+  // Bornes de sélection normalisées au jour près (l'heure des Date fournies est ignorée)
+  const boundMin = minDate ? new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate()) : null;
+  const boundMax = maxDate ? new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate()) : null;
+  // Jour hors de [minDate, maxDate] → rendu inerte (non sélectionnable)
+  const isOutOfBounds = (date) => (boundMin && date < boundMin) || (boundMax && date > boundMax);
+
+  // Plage d'années du sélecteur : paramétrable via minYear/maxYear, sinon dérivée des
+  // bornes de sélection ; repli année courante −30 à +5.
+  const minY = minYear ?? boundMin?.getFullYear() ?? today.getFullYear() - 30;
+  const maxY = maxYear ?? boundMax?.getFullYear() ?? today.getFullYear() + 5;
   const years = Array.from({ length: maxY - minY + 1 }, (_, i) => minY + i);
 
   // Date réelle d'une cellule (résout le report d'année/mois pour les cellules « autres »)
@@ -163,6 +175,11 @@ const CalendarMonth = ({
     }
 
     const date = new Date(year, month, cell.d);
+    // Jour hors des bornes de sélection : atténué et inerte (comme un jour hors-mois)
+    if (isOutOfBounds(date)) {
+      classes.push('calendar__day--disabled');
+      return classes.join(' ');
+    }
     if (sameDay(date, today)) classes.push('calendar__day--today');
 
     // Sélection unique
@@ -230,10 +247,13 @@ const CalendarMonth = ({
       case 'PageUp': e.preventDefault(); goPrev(); focusDay(Math.min(tabbableDay, daysInPrev)); break;
       case 'PageDown': e.preventDefault(); goNext(); focusDay(Math.min(tabbableDay, daysInNext)); break;
       case 'Enter':
-      case ' ':
+      case ' ': {
         e.preventDefault();
-        onSelect(new Date(year, month, tabbableDay));
+        // Sélection refusée hors des bornes (le jour est inerte, sans bouton focusable)
+        const date = new Date(year, month, tabbableDay);
+        if (!isOutOfBounds(date)) onSelect(date);
         break;
+      }
       default:
     }
   };
@@ -288,15 +308,15 @@ const CalendarMonth = ({
           {weeks.map((week, ri) => (
             <tr key={ri}>
               {week.map((cell, ci) => {
-                // Jours « autres mois » : visuels mais inertes (hors arbre a11y)
-                if (cell.other) {
+                const date = cellDate(cell);
+                // Jours « autres mois » ou hors bornes : visuels mais inertes (hors arbre a11y)
+                if (cell.other || isOutOfBounds(date)) {
                   return (
                     <td key={ci} className="calendar__cell">
                       <span className={dayClass(cell)} aria-hidden="true">{cell.d}</span>
                     </td>
                   );
                 }
-                const date = cellDate(cell);
                 const cls = dayClass(cell);
                 // État ARIA dérivé des classes (évite de recalculer la logique de plage)
                 const isSelected = /--selected|--range-start|--range-end/.test(cls);

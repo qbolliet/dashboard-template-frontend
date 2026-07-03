@@ -37,6 +37,8 @@ const RANGE_PENDING = ' → …';
  *
  * @param {"text"|"integer"|"float"|"date"} [inputType] - Expected value type.
  * @param {"single"|"range"} [dateMode] - Date selection mode (date type only).
+ * @param {Date}     [minDate]  - Earliest selectable calendar date (date type only).
+ * @param {Date}     [maxDate]  - Latest selectable calendar date (date type only).
  * @param {boolean}  [validate] - Enable real-time validation feedback.
  * @param {number}   [precision] - Decimal places used to normalise floats on blur.
  * @param {string}   value      - Controlled value.
@@ -53,6 +55,8 @@ const RANGE_PENDING = ' → …';
 const TypeAwareInput = ({
   inputType = 'text',
   dateMode = 'single',
+  minDate,
+  maxDate,
   validate = false,
   precision = 2,
   value = '',
@@ -199,6 +203,38 @@ const TypeAwareInput = ({
     }
   };
 
+  // ── Ouverture du calendrier ─────────────────────────────────────
+  // Mois d'ouverture : date déjà saisie si valide, sinon aujourd'hui, le tout clampé
+  // dans [minDate, maxDate] (sans quoi le popover peut s'ouvrir sur un mois entièrement
+  // hors bornes, donc inerte). En plage, on recule d'un mois quand la base est le mois
+  // de maxDate, pour que le calendrier de droite (base + 1) reste dans les bornes.
+  const seedCalDate = () => {
+    // Première date de la valeur saisie (« A », « A → B » ou « A → … »)
+    const firstTyped = (value || '').split('→')[0].trim();
+    const typed = DATE_SINGLE_RE.test(firstTyped) ? parseDate(firstTyped) : null;
+    let base = typed ?? new Date();
+    if (maxDate && base > maxDate) base = maxDate;
+    if (minDate && base < minDate) base = minDate;
+    if (dateMode === 'range' && maxDate
+        && base.getFullYear() === maxDate.getFullYear()
+        && base.getMonth() === maxDate.getMonth()) {
+      base = new Date(base.getFullYear(), base.getMonth() - 1, 1);
+    }
+    return base;
+  };
+
+  // Bascule du popover ; à l'ouverture, les mois affichés sont recalés sur la graine.
+  const toggleCalendar = () => {
+    if (!calOpen) {
+      const s = seedCalDate();
+      setCalYear(s.getFullYear());
+      setCalMonth(s.getMonth());
+      setCalYear2(s.getMonth() === 11 ? s.getFullYear() + 1 : s.getFullYear());
+      setCalMonth2(s.getMonth() === 11 ? 0 : s.getMonth() + 1);
+    }
+    setCalOpen(!calOpen);
+  };
+
   // ── Synchronisation des deux mois (mode plage) ──────────────────
   // Changer le mois/année de gauche recale automatiquement le mois de droite à +1.
   const handleMonth1 = (m) => {
@@ -267,7 +303,7 @@ const TypeAwareInput = ({
           <button
             type="button"
             className="type-input__cal-btn"
-            onClick={() => setCalOpen((o) => !o)}
+            onClick={toggleCalendar}
             disabled={disabled}
             aria-haspopup="dialog"
             aria-expanded={calOpen}
@@ -298,6 +334,8 @@ const TypeAwareInput = ({
             month={calMonth}
             onMonthChange={handleMonth1}
             onYearChange={handleYear1}
+            minDate={minDate}
+            maxDate={maxDate}
             selected={selectedDate}
             rangeStart={dateMode === 'range' ? rangeStart : null}
             rangeEnd={dateMode === 'range' ? rangeEnd : null}
@@ -314,6 +352,8 @@ const TypeAwareInput = ({
               month={calMonth2}
               onMonthChange={setCalMonth2}
               onYearChange={setCalYear2}
+              minDate={minDate}
+              maxDate={maxDate}
               rangeStart={rangeStart}
               rangeEnd={rangeEnd}
               hoverDate={hoverDate}

@@ -9,9 +9,12 @@
 // Les opérations par type vivent dans `config/filter/operations.json`.
 
 // ── Formats de date attendus (saisie manuelle) ──
-// Aligné sur TypeAwareInput (séparateur de plage « → »).
-export const DATE_SINGLE_RE = /^\d{2}\/\d{2}\/\d{4}$/;
-export const DATE_RANGE_RE = /^\d{2}\/\d{2}\/\d{4} → \d{2}\/\d{2}\/\d{4}$/;
+// Source unique : utils/dateParse des primitives (séparateur de plage « → » compris) ;
+// ré-exportés ici pour les consommateurs de la feature.
+import { DATE_SINGLE_RE, DATE_RANGE_RE } from '@/components/filter/utils/dateParse';
+
+export { DATE_SINGLE_RE, DATE_RANGE_RE };
+
 
 // =================================================================
 // a) Prédicats de type SQL (familles PostgreSQL)

@@ -39,26 +39,37 @@ const makeBlank = (id) => ({
  * @param {boolean} [wrap=false] - Horizontal only: wrap cards instead of scrolling.
  * @param {boolean} [parentheses=true] - Enables the grouping brackets on cards.
  * @param {{value: string, label: string}[]} [connectorOptions=DEFAULT_CONNECTORS] -
- *   Options of the connector select.
- * @param {?string} [fixedConnector=null] - Single connector applied between every
- *   card (renders connectors as static labels). null = free choice.
+ *   Options of the connector select. A single option renders the connectors as static
+ *   labels (the way to impose one connector between every card).
  * @param {boolean} [showConnectors=true] - Renders the connector between cards.
  * @param {{value: string, label: string, sql_type: string, is_categorical: boolean}[]} [variables=[]] -
  *   Variable metadata list.
  * @param {Object<string, {value: string, label: string}[]>} [operationsByType={}] -
  *   Operations indexed by sql_type / "categorical".
  * @param {string} [catalog] - API catalog forwarded to the cards' value primitives.
+ * @param {?Array<{variable: ?string, operation: ?string, value: *, sql_type: ?string,
+ *   is_categorical: ?boolean, bracketLeft: ?boolean, bracketRight: ?boolean,
+ *   connectorBefore: ?string}>} [defaultCriteria=null] - Initial criteria seeding the
+ *   builder (e.g. a persisted filter, same shape as the `criteria` emitted by
+ *   `onChange`). Uncontrolled: read once at mount (and on lock reset); ignored when
+ *   `lockedVariables` is set.
  * @param {?string[]} [lockedVariables=null] - Variable ids freezing each card (fixed
  *   number of cards). null = free.
- * @param {?string[]} [lockedOperations=null] - Operation ids aligned on lockedVariables.
- * @param {boolean} [showOperations=true] - Renders the operation row of each card.
+ * @param {?string[]} [lockedOperations=null] - Operation ids aligned on lockedVariables;
+ *   each entry freezes the operation of its own card only.
+ * @param {boolean} [showOperations=true] - Renders the operation row of each card
+ *   (mapped to each card's singular `showOperation` prop).
  * @param {'button'|'auto'} [addMode='button'] - Card adding strategy.
- * @param {?number} [maxMenus=null] - Maximum number of cards (null = unlimited).
+ * @param {?number} [maxCriteria=null] - Maximum number of cards (null = unlimited).
  * @param {boolean} [validate=false] - Colors card validity.
  * @param {boolean} [footer=false] - Renders each card's validity footer (with `validate`).
  * @param {boolean} [showLabels=false] - Shows the Variable/Operation/Value labels.
- * @param {function({tree: object, balanced: boolean, serial: object}): void} [onChange] -
- *   Receives the structured value whenever it changes.
+ * @param {boolean} [showSlider=false] - Numeric/date value fields: render the slider bar.
+ * @param {function({criteria: Array, tree: object, balanced: boolean, serial: object}): void} [onChange] -
+ *   Receives the structured value whenever it changes; `criteria` is the flat list
+ *   (reusable as `defaultCriteria` to rehydrate the builder).
+ * @param {string} [className] - Additional class(es) merged on the root element.
+ * @param {Object} [style] - Additional inline styles merged on the root element.
  * @returns {JSX.Element}
  */
 const MultiCriterionMenu = ({
@@ -66,31 +77,30 @@ const MultiCriterionMenu = ({
   wrap = false,
   parentheses = true,
   connectorOptions = DEFAULT_CONNECTORS,
-  fixedConnector = null,
   showConnectors = true,
   variables = [],
   operationsByType = {},
   catalog,
+  defaultCriteria = null,
   lockedVariables = null,
   lockedOperations = null,
   showOperations = true,
   addMode = 'button',
-  maxMenus = null,
+  maxCriteria = null,
   validate = false,
   footer = false,
   showLabels = false,
+  showSlider = false,
   onChange,
+  className = '',
+  style,
 }) => {
   // Configuration de figeage (null si aucune variable figée)
   const lockedVars = lockedVariables && lockedVariables.length ? lockedVariables : null;
-  // Connecteur par défaut : fixe, sinon première option, sinon 'AND'
-  const defaultConn = fixedConnector || (connectorOptions[0] ? connectorOptions[0].value : 'AND');
-  // Connecteur figé en libellé statique : fixe imposé OU une seule option disponible
-  const connectorIsStatic = !!fixedConnector || connectorOptions.length <= 1;
-  // Options réellement passées au select (réduites au connecteur fixe le cas échéant)
-  const effectiveOptions = fixedConnector
-    ? [{ value: fixedConnector, label: fixedConnector }]
-    : connectorOptions;
+  // Connecteur par défaut : première option, sinon 'AND'
+  const defaultConn = connectorOptions[0] ? connectorOptions[0].value : 'AND';
+  // Connecteur figé en libellé statique : une seule option disponible
+  const connectorIsStatic = connectorOptions.length <= 1;
 
   // Critère figé sur une variable (+ opération éventuellement imposée)
   const makeLocked = (variableId, lockedOp, id) => {
@@ -111,18 +121,41 @@ const MultiCriterionMenu = ({
     };
   };
 
-  // Construit le jeu de cartes initial (ids attribués par index, 1..n)
-  const buildCards = () =>
-    lockedVars
-      ? lockedVars.map((vid, i) => makeLocked(vid, lockedOperations && lockedOperations[i], i + 1))
-      : [makeBlank(1)];
+  // Construit le jeu de cartes initial (ids attribués par index, 1..n) :
+  // variables figées > critères par défaut (filtre persisté) > carte vierge.
+  const buildCards = () => {
+    if (lockedVars) {
+      return lockedVars.map((vid, i) => makeLocked(vid, lockedOperations && lockedOperations[i], i + 1));
+    }
+    if (defaultCriteria && defaultCriteria.length) {
+      return defaultCriteria.map((c, i) => ({
+        id: i + 1,
+        variable: c.variable ?? null,
+        operation: c.operation ?? null,
+        value: c.value ?? null,
+        sql_type: c.sql_type ?? null,
+        is_categorical: !!c.is_categorical,
+        bracketLeft: !!c.bracketLeft,
+        bracketRight: !!c.bracketRight,
+      }));
+    }
+    return [makeBlank(1)];
+  };
+
+  // Connecteurs initiaux alignés sur buildCards (connectorBefore des critères semés)
+  const buildInitialConnectors = () => {
+    if (lockedVars) return lockedVars.slice(1).map(() => defaultConn);
+    if (defaultCriteria && defaultCriteria.length) {
+      return defaultCriteria.slice(1).map((c) => c.connectorBefore || defaultConn);
+    }
+    return [];
+  };
 
   // État : cartes + connecteurs (connectors[i] relie criteria[i] et criteria[i+1])
   const [criteria, setCriteria] = useState(buildCards);
-  const [connectors, setConnectors] = useState(() =>
-    lockedVars ? lockedVars.slice(1).map(() => defaultConn) : []);
+  const [connectors, setConnectors] = useState(buildInitialConnectors);
 
-  const atMax = maxMenus != null && maxMenus > 0 && criteria.length >= maxMenus;
+  const atMax = maxCriteria != null && maxCriteria > 0 && criteria.length >= maxCriteria;
 
   // ── Réinitialisation au changement de configuration de figeage ──
   // Pattern « ajustement d'état pendant le rendu » (React docs : You Might Not Need an
@@ -133,19 +166,18 @@ const MultiCriterionMenu = ({
   const [prevLockSig, setPrevLockSig] = useState(lockSig);
   if (prevLockSig !== lockSig) {
     setPrevLockSig(lockSig);
-    const cards = buildCards();
-    setCriteria(cards);
-    setConnectors(cards.slice(1).map(() => defaultConn));
+    setCriteria(buildCards());
+    setConnectors(buildInitialConnectors());
   }
 
-  // ── Réduction du nombre de cartes si maxMenus passe sous la longueur actuelle ──
-  // Même pattern d'ajustement pendant le rendu, déclenché au changement de maxMenus.
-  const [prevMax, setPrevMax] = useState(maxMenus);
-  if (prevMax !== maxMenus) {
-    setPrevMax(maxMenus);
-    if (!lockedVars && maxMenus != null && maxMenus > 0 && criteria.length > maxMenus) {
-      setCriteria((prev) => prev.slice(0, maxMenus));
-      setConnectors((prev) => prev.slice(0, Math.max(0, maxMenus - 1)));
+  // ── Réduction du nombre de cartes si maxCriteria passe sous la longueur actuelle ──
+  // Même pattern d'ajustement pendant le rendu, déclenché au changement de maxCriteria.
+  const [prevMax, setPrevMax] = useState(maxCriteria);
+  if (prevMax !== maxCriteria) {
+    setPrevMax(maxCriteria);
+    if (!lockedVars && maxCriteria != null && maxCriteria > 0 && criteria.length > maxCriteria) {
+      setCriteria((prev) => prev.slice(0, maxCriteria));
+      setConnectors((prev) => prev.slice(0, Math.max(0, maxCriteria - 1)));
     }
   }
 
@@ -202,10 +234,11 @@ const MultiCriterionMenu = ({
     is_categorical: c.is_categorical,
     bracketLeft: parentheses ? !!c.bracketLeft : false,
     bracketRight: parentheses ? !!c.bracketRight : false,
-    connectorBefore: i === 0 ? null : fixedConnector || connectors[i - 1] || defaultConn,
+    connectorBefore: i === 0 ? null : connectors[i - 1] || defaultConn,
   }));
   const { tree, balanced } = buildTree(items);
-  const structure = { tree, balanced, serial: serialize(tree) };
+  // `criteria` (liste plate) permet la persistance : réinjectable en defaultCriteria.
+  const structure = { criteria: items, tree, balanced, serial: serialize(tree) };
 
   // Remontée de la valeur : effet dépendant de la valeur dérivée `structure`
   useEffect(() => {
@@ -219,7 +252,7 @@ const MultiCriterionMenu = ({
     `mcm-row mcm-row--${orientation}${orientation === 'horizontal' && wrap ? ' mcm-row--wrap' : ''}`;
 
   return (
-    <div className="mcm-builder">
+    <div className={`mcm-builder${className ? ` ${className}` : ''}`} style={style}>
       <div className={rowClass}>
         {criteria.map((c, i) => (
           <Fragment key={c.id}>
@@ -229,8 +262,8 @@ const MultiCriterionMenu = ({
               <Connector
                 orientation={orientation}
                 isStatic={connectorIsStatic}
-                value={fixedConnector || connectors[i - 1] || defaultConn}
-                options={effectiveOptions}
+                value={connectors[i - 1] || defaultConn}
+                options={connectorOptions}
                 onChange={(v) => setConnector(i - 1, v)} />
             )}
 
@@ -238,8 +271,7 @@ const MultiCriterionMenu = ({
               <CriterionMenu
                 criterion={c}
                 onChange={(next) => updateCriterion(i, next)}
-                onRemove={() => removeCriterion(i)}
-                removable={!lockedVars && criteria.length > 1}
+                onRemove={!lockedVars && criteria.length > 1 ? () => removeCriterion(i) : undefined}
                 variables={variables}
                 operationsByType={operationsByType}
                 catalog={catalog}
@@ -248,8 +280,9 @@ const MultiCriterionMenu = ({
                 footer={footer}
                 showLabels={showLabels}
                 lockedVariable={!!lockedVars}
-                lockedOperation={!!(lockedOperations && lockedOperations.length)}
-                showOperation={showOperations} />
+                lockedOperation={!!(lockedOperations && lockedOperations[i])}
+                showOperation={showOperations}
+                showSlider={showSlider} />
             </div>
           </Fragment>
         ))}
@@ -278,7 +311,7 @@ const MultiCriterionMenu = ({
       </div>
 
       {atMax && !lockedVars && (
-        <p className="mcm-max-note">Nombre maximum de critères atteint ({maxMenus}).</p>
+        <p className="mcm-max-note">Nombre maximum de critères atteint ({maxCriteria}).</p>
       )}
     </div>
   );

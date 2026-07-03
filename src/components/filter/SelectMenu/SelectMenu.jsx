@@ -14,17 +14,18 @@ import './SelectMenu.scss';
  * @param {string}   fieldName    - Nom du champ API (ex: "country").
  * @param {string}   [catalog]    - Catalogue API (ex: "macroeconomics").
  * @param {boolean}  [allowMulti] - Active la sélection multiple.
- * @param {boolean}  [grouped]    - Active le mode options groupées.
- * @param {string}   [groupField] - Champ de groupe pour le mode groupé.
+ * @param {string}   [groupField] - Champ de groupe ; sa présence active le mode groupé.
  * @param {{value: string, label: string}[]} [options] - Liste statique d'options ;
  *   si fournie, court-circuite useSelectOptions (filtrage client uniquement, groupé non supporté).
  * @param {Array}    value        - Tableau des valeurs sélectionnées [{value, label}].
- * @param {Function} onChange     - Callback(newValues: [{value, label}][]).
+ * @param {Function} onChange     - (newValues: {value, label}[]) => void.
  * @param {boolean}  [disabled]
  * @param {string}   [placeholder]
  * @param {boolean}  [compact]    - Variante compacte (hauteur réduite, mono, centré).
- * @param {boolean}  [validate]   - Active la coloration succès quand une valeur est choisie.
- *   Désactivé (false), le container reste neutre même renseigné.
+ * @param {boolean}  [validate]   - Active la coloration succès quand une valeur est choisie
+ *   (aucune validation réelle : simple retour visuel « rempli »). Désactivé par défaut.
+ * @param {string}   [id]         - Id appliqué à l'input combobox, pour un <label htmlFor>
+ *   externe ; sert aussi de base aux ids ARIA du listbox (unicité entre instances).
  * @param {string}   [className]  - Classe(s) additionnelle(s) fusionnée(s) sur le conteneur racine.
  * @param {Object}   [style]      - Styles inline additionnels fusionnés sur le conteneur racine.
  * @returns {JSX.Element}
@@ -33,7 +34,6 @@ const SelectMenu = ({
   fieldName,
   catalog,
   allowMulti = false,
-  grouped = false,
   groupField,
   options,
   value = [],
@@ -41,10 +41,14 @@ const SelectMenu = ({
   disabled = false,
   placeholder = 'Sélectionner…',
   compact = false,
-  validate = true,
+  validate = false,
+  id,
   className = '',
   style,
 }) => {
+  // Mode groupé dérivé de la présence du champ de groupe (une seule source de vérité)
+  const grouped = !!groupField;
+
   // État local : ouverture du dropdown, terme de recherche, curseur clavier
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState('');
@@ -56,7 +60,7 @@ const SelectMenu = ({
 
   // Récupération des options via hook — ignorée quand `options` prop est fournie.
   const { options: hookOptions, groups: hookGroups } = useSelectOptions({
-    fieldName, catalog, grouped, groupField, searchTerm: filter,
+    fieldName, catalog, groupField, searchTerm: filter,
   });
 
   // Mode statique : filtrage client sur la prop `options` ; groupé non supporté.
@@ -215,8 +219,9 @@ const SelectMenu = ({
     setTimeout(() => filterRef.current?.focus(), 50);
   };
 
-  // Identifiant du listbox, exposé via aria-controls sur le combobox
-  const listboxId = `select-${fieldName || 'options'}-listbox`;
+  // Identifiant du listbox, exposé via aria-controls sur le combobox. L'`id` externe
+  // prime : il garantit l'unicité quand plusieurs selects partagent le même fieldName.
+  const listboxId = `${id || `select-${fieldName || 'options'}`}-listbox`;
   // Id stable d'une ligne navigable, ciblé par aria-activedescendant
   const rowId = (i) => `${listboxId}-row-${i}`;
   // Ligne actuellement surlignée (pour aria-activedescendant de l'input)
@@ -350,6 +355,7 @@ const SelectMenu = ({
         {/* Input de filtre — masqué (mais focusable) quand une valeur single est affichée */}
         <input
           ref={filterRef}
+          id={id}
           type="text"
           className={`select-filter ${isSingleSelected ? 'select-filter--hidden' : ''}`}
           placeholder={value.length === 0 ? placeholder : ''}

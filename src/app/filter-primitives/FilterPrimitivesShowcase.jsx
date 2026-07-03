@@ -78,7 +78,7 @@ const FilterPrimitivesShowcase = () => {
           <SelectMenu
             fieldName="demo"
             allowMulti={false}
-            grouped={false}
+            validate
             value={selSingle}
             onChange={setSelSingle}
           />
@@ -88,7 +88,7 @@ const FilterPrimitivesShowcase = () => {
           <SelectMenu
             fieldName="demo"
             allowMulti={true}
-            grouped={false}
+            validate
             value={selMulti}
             onChange={setSelMulti}
           />
@@ -98,7 +98,8 @@ const FilterPrimitivesShowcase = () => {
           <SelectMenu
             fieldName="demo"
             allowMulti={false}
-            grouped={true}
+            groupField="group"
+            validate
             value={selSingleGrouped}
             onChange={setSelSingleGrouped}
           />
@@ -108,7 +109,8 @@ const FilterPrimitivesShowcase = () => {
           <SelectMenu
             fieldName="demo"
             allowMulti={true}
-            grouped={true}
+            groupField="group"
+            validate
             value={selMultiGrouped}
             onChange={setSelMultiGrouped}
           />
@@ -118,7 +120,6 @@ const FilterPrimitivesShowcase = () => {
           <SelectMenu
             fieldName="demo"
             allowMulti={false}
-            grouped={false}
             disabled={true}
             value={[{ value: 'fr', label: 'France' }]}
             onChange={() => {}}

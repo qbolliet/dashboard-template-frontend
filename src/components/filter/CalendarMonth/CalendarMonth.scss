@@ -142,12 +142,14 @@
   }
 
   // Survol d'un jour ordinaire (ni sélectionné, ni borne de plage)
-  &:hover:not(.calendar__day--other):not(.calendar__day--selected):not(.calendar__day--range-start):not(.calendar__day--range-end) {
+  &:hover:not(.calendar__day--other):not(.calendar__day--disabled):not(.calendar__day--selected):not(.calendar__day--range-start):not(.calendar__day--range-end) {
     background: hsl(var(--color-gray-100));
   }
 
-  // Jours hors du mois affiché : atténués et inertes (pas de onClick)
-  &--other {
+  // Jours hors du mois affiché ou hors des bornes minDate/maxDate :
+  // atténués et inertes (rendus en <span>, pas de onClick)
+  &--other,
+  &--disabled {
     color: hsl(var(--color-text-tertiary));
     cursor: default;
   }

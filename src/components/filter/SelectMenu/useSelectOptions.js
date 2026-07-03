@@ -15,13 +15,13 @@ import { MOCK_FLAT_OPTIONS, MOCK_GROUPED_OPTIONS, MOCK_OPTIONS_BY_FIELD } from '
  * @param {string}  params.fieldName    - API field name (also used as the
  *   `optionsField` in grouped mode). Ignored by the mock resolver.
  * @param {string}  [params.catalog]    - API catalog (mock: ignored).
- * @param {boolean} [params.grouped]    - Enables grouped-options mode.
- * @param {string}  [params.groupField] - Group field in grouped mode (mock: ignored).
+ * @param {string}  [params.groupField] - Group field; its presence enables the
+ *   grouped-options mode (mock: ignored).
  * @param {string}  [params.searchTerm] - Text filter applied to labels.
  * @returns {{ options: Array, groups: Array, loading: boolean, error: (Error|null) }}
  *   Flat options, grouped options ([{ group, options }]), loading flag and error.
  */
-export function useSelectOptions({ fieldName, catalog, grouped, groupField, searchTerm } = {}) {
+export function useSelectOptions({ fieldName, catalog, groupField, searchTerm } = {}) {
   // État du résultat courant. `key` identifie le jeu d'inputs qui l'a produit :
   // on s'en sert pour dériver `loading` sans setState synchrone dans l'effet
   // (interdit par les Rules of Hooks v6 — règle set-state-in-effect).
@@ -29,12 +29,14 @@ export function useSelectOptions({ fieldName, catalog, grouped, groupField, sear
 
   // Clé de la requête courante (miroir de celle stockée dans l'effet). Doit être
   // construite à l'identique des deux côtés pour que la comparaison soit fiable.
-  const requestKey = `${fieldName}|${catalog}|${grouped}|${groupField}|${searchTerm}`;
+  const requestKey = `${fieldName}|${catalog}|${groupField}|${searchTerm}`;
 
   useEffect(() => {
     // Garde d'annulation : ignore la réponse si les inputs ont changé entre-temps.
     let cancelled = false;
-    const key = `${fieldName}|${catalog}|${grouped}|${groupField}|${searchTerm}`;
+    // Mode groupé dérivé de la présence du champ de groupe (aligné sur SelectMenu)
+    const grouped = !!groupField;
+    const key = `${fieldName}|${catalog}|${groupField}|${searchTerm}`;
     const term = (searchTerm || '').trim().toLowerCase();
 
     // --- Fallback mock : filtrage client résolu en asynchrone pour exercer le
@@ -121,7 +123,7 @@ export function useSelectOptions({ fieldName, catalog, grouped, groupField, sear
       .catch((err) => { if (!cancelled) setResult({ key, error: err, flat: [], groups: [] }); });
 
     return () => { cancelled = true; };
-  }, [fieldName, catalog, grouped, groupField, searchTerm]);
+  }, [fieldName, catalog, groupField, searchTerm]);
 
   // `loading` dérivé : vrai tant que le résultat stocké ne correspond pas aux
   // inputs courants (premier rendu ou inputs qui viennent de changer). Pendant

@@ -12,7 +12,7 @@ import './ValueField.scss';
  * component no longer receives them.
  *
  * Purely presentational — no internal state. The numeric/date value verdict computed by
- * {@link ConstraintField} is forwarded to the parent through `onFieldValidity`
+ * {@link ConstraintField} is forwarded to the parent through `onValidityChange`
  * (min ≤ max, within bounds…); the other field types leave it untouched (the card falls
  * back to `isComplete`).
  *
@@ -21,7 +21,7 @@ import './ValueField.scss';
  * @param {?string} operation - Selected operation value.
  * @param {*} value - Current value in the criterion's internal format.
  * @param {function(*): void} onChange - Emits the next internal value.
- * @param {function(boolean): void} [onFieldValidity] - Receives ConstraintField's verdict.
+ * @param {function(boolean): void} [onValidityChange] - Receives ConstraintField's verdict.
  * @param {?string} fieldName - API field name (= variable id) feeding the primitives' hooks.
  * @param {?string} [catalog] - API catalog forwarded to the primitives.
  * @param {boolean} [validate] - Enables real-time validation on the field.
@@ -34,7 +34,7 @@ const ValueField = ({
   operation,
   value,
   onChange,
-  onFieldValidity,
+  onValidityChange,
   fieldName,
   catalog,
   validate = false,
@@ -93,10 +93,10 @@ const ValueField = ({
         validate={validate}
         showSlider={showSlider}
         inputsOnTop
-        valueLow={isRange ? value?.min : value}
-        valueHigh={isRange ? value?.max : undefined}
+        defaultValueLow={isRange ? value?.min : value}
+        defaultValueHigh={isRange ? value?.max : undefined}
         onChange={(out) => onChange(isRange ? { min: out.min, max: out.max } : out.value)}
-        onValidityChange={onFieldValidity} />
+        onValidityChange={onValidityChange} />
     );
   }
 
@@ -115,9 +115,9 @@ const ValueField = ({
         validate={validate}
         showSlider={showSlider}
         inputsOnTop
-        valueLow={value ?? ''}
+        defaultValueLow={value ?? ''}
         onChange={(out) => onChange(out.value ?? '')}
-        onValidityChange={onFieldValidity} />
+        onValidityChange={onValidityChange} />
     );
   }
 

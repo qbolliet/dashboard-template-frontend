@@ -14,11 +14,24 @@
 @use '../tokens' as *;
 @use '../colors' as *;
 
-// Valeur de repli de l'accent : bordure neutre quand la validation est inactive.
-// Le parent surcharge --criterion-accent (vert/rouge) en inline.
+// Valeur de repli de l'accent : bordure neutre quand la validation est inactive
+// (état 'neutral'). Les états de validité surchargent --criterion-accent par classe.
 .criterion-card,
 .criterion-bracket-wrap {
   --criterion-accent: hsl(var(--criterion-border-default));
+}
+
+// ── États de validité ────────────────────────────────────────────
+// Mapping sémantique → couleur (posé ici, jamais côté JS). La classe est portée par la
+// carte ET le wrap : la carte redéclare la variable (repli ci-dessus), les crochets
+// l'héritent du wrap.
+.criterion-card--valid,
+.criterion-bracket-wrap--valid {
+  --criterion-accent: hsl(var(--color-success-500));
+}
+.criterion-card--invalid,
+.criterion-bracket-wrap--invalid {
+  --criterion-accent: hsl(var(--color-error-500));
 }
 
 // ── Coque ────────────────────────────────────────────────────────

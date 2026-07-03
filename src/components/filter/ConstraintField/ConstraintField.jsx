@@ -31,8 +31,10 @@ import './ConstraintField.scss';
  * @param {string}   [fieldName]   - API field name for {@link useRangeBounds}.
  * @param {string}   [catalog]     - API catalog for {@link useRangeBounds}.
  * @param {boolean}  [validate]    - Enable type + value validation feedback.
- * @param {string|number} [valueLow]  - Initial low value (or single value).
- * @param {string|number} [valueHigh] - Initial high value (numeric range only).
+ * @param {string|number} [defaultValueLow]  - Initial low value (or single value).
+ *   Uncontrolled: only seeds the internal state — remount via `key` to reset.
+ * @param {string|number} [defaultValueHigh] - Initial high value (numeric range only).
+ *   Uncontrolled, same contract as `defaultValueLow`.
  * @param {Function} onChange      - ({ value } | { min, max }) => void, string payloads.
  * @param {Function} [onValidityChange] - (valid: boolean) => void. VALUE verdict emitted
  *   alongside each onChange (filled AND consistent: type ok, low ≤ high, within bounds).
@@ -52,8 +54,8 @@ const ConstraintField = ({
   fieldName,
   catalog,
   validate = false,
-  valueLow,
-  valueHigh,
+  defaultValueLow,
+  defaultValueHigh,
   onChange,
   onValidityChange,
   disabled = false,
@@ -100,15 +102,17 @@ const ConstraintField = ({
   const boundsKnown = Number.isFinite(minN) && Number.isFinite(maxN) && maxN > minN;
   const renderTrack = showSlider && boundsKnown;
 
-  // ── État contrôlé (chaînes fournies aux TypeAwareInput) ─────────────────
+  // ── État interne semé par defaultValue* (non contrôlé — reset via `key`) ─
   // `low` = valeur unique / borne basse / « A → B » (plage de dates).
   // `high` = borne haute (plage numérique uniquement).
   const seedLow = () => {
-    if (isDateRange && valueLow && valueHigh) return `${valueLow}${DATE_RANGE_SEP}${valueHigh}`;
-    return valueLow != null ? String(valueLow) : '';
+    if (isDateRange && defaultValueLow && defaultValueHigh) {
+      return `${defaultValueLow}${DATE_RANGE_SEP}${defaultValueHigh}`;
+    }
+    return defaultValueLow != null ? String(defaultValueLow) : '';
   };
   const [low, setLow] = useState(seedLow);
-  const [high, setHigh] = useState(valueHigh != null ? String(valueHigh) : '');
+  const [high, setHigh] = useState(defaultValueHigh != null ? String(defaultValueHigh) : '');
 
   // Thumb en cours de drag ('low' | 'high' | null)
   const [dragging, setDragging] = useState(null);
@@ -397,6 +401,9 @@ const ConstraintField = ({
             id={lowId}
             inputType={valueType}
             dateMode={isDateRange ? 'range' : 'single'}
+            // Bornes transmises au calendrier : les jours hors [min, max] y sont inertes
+            minDate={isDate && boundsKnown ? new Date(minN) : undefined}
+            maxDate={isDate && boundsKnown ? new Date(maxN) : undefined}
             value={low}
             validate={validate}
             disabled={disabled}

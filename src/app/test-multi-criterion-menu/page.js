@@ -64,24 +64,25 @@ const TestMultiCriterionMenuPage = () => {
     .filter(Boolean);
 
   // ── Panneau de contrôle ──
-  const [orientation,    setOrientation]    = useState('horizontal');
-  const [wrap,           setWrap]           = useState(false);
-  const [parentheses,    setParentheses]    = useState(false);
-  const [showConnectors, setShowConnectors] = useState(true);
-  const [addMode,        setAddMode]        = useState('button');
-  const [maxMenusRaw,    setMaxMenusRaw]    = useState(0);
-  const [validate,       setValidate]       = useState(true);
-  const [footer,         setFooter]         = useState(false);
-  const [showLabels,     setShowLabels]     = useState(false);
-  const [showOperations, setShowOperations] = useState(true);
-  const [showJson,       setShowJson]       = useState(true);
-  const [showSql,        setShowSql]        = useState(true);
+  const [orientation,     setOrientation]     = useState('horizontal');
+  const [wrap,            setWrap]            = useState(false);
+  const [parentheses,     setParentheses]     = useState(false);
+  const [showConnectors,  setShowConnectors]  = useState(true);
+  const [addMode,         setAddMode]         = useState('button');
+  const [maxCriteriaRaw,  setMaxCriteriaRaw]  = useState(0);
+  const [validate,        setValidate]        = useState(true);
+  const [footer,          setFooter]          = useState(false);
+  const [showLabels,      setShowLabels]      = useState(false);
+  const [showOperations,  setShowOperations]  = useState(true);
+  const [showSlider,      setShowSlider]      = useState(false);
+  const [showJson,        setShowJson]        = useState(true);
+  const [showSql,         setShowSql]         = useState(true);
 
-  // Résultat structuré produit par MultiCriterionMenu ({ tree, balanced, serial })
+  // Résultat structuré produit par MultiCriterionMenu ({ criteria, tree, balanced, serial })
   const [result, setResult] = useState(null);
 
   // 0 = illimité → null pour le composant
-  const maxMenus = maxMenusRaw > 0 ? maxMenusRaw : null;
+  const maxCriteria = maxCriteriaRaw > 0 ? maxCriteriaRaw : null;
 
   // Le SQL de démonstration est dérivé ICI (côté page) à partir de l'arbre : le
   // MultiCriterionMenu n'expose que le JSON, cible à terme du seul échange avec l'API.
@@ -110,7 +111,7 @@ const TestMultiCriterionMenuPage = () => {
 
           <div className="ctrl-row">
             <CtrlRadio label="addMode" options={['button', 'auto']} value={addMode} onChange={setAddMode} />
-            <CtrlNumber label="maxMenus (0 = illimité)" value={maxMenusRaw} min={0} max={8} onChange={setMaxMenusRaw} />
+            <CtrlNumber label="maxCriteria (0 = illimité)" value={maxCriteriaRaw} min={0} max={8} onChange={setMaxCriteriaRaw} />
           </div>
 
           <div className="ctrl-row">
@@ -118,6 +119,7 @@ const TestMultiCriterionMenuPage = () => {
             <CtrlBtn label="footer"         value={footer}         onChange={setFooter} />
             <CtrlBtn label="showLabels"     value={showLabels}     onChange={setShowLabels} />
             <CtrlBtn label="showOperations" value={showOperations} onChange={setShowOperations} />
+            <CtrlBtn label="showSlider"     value={showSlider}     onChange={setShowSlider} />
           </div>
 
           <div className="ctrl-row">
@@ -138,10 +140,11 @@ const TestMultiCriterionMenuPage = () => {
             operationsByType={operations}
             showOperations={showOperations}
             addMode={addMode}
-            maxMenus={maxMenus}
+            maxCriteria={maxCriteria}
             validate={validate}
             footer={footer}
             showLabels={showLabels}
+            showSlider={showSlider}
             onChange={setResult} />
         </section>
 

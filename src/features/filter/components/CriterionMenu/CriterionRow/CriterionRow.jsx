@@ -11,30 +11,31 @@ import './CriterionRow.scss';
  *
  * @param {string} label - Row label (e.g. "Variable").
  * @param {number} [step] - Step number rendered in the badge beside the label.
- * @param {boolean} [hidden] - When true, the row renders nothing.
  * @param {boolean} [showLabel] - When false, hides the label and tooltips the content.
  * @param {string} [tooltipText] - Tooltip content used when the label is hidden.
+ * @param {string} [htmlFor] - Field control id; when provided, the label is rendered
+ *   as a real <label htmlFor> (accessible name of the control).
  * @param {React.ReactNode} children - The field content.
- * @returns {?JSX.Element}
+ * @returns {JSX.Element}
  */
 const CriterionRow = ({
   label,
   step,
-  hidden = false,
   showLabel = true,
   tooltipText,
+  htmlFor,
   children,
 }) => {
-  // Ligne masquée (ex : opération cachée) → rien à rendre
-  if (hidden) return null;
+  // Vrai <label> quand l'id du contrôle est connu, sinon simple <div> stylé
+  const LabelTag = htmlFor ? 'label' : 'div';
 
   return (
     <div className="criterion-row">
       {showLabel && (
-        <div className="criterion-row__label">
+        <LabelTag className="criterion-row__label" htmlFor={htmlFor}>
           <span>{label}</span>
           {step != null && <span className="criterion-step">{step}</span>}
-        </div>
+        </LabelTag>
       )}
       {/* Sans label, le champ est enveloppé d'un tooltip (block = pleine largeur) */}
       {showLabel ? children : <Tooltip block content={tooltipText}>{children}</Tooltip>}
