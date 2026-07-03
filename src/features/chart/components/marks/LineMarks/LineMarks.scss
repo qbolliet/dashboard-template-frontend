@@ -1,0 +1,35 @@
+// =================================================================
+// LINE MARKS — ligne / aire / nuage (@visx/shape LinePath + Area)
+// =================================================================
+// Transpose les valeurs inline du prototype (design-system/project/scripts/
+// charts/marks.jsx, LineMarks) en classes tokenisées : estompage au survol
+// (opacité + transition), épaisseur de trait et opacité d'aire. Les tailles de
+// marqueur et les couleurs (data-driven) restent portées par le JSX.
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
+
+// ── Estompage des séries au survol ──────────────────────────────
+.chart-marks-series {
+  transition: opacity var(--chart-marks-fade-duration);
+}
+.chart-marks-line .chart-marks-series.is-faded {
+  opacity: var(--chart-marks-line-faded-opacity);
+}
+
+// ── Ligne / aire de crête ───────────────────────────────────────
+.chart-marks-line-path {
+  stroke-width: var(--chart-marks-line-width);
+}
+.chart-marks-line-path--mini {
+  stroke-width: var(--chart-marks-line-width-mini);
+}
+
+// ── Aire pleine (fill='fill') ───────────────────────────────────
+.chart-marks-area {
+  fill-opacity: var(--chart-marks-area-fill-opacity);
+}
+.chart-marks-area--mini {
+  fill-opacity: var(--chart-marks-area-fill-opacity-mini);
+}
