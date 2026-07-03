@@ -1,0 +1,25 @@
+// Page de fumée /test-chart — mise en page simple (Tailwind réservé au layout,
+// cf. CLAUDE.md ; ici SCSS pour rester cohérent avec les autres pages test-*).
+
+.test-chart-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--spacing-xl) var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.test-chart-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: hsl(var(--color-text-primary));
+}
+
+// Une colonne : chaque <Chart> occupe toute la largeur disponible (les charts
+// sont larges ; ParentSize s'adapte à la colonne).
+.test-chart-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
