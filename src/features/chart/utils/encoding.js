@@ -84,10 +84,14 @@ export function colorScale(domain) {
 export function sequentialScale(domain) {
   const interpolator = interpolateRgbBasis(SEQUENTIAL);
   const [d0, d1] = domain;
-  return (value) => {
+  const scale = (value) => {
     const t = d1 === d0 ? 0 : (value - d0) / (d1 - d0);
     return interpolator(t);
   };
+  // Expose `.domain()` comme d3.scaleSequential : les consommateurs de chrome
+  // (SequentialLegend) lisent les bornes sans les re-passer séparément.
+  scale.domain = () => [d0, d1];
+  return scale;
 }
 
 /* ─────────────────────── Style (line) + Marker channels ──────────────────

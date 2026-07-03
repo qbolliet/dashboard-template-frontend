@@ -1,0 +1,75 @@
+// =================================================================
+// CHART TOOLTIP — bulle de survol
+// =================================================================
+@use '../../tokens' as *;
+@use '../../colors' as *;
+@use './tokens' as *;
+@use './colors' as *;
+
+.chart-tooltip {
+  position: absolute;
+  z-index: var(--chart-tooltip-z);
+  min-width: var(--chart-tooltip-min-width);
+  max-width: var(--chart-tooltip-max-width);
+  padding: var(--chart-tooltip-padding-y) var(--chart-tooltip-padding-x);
+  background: hsl(var(--chart-tooltip-bg));
+  border: 1px solid hsl(var(--chart-tooltip-border));
+  border-radius: var(--chart-tooltip-radius);
+  box-shadow: var(--shadow-lg);
+  pointer-events: none;
+  font-size: var(--chart-tooltip-font-size);
+  color: hsl(var(--chart-tooltip-title-color));
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: var(--chart-tooltip-header-gap);
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid hsl(var(--chart-tooltip-border));
+  font-weight: 600;
+  font-size: var(--chart-tooltip-font-size);
+}
+.chart-tooltip-glyph { display: inline-flex; align-items: center; flex-shrink: 0; }
+.chart-tooltip-glyph svg { display: block; }
+.chart-tooltip-title { color: hsl(var(--chart-tooltip-title-color)); letter-spacing: -0.005em; }
+
+.chart-tooltip-hues {
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  border-bottom: 1px dashed hsl(var(--chart-tooltip-border));
+}
+.chart-tooltip-row--hue .chart-tooltip-value {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: hsl(var(--chart-tooltip-hue-value-color));
+}
+
+.chart-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--spacing-md);
+  padding: 2px 0;
+}
+// La valeur garde sa ligne (bornes d'IC « [a ; b] ») ; c'est le libellé qui
+// cède la place et se tronque par ellipse.
+.chart-tooltip-label {
+  color: hsl(var(--chart-tooltip-label-color));
+  font-size: var(--chart-tooltip-label-font-size);
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chart-tooltip-value {
+  color: hsl(var(--chart-tooltip-value-color));
+  font-weight: 500;
+  font-family: var(--font-mono);
+  font-size: var(--chart-tooltip-value-font-size);
+  flex: 0 0 auto;
+  white-space: nowrap;
+}

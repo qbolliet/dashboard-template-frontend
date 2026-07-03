@@ -1,10 +1,11 @@
 // =================================================================
-// FEATURE CHART — point d'entrée public (PROVISOIRE)
+// FEATURE CHART — point d'entrée public
 // =================================================================
-// Réexportera Chart, MultiChart, ChartsFeatures et les sources une fois ces
-// éléments construits (cf. CHART_ARCHITECTURE.md, §5 « ordre de construction »).
-// Pour l'instant seuls les utilitaires purs (utils/) existent : ce fichier sera
-// complété au fur et à mesure de l'implémentation des composants.
+// Réexporte le composant pivot Chart + les utilitaires purs. MultiChart,
+// ChartsFeatures et les sources GraphQL viendront s'ajouter ici au fur et à
+// mesure (cf. CHART_ARCHITECTURE.md, §5 « ordre de construction »).
+
+export { default as Chart } from './components/Chart/Chart';
 
 export * from './utils/typeDetection';
 export * from './utils/encoding';
