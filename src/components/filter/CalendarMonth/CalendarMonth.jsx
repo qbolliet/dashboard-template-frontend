@@ -82,11 +82,9 @@ const sameDay = (a, b) => a && b && a.toDateString() === b.toDateString();
  * @param {boolean}       [navLeft]     - Show the previous-month chevron.
  * @param {boolean}       [navRight]    - Show the next-month chevron.
  * @param {Date}          [minDate]     - Earliest selectable date; earlier days render inert.
+ *   Also bounds the earliest year of the year selector.
  * @param {Date}          [maxDate]     - Latest selectable date; later days render inert.
- * @param {number}        [minYear]     - Earliest selectable year (default: `minDate`'s
- *   year when provided, else current year − 30).
- * @param {number}        [maxYear]     - Latest selectable year (default: `maxDate`'s
- *   year when provided, else current year + 5).
+ *   Also bounds the latest year of the year selector.
  * @returns {JSX.Element}
  */
 const CalendarMonth = ({
@@ -104,8 +102,6 @@ const CalendarMonth = ({
   navRight = true,
   minDate = null,
   maxDate = null,
-  minYear,
-  maxYear,
 }) => {
   // Initialisation de la date du jour
   const today = new Date();
@@ -145,10 +141,10 @@ const CalendarMonth = ({
   // Jour hors de [minDate, maxDate] → rendu inerte (non sélectionnable)
   const isOutOfBounds = (date) => (boundMin && date < boundMin) || (boundMax && date > boundMax);
 
-  // Plage d'années du sélecteur : paramétrable via minYear/maxYear, sinon dérivée des
-  // bornes de sélection ; repli année courante −30 à +5.
-  const minY = minYear ?? boundMin?.getFullYear() ?? today.getFullYear() - 30;
-  const maxY = maxYear ?? boundMax?.getFullYear() ?? today.getFullYear() + 5;
+  // Plage d'années du sélecteur : dérivée des bornes de sélection minDate/maxDate ;
+  // repli année courante −30 à +5 lorsqu'une borne est absente.
+  const minY = boundMin?.getFullYear() ?? today.getFullYear() - 30;
+  const maxY = boundMax?.getFullYear() ?? today.getFullYear() + 5;
   const years = Array.from({ length: maxY - minY + 1 }, (_, i) => minY + i);
 
   // Date réelle d'une cellule (résout le report d'année/mois pour les cellules « autres »)
