@@ -95,8 +95,13 @@ export const ThemeProvider = ({ children }) => {
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
-        // Appliquer le thème au body
-        document.body.setAttribute('data-theme', theme);
+        // Appliquer le thème sur <html> (documentElement), au même niveau que les
+        // déclarations `:root { … }`. Indispensable : les tokens de feature du type
+        // `:root { --x: var(--color-surface) }` sont résolus à l'élément où ils sont
+        // déclarés (:root) puis hérités figés ; si l'override [data-theme="dark"]
+        // était posé sur <body> (un descendant), ces indirections resteraient gelées
+        // en light. Sur <html>, override et déclarations coïncident → réévaluation OK.
+        document.documentElement.setAttribute('data-theme', theme);
         
         // Sauvegarder le thème dans localStorage
         localStorage.setItem('theme', theme);
