@@ -47,6 +47,7 @@ import ChartAxisBottom from '../ChartAxis/ChartAxisBottom/ChartAxisBottom';
 import ChartAxisLeft from '../ChartAxis/ChartAxisLeft/ChartAxisLeft';
 import ChannelLegend from '../ChartLegend/ChannelLegend/ChannelLegend';
 import SequentialLegend from '../ChartLegend/SequentialLegend/SequentialLegend';
+import MultiChart from '../MultiChart/MultiChart';
 import LineMarks from '../marks/LineMarks/LineMarks';
 import BarMarks from '../marks/BarMarks/BarMarks';
 import HeatmapMarks from '../marks/HeatmapMarks/HeatmapMarks';
@@ -812,10 +813,18 @@ const Chart = ({
   const [voronoiOn, setVoronoiOn] = useState(!!defaults.voronoi);
   const [tooltipsOn, setTooltipsOn] = useState(defaults.tooltips != null ? !!defaults.tooltips : true);
 
-  // Branche « data = liste de jeux » → délégation ultérieure à <MultiChart>.
+  // Branche « data = liste de jeux » → délégation à <MultiChart> (axes partagés,
+  // échelles de canaux coordonnées entre jeux, une section de légende par jeu).
   if (isList) {
-    // TODO MultiChart : rendre <MultiChart …/> une fois le composant construit.
-    return null;
+    return (
+      <MultiChart
+        data={data} x={x} y={y} hue={hue}
+        fill={fill} stack={stack}
+        format={format} labels={labels} maxLabelLength={maxLabelLength} maxLines={maxLines}
+        overlap={overlap} tickDensity={tickDensity}
+        title={title} height={height} defaults={defaults}
+      />
+    );
   }
   if (!y) throw new Error("<Chart>: l'argument `y` est requis.");
 

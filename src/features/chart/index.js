@@ -6,6 +6,7 @@
 // mesure.
 
 export { default as Chart } from './components/Chart/Chart';
+export { default as MultiChart } from './components/MultiChart/MultiChart';
 
 export { ChartsFeatures } from './toolbar-features';
 
