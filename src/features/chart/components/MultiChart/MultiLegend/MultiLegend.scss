@@ -1,0 +1,83 @@
+// =================================================================
+// MULTI LEGEND — légende multi-jeux (une section par jeu)
+// =================================================================
+// Transposition à l'identique de .ca-mlegend* (design-system/project/styles/
+// charts.css). Les items de canaux réutilisent les classes .chart-legend-* de
+// ChannelLegend (glyphe, texte, item, faded) — seule la structure de section
+// (titre + glyphe de fill + groupes) est propre au mode multi-jeux.
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
+
+// ── Liste de sections ────────────────────────────────────────────
+.chart-mlegend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--chart-mlegend-gap);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.chart-mlegend--rows { gap: var(--chart-mlegend-rows-gap); }
+
+// ── Section (un jeu) ─────────────────────────────────────────────
+.chart-mlegend-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.chart-mlegend--rows .chart-mlegend-section {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--spacing-lg);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid hsl(var(--chart-mlegend-divider));
+}
+.chart-mlegend--rows .chart-mlegend-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+// ── Entête de section (glyphe de fill + titre) ───────────────────
+.chart-mlegend-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.chart-mlegend--rows .chart-mlegend-head {
+  min-width: var(--chart-mlegend-head-min-width);
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+.chart-mlegend-fill {
+  display: inline-flex;
+  align-items: center;
+  color: hsl(var(--chart-mlegend-fill-color));
+  flex-shrink: 0;
+}
+.chart-mlegend-fill svg { display: block; }
+.chart-mlegend-title {
+  font-size: var(--chart-mlegend-title-font-size);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: hsl(var(--chart-mlegend-title-color));
+}
+
+// ── Groupes de canaux d'une section ──────────────────────────────
+.chart-mlegend-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-left: 2px;
+}
+.chart-mlegend--rows .chart-mlegend-groups {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--spacing-xl);
+}
+.chart-mlegend-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}

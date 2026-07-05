@@ -343,3 +343,81 @@ export function makeViolinData(seed = 6) {
   }
   return out;
 }
+
+/* ────────────── 7. Multi-jeux — linechart + barchart vertical ────────────
+   Axe x continu (dates). Le jeu « Mensuelle » (ligne) et le jeu « Trimestrielle »
+   (moyenne trimestrielle, categorical-x → barres positionnées à leur date) portent
+   tous deux la hue « Pays » → couleur coordonnée entre les deux jeux. */
+
+/**
+ * Monthly growth time series (two countries), for the combo line+bar demo.
+ *
+ * @param {number} [seed=21] - RNG seed.
+ * @returns {Array<object>} Rows { Date, Croissance, Pays }.
+ */
+export function makeComboMonthly(seed = 21) {
+  const rng = mulberry32(seed);
+  const countries = ['France', 'Allemagne'];
+  const out = [];
+  for (const c of countries) {
+    const amp = c === 'France' ? 1.0 : 1.25;
+    const off = c === 'France' ? 1.2 : 0.9;
+    for (let i = 0; i < 36; i++) {
+      const date = new Date(2021, i, 1);
+      const g = off + Math.sin(i / 4) * amp + (rng() - 0.5) * 0.8;
+      out.push({ Date: date, Croissance: +g.toFixed(2), Pays: c });
+    }
+  }
+  return out;
+}
+
+/**
+ * Quarterly aggregation (mean) of a monthly series, positioned mid-quarter.
+ * Rendered as `categorical-x` bars on the shared continuous (date) axis.
+ *
+ * @param {Array<object>} monthly - Monthly rows ({ Date, Croissance, Pays }).
+ * @returns {Array<object>} Rows { Date, Croissance, Pays } (one per Pays × quarter).
+ */
+export function makeComboQuarterly(monthly) {
+  const byKey = new Map();
+  for (const r of monthly) {
+    const d = r.Date;
+    const q = Math.floor(d.getMonth() / 3);
+    const key = `${r.Pays}|${d.getFullYear()}|${q}`;
+    if (!byKey.has(key)) byKey.set(key, { Pays: r.Pays, year: d.getFullYear(), q, vals: [] });
+    byKey.get(key).vals.push(r.Croissance);
+  }
+  const out = [];
+  for (const o of byKey.values()) {
+    const m = o.vals.reduce((a, b) => a + b, 0) / o.vals.length;
+    out.push({ Date: new Date(o.year, o.q * 3 + 1, 1), Croissance: +m.toFixed(2), Pays: o.Pays });
+  }
+  return out;
+}
+
+/* ────────────── 8. Multi-jeux — linechart + areaplot ─────────────────────
+   Un seul jeu, rendu deux fois (aire puis ligne) : la hue « Pays » coordonne les
+   couleurs entre les deux rendus. */
+
+/**
+ * Cumulative production index time series (two countries), for the combo
+ * area+line demo (the same rows are rendered once as an area, once as a line).
+ *
+ * @param {number} [seed=23] - RNG seed.
+ * @returns {Array<object>} Rows { Date, Production, Pays }.
+ */
+export function makeAreaSeries(seed = 23) {
+  const rng = mulberry32(seed);
+  const countries = ['France', 'Allemagne'];
+  const out = [];
+  for (const c of countries) {
+    let v = c === 'France' ? 6 : 9;
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(2022, i, 1);
+      v += 0.6 + Math.sin(i / 5) * 0.5 + (rng() - 0.5) * 0.7;
+      v = Math.max(2, v);
+      out.push({ Date: date, Production: +v.toFixed(2), Pays: c });
+    }
+  }
+  return out;
+}

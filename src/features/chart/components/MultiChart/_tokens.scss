@@ -1,0 +1,12 @@
+// ===== TOKENS DIMENSIONNELS — MultiChart (mode multi-jeux) =====
+// Dimensions propres à la légende multi-jeux (.chart-mlegend*). Les marges/hauteurs du
+// tracé restent des constantes de layout en JS (cf. MultiChart.jsx), comme pour
+// le pivot <Chart> (useChartGeometry) : elles ne sont pas exposées en CSS.
+
+:root {
+  // ===== Légende multi-jeux (MultiLegend) =====
+  --chart-mlegend-gap: var(--spacing-lg);            // écart entre sections (mode colonne)
+  --chart-mlegend-rows-gap: var(--spacing-md);       // écart entre sections (mode ligne)
+  --chart-mlegend-head-min-width: 8.125rem;          // 130px - largeur du titre (mode ligne)
+  --chart-mlegend-title-font-size: var(--font-size-xs); // 12px
+}
