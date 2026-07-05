@@ -6,6 +6,7 @@
 // (transform) selon l'état — transposé de .ca-minimap-toggle du prototype.
 
 // Importation des modules
+import { ChevronIcon } from '@/components/icons';
 import './MinimapToggle.scss';
 
 /**
@@ -29,13 +30,8 @@ const MinimapToggle = ({ open, direction = 'both', onToggle }) => {
       data-direction={direction}
       title={label}
     >
-      {/* Chevron unique pivoté en CSS (chevron bas → haut quand fermé). */}
-      <svg
-        className="chart-minimap-toggle__chevron"
-        viewBox="0 0 24 24" fill="none" stroke="currentColor"
-        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="m6 9 6 6 6-6" />
-      </svg>
+      {/* Chevron mutualisé, pivoté en CSS (chevron bas → haut quand fermé). */}
+      <ChevronIcon direction="down" className="chart-minimap-toggle__chevron" />
       <span className="chart-minimap-toggle__text">{label}</span>
     </button>
   );
