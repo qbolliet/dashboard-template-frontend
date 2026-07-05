@@ -1,25 +1,235 @@
-// Page de fumée /test-chart — mise en page simple (Tailwind réservé au layout,
-// cf. CLAUDE.md ; ici SCSS pour rester cohérent avec les autres pages test-*).
+// =================================================================
+// PAGE /test-chart — mise en page (partie statique + playground)
+// =================================================================
+// Tailwind réservé au layout (cf. CLAUDE.md) ; ici SCSS pour rester cohérent avec
+// les autres pages test-* (classes tp-* partagées avec test-multi-criterion-menu).
 
 .test-chart-page {
   max-width: 1100px;
   margin: 0 auto;
-  padding: var(--spacing-xl) var(--spacing-lg);
+  padding: var(--spacing-2xl) var(--spacing-lg);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-2xl);
 }
 
+// ── Entête statique ──
+.test-chart-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
 .test-chart-title {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-2xl);
   font-weight: 700;
+  letter-spacing: -0.02em;
   color: hsl(var(--color-text-primary));
 }
+.test-chart-sub {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-tertiary));
+  line-height: var(--line-height-relaxed);
+  max-width: 68ch;
 
-// Une colonne : chaque <Chart> occupe toute la largeur disponible (les charts
-// sont larges ; ParentSize s'adapte à la colonne).
-.test-chart-grid {
+  code {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85em;
+    background: hsl(var(--color-primary-500) / 0.08);
+    color: hsl(var(--color-primary-500));
+    padding: 1px 5px;
+    border-radius: var(--border-radius-sm, 3px);
+  }
+}
+
+// ── Étiquette de section (uppercase) ──
+.charts-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--color-text-tertiary));
+  margin: 0 0 var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid hsl(var(--color-border));
+}
+
+// ── Tableau d'API ──
+.api-card-scroll {
+  overflow-x: auto;
+  border: 1px solid hsl(var(--color-border));
+  border-radius: var(--border-radius-lg, 8px);
+  background: hsl(var(--color-surface));
+}
+.api-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-xs, 0.75rem);
+
+  th, td {
+    text-align: left;
+    padding: 7px 10px;
+    border-bottom: 1px solid hsl(var(--color-border));
+    vertical-align: top;
+  }
+  th {
+    font-weight: 500;
+    color: hsl(var(--color-text-tertiary));
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  code {
+    font-family: var(--font-mono, monospace);
+    font-size: 11.5px;
+    color: hsl(var(--color-primary-500));
+    background: hsl(var(--color-primary-500) / 0.08);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  .api-typ {
+    font-family: var(--font-mono, monospace);
+    font-size: 11px;
+    color: hsl(var(--color-text-tertiary));
+    white-space: nowrap;
+  }
+}
+
+// ── Playground ──
+.charts-playground {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-2xl);
 }
+.tp-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+.tp-h2 {
+  font-size: var(--font-size-lg, 1.125rem);
+  font-weight: 600;
+  color: hsl(var(--color-text-primary));
+}
+.charts-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  border-bottom: 1px solid hsl(var(--color-border));
+  padding-bottom: var(--spacing-sm);
+}
+
+// ── Contrôles (classes partagées avec test-multi-criterion-menu) ──
+.ctrl-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+.ctrl-group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.ctrl-label {
+  font-size: 0.75rem;
+  color: hsl(var(--color-text-tertiary));
+  margin-right: 0.25rem;
+  white-space: nowrap;
+}
+.ctrl-hint {
+  margin: var(--spacing-xs) 2px 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: hsl(var(--color-text-tertiary));
+  max-width: 68ch;
+}
+
+.tp-ctrl-btn {
+  padding: 0.25rem 0.7rem;
+  font-size: 0.75rem;
+  border-radius: var(--border-radius-sm, 4px);
+  border: 1px solid hsl(var(--color-border));
+  background: hsl(var(--color-surface));
+  color: hsl(var(--color-text-secondary));
+  cursor: pointer;
+  transition: background 120ms, border-color 120ms, color 120ms;
+  font-family: inherit;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: hsl(var(--color-text-tertiary));
+    color: hsl(var(--color-text-primary));
+  }
+}
+.tp-ctrl-btn--active {
+  background: hsl(var(--color-primary-500) / 0.12);
+  border-color: hsl(var(--color-primary-500));
+  color: hsl(var(--color-primary-500));
+  font-weight: 500;
+}
+
+.ctrl-select,
+.ctrl-text {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.75rem;
+  border: 1px solid hsl(var(--color-border));
+  border-radius: var(--border-radius-sm, 4px);
+  background: hsl(var(--color-surface));
+  color: hsl(var(--color-text-primary));
+  outline: none;
+  font-family: inherit;
+
+  &:focus { border-color: hsl(var(--color-primary-500)); }
+}
+.ctrl-text { width: 8rem; }
+.ctrl-color {
+  width: 2rem;
+  height: 1.6rem;
+  padding: 0;
+  border: 1px solid hsl(var(--color-border));
+  border-radius: var(--border-radius-sm, 4px);
+  background: hsl(var(--color-surface));
+  cursor: pointer;
+}
+
+// ── Blocs de démonstration ──
+.charts-demos {
+  gap: var(--spacing-3xl, 2.5rem);
+}
+.charts-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+.charts-block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+.charts-block-title {
+  font-size: var(--font-size-lg, 1.125rem);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: hsl(var(--color-text-primary));
+}
+.charts-block-meta {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: hsl(var(--color-text-tertiary));
+}
+.charts-block-note {
+  font-size: var(--font-size-sm, 0.875rem);
+  color: hsl(var(--color-text-tertiary));
+  line-height: var(--line-height-relaxed);
+  max-width: 72ch;
+  margin-bottom: var(--spacing-xs);
+}
+.charts-api-status {
+  font-size: var(--font-size-xs, 0.75rem);
+  color: hsl(var(--color-text-tertiary));
+  font-family: var(--font-mono, monospace);
+}
+.charts-api-status--error { color: hsl(var(--color-error-500)); }
