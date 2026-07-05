@@ -45,7 +45,7 @@
   padding: 0 var(--spacing-sm);
 }
 
-// ── Entête : titre + badge de type détecté ───────────────────────────────
+// ── Entête : titre du graphique ──────────────────────────────────────────
 .chart-header {
   grid-area: header;
   display: flex;
@@ -60,17 +60,6 @@
   font-weight: 600;
   letter-spacing: -0.005em;
   color: hsl(var(--chart-title-color));
-}
-.chart-kind {
-  font-family: var(--font-mono);
-  font-size: var(--chart-kind-font-size);
-  letter-spacing: 0.02em;
-  text-transform: lowercase;
-  color: hsl(var(--chart-kind-color));
-  padding: 3px 7px;
-  border: 1px solid hsl(var(--chart-kind-border));
-  border-radius: var(--border-radius-sm);
-  background: hsl(var(--chart-kind-bg));
 }
 
 // ── Corps : conteneur relatif du SVG + de la tooltip ─────────────────────

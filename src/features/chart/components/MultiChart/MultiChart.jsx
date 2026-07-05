@@ -674,7 +674,6 @@ const MultiChart = ({
     <figure className={`chart-frame${expanded ? ' chart-frame--expanded' : ''}`}>
       <figcaption className="chart-header">
         {title && <h3 className="chart-title">{title}</h3>}
-        <span className="chart-kind" title="Multi-jeux">multi · {datasets.length} jeux · x:{xTypeAxis}</span>
       </figcaption>
 
       {legendInline && (

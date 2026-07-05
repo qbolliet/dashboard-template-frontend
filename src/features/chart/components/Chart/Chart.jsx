@@ -768,6 +768,11 @@ const ChartCanvas = ({
  * @param {object} [props.maxLines] - { x?, y? } multiline max lines.
  * @param {'auto'|'rotate'|'multiline'|'skip'} [props.overlap='auto'] - Anti-overlap strategy.
  * @param {'sparse'|'normal'|'dense'} [props.tickDensity='normal'] - Tick density.
+ * @param {boolean} [props['categorical-x']=false] - Force the x axis to be treated as
+ *   categorical (single-series path), turning a line into vertical bars. Ignored on the
+ *   MultiChart path, where each dataset carries its own `categorical-x` key.
+ * @param {boolean} [props['categorical-y']=false] - Force the y axis to be treated as
+ *   categorical (single-series path), producing horizontal bars (`bar-h`).
  * @param {string} [props.title] - Chart title.
  * @param {number} [props.height=460] - Outer height (px).
  * @param {Array<object>} [props.toolbar=[]] - Toolbar feature descriptors.
@@ -782,6 +787,7 @@ const Chart = ({
   fill = 'line', stack = 'none',
   format = {}, labels = {}, maxLabelLength = {}, maxLines = {},
   overlap = 'auto', tickDensity = 'normal',
+  'categorical-x': categoricalX = false, 'categorical-y': categoricalY = false,
   title, height = 460,
   toolbar = [], defaults = {}, initialMinimapOpen = true,
 }) => {
@@ -791,8 +797,11 @@ const Chart = ({
   // ── Détection de type + coercition (données BRUTES avant transform) ────────
   const isList = isDatasetList(data);
   const hueCols = hue ? (Array.isArray(hue) ? hue : [hue]) : [];
-  const xType = isList ? null : detectType(data.map((r) => r[x]));
-  const yType = isList ? null : detectType(data.map((r) => r[y]));
+  // Les props `categorical-x/y` forcent un axe en catégoriel (bande) : détection
+  // court-circuitée → detectChart produit alors 'bar' / 'bar-h', et `coerce`
+  // convertit les valeurs en chaînes (catégories) de façon cohérente.
+  const xType = isList ? null : (categoricalX ? 'categorical' : detectType(data.map((r) => r[x])));
+  const yType = isList ? null : (categoricalY ? 'categorical' : detectType(data.map((r) => r[y])));
   const zType = (!isList && z) ? detectType(data.map((r) => r[z])) : null;
   const typedDataRaw = isList ? data : data.map((r) => ({
     ...r,
@@ -972,9 +981,6 @@ const Chart = ({
     <figure className={`chart-frame${expanded ? ' chart-frame--expanded' : ''}`}>
       <figcaption className="chart-header">
         {title && <h3 className="chart-title">{title}</h3>}
-        <span className="chart-kind" title={`Type détecté : ${chartKind}`}>
-          {chartKind} · x:{xType} y:{yType}{z ? ` z:${zType}` : ''}{hueCols.length ? ' · hue' : ''}
-        </span>
       </figcaption>
 
       {/* Légende du haut (mode agrandi). */}
