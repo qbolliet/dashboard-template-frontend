@@ -27,6 +27,24 @@
 }
 .chart-frame:hover { box-shadow: var(--shadow-md); }
 
+// ── Mode agrandi : pleine largeur, légende basculée en haut ──────────────────
+// Transposé de .ca-chart--expanded : le tracé occupe toute la largeur du cadre
+// (la colonne de légende de droite disparaît) et la légende passe au-dessus.
+.chart-frame--expanded {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr;
+  grid-template-areas:
+    "header"
+    "legendT"
+    "body";
+}
+.chart-legend-top {
+  grid-area: legendT;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--spacing-sm);
+}
+
 // ── Entête : titre + badge de type détecté ───────────────────────────────
 .chart-header {
   grid-area: header;

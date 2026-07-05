@@ -3,13 +3,21 @@
    Chart.jsx — <Chart> (composant pivot)
    Détecte le type de graphique depuis les types de colonnes (x/y/z), calcule la
    géométrie et les échelles, câble le renderer de marks adéquat, le survol
-   (proximité voronoï / direct), la tooltip et la légende.
+   (proximité voronoï / direct), la tooltip, la légende, les mini-vues/brush, le
+   zoom molette et la couche features (barre d'outils configurable : intervalles
+   de confiance, projection avant/après, normalisation, zoom, mini-vues).
 
-   Version 1 : SANS barre d'outils configurable (toolbar-features/), SANS
-   mini-vues/brush, SANS zoom molette, SANS features (IC / projection /
-   normalisation). Ces sous-systèmes viendront ensuite ; les points d'extension
-   sont signalés en commentaire (« Extension : … »). Reproduit la logique et
-   l'apparence du prototype design-system/project/scripts/charts/chart.jsx.
+   Répartition de l'état (split pivot / ChartCanvas) :
+     • <Chart> (largeur-indépendant) : détection de type, canaux, échelles de
+       canaux, état des features (useFeatureState), rôle transform (normalisation
+       → typedData), facteur de normalisation, groupes de légende de features,
+       étendue de l'axe valeur (augValExtent), état frame-level (agrandissement,
+       voronoï, tooltips).
+     • <ChartCanvas> (dans <ParentSize>, largeur-dépendant) : géométrie, échelles
+       de position, marks, overlays de features, barre d'outils, mini-vues, zoom.
+
+   GARANTIE : aucune feature « transform » active ⇒ typedData === typedDataRaw
+   (même référence) ⇒ rendu strictement identique au graphique nu.
 ═══════════════════════════════════════════════════════════════════════════ */
 
 // Importation des modules
@@ -27,9 +35,13 @@ import {
 import { buildStacks } from '../../utils/stacking';
 import { resolveFormatter } from '../../utils/formatters';
 import { makeScale } from '../../utils/scales';
+import { exportSvg, exportPng } from '../../utils/exportImage';
 import { useSeriesHover } from '../../hooks/useSeriesHover';
 import { useChartGeometry } from '../../hooks/useChartGeometry';
 import { useBrushZoom } from '../../hooks/useBrushZoom';
+import { useFeatureState } from '../../hooks/useFeatureState';
+import { nextFreeChannel, REAL_DIST_MARKER } from '../../toolbar-features/channelAssign';
+import { normalizeRefs } from '../../toolbar-features/normalize';
 
 import ChartAxisBottom from '../ChartAxis/ChartAxisBottom/ChartAxisBottom';
 import ChartAxisLeft from '../ChartAxis/ChartAxisLeft/ChartAxisLeft';
@@ -42,6 +54,7 @@ import DensityMarks from '../marks/DensityMarks/DensityMarks';
 import ViolinMarks from '../marks/ViolinMarks/ViolinMarks';
 import { VoronoiOverlay, DirectHoverOverlay, ActiveMark } from '../overlays/HoverOverlays/HoverOverlays';
 import ChartTooltip from '../ChartTooltip/ChartTooltip';
+import ChartToolbar from '../ChartToolbar/ChartToolbar';
 import BrushMinimap from '../ChartMinimap/BrushMinimap/BrushMinimap';
 import MiniProjection from '../ChartMinimap/MiniProjection/MiniProjection';
 import MinimapToggle from '../ChartMinimap/MinimapToggle/MinimapToggle';
@@ -254,21 +267,24 @@ function computeHoverTargets({
 
 /* ────────────────────────── ChartCanvas (largeur connue) ─────────────────
    Sous-composant rendu dans le render-prop de <ParentSize> : toute la logique
-   dépendante de la LARGEUR (géométrie, échelles de position, marks, survol)
-   vit ici, où l'appel de hooks au top-level reste conforme aux règles React.
+   dépendante de la LARGEUR (géométrie, échelles de position, marks, survol,
+   overlays de features, barre d'outils, mini-vues) vit ici.
    ───────────────────────────────────────────────────────────────────────── */
 const ChartCanvas = ({
   width, height, data, x, y, z, xType, yType, zType, chartKind,
   channels, hueCols, fill, effFill, stack, format, labels, maxLabelLength, maxLines,
   overlap, tickDensity, isSequentialZ, isViolinKind,
   cScale, styleScaleFn, hatchScaleFn, markerScaleFn,
-  hovered, voronoiRow, setVoronoiRow, initialMinimapOpen,
+  hovered, voronoiRow, setVoronoiRow, ciHover, initialMinimapOpen, title,
+  // Features (barre d'outils configurable)
+  tools, activeTools, featOn, featVal, toggleFeature, setFeatureValue,
+  ciFeature, baFeature, normFactor, channelAssign, baReal,
+  expanded, setExpanded, voronoiOn, setVoronoiOn, tooltipsOn, setTooltipsOn,
 }) => {
-  // Ouverture des mini-vues (persiste tant que la largeur reste > 0 : ce
-  // sous-composant n'est pas remonté aux changements de largeur).
+  // Ouverture des mini-vues (persiste tant que la largeur reste > 0).
   const [minimapOpen, setMinimapOpen] = useState(initialMinimapOpen);
 
-  // Calcul des dimensions du graphiques
+  // Calcul des dimensions du graphique.
   const {
     margins, innerWidth, innerHeight, yTickW,
     svgH, showXMinimap, showYMinimap, miniH, yMinimapW, yMinimapGap, tickPadX,
@@ -277,24 +293,22 @@ const ChartCanvas = ({
     overlap, tickDensity, width, height, minimapOpen,
   });
 
-  // Ref du SVG : cible du zoom molette + rectangle de mesure (cf. useBrushZoom).
   const svgRef = useRef(null);
+  const clipId = 'chart-clip-' + useId().replace(/[^a-zA-Z0-9]/g, '');
+  const mainClipId = 'chart-mclip-' + useId().replace(/[^a-zA-Z0-9]/g, '');
 
-  // État local de la marque active (survol) : position pixel + ancrage tooltip.
   const [activePos, setActivePos] = useState(null);
   const [activeCentroid, setActiveCentroid] = useState(null);
   const active = voronoiRow; // la row sous le curseur
 
   const has2DBrush = chartKind === 'heatmap' || chartKind === 'density';
   const isBarH = chartKind === 'bar-h';
-
-  // Extension : les IC + la projection étendront le domaine de l'axe valeur.
-  const augValExtent = null;
+  const posKey = chartKind === 'bar-h' ? y : x;
+  const valKey = chartKind === 'bar-h' ? x : y;
 
   // ── Empilage : deux variantes ────────────────────────────────────────────
-  // stackMini — offsets sur les données COMPLÈTES (échelles de base, mini-vues,
-  //   cibles de survol en coordonnées de base) ; stackMain — sur les données
-  //   FILTRÉES par le brush (marks affichés). L'ordre de séries est partagé.
+  // stackMini — offsets sur les données COMPLÈTES ; stackMain — sur les données
+  // FILTRÉES par le brush. L'ordre de séries est partagé.
   const stackable = chartKind === 'line' || chartKind === 'bar' || chartKind === 'bar-h';
   const stackActive = stackable && stack && stack !== 'none';
   const stackPosKey = chartKind === 'bar-h' ? y : x;
@@ -303,6 +317,41 @@ const ChartCanvas = ({
   const stackMini = stackActive
     ? buildStacks({ data, posKey: stackPosKey, valKey: stackValKey, channels, stackBy: stack, seriesOrder, aggregate: 'mean' })
     : null;
+
+  // ── Extension de l'axe VALEUR (line / bar) ────────────────────────────────
+  // Quand l'IC et/ou la projection sont actifs, on étend le domaine pour englober
+  // aussi leurs bornes et points. En empilage, les bornes d'IC sont reportées sur
+  // le cumul de la série (mêmes offsets). Porté de chart.jsx (augValExtent).
+  let augValExtent = null;
+  if (chartKind === 'line' || chartKind === 'bar' || chartKind === 'bar-h') {
+    const arr = (d) => (Array.isArray(d) ? d : []);
+    const nums = [];
+    const nf = (r) => normFactor(seriesKey(r, channels));
+    if (ciFeature && ciFeature.config) {
+      const cd = arr(ciFeature.config.data);
+      const cols = [...(ciFeature.config.below || []), ...(ciFeature.config.above || [])];
+      if (stackActive && stackMini) {
+        for (const r of cd) {
+          const o = stackMini.offsets.get(seriesKey(r, channels) + '|' + xKeyOf(r[posKey]));
+          if (!o) continue;
+          const sv = o.y1 - o.y0;
+          for (const c of cols) { const b = nf(r) * +r[c]; if (!isNaN(b)) nums.push(o.y1 + (b - sv)); }
+        }
+      } else {
+        for (const r of cd) for (const c of cols) { const b = nf(r) * +r[c]; if (!isNaN(b)) nums.push(b); }
+      }
+    }
+    if (baFeature && baFeature.config) {
+      const fd = arr(baFeature.config.data);
+      for (const r of fd) { const v = nf(r) * +r[valKey]; if (!isNaN(v)) nums.push(v); }
+      if (ciFeature && baFeature.config.ci) {
+        const fcd = arr(baFeature.config.ci.data);
+        const cols = [...(baFeature.config.ci.below || []), ...(baFeature.config.ci.above || [])];
+        for (const r of fcd) for (const c of cols) { const b = nf(r) * +r[c]; if (!isNaN(b)) nums.push(b); }
+      }
+    }
+    if (nums.length) augValExtent = [Math.min(...nums), Math.max(...nums)];
+  }
 
   // ── Échelles de position de BASE (domaine complet ; axe valeur ancré à 0) ──
   let baseXScale;
@@ -338,20 +387,20 @@ const ChartCanvas = ({
     baseYScale = makeScale(yType, data, y, innerHeight, 'y', chartKind);
   }
 
-  // ── Zoom (brush + molette) : échelles zoomées, données filtrées, facteurs ──
-  // TODO(étape 7) : `zoomOn` sera piloté par l'outil « zoom » de la barre
-  // d'outils ; activé par défaut pour l'instant (molette toujours opérante).
+  // ── Zoom (brush + molette) : la molette n'est active que si l'outil zoom est ON.
+  const zoomTool = tools.find((t) => t.isZoom);
+  const zoomOn = zoomTool ? !!featOn[zoomTool.id] : false;
   const {
-    xSel, ySel, setXSel, setYSel, xScale, yScale, filteredData, axisZoom,
+    xSel, ySel, setXSel, setYSel, xScale, yScale, filteredData, axisZoom, resetZoom, canReset,
   } = useBrushZoom({
     data, x, y, xType, yType, chartKind,
     baseXScale, baseYScale, innerWidth, innerHeight,
-    marginLeft: margins.left, marginTop: margins.top, width, svgRef, zoomOn: true,
+    marginLeft: margins.left, marginTop: margins.top, width, svgRef, zoomOn,
   });
   const { zx, zy } = axisZoom;
 
-  // Graphiques « nuage » (line, density) : voronoï + KDE 2-D rendus dans une
-  // couche zoomée par transform (coordonnées de base, non recalculés au zoom).
+  // Graphiques « nuage » (line, density) : voronoï + KDE 2-D dans une couche
+  // zoomée par transform (coordonnées de base, non recalculés au zoom).
   const zoomLayer = chartKind === 'line' || chartKind === 'density';
   const zoomTransform = `translate(${zx.t.toFixed(3)}, ${zy.t.toFixed(3)}) scale(${zx.k.toFixed(5)}, ${zy.k.toFixed(5)})`;
 
@@ -360,9 +409,66 @@ const ChartCanvas = ({
     ? buildStacks({ data: filteredData, posKey: stackPosKey, valKey: stackValKey, channels, stackBy: stack, seriesOrder, aggregate: 'mean' })
     : null;
 
+  // ── Contexte de projection passé aux overlays de features ─────────────────
+  const featureCtx = {
+    chartKind, x, y, z, xType, yType, channels, hueCols,
+    xScale, yScale, innerWidth, innerHeight,
+    filteredData, typedData: data,
+    colorScale: cScale, styleScale: styleScaleFn, markerScale: markerScaleFn, hatchScale: hatchScaleFn,
+    isBarH, fill, stack, posKey, valKey,
+    stackOffsets: stackMain ? stackMain.offsets : null,
+    ciActive: !!ciFeature,
+    ciFill: ciFeature && ciFeature.config ? ciFeature.config.fill : undefined,
+    normFactor,
+  };
+
+  // Overlays SVG des features (dessinés au-dessus des marks ET de la couche zoom).
+  const featureOverlays = activeTools.filter((t) => t.Overlay).map((f) => (
+    <f.Overlay
+      key={f.id} ctx={featureCtx} channel={channelAssign[f.id]} config={f.config}
+      value={featVal[f.id]} onValue={(v) => setFeatureValue(f.id, v)}
+      hovered={hovered} voronoiActive={voronoiOn} voronoiRow={active} ciHover={ciHover}
+    />
+  ));
+
+  // Clip de la série principale (mode replace de la barre avant/après) : renvoie
+  // le rectangle du côté à GARDER.
+  const clipFeature = activeTools.find((t) => t.mainClip);
+  let baClip = null;
+  if (clipFeature) {
+    const sc = isBarH ? yScale : xScale;
+    let p = sc(featVal[clipFeature.id]);
+    if (p != null && !isNaN(p)) {
+      if (sc.bandwidth) p += sc.bandwidth() / 2;
+      if (isBarH) {
+        baClip = clipFeature.mainClip === 'before' ? { x: 0, y: 0, w: innerWidth, h: p } : { x: 0, y: p, w: innerWidth, h: innerHeight - p };
+      } else {
+        baClip = clipFeature.mainClip === 'before' ? { x: 0, y: 0, w: p, h: innerHeight } : { x: p, y: 0, w: innerWidth - p, h: innerHeight };
+      }
+    }
+  }
+
+  // Rejoue les overlays « miniOverlay » (IC) dans les mini-vues, avec des échelles
+  // miniatures. Porté de chart.jsx (renderMiniCI).
+  const miniCIFeatures = activeTools.filter((t) => t.miniOverlay);
+  const renderMiniCI = (miniXScale, miniYScale) => miniCIFeatures.map((f) => (
+    <f.miniOverlay
+      key={'mci-' + f.id}
+      ctx={{
+        chartKind, x, y, channels, xScale: miniXScale, yScale: miniYScale,
+        colorScale: cScale, hatchScale: hatchScaleFn, styleScale: styleScaleFn, markerScale: markerScaleFn,
+        filteredData: data, stackOffsets: stackMini ? stackMini.offsets : null,
+      }}
+      channel={channelAssign[f.id]} config={f.config} mini
+    />
+  ));
+
+  // Boutons supplémentaires de la barre d'outils (features + mini-vues).
+  const extraTools = tools.map((t) => (t.isMinimaps
+    ? { id: t.id, icon: t.icon, label: t.label, on: minimapOpen, onToggle: () => setMinimapOpen((o) => !o) }
+    : { id: t.id, icon: t.icon, label: t.label, on: !!featOn[t.id], onToggle: () => toggleFeature(t.id) }));
+
   // ── Cibles de survol ──────────────────────────────────────────────────────
-  // Charts « nuage » (line/density) : coordonnées de BASE, sous la couche zoom.
-  // Autres : coordonnées zoomées, sur les données filtrées.
   const baseHoverTargets = zoomLayer
     ? computeBaseHoverTargets({ chartKind, data, channels, baseXScale, baseYScale, x, y, stackMini })
     : [];
@@ -397,8 +503,8 @@ const ChartCanvas = ({
     else if (channels.color) activeColor = cScale(active[channels.color]);
   }
 
-  // Libellé d'un canal : suit la COLONNE hue (titres corrects même quand forme
-  // et style sont permutés en mode nuage).
+  // Libellé d'un canal : suit la COLONNE hue (titres corrects même quand forme et
+  // style sont permutés en mode nuage).
   const labelForCol = (col) => {
     if (col == null) return '';
     if (col === hueCols[0]) return labels.color || labels.hue || col;
@@ -419,27 +525,78 @@ const ChartCanvas = ({
   let tooltipModel = null;
   if (active) {
     const is3D = chartKind === 'heatmap' || chartKind === 'density';
+    const isProj = !!active.__isProjection;
     const xFmt = resolveFormatter(format.x, xType);
     const yFmt = resolveFormatter(format.y, yType);
     const zFmt = z ? resolveFormatter(format.z, zType) : null;
-    const title = is3D ? (labels.z || z) : (labels.y || y);
+    const af = normFactor(seriesKey(active, channels)); // coeff. de normalisation
+    const projLabel = (baFeature && baFeature.config && baFeature.config.label) || 'Projection';
+    const valFmtMain = chartKind === 'bar-h' ? xFmt : yFmt;
+    const title2 = isProj ? projLabel : (is3D ? (labels.z || z) : (labels.y || y));
     const hueRows = hueCols.map((c) => ({ label: labelForCol(c), value: active[c] }));
     const valueRows = [];
     valueRows.push({ label: labels.x || x, value: xFmt(active[x]) });
     if (is3D) valueRows.push({ label: labels.y || y, value: yFmt(active[y]) });
-    valueRows.push({ label: 'Valeur', value: is3D ? zFmt(active[z]) : yFmt(active[y]) });
-    if (z && !is3D) valueRows.push({ label: labels.z || z, value: zFmt(active[z]) });
-    tooltipModel = { title, glyphSpec: tooltipGlyphSpec, hueRows, valueRows };
+    if (isProj) {
+      valueRows.push({ label: projLabel, value: valFmtMain(af * +active[valKey]) });
+    } else {
+      valueRows.push({ label: 'Valeur', value: is3D ? zFmt(active[z]) : yFmt(active[y]) });
+      if (z && !is3D) valueRows.push({ label: labels.z || z, value: zFmt(active[z]) });
+    }
+
+    // ── Bornes d'IC + projection (line / bar) — sous la valeur ───────────────
+    if (chartKind === 'line' || chartKind === 'bar' || chartKind === 'bar-h') {
+      const valFmt = chartKind === 'bar-h' ? xFmt : yFmt;
+      const activeKey = xKeyOf(active[posKey]) + '|' + seriesKey(active, channels);
+      const bracket = (lo, hi) => '[' + (lo != null && !isNaN(+lo) ? valFmt(+lo) : '–') + ' ; ' + (hi != null && !isNaN(+hi) ? valFmt(+hi) : '–') + ']';
+      const pushBounds = (row, below, above, prefix) => {
+        const nb = Math.max(below.length, above.length);
+        for (let i = 0; i < nb; i++) {
+          const lo = below[i] != null ? af * +row[below[i]] : null;
+          const hi = above[i] != null ? af * +row[above[i]] : null;
+          if ((lo == null || isNaN(lo)) && (hi == null || isNaN(hi))) continue;
+          const lab = (ciFeature.config.labels && ciFeature.config.labels.bands && ciFeature.config.labels.bands[i]) || ('±' + (i + 1));
+          valueRows.push({ label: prefix + lab, value: bracket(lo, hi) });
+        }
+      };
+      if (isProj) {
+        if (ciFeature && baFeature && baFeature.config.ci && Array.isArray(baFeature.config.ci.data)) {
+          const cm = new Map();
+          for (const r of baFeature.config.ci.data) cm.set(xKeyOf(r[posKey]) + '|' + seriesKey(r, channels), r);
+          const fci = cm.get(activeKey);
+          if (fci) pushBounds(fci, baFeature.config.ci.below || [], baFeature.config.ci.above || [], '');
+        }
+      } else {
+        if (ciFeature && ciFeature.config && Array.isArray(ciFeature.config.data)) {
+          const m = new Map();
+          for (const r of ciFeature.config.data) m.set(xKeyOf(r[posKey]) + '|' + seriesKey(r, channels), r);
+          const ci = m.get(activeKey);
+          if (ci) pushBounds(ci, ciFeature.config.below || [], ciFeature.config.above || [], '');
+        }
+        if (baFeature && baFeature.config && Array.isArray(baFeature.config.data)) {
+          const m = new Map();
+          for (const r of baFeature.config.data) m.set(xKeyOf(r[posKey]) + '|' + seriesKey(r, channels), r);
+          const fr = m.get(activeKey);
+          if (fr) {
+            valueRows.push({ label: projLabel, value: valFmt(af * +fr[valKey]) });
+            if (ciFeature && baFeature.config.ci && Array.isArray(baFeature.config.ci.data)) {
+              const cm = new Map();
+              for (const r of baFeature.config.ci.data) cm.set(xKeyOf(r[posKey]) + '|' + seriesKey(r, channels), r);
+              const fci = cm.get(activeKey);
+              if (fci) pushBounds(fci, baFeature.config.ci.below || [], baFeature.config.ci.above || [], 'Proj. ');
+            }
+          }
+        }
+      }
+    }
+
+    tooltipModel = { title: title2, glyphSpec: tooltipGlyphSpec, hueRows, valueRows };
   }
 
   // ── Marks du kind détecté ────────────────────────────────────────────────
-  // La densité n'est PAS rendue ici : elle vit dans la couche zoomée (KDE en
-  // coordonnées de base + transform, jamais recalculée). Les charts à bandes
-  // consomment les données filtrées + échelles zoomées ; le violon garde les
-  // données complètes et se repositionne via l'échelle zoomée (KDE stable).
   let marks = null;
   if (chartKind === 'line') {
-    marks = <LineMarks data={filteredData} x={x} y={y} channels={channels} xScale={xScale} yScale={yScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} fill={fill} stack={stackMain} />;
+    marks = <LineMarks data={filteredData} x={x} y={y} channels={channels} xScale={xScale} yScale={yScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} fill={fill} stack={stackMain} baReal={baReal} />;
   } else if (chartKind === 'bar') {
     marks = <BarMarks data={filteredData} x={x} y={y} channels={channels} xScale={xScale} yScale={yScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="v" fill={fill} stack={stackMain} />;
   } else if (chartKind === 'bar-h') {
@@ -450,9 +607,7 @@ const ChartCanvas = ({
     marks = <ViolinMarks data={data} x={x} y={y} z={z} channels={channels} xScale={xScale} yScale={yScale} xScaleBase={baseXScale} yScaleBase={baseYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} orient={chartKind === 'violin-h' ? 'h' : 'v'} fill={effFill} stack={stack} hovered={hovered} />;
   }
 
-  // Densité (KDE 2-D) rendue en coordonnées de BASE puis zoomée par le transform
-  // de la couche zoom (contours jamais recalculés, traits non-scaling-stroke,
-  // marqueurs contre-échelonnés par 1/zoom).
+  // Densité (KDE 2-D) rendue en coordonnées de BASE puis zoomée par le transform.
   const densityZoomMarks = chartKind === 'density'
     ? <DensityMarks data={data} x={x} y={y} z={z} channels={channels} xScale={baseXScale} yScale={baseYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} hovered={hovered} innerWidth={innerWidth} innerHeight={innerHeight} fill={effFill} zoom={{ kx: zx.k, ky: zy.k }} />
     : null;
@@ -461,10 +616,10 @@ const ChartCanvas = ({
   let xMiniContent = null;
   if (chartKind === 'line') {
     const yMini = baseYScale.copy().range([miniH, 0]);
-    xMiniContent = <LineMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} fill={fill} stack={stackMini} mini />;
+    xMiniContent = <>{<LineMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} fill={fill} stack={stackMini} mini />}{renderMiniCI(baseXScale, yMini)}</>;
   } else if (chartKind === 'bar') {
     const yMini = baseYScale.copy().range([miniH, 0]);
-    xMiniContent = <BarMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="v" fill={fill} stack={stackMini} mini />;
+    xMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="v" fill={fill} stack={stackMini} mini />}{renderMiniCI(baseXScale, yMini)}</>;
   } else if (has2DBrush) {
     xMiniContent = <MiniProjection data={data} posCol={x} posType={xType} valCol={z} posScale={baseXScale} width={innerWidth} height={miniH} direction="x" mode="mean" />;
   } else if (chartKind === 'violin-v') {
@@ -478,21 +633,30 @@ const ChartCanvas = ({
     yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={z} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="mean" />;
   } else if (isBarH) {
     const miniX = baseXScale.copy().range([0, Math.max(2, yMinimapW - 2)]);
-    yMiniContent = <BarMarks data={data} x={x} y={y} channels={channels} xScale={miniX} yScale={baseYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="h" fill={fill} stack={stackMini} mini />;
+    yMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={miniX} yScale={baseYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="h" fill={fill} stack={stackMini} mini />}{renderMiniCI(miniX, baseYScale)}</>;
   } else if (chartKind === 'violin-v') {
     yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={y} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="count" />;
   } else if (chartKind === 'violin-h') {
     yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={x} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="count" />;
   }
 
-  // Survol par défaut en v1 : tooltip sur le mark sous le curseur (survol direct).
-  // Extension : la barre d'outils exposera le survol par proximité (voronoï).
-  const voronoiOn = false;
-  const clipId = 'chart-clip-' + useId().replace(/[^a-zA-Z0-9]/g, '');
-
   return (
     <>
-      <svg ref={svgRef} className="chart-svg" width={width} height={svgH} viewBox={`0 0 ${width} ${svgH}`}>
+      {/* Barre d'outils — révélée au survol du frame (CSS pur). */}
+      <ChartToolbar
+        expanded={expanded} onExpand={() => setExpanded((e) => !e)}
+        voronoi={voronoiOn} onVoronoi={() => setVoronoiOn((v) => !v)}
+        tooltips={tooltipsOn} onTooltips={() => setTooltipsOn((t) => !t)}
+        onReset={resetZoom} canReset={canReset}
+        onExportSvg={() => exportSvg(svgRef.current, (title || 'chart') + '.svg')}
+        onExportPng={() => exportPng(svgRef.current, (title || 'chart') + '.png')}
+        extraTools={extraTools}
+      />
+
+      <svg
+        ref={svgRef} className={`chart-svg${zoomOn ? ' chart-svg--zoom' : ''}`}
+        width={width} height={svgH} viewBox={`0 0 ${width} ${svgH}`}
+      >
         <g transform={`translate(${margins.left}, ${margins.top})`}>
           <ChartAxisLeft
             scale={yScale} type={yType} length={innerHeight} width={innerWidth}
@@ -509,29 +673,39 @@ const ChartCanvas = ({
             <clipPath id={clipId}>
               <rect x={0} y={0} width={innerWidth} height={innerHeight} />
             </clipPath>
+            {baClip && (
+              <clipPath id={mainClipId}>
+                <rect x={baClip.x} y={baClip.y} width={baClip.w} height={baClip.h} />
+              </clipPath>
+            )}
           </defs>
-          <g clipPath={`url(#${clipId})`}>{marks}</g>
+          <g clipPath={`url(#${clipId})`}>
+            <g clipPath={baClip ? `url(#${mainClipId})` : undefined}>{marks}</g>
+          </g>
 
-          {/* Couche ZOOM : densité (KDE 2-D) + survol (line/density) calculés en
-              coordonnées de BASE et agrandis par transform → jamais recalculés au
-              zoom (traits non-scaling-stroke via .chart-zoom-content). */}
+          {/* Couche ZOOM : densité (KDE 2-D) + survol (line/density) en coordonnées
+              de BASE, agrandis par transform (traits non-scaling-stroke). */}
           {zoomLayer && (
             <g clipPath={`url(#${clipId})`}>
               <g className="chart-zoom-content" transform={zoomTransform}>
                 {densityZoomMarks}
                 {baseHoverTargets.length > 0 && (voronoiOn
                   ? <VoronoiOverlay points={baseHoverTargets} innerWidth={innerWidth} innerHeight={innerHeight} onHover={(t) => handleHover(t, true)} />
-                  : <DirectHoverOverlay targets={baseHoverTargets} onHover={(t) => handleHover(t, true)} />)}
+                  : (tooltipsOn ? <DirectHoverOverlay targets={baseHoverTargets} onHover={(t) => handleHover(t, true)} /> : null))}
               </g>
             </g>
           )}
 
-          {/* Survol direct (charts à bandes) : une zone de captation par mark. */}
-          {!zoomLayer && (voronoiOn
-            ? <VoronoiOverlay points={hoverTargets} innerWidth={innerWidth} innerHeight={innerHeight} onHover={(t) => handleHover(t, false)} />
-            : <DirectHoverOverlay targets={hoverTargets} onHover={(t) => handleHover(t, false)} />)}
+          {/* Overlays de features (IC, projection, normalisation) AU-DESSUS de la
+              couche zoom (la barre de normalisation passe devant les densités). */}
+          <g clipPath={`url(#${clipId})`}>{featureOverlays}</g>
 
-          {active && (
+          {/* Survol direct / proximité (charts à bandes). */}
+          {!zoomLayer && hoverTargets.length > 0 && (voronoiOn
+            ? <VoronoiOverlay points={hoverTargets} innerWidth={innerWidth} innerHeight={innerHeight} onHover={(t) => handleHover(t, false)} />
+            : (tooltipsOn ? <DirectHoverOverlay targets={hoverTargets} onHover={(t) => handleHover(t, false)} /> : null))}
+
+          {active && (voronoiOn || tooltipsOn) && (
             <ActiveMark
               pos={activeCentroid}
               color={activeColor}
@@ -566,7 +740,7 @@ const ChartCanvas = ({
         <MinimapToggle open={minimapOpen} onToggle={() => setMinimapOpen((o) => !o)} />
       )}
 
-      {active && activePos && tooltipModel && (
+      {tooltipsOn && active && activePos && tooltipModel && (
         <ChartTooltip model={tooltipModel} position={activePos} />
       )}
     </>
@@ -577,7 +751,7 @@ const ChartCanvas = ({
 
 /**
  * Adaptive chart. Detects column types on x/y/z and picks the mark renderer.
- * Delegates to <MultiChart> when `data` is an Array<Dataset> (v1: renders null).
+ * Delegates to <MultiChart> when `data` is an Array<Dataset> (not yet built).
  *
  * @param {object} props
  * @param {Array<object>} props.data - Array<Row> (long format) | Array<Dataset>.
@@ -595,9 +769,11 @@ const ChartCanvas = ({
  * @param {'sparse'|'normal'|'dense'} [props.tickDensity='normal'] - Tick density.
  * @param {string} [props.title] - Chart title.
  * @param {number} [props.height=460] - Outer height (px).
- * @param {Array} [props.toolbar=[]] - Feature descriptors (v1: inert).
- * @param {object} [props.defaults={}] - Initial feature state (v1: inert).
- * @param {boolean} [props.initialMinimapOpen=true] - Minimap open by default (v1: inert).
+ * @param {Array<object>} [props.toolbar=[]] - Toolbar feature descriptors.
+ * @param {object} [props.defaults={}] - Initial ON state per tool id ('confidence',
+ *   'beforeAfter', 'normalize', 'zoom', 'minimaps' + built-ins 'voronoi', 'tooltips',
+ *   'expanded'). Overrides each feature's `defaultOn`.
+ * @param {boolean} [props.initialMinimapOpen=true] - Minimap open by default.
  * @returns {JSX.Element}
  */
 const Chart = ({
@@ -606,34 +782,43 @@ const Chart = ({
   format = {}, labels = {}, maxLabelLength = {}, maxLines = {},
   overlap = 'auto', tickDensity = 'normal',
   title, height = 460,
-  // Extension : la barre d'outils configurable et les mini-vues consommeront
-  // ces props une fois les sous-systèmes construits — inertes en v1.
   toolbar = [], defaults = {}, initialMinimapOpen = true,
 }) => {
-  // Hook AVANT tout retour anticipé (conformité règles React).
+  // Hooks AVANT tout retour anticipé
   const { hovered, setHovered, voronoiRow, setVoronoiRow, ciHover, setCiHover } = useSeriesHover();
 
-  // Branche « data = liste de jeux » → délégation ultérieure à <MultiChart>.
-  if (isDatasetList(data)) {
-    // TODO MultiChart : rendre <MultiChart …/> une fois le composant construit.
-    return null;
-  }
-  if (!y) throw new Error("<Chart>: l'argument `y` est requis.");
-
+  // ── Détection de type + coercition (données BRUTES avant transform) ────────
+  const isList = isDatasetList(data);
   const hueCols = hue ? (Array.isArray(hue) ? hue : [hue]) : [];
-
-  // ── Détection de type + coercition ────────────────────────────────────────
-  const xType = detectType(data.map((r) => r[x]));
-  const yType = detectType(data.map((r) => r[y]));
-  const zType = z ? detectType(data.map((r) => r[z])) : null;
-  const typedData = data.map((r) => ({
+  const xType = isList ? null : detectType(data.map((r) => r[x]));
+  const yType = isList ? null : detectType(data.map((r) => r[y]));
+  const zType = (!isList && z) ? detectType(data.map((r) => r[z])) : null;
+  const typedDataRaw = isList ? data : data.map((r) => ({
     ...r,
     [x]: coerce(r[x], xType),
     [y]: coerce(r[y], yType),
     ...(z ? { [z]: coerce(r[z], zType) } : {}),
   }));
+  const chartKind = isList ? null : detectChart({ xType, yType, zType, hasZ: !!z });
 
-  const chartKind = detectChart({ xType, yType, zType, hasZ: !!z });
+  // État des features (avant tout retour : hooks au top-level). `supports`
+  // reçoit un kind null pour la branche multi-jeux → aucune option retenue.
+  const {
+    tools, activeTools, featOn, featVal, toggleFeature, setFeatureValue,
+  } = useFeatureState({ toolbar, chartKind, defaults });
+
+  // État frame-level (agrandissement + modes de survol).
+  const [expanded, setExpanded] = useState(!!defaults.expanded);
+  const [voronoiOn, setVoronoiOn] = useState(!!defaults.voronoi);
+  const [tooltipsOn, setTooltipsOn] = useState(defaults.tooltips != null ? !!defaults.tooltips : true);
+
+  // Branche « data = liste de jeux » → délégation ultérieure à <MultiChart>.
+  if (isList) {
+    // TODO MultiChart : rendre <MultiChart …/> une fois le composant construit.
+    return null;
+  }
+  if (!y) throw new Error("<Chart>: l'argument `y` est requis.");
+
   const isViolinKind = chartKind === 'violin-v' || chartKind === 'violin-h';
   const isContinuousZ = chartKind === 'heatmap' || chartKind === 'density' || isViolinKind;
   // z continu : 'none' (option scatter des charts X-Y) retombe sur 'fill'.
@@ -648,6 +833,41 @@ const Chart = ({
     channels = { color: hueCols[0] || null, marker: hueCols[1] || null, style: hueCols[2] || null };
   } else {
     channels = { color: hueCols[0] || null, style: hueCols[1] || null, marker: hueCols[2] || null };
+  }
+
+  const posKey = chartKind === 'bar-h' ? y : x;
+  const valKey = chartKind === 'bar-h' ? x : y;
+
+  // ── Rôle TRANSFORM (normalisation) : données AVANT échelles/marks ─────────
+  // GARANTIE : inactif ⇒ référence brute inchangée (zéro recalcul, rendu nu).
+  const normTool = activeTools.find((t) => t.transform);
+  const typedData = normTool
+    ? normTool.transform(typedDataRaw, { posKey, valKey, channels, barPos: featVal[normTool.id], chartKind, x, y, z })
+    : typedDataRaw;
+
+  // Coefficient de normalisation PAR SÉRIE (100 / valeur à la barre). Le même
+  // coeff. met à l'échelle les bornes d'IC et la projection (jeux séparés).
+  let normFactorMap = null;
+  if (normTool && (chartKind === 'line' || chartKind === 'bar' || chartKind === 'bar-h')) {
+    const barPos = featVal[normTool.id];
+    if (barPos != null) {
+      const refs = normalizeRefs(typedDataRaw, { posKey, valKey, channels, barPos });
+      normFactorMap = new Map();
+      for (const [k, ref] of refs) normFactorMap.set(k, (ref == null || ref === 0) ? 1 : 100 / ref);
+    }
+  }
+  const normFactor = (key) => ((normFactorMap && normFactorMap.has(key)) ? normFactorMap.get(key) : 1);
+
+  // Features identifiées par `kind` (l'id peut être surchargé par config.id).
+  const ciFeature = activeTools.find((t) => t.kind === 'confidence');
+  const baFeature = activeTools.find((t) => t.kind === 'beforeAfter');
+
+  // Marqueur de distinction posé sur la VRAIE série (line) quand une projection
+  // NON-remplaçante est active : hue 2 → marqueur unique ; hue 3 → + 2e marqueur.
+  let baReal = null;
+  if (chartKind === 'line' && baFeature && !(baFeature.config && baFeature.config.replace)) {
+    const nHue = (channels.color ? 1 : 0) + (channels.style ? 1 : 0) + (channels.marker ? 1 : 0);
+    if (nHue >= 2) baReal = { marker: REAL_DIST_MARKER, secondary: nHue >= 3 };
   }
 
   // Échelle séquentielle (dégradé) : heatmap toujours ; violon/density seulement
@@ -686,18 +906,41 @@ const Chart = ({
       ? { channel: 'marker', label: labelForCol(channels.marker), items: markerVals.map((v) => ({ key: v, color: refColor, marker: markerScaleFn(v) })) }
       : null,
   };
-  // Nuage de points : couleur → forme → plein/pointillé. Sinon ordre classique.
   const legendOrder = fill === 'none' ? ['color', 'marker', 'style'] : ['color', 'style', 'marker'];
   const legendGroups = legendOrder.map((k) => byType[k]).filter(Boolean);
   const hasChannelLegend = legendGroups.length > 0;
-  // Canal « style » : hachures sur barres/violon-plein/density-plein, sinon pointillés.
   const styleGlyphKind = (
     ((chartKind === 'bar' || chartKind === 'bar-h') && fill !== 'none')
     || (isViolinKind && effFill === 'fill')
     || (chartKind === 'density' && effFill === 'fill')
   ) ? 'hatch' : 'dash';
 
-  // Route le survol de légende (un item d'IC isolerait un niveau ; en v1 aucun).
+  // ── Canaux libres des features « encoder » (profondeur de hue +1) ──────────
+  const encoderFeatures = activeTools.filter((t) => t.roles.includes('encoder'));
+  const channelAssign = {};
+  const usedChannels = [];
+  // Projection avant les intervalles (CI en dernier) — même ordre que le prototype.
+  const orderedEncoders = [...encoderFeatures].sort((a, b) => (a.id === 'confidence') - (b.id === 'confidence'));
+  for (const f of orderedEncoders) { const ch = nextFreeChannel(channels, usedChannels); channelAssign[f.id] = ch; usedChannels.push(ch); }
+
+  // ── Groupes de légende additionnels (bandes CI, projection) ───────────────
+  // Les factories `legend()` n'utilisent que des valeurs largeur-indépendantes.
+  const featureLegendCtx = {
+    chartKind, channels, filteredData: typedData,
+    colorScale: cScale, styleScale: styleScaleFn, hatchScale: hatchScaleFn, markerScale: markerScaleFn,
+  };
+  const featureLegendGroups = [];
+  for (const f of activeTools) {
+    if (f.legend) {
+      const g = f.legend(featureLegendCtx, channelAssign[f.id], f.config);
+      if (g && g.items && g.items.length) featureLegendGroups.push(g);
+    }
+  }
+  const allLegendGroups = [...legendGroups, ...featureLegendGroups];
+  const hasAnyLegend = hasChannelLegend || featureLegendGroups.length > 0;
+
+  // Route le survol de légende : item d'IC ('ciband') isole un niveau ; item de
+  // série estompe les autres séries + IC.
   const onLegendHover = (value, group) => {
     if (group && group.channel === 'ciband') {
       setCiHover(value == null ? null : { value });
@@ -708,8 +951,16 @@ const Chart = ({
     }
   };
 
+  // Ouverture des mini-vues par défaut : defaults.minimaps > outil minimaps > prop.
+  const minimapsTool = (toolbar || []).find((t) => t.isMinimaps);
+  const effInitialMinimapOpen = defaults.minimaps != null
+    ? !!defaults.minimaps
+    : (minimapsTool ? !!minimapsTool.defaultOn : initialMinimapOpen);
+
+  const legendInline = expanded;
+
   return (
-    <figure className="chart-frame">
+    <figure className={`chart-frame${expanded ? ' chart-frame--expanded' : ''}`}>
       <figcaption className="chart-header">
         {title && <h3 className="chart-title">{title}</h3>}
         <span className="chart-kind" title={`Type détecté : ${chartKind}`}>
@@ -717,46 +968,63 @@ const Chart = ({
         </span>
       </figcaption>
 
+      {/* Légende du haut (mode agrandi). */}
+      {legendInline && hasAnyLegend && !isSequentialZ && (
+        <div className="chart-legend-top">
+          <ChannelLegend
+            groups={allLegendGroups} layout="horizontal"
+            hovered={hovered} hoveredCI={ciHover && ciHover.value}
+            onHover={onLegendHover} styleGlyph={styleGlyphKind}
+          />
+        </div>
+      )}
+      {legendInline && isSequentialZ && (
+        <div className="chart-legend-top">
+          <SequentialLegend scale={cScale} label={labels.z || z} orientation="horizontal" />
+        </div>
+      )}
+
       <ParentSize className="chart-body" parentSizeStyles={{ position: 'relative', width: '100%', minHeight: height }}>
         {({ width }) => (
-          // Rendu différé jusqu'à la mesure de la largeur réelle (client). Au SSR
-          // et au 1er rendu, `width` vaut 0 → on ne rend rien : measureText
-          // renvoie une estimation hors canvas (SSR) mais la vraie largeur au
-          // client, donc rendre le SVG dans les deux cas divergerait à
-          // l'hydratation. Serveur (width 0) et hydratation cliente (width 0)
-          // rendent l'identique (néant), puis le ResizeObserver déclenche le
-          // vrai rendu.
           width > 0 ? (
-          <ChartCanvas
-            width={Math.max(320, Math.floor(width))}
-            height={height}
-            data={typedData}
-            x={x} y={y} z={z}
-            xType={xType} yType={yType} zType={zType}
-            chartKind={chartKind}
-            channels={channels} hueCols={hueCols}
-            fill={fill} effFill={effFill} stack={stack}
-            format={format} labels={labels} maxLabelLength={maxLabelLength} maxLines={maxLines}
-            overlap={overlap} tickDensity={tickDensity}
-            isSequentialZ={isSequentialZ} isViolinKind={isViolinKind}
-            cScale={cScale} styleScaleFn={styleScaleFn} hatchScaleFn={hatchScaleFn} markerScaleFn={markerScaleFn}
-            hovered={hovered} voronoiRow={voronoiRow} setVoronoiRow={setVoronoiRow}
-            initialMinimapOpen={initialMinimapOpen}
-          />
+            <ChartCanvas
+              width={Math.max(320, Math.floor(width))}
+              height={height}
+              data={typedData}
+              x={x} y={y} z={z}
+              xType={xType} yType={yType} zType={zType}
+              chartKind={chartKind}
+              channels={channels} hueCols={hueCols}
+              fill={fill} effFill={effFill} stack={stack}
+              format={format} labels={labels} maxLabelLength={maxLabelLength} maxLines={maxLines}
+              overlap={overlap} tickDensity={tickDensity}
+              isSequentialZ={isSequentialZ} isViolinKind={isViolinKind}
+              cScale={cScale} styleScaleFn={styleScaleFn} hatchScaleFn={hatchScaleFn} markerScaleFn={markerScaleFn}
+              hovered={hovered} voronoiRow={voronoiRow} setVoronoiRow={setVoronoiRow} ciHover={ciHover}
+              initialMinimapOpen={effInitialMinimapOpen} title={title}
+              tools={tools} activeTools={activeTools} featOn={featOn} featVal={featVal}
+              toggleFeature={toggleFeature} setFeatureValue={setFeatureValue}
+              ciFeature={ciFeature} baFeature={baFeature} normFactor={normFactor}
+              channelAssign={channelAssign} baReal={baReal}
+              expanded={expanded} setExpanded={setExpanded}
+              voronoiOn={voronoiOn} setVoronoiOn={setVoronoiOn}
+              tooltipsOn={tooltipsOn} setTooltipsOn={setTooltipsOn}
+            />
           ) : null
         )}
       </ParentSize>
 
-      {hasChannelLegend && !isSequentialZ && (
+      {/* Légende de droite (mode par défaut). */}
+      {!legendInline && hasAnyLegend && !isSequentialZ && (
         <aside className="chart-legend-right">
           <ChannelLegend
-            groups={legendGroups} layout="vertical"
+            groups={allLegendGroups} layout="vertical"
             hovered={hovered} hoveredCI={ciHover && ciHover.value}
             onHover={onLegendHover} styleGlyph={styleGlyphKind}
           />
         </aside>
       )}
-      {isSequentialZ && (
+      {!legendInline && isSequentialZ && (
         <aside className="chart-legend-right">
           <SequentialLegend scale={cScale} label={labels.z || z} orientation="vertical" />
         </aside>
