@@ -1,14 +1,16 @@
 // =================================================================
 // FEATURE CHART — point d'entrée public
 // =================================================================
-// Réexporte le composant pivot Chart + les utilitaires purs. MultiChart,
-// ChartsFeatures et les sources GraphQL viendront s'ajouter ici au fur et à
-// mesure.
+// Réexporte le composant pivot Chart, le mode multi-jeux MultiChart, les
+// descripteurs de features ChartsFeatures, la source de données GraphQL
+// useFactTable et les utilitaires purs.
 
 export { default as Chart } from './components/Chart/Chart';
 export { default as MultiChart } from './components/MultiChart/MultiChart';
 
 export { ChartsFeatures } from './toolbar-features';
+
+export { useFactTable } from './sources/useFactTable';
 
 export * from './utils/typeDetection';
 export * from './utils/encoding';
