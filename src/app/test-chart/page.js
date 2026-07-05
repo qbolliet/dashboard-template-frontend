@@ -14,6 +14,7 @@ import {
   makeLineByHue, makeLineCI, makeLineForecast,
   makeBarData, makeBarCI, makeBarHData, makeBarHCI,
   makeHeatmapData, makeDensityData, makeViolinData,
+  makeComboMonthly, makeComboQuarterly, makeAreaSeries,
 } from '@/features/chart/sources/demoData';
 import './page.scss';
 
@@ -27,6 +28,12 @@ const barHData = makeBarHData();
 const heatmapData = makeHeatmapData();
 const densityData = makeDensityData();
 const violinData = makeViolinData();
+
+// Jeux multi-graph (liste de jeux → <MultiChart>) : combo-bar (ligne mensuelle +
+// barres trimestrielles categorical-x) et combo-area (même jeu en aire puis ligne).
+const comboMonthly = makeComboMonthly();
+const comboQuarterly = makeComboQuarterly(comboMonthly);
+const areaSeries = makeAreaSeries();
 
 // ── Barres d'outils par type (portées de charts.html) ───────────────────────
 // Reconstruites au niveau module (références stables) : <Chart> gère son état
@@ -107,6 +114,30 @@ const TestChartPage = () => (
           x="ChômageTaux" y="EmploiTaux" z="Densité" hue="Type"
           labels={{ x: 'Taux de chômage', y: "Taux d'emploi", color: 'Type' }}
           toolbar={densityToolbar}
+        />
+
+        {/* Multi-jeux — linechart (mensuel) + barchart categorical-x (trimestriel). */}
+        <Chart
+          title="Croissance — mensuelle (ligne) + trimestrielle (barres)"
+          data={[
+            { label: 'Mensuelle', data: comboMonthly, fill: 'line', hue: 'Pays' },
+            { label: 'Trimestrielle', data: comboQuarterly, fill: 'fill', hue: 'Pays', 'categorical-x': true },
+          ]}
+          x="Date" y="Croissance"
+          format={{ x: '%Y-%m', y: '.1f' }}
+          labels={{ x: 'Date', y: 'Croissance (%)' }}
+        />
+
+        {/* Multi-jeux — même jeu rendu en ligne puis en aire (couleurs coordonnées). */}
+        <Chart
+          title="Production — aire + ligne (même jeu)"
+          data={[
+            { label: 'Ligne', data: areaSeries, fill: 'line', hue: 'Pays' },
+            { label: 'Aire', data: areaSeries, fill: 'fill', hue: 'Pays' },
+          ]}
+          x="Date" y="Production"
+          format={{ x: '%Y-%m', y: '.0f' }}
+          labels={{ x: 'Date', y: 'Production (indice)' }}
         />
       </section>
     </main>
