@@ -42,6 +42,8 @@
   --chart-seq-5: var(--color-navy); // même teinte que --chart-cat-1 (foncé)
 
   // ===== Barres de feature (before/after, normalisation) =====
+  // --chart-bar : couleur par défaut d'une barre de drag générique (DragBar).
+  --chart-bar: var(--color-text-secondary);
   --chart-bar-projection: var(--color-primary-500);
   --chart-bar-normalize: var(--color-violet); // redéfinie en mode sombre dans colors.scss
 }
