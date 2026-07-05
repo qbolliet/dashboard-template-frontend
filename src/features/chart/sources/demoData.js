@@ -76,6 +76,71 @@ export function makeLineByHue() {
   };
 }
 
+/* ────────────── 1bis. Intervalles de confiance + prévision (linechart) ──── */
+
+/**
+ * Builds confidence-interval rows aligned on line rows: two symmetric bands
+ * (68 % / 95 %) around each row's `PIB`, carrying the same series columns so the
+ * overlay can look them up by (Date · series key).
+ *
+ * @param {Array<object>} rows - Line rows ({ Date, PIB, Country, CrossVal, … }).
+ * @param {number} [seed=11] - RNG seed (band-width jitter).
+ * @returns {Array<object>} Rows { …series, lo1, hi1, lo2, hi2 } around PIB.
+ */
+export function makeLineCI(rows, seed = 11) {
+  const rng = mulberry32(seed);
+  return rows.map((r) => {
+    const w = 1.6 + rng() * 1.4; // demi-largeur bande 68 %
+    return {
+      ...r,
+      lo1: +(r.PIB - w).toFixed(2), hi1: +(r.PIB + w).toFixed(2),
+      lo2: +(r.PIB - w * 1.9).toFixed(2), hi2: +(r.PIB + w * 1.9).toFixed(2),
+    };
+  });
+}
+
+/**
+ * Builds a projected ("forecast") variant of line rows: a growing per-series
+ * divergence so the after-bar projection reads distinctly from the real series.
+ *
+ * @param {Array<object>} rows - Line rows.
+ * @param {number} [seed=12] - RNG seed.
+ * @returns {Array<object>} Rows with a shifted `PIB`.
+ */
+export function makeLineForecast(rows, seed = 12) {
+  const rng = mulberry32(seed);
+  const idxOf = new Map();
+  return rows.map((r) => {
+    const k = `${r.Country}|${r.CrossVal}|${r.Model}`;
+    const i = idxOf.get(k) || 0;
+    idxOf.set(k, i + 1);
+    const drift = i * 0.12 + (rng() - 0.5) * 1.2;
+    return { ...r, PIB: +(r.PIB + 4 + drift).toFixed(2) };
+  });
+}
+
+/**
+ * Aggregates rows to one mean value per (position · hue) pair.
+ *
+ * @param {Array<object>} rows - Source rows.
+ * @param {string} posCol - Position (band) column.
+ * @param {string} hueCol - Hue (color) column.
+ * @param {string} valCol - Value column.
+ * @returns {Array<object>} Aggregated rows { [posCol], [hueCol], mean }.
+ */
+function aggregateBy(rows, posCol, hueCol, valCol) {
+  const m = new Map();
+  for (const r of rows) {
+    const k = `${r[posCol]}|${r[hueCol]}`;
+    if (!m.has(k)) m.set(k, { pos: r[posCol], hue: r[hueCol], vals: [] });
+    m.get(k).vals.push(+r[valCol]);
+  }
+  return [...m.values()].map((g) => ({
+    [posCol]: g.pos, [hueCol]: g.hue,
+    mean: g.vals.reduce((a, b) => a + b, 0) / g.vals.length,
+  }));
+}
+
 /* ────────────── 2. Bar — catégoriel x + num y + hue ─────────────────────── */
 
 /**
@@ -106,6 +171,25 @@ export function makeBarData(seed = 2) {
     }
   }
   return out;
+}
+
+/**
+ * Confidence-interval rows for the vertical-bar demo (one row per Secteur × Année,
+ * two bands around the mean ValeurAjoutée).
+ *
+ * @param {number} [seed=21] - RNG seed.
+ * @returns {Array<object>} Rows { Secteur, Année, lo1, hi1, lo2, hi2 }.
+ */
+export function makeBarCI(seed = 21) {
+  const rng = mulberry32(seed);
+  return aggregateBy(makeBarData(), 'Secteur', 'Année', 'ValeurAjoutée').map((g) => {
+    const w = g.mean * 0.04 * (1 + rng() * 0.6);
+    return {
+      Secteur: g.Secteur, Année: g.Année,
+      lo1: +(g.mean - w).toFixed(1), hi1: +(g.mean + w).toFixed(1),
+      lo2: +(g.mean - w * 1.9).toFixed(1), hi2: +(g.mean + w * 1.9).toFixed(1),
+    };
+  });
 }
 
 /* ────────────── 3. Heatmap — cat × cat + num z ──────────────────────────── */
@@ -195,6 +279,25 @@ export function makeBarHData(seed = 5) {
     }
   }
   return out;
+}
+
+/**
+ * Confidence-interval rows for the horizontal-bar demo (one row per Région × Année,
+ * two bands around the mean Adoption).
+ *
+ * @param {number} [seed=22] - RNG seed.
+ * @returns {Array<object>} Rows { Région, Année, lo1, hi1, lo2, hi2 }.
+ */
+export function makeBarHCI(seed = 22) {
+  const rng = mulberry32(seed);
+  return aggregateBy(makeBarHData(), 'Région', 'Année', 'Adoption').map((g) => {
+    const w = g.mean * 0.05 * (1 + rng() * 0.6);
+    return {
+      Région: g.Région, Année: g.Année,
+      lo1: +(g.mean - w).toFixed(1), hi1: +(g.mean + w).toFixed(1),
+      lo2: +(g.mean - w * 1.9).toFixed(1), hi2: +(g.mean + w * 1.9).toFixed(1),
+    };
+  });
 }
 
 /* ────────────── 6. Violin — KDE par catégorie ───────────────────────────── */

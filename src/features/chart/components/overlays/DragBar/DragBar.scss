@@ -1,0 +1,14 @@
+// ===== DRAG BAR — barre repositionnable =====
+// Géométrie et couleurs arrivent en props (color/dash) ; 
+// le SCSS ne porte que le poids typographique du libellé et
+// la zone de captation du pointeur.
+
+.chart-dragbar-label {
+  font-weight: 600;
+}
+
+// La ligne transparente épaisse capte le pointeur sur son trait seul (pas sur la
+// boîte englobante), pour ne pas voler le survol au reste du graphique.
+.chart-dragbar--draggable line[stroke='transparent'] {
+  pointer-events: stroke;
+}

@@ -1,0 +1,61 @@
+// ===== TOOLBAR BUTTON — bouton d'outil + infobulle =====
+// Transposé de charts.css (.ca-toolbar-btn*, .ca-toolbar-tooltip). L'état actif
+// utilise la couleur primaire à opacité réduite (calcul de couleur, pas un token).
+@use '../../../colors' as *;
+@use '../colors' as *;
+
+.chart-toolbar-btn {
+  position: relative;
+  width: var(--chart-toolbar-btn-size);
+  height: var(--chart-toolbar-btn-size);
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--chart-toolbar-btn-radius);
+  color: hsl(var(--chart-toolbar-btn-color));
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.chart-toolbar-btn:hover {
+  background: hsl(var(--chart-toolbar-btn-hover-bg));
+  color: hsl(var(--chart-toolbar-btn-hover-color));
+}
+.chart-toolbar-btn--active {
+  background: hsl(var(--chart-toolbar-btn-active-color) / 0.12);
+  color: hsl(var(--chart-toolbar-btn-active-color));
+}
+[data-theme='dark'] .chart-toolbar-btn--active {
+  background: hsl(var(--chart-toolbar-btn-active-color) / 0.2);
+}
+
+.chart-toolbar-btn-icon {
+  width: var(--chart-toolbar-icon-size);
+  height: var(--chart-toolbar-icon-size);
+  display: inline-grid;
+  place-items: center;
+}
+.chart-toolbar-btn-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+// Infobulle sous le bouton, révélée au survol du bouton seul (CSS pur).
+.chart-toolbar-tooltip {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  padding: 4px 7px;
+  border-radius: var(--border-radius-sm);
+  background: hsl(var(--chart-toolbar-tip-bg));
+  color: hsl(var(--chart-toolbar-tip-color));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+  z-index: 10;
+}
+.chart-toolbar-btn:hover .chart-toolbar-tooltip {
+  opacity: 1;
+}
