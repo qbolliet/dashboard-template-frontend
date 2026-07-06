@@ -46,10 +46,10 @@ const ChartToolbar = ({
     )}
     <ToolbarButton icon={ToolIcon.Voronoi} label="Hover proximité (Voronoï)" active={voronoi} onClick={onVoronoi} />
     <ToolbarButton icon={ToolIcon.Tooltip} label="Tooltip sur points" active={tooltips} onClick={onTooltips} />
-    <ToolbarButton icon={ToolIcon.Reset} label="Réinitialiser le zoom" active={false} onClick={canReset ? onReset : undefined} />
+    <ToolbarButton icon={ToolIcon.Reset} label="Réinitialiser le zoom" onClick={canReset ? onReset : undefined} />
     <span className="chart-toolbar-sep" />
-    <ToolbarButton icon={ToolIcon.Svg} label="Exporter en SVG" active={false} onClick={onExportSvg} />
-    <ToolbarButton icon={ToolIcon.Png} label="Exporter en PNG" active={false} onClick={onExportPng} />
+    <ToolbarButton icon={ToolIcon.Svg} label="Exporter en SVG" onClick={onExportSvg} />
+    <ToolbarButton icon={ToolIcon.Png} label="Exporter en PNG" onClick={onExportPng} />
     <span className="chart-toolbar-sep" />
     <ToolbarButton
       icon={expanded ? ToolIcon.Compress : ToolIcon.Expand}

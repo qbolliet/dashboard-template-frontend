@@ -106,9 +106,13 @@ function cloneSelfContainedSvg(svgEl) {
   // feuilles capturées (ex. injectée en JS, ou feuille cross-origin ignorée).
   const rootVars = `:root { ${collectComputedCssVariables(svgEl)} }`;
   styleEl.textContent = collectStylesheetText() + '\n' + rootVars;
-  // Insertion en PREMIER enfant : un <style> doit précéder (dans l'ordre du
-  // document) les éléments qu'il stylise pour être pris en compte à coup sûr.
-  clone.insertBefore(styleEl, clone.firstChild);
+  // Insertion juste APRÈS un <title> existant (nom accessible du graphique,
+  // cf. Chart.jsx/MultiChart.jsx) s'il y en a un — un <title> doit rester le
+  // tout premier enfant du <svg> pour être reconnu comme nom accessible par les
+  // lecteurs/outils qui ouvrent le fichier exporté isolément ; sinon (pas de
+  // <title>), le <style> précède directement les éléments qu'il stylise.
+  const titleEl = clone.querySelector(':scope > title');
+  clone.insertBefore(styleEl, titleEl ? titleEl.nextSibling : clone.firstChild);
 
   return clone;
 }

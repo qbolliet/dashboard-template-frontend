@@ -10,10 +10,14 @@ import './ToolbarButton.scss';
 /**
  * A single toolbar button with an icon and a CSS-only tooltip.
  *
+ * `active` distinguishes a toggle button (on/off, exposes `aria-pressed`) from
+ * a one-shot action button (reset, export…) when left `undefined` — passing
+ * `false` would otherwise announce e.g. "Export" as a toggle stuck off.
+ *
  * @param {object} props
  * @param {JSX.Element} props.icon - Inline SVG pictogram.
  * @param {string} props.label - Accessible label + tooltip text.
- * @param {boolean} [props.active] - Active (ON) state.
+ * @param {boolean} [props.active] - Active (ON) state; omit for non-toggle actions.
  * @param {function(): void} [props.onClick] - Click handler.
  * @returns {JSX.Element}
  */
@@ -23,7 +27,7 @@ const ToolbarButton = ({ icon, label, active, onClick }) => (
     className={`chart-toolbar-btn${active ? ' chart-toolbar-btn--active' : ''}`}
     onClick={onClick}
     aria-label={label}
-    aria-pressed={!!active}
+    aria-pressed={active == null ? undefined : active}
   >
     <span className="chart-toolbar-btn-icon">{icon}</span>
     <span className="chart-toolbar-tooltip">{label}</span>

@@ -17,11 +17,9 @@
 // une valeur `var()` non résolue casserait le rendu. Elles restent toutefois
 // exprimées en HSL (et non en hex) pour respecter la convention de couleur du
 // repo, et sont numériquement identiques aux tokens CSS homonymes déclarés une
-// fois dans src/styles/globals/colors.scss (--color-navy, --color-brick, …),
-// eux-mêmes repris par features/chart/_colors.scss (--chart-cat-*/--chart-seq-*)
-// pour les éléments de chrome. Toute modification d'une teinte doit donc être
-// répercutée aux DEUX endroits (le nom du token CSS correspondant est rappelé
-// en commentaire ci-dessous).
+// fois dans src/styles/globals/colors.scss (--color-navy, --color-brick, …).
+// Toute modification d'une teinte doit donc être répercutée aux DEUX endroits
+// (le nom du token CSS correspondant est rappelé en commentaire ci-dessous).
 
 // Importation des modules
 import { scaleOrdinal } from '@visx/scale';

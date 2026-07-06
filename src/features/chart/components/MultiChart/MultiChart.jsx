@@ -501,7 +501,9 @@ const MultiChartCanvas = ({
         onExportPng={() => exportPng(svgRef.current, (title || 'chart') + '.png')}
       />
 
+        {/* Pas de role="img" : cf. Chart.jsx (pruning des descendants interactifs). */}
         <svg ref={svgRef} className="chart-svg" width={width} height={svgH} viewBox={`0 0 ${width} ${svgH}`}>
+          <title>{title || 'Graphique'}</title>
           <g transform={`translate(${margin.left}, ${margin.top})`}>
             <ChartAxisLeft
               scale={yScale} type="number" length={innerHeight} width={innerWidth}

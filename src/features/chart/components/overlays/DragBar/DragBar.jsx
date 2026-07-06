@@ -23,7 +23,8 @@ import './DragBar.scss';
  * @param {'x'|'y'} props.axis - 'x' → vertical bar (moves horizontally); 'y' → horizontal bar.
  * @param {object} props.scale - visx/d3 scale of the position axis.
  * @param {*} props.value - Current domain value of the bar.
- * @param {boolean} props.draggable - Whether the bar can be dragged.
+ * @param {boolean} props.draggable - Whether the bar can be dragged (mouse) or
+ *   nudged (keyboard: focus the handle, Arrow keys step by 1% of the domain).
  * @param {number} props.innerWidth - Plot width (px).
  * @param {number} props.innerHeight - Plot height (px).
  * @param {function(*): void} props.onCommit - Called with the committed domain value on release.
@@ -87,6 +88,55 @@ const DragBar = ({
   const y2 = isX ? innerHeight : cur;
   const cursor = isX ? 'ew-resize' : 'ns-resize';
 
+  // ── Clavier (poignée focusable) : Flèches ← → (axe x) / ↓ ↑ (axe y) déplacent
+  // la valeur d'un pas et commitent directement (pas de drag local à committer).
+  // `domain()` n'est calculé que si la barre est effectivement draggable (évite
+  // le coût pour les barres non interactives, ex. avant commit du zoom).
+  const domain = draggable && scale.domain ? scale.domain() : null;
+  const isBand = !!scale.bandwidth;
+  const isDate = !isBand && domain && domain[0] instanceof Date;
+  const toNum = (v) => (isDate ? v.getTime() : v);
+  // Une échelle catégorielle en y n'est PAS inversée (range [0, length], index 0
+  // en haut — cf. utils/scales.js), contrairement à une échelle continue en y
+  // (range [length, 0]) : le sens visuel « vers le haut » correspond donc à un
+  // index DÉCROISSANT en catégoriel, mais à une valeur de domaine CROISSANTE en
+  // continu — d'où l'inversion du signe pour ce seul cas.
+  const yBandFlip = !isX && isBand;
+
+  let ariaProps = {};
+  if (domain) {
+    if (isBand) {
+      const i = domain.indexOf(value);
+      ariaProps = { 'aria-valuemin': 0, 'aria-valuemax': domain.length - 1, 'aria-valuenow': i, 'aria-valuetext': String(value) };
+    } else {
+      ariaProps = {
+        'aria-valuemin': Math.min(toNum(domain[0]), toNum(domain[1])),
+        'aria-valuemax': Math.max(toNum(domain[0]), toNum(domain[1])),
+        'aria-valuenow': toNum(value),
+        'aria-valuetext': label != null ? String(label) : String(value),
+      };
+    }
+  }
+  const nudge = (dir) => {
+    if (!onCommit || !domain) return;
+    if (isBand) {
+      const i = Math.max(0, Math.min(domain.length - 1, domain.indexOf(value) + dir));
+      onCommit(domain[i]);
+    } else {
+      const lo = Math.min(toNum(domain[0]), toNum(domain[1]));
+      const hi = Math.max(toNum(domain[0]), toNum(domain[1]));
+      const step = (hi - lo) / 100;
+      const next = Math.max(lo, Math.min(hi, toNum(value) + dir * step));
+      onCommit(isDate ? new Date(next) : next);
+    }
+  };
+  const onKeyDown = (e) => {
+    const decKey = isX ? 'ArrowLeft' : 'ArrowDown';
+    const incKey = isX ? 'ArrowRight' : 'ArrowUp';
+    if (e.key === decKey) { e.preventDefault(); nudge(yBandFlip ? 1 : -1); }
+    else if (e.key === incKey) { e.preventDefault(); nudge(yBandFlip ? -1 : 1); }
+  };
+
   return (
     <g ref={gRef} className={`chart-dragbar${draggable ? ' chart-dragbar--draggable' : ''}`}>
       <line
@@ -114,6 +164,10 @@ const DragBar = ({
         <circle
           cx={isX ? cur : 0} cy={isX ? 0 : cur} r={3.5} fill={color}
           style={{ cursor }} onPointerDown={onPointerDown}
+          tabIndex={0} role="slider" onKeyDown={onKeyDown}
+          aria-orientation={isX ? 'horizontal' : 'vertical'}
+          aria-label={label != null ? String(label) : 'Curseur'}
+          {...ariaProps}
         />
       )}
     </g>

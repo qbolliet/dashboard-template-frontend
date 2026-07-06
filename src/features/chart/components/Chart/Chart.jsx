@@ -654,10 +654,16 @@ const ChartCanvas = ({
         extraTools={extraTools}
       />
 
+      {/* Pas de role="img" : cette valeur PRUNE la sémantique des descendants pour
+          les technologies d'assistance, or ce <svg> peut contenir des poignées
+          <DragBar> interactives (role="slider", cf. featureOverlays plus bas) —
+          le <title> ci-dessous suffit à donner un nom accessible au graphique
+          sans masquer ses éventuels contrôles clavier. */}
       <svg
         ref={svgRef} className={`chart-svg${zoomOn ? ' chart-svg--zoom' : ''}`}
         width={width} height={svgH} viewBox={`0 0 ${width} ${svgH}`}
       >
+        <title>{title || 'Graphique'}</title>
         <g transform={`translate(${margins.left}, ${margins.top})`}>
           <ChartAxisLeft
             scale={yScale} type={yType} length={innerHeight} width={innerWidth}
