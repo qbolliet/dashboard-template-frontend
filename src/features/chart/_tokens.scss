@@ -10,20 +10,13 @@
 // correspond exactement, on le référence plutôt que de dupliquer la valeur.
 
 :root {
-  // ===== Dimension globale =====
-  // Hauteur par défaut du graphique (prop `height`, cf. Chart.jsx).
-  --chart-height: 28.75rem; // 460px
-
-  // Bande de mini-vue (minimap + brush), sous l'axe x ou à gauche de l'axe y.
-  --chart-minimap-size: 2.75rem; // 44px
-
   // ===== Barre d'outils (survol, haut-droit du graphique) =====
-  --chart-toolbar-btn-size: 1.75rem;             // 28px - bouton carré
-  --chart-toolbar-icon-size: var(--spacing-lg);  // 16px - icône interne au bouton
-  --chart-toolbar-gap: var(--spacing-px);        // 1px - entre boutons contigus
-  --chart-toolbar-padding: 0.1875rem;            // 3px - padding interne du conteneur
+  --chart-toolbar-btn-size: var(--font-size-3xl);  // 28px - bouton carré
+  --chart-toolbar-icon-size: var(--spacing-lg);    // 16px - icône interne au bouton
+  --chart-toolbar-gap: var(--spacing-px);          // 1px - entre boutons contigus
+  --chart-toolbar-padding: 0.1875rem;              // 3px - padding interne du conteneur
   --chart-toolbar-radius: var(--border-radius-md);
   --chart-toolbar-btn-radius: var(--border-radius-sm);
-  --chart-toolbar-sep-width: var(--spacing-px);  // 1px - séparateur vertical
-  --chart-toolbar-sep-height: 1.125rem;          // 18px - hauteur du séparateur
+  --chart-toolbar-sep-width: var(--spacing-px);    // 1px - séparateur vertical
+  --chart-toolbar-sep-height: var(--font-size-lg); // 18px - hauteur du séparateur
 }

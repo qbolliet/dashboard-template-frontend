@@ -36,7 +36,7 @@
   letter-spacing: 0.08em;
   color: hsl(var(--chart-legend-label-color));
   font-weight: 600;
-  margin-bottom: 2px;
+  margin-bottom: var(--spacing-2px);
 }
 .chart-legend--h > .chart-legend-label { margin-bottom: 0; margin-right: var(--spacing-sm); }
 .chart-legend--channels .chart-legend-label { margin-bottom: 3px; }
@@ -54,7 +54,7 @@
 .chart-legend-group-items {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: var(--spacing-px);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -62,7 +62,7 @@
 .chart-legend-group-items > li { display: contents; }
 // IC : niveaux contigus → lecture en « plage de couleur ».
 .chart-legend-group-items--ci { gap: 0; }
-.chart-legend-group-items--ci .chart-legend-item { padding-top: 2px; padding-bottom: 2px; }
+.chart-legend-group-items--ci .chart-legend-item { padding-top: var(--spacing-2px); padding-bottom: var(--spacing-2px); }
 .chart-legend--channels.chart-legend--h .chart-legend-group-items { gap: 0; }
 
 // ── Item (bouton de survol) ───────────────────────────────────────
@@ -85,6 +85,10 @@
 .chart-legend-item:hover {
   background: hsl(var(--chart-legend-item-hover-bg));
   color: hsl(var(--chart-legend-item-hover-color));
+}
+.chart-legend-item:focus-visible {
+  outline: var(--spacing-2px) solid hsl(var(--color-focus));
+  outline-offset: var(--spacing-px);
 }
 .chart-legend--faded { opacity: var(--chart-legend-faded-opacity); }
 

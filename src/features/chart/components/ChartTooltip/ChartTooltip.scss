@@ -36,11 +36,8 @@
 .chart-tooltip-glyph svg { display: block; }
 .chart-tooltip-title { color: hsl(var(--chart-tooltip-title-color)); letter-spacing: -0.005em; }
 
-.chart-tooltip-hues {
-  padding-bottom: 5px;
-  margin-bottom: 5px;
-  border-bottom: 1px dashed hsl(var(--chart-tooltip-border));
-}
+.chart-tooltip-body { margin: 0; }
+
 .chart-tooltip-row--hue .chart-tooltip-value {
   font-family: var(--font-sans);
   font-weight: 600;
@@ -52,11 +49,20 @@
   justify-content: space-between;
   align-items: baseline;
   gap: var(--spacing-md);
-  padding: 2px 0;
+  padding: var(--spacing-2px) 0;
+}
+// Séparateur sous le dernier rang « hue » : sépare visuellement le groupe des
+// hues du reste des rangs (règle après `.chart-tooltip-row` : même spécificité,
+// doit gagner en ordre de cascade pour surcharger son `padding-bottom`).
+.chart-tooltip-row--hue-last {
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  border-bottom: 1px dashed hsl(var(--chart-tooltip-border));
 }
 // La valeur garde sa ligne (bornes d'IC « [a ; b] ») ; c'est le libellé qui
 // cède la place et se tronque par ellipse.
 .chart-tooltip-label {
+  margin: 0;
   color: hsl(var(--chart-tooltip-label-color));
   font-size: var(--chart-tooltip-label-font-size);
   flex: 0 1 auto;
@@ -66,6 +72,7 @@
   white-space: nowrap;
 }
 .chart-tooltip-value {
+  margin: 0;
   color: hsl(var(--chart-tooltip-value-color));
   font-weight: 500;
   font-family: var(--font-mono);

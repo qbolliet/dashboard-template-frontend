@@ -12,3 +12,9 @@
 .chart-dragbar--draggable line[stroke='transparent'] {
   pointer-events: stroke;
 }
+
+// Anneau de focus clavier sur la poignée (seul élément focusable de la barre).
+.chart-dragbar--draggable circle:focus-visible {
+  outline: var(--spacing-2px) solid hsl(var(--color-focus));
+  outline-offset: var(--spacing-px);
+}

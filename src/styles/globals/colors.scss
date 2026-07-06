@@ -86,10 +86,10 @@
 
   // ===== PALETTE ÉTENDUE (DATAVIZ) =====
   // Teintes supplémentaires nommées d'après la couleur qu'elles représentent —
-  // source unique de vérité pour toute palette de data-visualisation (ex.
-  // features/chart/_colors.scss, qui les reprend sous ses propres noms
-  // --chart-cat-*/--chart-seq-*). Ne PAS renommer sans répercuter le changement
-  // dans ces alias.
+  // source unique de vérité pour toute palette de data-visualisation. Reprises
+  // numériquement à l'identique par les constantes JS PALETTE/SEQUENTIAL de
+  // features/chart/utils/encoding.js (cf. le commentaire en tête de ce fichier).
+  // Ne PAS renommer sans répercuter le changement dans ces constantes.
   --color-navy: 207 74.4% 22.9%;         // #0F3F66
   --color-brick: 2 65.1% 44.9%;          // #BD2D28
   --color-amber: 29 79% 53.3%;           // #E6842A

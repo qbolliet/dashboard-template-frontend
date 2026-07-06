@@ -21,6 +21,10 @@
   background: hsl(var(--chart-toolbar-btn-hover-bg));
   color: hsl(var(--chart-toolbar-btn-hover-color));
 }
+.chart-toolbar-btn:focus-visible {
+  outline: var(--spacing-2px) solid hsl(var(--color-focus));
+  outline-offset: var(--spacing-px);
+}
 .chart-toolbar-btn--active {
   background: hsl(var(--chart-toolbar-btn-active-color) / 0.12);
   color: hsl(var(--chart-toolbar-btn-active-color));
@@ -47,7 +51,7 @@
   right: 0;
   white-space: nowrap;
   font-size: var(--font-size-xs);
-  padding: 4px 7px;
+  padding: var(--spacing-xs) 7px;
   border-radius: var(--border-radius-sm);
   background: hsl(var(--chart-toolbar-tip-bg));
   color: hsl(var(--chart-toolbar-tip-color));

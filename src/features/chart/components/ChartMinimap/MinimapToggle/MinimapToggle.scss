@@ -37,6 +37,11 @@
   border-color: hsl(var(--chart-minimap-toggle-border-hover));
 }
 
+.chart-minimap-toggle:focus-visible {
+  outline: var(--spacing-2px) solid hsl(var(--color-focus));
+  outline-offset: var(--spacing-px);
+}
+
 .chart-minimap-toggle__chevron {
   width: var(--chart-minimap-toggle-icon-size);
   height: var(--chart-minimap-toggle-icon-size);

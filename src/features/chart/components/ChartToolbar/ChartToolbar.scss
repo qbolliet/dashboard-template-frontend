@@ -35,5 +35,5 @@
   width: var(--chart-toolbar-sep-width);
   height: var(--chart-toolbar-sep-height);
   background: hsl(var(--chart-toolbar-sep-color));
-  margin: 0 2px;
+  margin: 0 var(--spacing-2px);
 }
