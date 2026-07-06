@@ -16,13 +16,21 @@ export const ThemeProvider = ({ children }) => {
     const [theme, setTheme] = useState(() => {
         // Vérifier si on est côté client (pour éviter les erreurs SSR)
         if (typeof window === 'undefined') return 'light';
-        
-        // Récupérer le thème sauvegardé
+
+        // Le script anti-FOUC du layout a déjà résolu et posé data-theme sur <html>
+        // avant hydratation ; on relit cette valeur pour rester la source unique de vérité
+        // et garantir la cohérence entre l'attribut DOM et l'état React.
+        const appliedTheme = document.documentElement.dataset.theme;
+        if (appliedTheme === 'light' || appliedTheme === 'dark') {
+            return appliedTheme;
+        }
+
+        // Repli défensif si le script inline n'a pas tourné : même logique d'init.
         const savedTheme = localStorage.getItem('theme');
-        if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+        if (savedTheme === 'light' || savedTheme === 'dark') {
             return savedTheme;
         }
-        
+
         // Détecter la préférence système si aucun thème sauvegardé
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         return prefersDark ? 'dark' : 'light';
