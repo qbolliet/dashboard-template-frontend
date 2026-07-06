@@ -83,22 +83,22 @@ const ChartTooltip = ({ model, position }) => {
         {glyphSpec && <span className="chart-tooltip-glyph"><TooltipGlyph {...glyphSpec} /></span>}
         <span className="chart-tooltip-title">{title}</span>
       </header>
-      {hueRows && hueRows.length > 0 && (
-        <div className="chart-tooltip-hues">
-          {hueRows.map((h, i) => (
-            <div className="chart-tooltip-row chart-tooltip-row--hue" key={i}>
-              <span className="chart-tooltip-label">{h.label}</span>
-              <span className="chart-tooltip-value">{String(h.value)}</span>
-            </div>
-          ))}
-        </div>
-      )}
-      {(valueRows || []).map((r, i) => (
-        <div className="chart-tooltip-row" key={i}>
-          <span className="chart-tooltip-label">{r.label}</span>
-          <span className="chart-tooltip-value">{r.value}</span>
-        </div>
-      ))}
+      <dl className="chart-tooltip-body">
+        {hueRows && hueRows.map((h, i) => (
+          <div
+            className={`chart-tooltip-row chart-tooltip-row--hue${i === hueRows.length - 1 ? ' chart-tooltip-row--hue-last' : ''}`}
+            key={`hue-${i}`}>
+            <dt className="chart-tooltip-label">{h.label}</dt>
+            <dd className="chart-tooltip-value">{String(h.value)}</dd>
+          </div>
+        ))}
+        {(valueRows || []).map((r, i) => (
+          <div className="chart-tooltip-row" key={i}>
+            <dt className="chart-tooltip-label">{r.label}</dt>
+            <dd className="chart-tooltip-value">{r.value}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   );
 };

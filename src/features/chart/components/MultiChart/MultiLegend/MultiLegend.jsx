@@ -78,14 +78,14 @@ const MultiLegend = ({ sections, layout = 'column', hovered, onHover }) => (
   <ul className={`chart-mlegend${layout === 'rows' ? ' chart-mlegend--rows' : ''}`}>
     {sections.map((sec) => (
       <li className="chart-mlegend-section" key={sec.key}>
-        <div className="chart-mlegend-head">
+        <header className="chart-mlegend-head">
           <span className="chart-mlegend-fill"><FillGlyph kind={sec.fillKind} color={sec.headColor} /></span>
           <span className="chart-mlegend-title">{sec.label}</span>
-        </div>
-        <div className="chart-mlegend-groups">
+        </header>
+        <ul className="chart-mlegend-groups">
           {sec.groups.length === 0 ? (
             // Jeu sans canal : un seul item rappelant le label + le glyphe de fill.
-            <div className="chart-mlegend-group">
+            <li className="chart-mlegend-group">
               <ul className="chart-legend-group-items">
                 <li>
                   <span className="chart-legend-item">
@@ -94,9 +94,9 @@ const MultiLegend = ({ sections, layout = 'column', hovered, onHover }) => (
                   </span>
                 </li>
               </ul>
-            </div>
+            </li>
           ) : sec.groups.map((grp) => (
-            <div className="chart-mlegend-group" key={`${grp.role}·${grp.label}`}>
+            <li className="chart-mlegend-group" key={`${grp.role}·${grp.label}`}>
               <span className="chart-legend-label">{grp.label}</span>
               <ul className="chart-legend-group-items">
                 {grp.items.map((it) => (
@@ -120,9 +120,9 @@ const MultiLegend = ({ sections, layout = 'column', hovered, onHover }) => (
                   </li>
                 ))}
               </ul>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </li>
     ))}
   </ul>
