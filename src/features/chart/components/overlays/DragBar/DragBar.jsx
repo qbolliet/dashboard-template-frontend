@@ -62,21 +62,25 @@ const DragBar = ({
     e.stopPropagation();
     const svg = gRef.current.ownerSVGElement;
     const origin = gRef.current.getCTM();
+    // Dernière position px du drag, suivie EN LOCAL (closure) : le commit se fait au
+    // relâchement HORS de l'updater setDrag — un updater doit rester pur (appeler
+    // `onCommit`, qui met à jour l'état du parent, y provoquerait un « setState
+    // pendant le rendu de DragBar »).
+    let last = null;
     const move = (ev) => {
       const pt = svg.createSVGPoint();
       pt.x = ev.clientX; pt.y = ev.clientY;
       const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
       // Position locale dans le <g> du tracé : on retire la translation du parent.
       const local = isX ? loc.x - origin.e : loc.y - origin.f;
-      setDrag(Math.max(0, Math.min(length, local)));
+      last = Math.max(0, Math.min(length, local));
+      setDrag(last);
     };
     const up = () => {
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
-      setDrag((d) => {
-        if (d != null && onCommit) onCommit(pxToValue(d));
-        return null;
-      });
+      setDrag(null);
+      if (last != null && onCommit) onCommit(pxToValue(last));
     };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
