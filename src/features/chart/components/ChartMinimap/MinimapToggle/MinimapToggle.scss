@@ -8,8 +8,11 @@
 
 .chart-minimap-toggle {
   position: absolute;
-  right: var(--spacing-sm);
+  // Mini-vue x (horizontale) : centré sous le graphe + la légende.
+  left: 50%;
+  right: auto;
   bottom: var(--chart-minimap-toggle-offset);
+  transform: translateX(-50%);
   display: inline-flex;
   align-items: center;
   gap: var(--chart-minimap-toggle-gap);
@@ -24,6 +27,16 @@
   // Discret : apparaît au survol du graphique ; toujours visible quand fermé
   // (pour pouvoir rouvrir la mini-vue).
   opacity: 0;
+}
+
+// Mini-vue y (verticale) : centré dans la hauteur, à gauche du mini-chart.
+.chart-minimap-toggle[data-direction='y'] {
+  left: var(--spacing-sm);
+  right: auto;
+  top: 50%;
+  rotate: -90deg;
+  bottom: auto;
+  transform: translateY(-50%);
 }
 
 .chart-frame:hover .chart-minimap-toggle,
