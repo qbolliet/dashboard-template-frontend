@@ -744,7 +744,11 @@ const ChartCanvas = ({
 
       {/* Pastille de bascule des mini-vues (pied de page du corps). */}
       {(showXMinimap || showYMinimap) && (
-        <MinimapToggle open={minimapOpen} onToggle={() => setMinimapOpen((o) => !o)} />
+        <MinimapToggle
+          open={minimapOpen}
+          direction={showYMinimap && !showXMinimap ? 'y' : 'x'}
+          onToggle={() => setMinimapOpen((o) => !o)}
+        />
       )}
 
       {tooltipsOn && active && activePos && tooltipModel && (
