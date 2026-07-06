@@ -67,6 +67,10 @@ const BarMarks = ({
   // Initialisation des Séries
   const seriesList = groupSeries(data, channels);
   const seriesKeys = seriesList.map((s) => s.key);
+  // Ordre de PEINTURE inversé : la 1re série est dessinée en dernier (donc AU-DESSUS),
+  // pour qu'en empilage le sommet de chaque barre l'emporte sur le socle de la suivante.
+  // Sans effet sur le dodge (positions issues de `seriesKeys`/`subScale`, ordre d'origine).
+  const paintSeries = [...seriesList].reverse();
 
   // band → seriesKey → rows
   const grouped = new Map();
@@ -120,7 +124,7 @@ const BarMarks = ({
         const bandPos = bandScale(bv) ?? 0;
         return (
           <g key={bv} transform={horizontal ? `translate(0, ${bandPos})` : `translate(${bandPos}, 0)`}>
-            {seriesList.map((g) => {
+            {paintSeries.map((g) => {
               const rows = sMap.get(g.key);
               if (!rows || !rows.length) return null;
               const value = mean(rows, (r) => +r[valKey]);

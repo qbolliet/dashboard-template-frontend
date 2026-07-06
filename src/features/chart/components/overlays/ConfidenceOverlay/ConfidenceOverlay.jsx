@@ -16,6 +16,7 @@
 // Importation des modules
 import { useId } from 'react';
 import { scaleBand } from '@visx/scale';
+import { mean } from 'd3-array';
 import {
   seriesKey, groupSeries, xKeyOf, subsample, markerPath,
 } from '../../../utils/encoding';
@@ -181,10 +182,21 @@ const ConfidenceOverlay = ({ ctx, config, mini = false, hovered, voronoiActive, 
         const faded = seriesFaded(g);
         const dash = seriesDash(g);
         const mType = seriesMarker(g);
-        const pts = g.rows.map((r) => {
-          const ci = rowVals(r);
-          return { pos: r[posKey], vc: +r[valKey], ci };
-        }).filter((p) => p.ci);
+        // Agrégation par POSITION : une série (groupée par les canaux hue) peut
+        // contenir plusieurs lignes par position quand des dimensions ne sont pas
+        // encodées (ex. barres : Secteur × Année × Scénario × Méthode, hue=Année).
+        // On aligne le centre `vc` sur la MOYENNE (= sommet de barre de BarMarks) et
+        // on ne garde qu'un point par position → une seule moustache/rectangle, et
+        // bornes ancrées au bon endroit (surtout en empilé, où PV retranche `vc`).
+        const byPos = new Map();
+        for (const r of g.rows) {
+          const k = xKeyOf(r[posKey]);
+          if (!byPos.has(k)) byPos.set(k, { pos: r[posKey], vals: [], ci: rowVals(r) });
+          byPos.get(k).vals.push(+r[valKey]);
+        }
+        const pts = [...byPos.values()]
+          .map((p) => ({ pos: p.pos, vc: mean(p.vals), ci: p.ci }))
+          .filter((p) => p.ci);
         if (!pts.length) return null;
 
         const visBands = bands.filter((b) => !bandHidden(b.i));
@@ -300,26 +312,42 @@ const ConfidenceOverlay = ({ ctx, config, mini = false, hovered, voronoiActive, 
         //    l'apparence de la série (pointillé, marqueur), extérieur plus pâle. ──
         return (
           <g key={g.key} opacity={faded ? 0.12 : 1} style={{ transition: 'opacity 0.18s' }}>
-            {pts.map((p, pi) => (
-              <g key={pi}>
-                {visBands.map((b) => {
-                  const vbRaw = PV(g, p, factor * +p.ci[b.col]); if (isNaN(vbRaw)) return null;
-                  const [cx, cy] = ptOfW(p.pos, PV(g, p, p.vc));
-                  const [mx, my] = ptOfW(p.pos, vbRaw);
-                  const op = strokeOpacityFor(b.i);
-                  return (
-                    <g key={b.key}>
-                      <line x1={cx} y1={cy} x2={mx} y2={my} stroke={color} strokeWidth={1.3} strokeOpacity={op} strokeDasharray={dash || undefined} />
-                      {mType
-                        ? <path transform={`translate(${mx},${my})`} d={markerPath(mType, 30)} fill={color} fillOpacity={op} stroke="white" strokeWidth={0.6} />
-                        : (horizontal
-                          ? <line x1={mx} y1={my - 4} x2={mx} y2={my + 4} stroke={color} strokeWidth={1.5} strokeOpacity={op} />
-                          : <line x1={mx - 4} y1={my} x2={mx + 4} y2={my} stroke={color} strokeWidth={1.5} strokeOpacity={op} />)}
-                    </g>
-                  );
-                })}
-              </g>
-            ))}
+            {pts.map((p, pi) => {
+              const centerVal = PV(g, p, p.vc); // valeur (domaine) au centre = sommet de barre
+              return (
+                <g key={pi}>
+                  {['below', 'above'].map((side) => {
+                    // Moustaches EMBOÎTÉES par côté : chaque niveau part de la borne du
+                    // niveau PRÉCÉDENT (le centre pour le plus interne) jusqu'à la
+                    // sienne. Ainsi l'opacité décroissante du ±2 est visible (aucune
+                    // superposition avec le trait ±1) et chaque coche est à sa propre
+                    // extrémité.
+                    const sideBands = visBands
+                      .filter((b) => b.side === side)
+                      .sort((a, b) => a.i - b.i);
+                    let prev = centerVal;
+                    return sideBands.map((b) => {
+                      const vbRaw = PV(g, p, factor * +p.ci[b.col]);
+                      if (isNaN(vbRaw)) return null;
+                      const [sx, sy] = ptOfW(p.pos, prev);
+                      const [mx, my] = ptOfW(p.pos, vbRaw);
+                      prev = vbRaw;
+                      const op = strokeOpacityFor(b.i);
+                      return (
+                        <g key={b.key}>
+                          <line x1={sx} y1={sy} x2={mx} y2={my} stroke={color} strokeWidth={1.3} strokeOpacity={op} strokeDasharray={dash || undefined} />
+                          {mType
+                            ? <path transform={`translate(${mx},${my})`} d={markerPath(mType, 30)} fill={color} fillOpacity={op} stroke="white" strokeWidth={0.6} />
+                            : (horizontal
+                              ? <line x1={mx} y1={my - 4} x2={mx} y2={my + 4} stroke={color} strokeWidth={1.5} strokeOpacity={op} />
+                              : <line x1={mx - 4} y1={my} x2={mx + 4} y2={my} stroke={color} strokeWidth={1.5} strokeOpacity={op} />)}
+                        </g>
+                      );
+                    });
+                  })}
+                </g>
+              );
+            })}
           </g>
         );
       })}

@@ -120,11 +120,15 @@ function barGeometry(rows, x, y, channels, xScale, yScale, stack) {
     ? buildStacks({ data: rows, posKey: x, valKey: y, channels, stackBy: stack, seriesOrder: seriesKeys, aggregate: 'mean' })
     : null;
 
+  // Ordre de PEINTURE inversé : la 1re série est empilée/rendue en dernier (donc
+  // AU-DESSUS), pour que le sommet de chaque barre l'emporte sur le socle de la
+  // suivante. Positions inchangées (dodge issu de `seriesKeys`/`sub`, ordre d'origine).
+  const paintSeries = [...seriesList].reverse();
   const bars = [];
   for (const { xv, m } of byX.values()) {
     const cx = centerX(xScale, xv);
     if (isNaN(cx)) continue;
-    for (const g of seriesList) {
+    for (const g of paintSeries) {
       const rs = m.get(g.key);
       if (!rs || !rs.length) continue;
       const value = mean(rs, (r) => +r[y]);
