@@ -1,0 +1,9 @@
+// ===== CONFIDENCE OVERLAY — bandes d'intervalle de confiance =====
+//  Rendu net des aires/lignes/rects hachurés 
+// (couleurs et opacités portées par les props depuis utils/encoding.js).
+
+.chart-ci-overlay path,
+.chart-ci-overlay line,
+.chart-ci-overlay rect {
+  shape-rendering: geometricPrecision;
+}

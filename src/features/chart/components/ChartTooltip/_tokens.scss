@@ -1,0 +1,16 @@
+// ===== TOKENS DIMENSIONNELS — CHART TOOLTIP =====
+// Dimensions propres à la bulle de survol.
+
+:root {
+  --chart-tooltip-z: 20;
+  --chart-tooltip-min-width: 10rem;      // 160px
+  --chart-tooltip-max-width: 18rem;      // borne haute (troncature des libellés)
+  --chart-tooltip-padding-y: var(--spacing-sm); // 8px
+  --chart-tooltip-padding-x: 0.625rem;   // 10px
+  --chart-tooltip-radius: var(--border-radius-md);
+  --chart-tooltip-header-gap: 0.4375rem; // 7px
+
+  --chart-tooltip-font-size: var(--font-size-xs); // 12px
+  --chart-tooltip-label-font-size: 0.6875rem; // 11px
+  --chart-tooltip-value-font-size: 0.71875rem;// 11.5px
+}

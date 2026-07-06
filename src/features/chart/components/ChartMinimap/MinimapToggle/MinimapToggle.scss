@@ -1,0 +1,71 @@
+// =================================================================
+// MINIMAP TOGGLE — pastille chevron
+// =================================================================
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
+
+.chart-minimap-toggle {
+  position: absolute;
+  // Mini-vue x (horizontale) : centré sous le graphe + la légende.
+  left: 50%;
+  right: auto;
+  bottom: var(--chart-minimap-toggle-offset);
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--chart-minimap-toggle-gap);
+  padding: var(--chart-minimap-toggle-pad-y) var(--spacing-sm) var(--chart-minimap-toggle-pad-y) var(--spacing-xs);
+  font-size: var(--chart-minimap-toggle-font-size);
+  color: hsl(var(--chart-minimap-toggle-color));
+  border-radius: var(--chart-minimap-toggle-radius);
+  border: 1px solid hsl(var(--chart-minimap-toggle-border));
+  background: hsl(var(--chart-minimap-toggle-bg));
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast);
+  // Discret : apparaît au survol du graphique ; toujours visible quand fermé
+  // (pour pouvoir rouvrir la mini-vue).
+  opacity: 0;
+}
+
+// Mini-vue y (verticale) : centré dans la hauteur, à gauche du mini-chart.
+.chart-minimap-toggle[data-direction='y'] {
+  left: var(--spacing-sm);
+  right: auto;
+  top: 50%;
+  rotate: -90deg;
+  bottom: auto;
+  transform: translateY(-50%);
+}
+
+.chart-frame:hover .chart-minimap-toggle,
+.chart-minimap-toggle--closed,
+.chart-minimap-toggle:focus-visible {
+  opacity: 1;
+}
+
+.chart-minimap-toggle:hover {
+  color: hsl(var(--chart-minimap-toggle-color-hover));
+  border-color: hsl(var(--chart-minimap-toggle-border-hover));
+}
+
+.chart-minimap-toggle:focus-visible {
+  outline: var(--spacing-2px) solid hsl(var(--color-focus));
+  outline-offset: var(--spacing-px);
+}
+
+.chart-minimap-toggle__chevron {
+  width: var(--chart-minimap-toggle-icon-size);
+  height: var(--chart-minimap-toggle-icon-size);
+  flex-shrink: 0;
+  // Chevron bas (ouvert) → haut (fermé), en transform CSS pur.
+  transition: transform var(--transition-fast);
+}
+.chart-minimap-toggle--closed .chart-minimap-toggle__chevron {
+  transform: rotate(180deg);
+}
+
+.chart-minimap-toggle__text {
+  line-height: 1;
+}

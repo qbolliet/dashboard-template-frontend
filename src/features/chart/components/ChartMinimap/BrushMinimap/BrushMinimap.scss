@@ -1,0 +1,38 @@
+// =================================================================
+// BRUSH MINIMAP — surcharges du brush @visx + contenu miniature
+// =================================================================
+// Transposition des styles .ca-brush du prototype (design-system/project/styles/
+// charts.css). Les couleurs sont posées via CSS (et non via `selectedBoxStyle`)
+// afin de surcharger les attributs de présentation par défaut de @visx/brush et
+// de suivre le thème (les règles CSS l'emportent sur les attributs SVG `fill`…).
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
+
+.chart-minimap-brush {
+  // Rectangle de sélection.
+  .visx-brush-selection {
+    fill: hsl(var(--chart-minimap-selection-fill));
+    fill-opacity: var(--chart-minimap-selection-fill-opacity);
+    stroke: hsl(var(--chart-minimap-selection-stroke));
+    stroke-width: 1;
+    shape-rendering: crispEdges;
+  }
+
+  // Poignées de redimensionnement (bords de la sélection).
+  .visx-brush-handle-left,
+  .visx-brush-handle-right,
+  .visx-brush-handle-top,
+  .visx-brush-handle-bottom {
+    fill: hsl(var(--chart-minimap-handle-fill));
+    fill-opacity: var(--chart-minimap-handle-fill-opacity);
+  }
+}
+
+// Contenu miniature (réplique des marks / projection) : teinte neutre discrète,
+// non interactif (le brush capte les pointeurs au-dessus).
+.chart-minimap-content {
+  color: hsl(var(--chart-minimap-content-color));
+  pointer-events: none;
+}

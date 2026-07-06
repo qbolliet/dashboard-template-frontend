@@ -1,0 +1,8 @@
+// ===== NORMALIZE OVERLAY — barre / réticule de normalisation =====
+// La barre et le réticule héritent des styles .chart-dragbar ; 
+// ce fichier ne porte que le rendu net des traits propres.
+
+.chart-norm-overlay line,
+.chart-norm-overlay circle {
+  shape-rendering: geometricPrecision;
+}

@@ -1,0 +1,10 @@
+// ===== TOKENS DE COULEURS — MultiChart (mode multi-jeux) =====
+// Chrome de la légende multi-jeux uniquement (titres, glyphe de fill, séparateur).
+// Les couleurs de série affichées PAR les glyphes proviennent de utils/encoding.js
+// (PALETTE), cf. remarque de _colors.scss racine de la feature.
+
+:root {
+  --chart-mlegend-title-color: var(--color-text-primary);
+  --chart-mlegend-fill-color: var(--color-text-secondary);
+  --chart-mlegend-divider: var(--color-border);
+}

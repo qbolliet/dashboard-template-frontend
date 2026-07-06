@@ -1,0 +1,35 @@
+// =================================================================
+// BAR MARKS — barres verticales / horizontales (@visx/shape Bar)
+// =================================================================
+// Transpose les valeurs inline du prototype (design-system/project/scripts/
+// charts/marks.jsx, BarMarks) en classes tokenisées : estompage au survol
+// (opacité + transition) et épaisseur de contour (plein vs évidé, normal vs
+// mini). Couleurs de barre/contour (data-driven, .darker) restent dans le JSX.
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
+
+// ── Estompage des séries au survol ──────────────────────────────
+.chart-marks-series {
+  transition: opacity var(--chart-marks-fade-duration);
+}
+.chart-marks-bar .chart-marks-series.is-faded {
+  opacity: var(--chart-marks-bar-faded-opacity);
+}
+
+// ── Contour de barre ────────────────────────────────────────────
+// Plein (fill='fill') : contour fin assombri. Évidé (fill='line') : contour
+// coloré plus épais. La variante mini affine encore le trait.
+.chart-marks-bar-rect--fill {
+  stroke-width: var(--chart-marks-bar-fill-width);
+}
+.chart-marks-bar-rect--fill.chart-marks-bar-rect--mini {
+  stroke-width: var(--chart-marks-bar-fill-width-mini);
+}
+.chart-marks-bar-rect--line {
+  stroke-width: var(--chart-marks-bar-line-width);
+}
+.chart-marks-bar-rect--line.chart-marks-bar-rect--mini {
+  stroke-width: var(--chart-marks-bar-line-width-mini);
+}

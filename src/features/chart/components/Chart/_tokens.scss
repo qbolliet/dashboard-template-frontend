@@ -1,0 +1,14 @@
+// ===== TOKENS DIMENSIONNELS — CHART (frame pivot) =====
+// Grille du cadre + colonnes de légende. Valeurs px du prototype
+// (design-system/project/styles/charts.css, .ca-chart*) converties en rem.
+
+:root {
+  --chart-frame-padding: var(--spacing-lg);
+  --chart-frame-gap: var(--spacing-sm);
+  --chart-frame-radius: var(--border-radius-lg);
+
+  --chart-header-min-height: 1.375rem;      // 22px
+
+  --chart-legend-right-min-width: 8.75rem;  // 140px
+  --chart-legend-right-max-width: 11.5rem;  // 184px
+}

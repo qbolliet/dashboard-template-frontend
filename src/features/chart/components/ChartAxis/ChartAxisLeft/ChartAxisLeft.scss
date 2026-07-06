@@ -1,0 +1,30 @@
+// =================================================================
+// CHART AXIS LEFT — axe des ordonnées (@visx/axis AxisLeft + @visx/grid GridRows)
+// =================================================================
+// Le timbre de graduation est dessiné à la main (décalage tickPadX possible) :
+// @visx/axis ne rend ici que la ligne d'axe (.visx-axis-line) — cf. ChartAxisLeft.jsx
+// (hideTicks). Couleurs et opacités reprises de ChartAxis/_colors.scss (partagées
+// avec ChartAxisBottom).
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
+
+.visx-axis-left .visx-axis-line {
+  stroke: hsl(var(--chart-axis-color) / var(--chart-axis-line-opacity));
+}
+.visx-axis-left .chart-axis-tick-stub {
+  stroke: hsl(var(--chart-axis-color) / var(--chart-axis-tick-opacity));
+}
+.visx-axis-left .chart-axis-tick-label {
+  font-size: var(--chart-axis-tick-font-size);
+  fill: hsl(var(--chart-axis-color) / var(--chart-axis-tick-label-opacity));
+}
+.visx-axis-left .chart-axis-label {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  fill: hsl(var(--chart-axis-color) / var(--chart-axis-label-opacity));
+}
+.chart-axis-grid.visx-rows line {
+  stroke: hsl(var(--chart-axis-color) / var(--chart-axis-grid-opacity));
+}

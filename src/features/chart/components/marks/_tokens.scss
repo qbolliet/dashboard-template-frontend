@@ -1,0 +1,38 @@
+// ===== TOKENS DIMENSIONNELS — marks/ (LineMarks, BarMarks, …) =====
+// Épaisseurs de trait et durée d'animation MUTUALISÉES entre les renderers de
+// marks. Valeurs reprises À L'IDENTIQUE des constantes inline du prototype
+// (design-system/project/scripts/charts/marks.jsx) — l'apparence rendue doit
+// rester strictement identique. Seules les valeurs réellement pilotables en CSS
+// (largeur de trait constante par mode, durée de transition) sont exposées ici ;
+// les tailles de marqueur et les épaisseurs couplées à la donnée restent en
+// constantes JS dans les composants (cf. convention ChartAxis).
+
+:root {
+  // Durée de l'estompage au survol (transition d'opacité) — prototype : 0.18s.
+  --chart-marks-fade-duration: 0.18s;
+
+  // ===== Épaisseurs de trait (unité px, appliquées en `stroke-width`) =====
+  // Ligne / aire de crête (LineMarks) — normal vs mini-vue (brush).
+  --chart-marks-line-width: 2;
+  --chart-marks-line-width-mini: 1;
+
+  // Contour de barre PLEINE (BarMarks, fill='fill').
+  --chart-marks-bar-fill-width: 1.3;
+  --chart-marks-bar-fill-width-mini: 0.8;
+
+  // Contour de barre ÉVIDÉE / hachurée (BarMarks, fill='line').
+  --chart-marks-bar-line-width: 1.6;
+  --chart-marks-bar-line-width-mini: 1;
+
+  // Contour de cellule de heatmap : plein (fin) vs contours (épais).
+  --chart-marks-heatmap-fill-width: 0.5;
+  --chart-marks-heatmap-line-width: 2;
+
+  // Density : courbe de niveau (mode ligne) et bordure de définition (mode plein).
+  --chart-marks-density-contour-width: 1.4;
+  --chart-marks-density-border-width: 1.6;
+
+  // Contour du corps de violon : aire pleine (fin) vs ligne (épais).
+  --chart-marks-violin-fill-width: 1;
+  --chart-marks-violin-line-width: 1.6;
+}

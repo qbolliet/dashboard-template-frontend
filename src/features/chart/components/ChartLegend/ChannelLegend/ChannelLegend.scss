@@ -1,0 +1,110 @@
+// =================================================================
+// CHANNEL LEGEND — légende groupée par canal (couleur / style / marqueur / IC)
+// =================================================================
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
+
+// ── Liste de groupes ─────────────────────────────────────────────
+.chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--chart-legend-gap);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.chart-legend--h {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--chart-legend-gap-h);
+}
+.chart-legend--channels { gap: var(--chart-legend-group-gap); }
+.chart-legend--channels.chart-legend--h {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--chart-legend-group-gap-h);
+}
+
+.chart-legend-label {
+  display: block;
+  font-size: var(--chart-legend-label-font-size);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(var(--chart-legend-label-color));
+  font-weight: 600;
+  margin-bottom: var(--spacing-2px);
+}
+.chart-legend--h > .chart-legend-label { margin-bottom: 0; margin-right: var(--spacing-sm); }
+.chart-legend--channels .chart-legend-label { margin-bottom: 3px; }
+
+// ── Groupe (un canal) ────────────────────────────────────────────
+.chart-legend-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+// ── Liste d'items d'un groupe ─────────────────────────────────────
+// Les <li> sont neutralisés en `display: contents` : le <button> qu'ils
+// contiennent participe directement au flex du parent, comme dans le prototype.
+.chart-legend-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.chart-legend-group-items > li { display: contents; }
+// IC : niveaux contigus → lecture en « plage de couleur ».
+.chart-legend-group-items--ci { gap: 0; }
+.chart-legend-group-items--ci .chart-legend-item { padding-top: var(--spacing-2px); padding-bottom: var(--spacing-2px); }
+.chart-legend--channels.chart-legend--h .chart-legend-group-items { gap: 0; }
+
+// ── Item (bouton de survol) ───────────────────────────────────────
+.chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--chart-legend-item-gap);
+  width: 100%;
+  padding: var(--chart-legend-item-padding-y) var(--chart-legend-item-padding-x);
+  font-size: var(--chart-legend-item-font-size);
+  border-radius: var(--border-radius-sm);
+  color: hsl(var(--chart-legend-item-color));
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+  transition: background var(--transition-fast), color var(--transition-fast), opacity var(--transition-fast);
+}
+.chart-legend-item:hover {
+  background: hsl(var(--chart-legend-item-hover-bg));
+  color: hsl(var(--chart-legend-item-hover-color));
+}
+.chart-legend-item:focus-visible {
+  outline: var(--spacing-2px) solid hsl(var(--color-focus));
+  outline-offset: var(--spacing-px);
+}
+.chart-legend--faded { opacity: var(--chart-legend-faded-opacity); }
+
+// ── Glyphe + texte ─────────────────────────────────────────────────
+.chart-legend-glyph {
+  width: var(--chart-legend-glyph-width);
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-shrink: 0;
+}
+.chart-legend-glyph svg { display: block; }
+
+.chart-legend-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: var(--chart-legend-text-max-width);
+}

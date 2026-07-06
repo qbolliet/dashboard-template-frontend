@@ -1,0 +1,7 @@
+// ===== BEFORE / AFTER OVERLAY — projection avant/après =====
+// Rendu net des tracés de projection
+// (couleurs/traits portés par les props depuis utils/encoding.js).
+
+.chart-ba-overlay path {
+  shape-rendering: geometricPrecision;
+}

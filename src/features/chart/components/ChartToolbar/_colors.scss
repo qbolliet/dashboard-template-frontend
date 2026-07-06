@@ -1,0 +1,22 @@
+// ===== TOKENS DE COULEURS — CHART TOOLBAR =====
+// Reprennent par défaut les couleurs de chrome globales ; ajustables ici sans
+// toucher aux autres composants.
+
+:root {
+  --chart-toolbar-bg: var(--color-surface);
+  --chart-toolbar-border: var(--color-border);
+  --chart-toolbar-sep-color: var(--color-border);
+
+  --chart-toolbar-btn-color: var(--color-text-tertiary);
+  --chart-toolbar-btn-hover-bg: var(--color-gray-100);
+  --chart-toolbar-btn-hover-color: var(--color-text-primary);
+  --chart-toolbar-btn-active-color: var(--color-primary-500);
+
+  --chart-toolbar-tip-bg: var(--color-gray-900);
+  --chart-toolbar-tip-color: var(--color-surface);
+}
+
+[data-theme='dark'] {
+  --chart-toolbar-tip-bg: var(--color-gray-200);
+  --chart-toolbar-tip-color: var(--color-gray-900);
+}

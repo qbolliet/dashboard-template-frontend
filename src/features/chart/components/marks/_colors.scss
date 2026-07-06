@@ -1,0 +1,25 @@
+// ===== TOKENS DE COULEURS / OPACITÉS — marks/ (LineMarks, BarMarks, …) =====
+// Opacités MUTUALISÉES entre les renderers de marks. Comme pour ChartAxis, la
+// couleur de base des marks n'est PAS pilotée ici : elle provient des échelles
+// JS (colorScale/sequentialScale de utils/encoding.js), consommées directement
+// par d3/visx pour rester stables hors DOM (export, SSR). Seules les opacités
+// réellement constantes — estompage au survol, remplissage d'aire — sont
+// exposées en tokens, reprises à l'identique des valeurs inline du prototype.
+
+:root {
+  // Opacité des séries ESTOMPÉES au survol (série non concernée par le hover).
+  --chart-marks-line-faded-opacity: 0.12; // LineMarks
+  --chart-marks-bar-faded-opacity: 0.2;   // BarMarks
+
+  // Opacité de remplissage de l'aire PLEINE (LineMarks, fill='fill') — normal
+  // vs mini-vue (brush).
+  --chart-marks-area-fill-opacity: 0.16;
+  --chart-marks-area-fill-opacity-mini: 0.3;
+
+  // Opacité des couches ESTOMPÉES au survol (density, violin).
+  --chart-marks-density-faded-opacity: 0.18;
+  --chart-marks-violin-faded-opacity: 0.18;
+
+  // Opacité du trait blanc de séparation des cellules pleines (HeatmapMarks).
+  --chart-marks-heatmap-fill-stroke-opacity: 0.4;
+}

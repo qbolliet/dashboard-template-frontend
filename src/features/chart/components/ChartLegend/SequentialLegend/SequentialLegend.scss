@@ -1,0 +1,57 @@
+// =================================================================
+// SEQUENTIAL LEGEND — barre dégradée (heatmap / density)
+// =================================================================
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
+
+.chart-seq-legend {
+  min-width: var(--chart-seq-legend-min-width);
+  display: flex;
+  flex-direction: column;
+  gap: var(--chart-legend-gap);
+  margin: 0;
+}
+.chart-seq-legend dd { margin: 0; }
+.chart-seq-legend .chart-legend-label { margin-bottom: 2px; }
+
+// ── Horizontale ──────────────────────────────────────────────────
+.chart-seq-bar {
+  width: 100%;
+  height: var(--chart-seq-bar-thickness);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid hsl(var(--chart-seq-bar-border));
+}
+.chart-seq-scale {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: var(--chart-seq-scale-font-size);
+  color: hsl(var(--chart-seq-scale-color));
+  font-variant-numeric: tabular-nums;
+}
+
+// ── Verticale (mode par défaut, colonne de droite) ──────────────────
+.chart-seq-legend--v { min-width: unset; }
+.chart-seq-vrow {
+  display: flex;
+  align-items: stretch;
+  gap: var(--spacing-sm);
+  height: var(--chart-seq-bar-v-height);
+}
+.chart-seq-bar-v {
+  width: var(--chart-seq-bar-v-thickness);
+  height: 100%;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid hsl(var(--chart-seq-bar-border));
+}
+.chart-seq-scale-v {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: var(--chart-seq-scale-font-size);
+  color: hsl(var(--chart-seq-scale-color));
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,23 @@
+// =================================================================
+// HEATMAP MARKS — cellules agrégées (mean z), plein ou contours
+// =================================================================
+// Le prototype (design-system/project/scripts/charts/marks.jsx, HeatmapMarks)
+// ne définit AUCUN style CSS : les cellules sont des <rect> à attributs inline.
+// On tokenise ici les seules valeurs constantes par MODE (épaisseur et opacité
+// de trait) ; la couleur de cellule (data-driven, échelle séquentielle) reste
+// portée par le JSX. Apparence rendue strictement identique.
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
+
+// ── Contour de cellule ──────────────────────────────────────────
+// Plein (fill='fill') : fin trait blanc translucide creusant la grille.
+// Contours (fill='line') : trait coloré plus épais, opaque.
+.chart-marks-heatmap-cell--fill {
+  stroke-width: var(--chart-marks-heatmap-fill-width);
+  stroke-opacity: var(--chart-marks-heatmap-fill-stroke-opacity);
+}
+.chart-marks-heatmap-cell--line {
+  stroke-width: var(--chart-marks-heatmap-line-width);
+}

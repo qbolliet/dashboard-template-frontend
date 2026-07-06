@@ -1,0 +1,19 @@
+// ===== TOKENS DIMENSIONNELS — CHART MINIMAP =====
+// Mini-vues + brush sous l'axe x et à gauche de l'axe y.
+
+// ⚠️ Les dimensions du brush/mini-vue elles-mêmes (bande x, largeur y, taille
+// des poignées @visx/brush) sont des constantes de LAYOUT SVG en JS (cf.
+// useChartGeometry.js, BrushMinimap.jsx) — comme pour la géométrie du pivot
+// <Chart>, elles ne sont pas exposées en CSS (un <svg> ne se dimensionne pas
+// par la cascade). Seule la pastille chevron (chrome DOM, hors SVG) a des
+// tokens dimensionnels CSS ci-dessous.
+
+:root {
+  // ── Pastille chevron d'ouverture/fermeture ─────────────────────────────
+  --chart-minimap-toggle-font-size: 0.65625rem;  // 10.5px
+  --chart-minimap-toggle-radius: 999px;
+  --chart-minimap-toggle-icon-size: 0.6875rem;   // 11px
+  --chart-minimap-toggle-gap: var(--spacing-xs); // 4px
+  --chart-minimap-toggle-pad-y: var(--spacing-2px); // 2px
+  --chart-minimap-toggle-offset: var(--spacing-xs); // 4px — depuis le bas du corps
+}

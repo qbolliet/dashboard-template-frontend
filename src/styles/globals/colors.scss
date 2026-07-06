@@ -84,6 +84,29 @@
   --color-focus: var(--color-primary-500);
   --color-focus-shadow: var(--color-primary-200);
 
+  // ===== PALETTE ÉTENDUE (DATAVIZ) =====
+  // Teintes supplémentaires nommées d'après la couleur qu'elles représentent —
+  // source unique de vérité pour toute palette de data-visualisation. Reprises
+  // numériquement à l'identique par les constantes JS PALETTE/SEQUENTIAL de
+  // features/chart/utils/encoding.js (cf. le commentaire en tête de ce fichier).
+  // Ne PAS renommer sans répercuter le changement dans ces constantes.
+  --color-navy: 207 74.4% 22.9%;         // #0F3F66
+  --color-brick: 2 65.1% 44.9%;          // #BD2D28
+  --color-amber: 29 79% 53.3%;           // #E6842A
+  --color-teal: 183 74.1% 28.8%;         // #137B80
+  --color-sage: 86 18.7% 42.9%;          // #708259
+  --color-mauve: 307 13.6% 49%;          // #8E6C8A
+  --color-steel-blue: 207 36.8% 37.3%;   // #3c6382
+  --color-indigo: 251 100% 68.6%;        // #7d5fff
+  --color-umber: 30 41.9% 42.5%;         // #9A6D3F
+  --color-forest: 125 33.9% 45.1%;       // #4C9A52
+  --color-magenta: 327 50% 53.7%;        // #C44E8E
+  --color-slate: 220 21.2% 45.3%;        // #5B6B8C
+  --color-frost: 210 55.6% 96.5%;        // #F1F6FB
+  --color-powder-blue: 212 52.8% 85.9%;  // #C8DAEE
+  --color-sky: 210 43% 64.9%;            // #7FA6CC
+  --color-azure: 210 45.7% 43.3%;        // #3C6FA1
+  --color-violet: 280 45% 48%;           // teinte de la barre de normalisation (chart)
 }
 
 // ===== THÈME SOMBRE =====
@@ -102,6 +125,14 @@
 
   // ===== REDÉFINITION DES COULEURS PRIMAIRES =====
   --color-primary-500: 211 100% 73%;  // #66c2ff - Plus clair en mode sombre
+
+  // ===== REDÉFINITION DE LA PALETTE ÉTENDUE (DATAVIZ) =====
+  // La palette catégorielle et la rampe séquentielle (--color-navy…--color-azure)
+  // encodent l'IDENTITÉ d'une série de données : elles restent volontairement
+  // inchangées entre thèmes. Seule --color-violet (barre de normalisation, un
+  // simple repère visuel et non une série) est réajustée pour rester lisible
+  // sur fond sombre.
+  --color-violet: 280 40% 68%;
 
   // ===== ALIAS SÉMANTIQUES REDÉFINIS =====
   --color-background: var(--color-gray-100);
