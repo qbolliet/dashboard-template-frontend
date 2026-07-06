@@ -100,12 +100,16 @@ const ChartAxisBottom = ({
     ? Math.max(...labels.map((l) => measureText(l, TICK_FONT_SIZE))) * 0.75 + 8
     : multiline ? (maxLines * 13) + 6 : 18;
 
+  // Encodage du mode de rendu (rotation / multi-lignes / à plat) et du contenu
+  // du tick dans la chaîne unique transmise par visx (cf. SEP ci-dessus).
   const tickFormat = (_value, index) => {
     if (rotate) return `R${SEP}${labels[index]}`;
     if (multiline) return `M${SEP}${formatted[index].join(SEP)}`;
     return `P${SEP}${formatted[index]}`;
   };
 
+  // Décodage du mode et rendu du tick correspondant : libellé pivoté à -45°,
+  // libellé réparti sur plusieurs lignes (tspan), ou texte simple.
   const tickComponent = ({ x, formattedValue }) => {
     const [mode, ...rest] = (formattedValue ?? '').split(SEP);
     if (mode === 'R') {

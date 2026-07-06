@@ -102,6 +102,9 @@ function computeHoverTargets({
       out.push({ px: xScale(r[x]), py, row: r, hit: { type: 'circle', r: 13 } });
     }
   } else if (chartKind === 'bar' || chartKind === 'bar-h') {
+    // Barres verticales/horizontales : centroïde au sommet de chaque barre
+    // (sommet cumulé en empilage, pointe de la moyenne sinon), zone de survol
+    // = rectangle plein de la barre, ou disque au sommet en mode nuage (fill='none').
     const horizontal = chartKind === 'bar-h';
     const bandKey = horizontal ? y : x;
     const valKey = horizontal ? x : y;
@@ -161,6 +164,8 @@ function computeHoverTargets({
       }
     }
   } else if (chartKind === 'heatmap') {
+    // Heatmap : centroïde au centre de chaque cellule (x, y), zone de survol =
+    // rectangle de la cellule (même agrégation par moyenne que HeatmapMarks).
     const cellW = xScale.bandwidth ? xScale.bandwidth() : 20;
     const cellH = yScale.bandwidth ? yScale.bandwidth() : 20;
     const map = new Map();
@@ -228,6 +233,9 @@ function computeHoverTargets({
     const subScale = scaleBand({
       domain: seriesKeys, range: [0, bandwidth], padding: seriesKeys.length > 1 ? 0.12 : 0.25,
     });
+    // Centroïde à la médiane de chaque groupe, positionné selon le mode :
+    // dodge (slot dédié par série), split (moitié gauche/droite) ou simple
+    // (violon centré plein) — même géométrie transversale que ViolinMarks.
     for (const [bv, sMap] of map) {
       const bandStart = bandScale(bv) ?? 0;
       const bandCenter = bandStart + bandwidth / 2;

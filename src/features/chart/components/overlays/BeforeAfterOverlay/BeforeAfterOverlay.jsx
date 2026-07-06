@@ -126,6 +126,7 @@ const BeforeAfterOverlay = ({ ctx, config, value, onValue }) => {
             if (showFcCI) {
               const withCI = g.rows.map((r) => ({ pos: r[posKey], val: factor * +r[valKey], ci: fcLookup.get(xKeyOf(r[posKey]) + '|' + seriesKey(r, channels)) })).filter((p) => p.ci);
               if (withCI.length >= 2) {
+                // Aire : bande hachurée entre les bornes extrêmes (même grammaire que ConfidenceOverlay).
                 if (fcMode === 'fill') {
                   const hiOuter = fcAbove[nFcB - 1] != null ? fcAbove[nFcB - 1] : fcBelow[nFcB - 1];
                   const loOuter = fcBelow[nFcB - 1] != null ? fcBelow[nFcB - 1] : fcAbove[nFcB - 1];
@@ -153,6 +154,7 @@ const BeforeAfterOverlay = ({ ctx, config, value, onValue }) => {
                     }
                   }
                 } else if (fcMode === 'line') {
+                  // Lignes : une ligne par borne, opacité décroissante vers l'extérieur.
                   const cols = [...fcBelow.map((c, i) => ({ c, i })), ...fcAbove.map((c, i) => ({ c, i }))];
                   ciNodes = cols.map(({ c, i }, k) => {
                     const seg = withCI.map((p) => ({ pos: p.pos, v: factor * +p.ci[c] })).filter((p) => !isNaN(p.v));

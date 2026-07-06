@@ -87,10 +87,14 @@ const ChartAxisLeft = ({
   const stubFar = -tickPadX - 4;
   const stubNear = -tickPadX;
 
+  // Encodage du mode de rendu (multi-lignes / à plat) et du contenu du tick
+  // dans la chaîne unique transmise par visx (cf. SEP ci-dessus).
   const tickFormat = (_value, index) => (multiline
     ? `M${SEP}${formatted[index].join(SEP)}`
     : `P${SEP}${formatted[index]}`);
 
+  // Décodage du mode et rendu du talon + libellé (simple ou réparti en tspans),
+  // décalés de tickPadX vers la gauche.
   const tickComponent = ({ y, formattedValue }) => {
     const [mode, ...rest] = (formattedValue ?? '').split(SEP);
     return (
