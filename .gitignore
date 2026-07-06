@@ -46,6 +46,7 @@ DESIGN_SYSTEM.md
 .claude/*
 skills-lock.json
 CHART_ARCHITECTURE.md
+PERFORMANCE_AUDIT_DIAGNOSTIC.md
 
 # old repository
 old_src/*
