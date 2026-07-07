@@ -13,13 +13,14 @@ export const useNavigation = () => {
     // État pour gérer l'affichage du menu mobile
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    // Breakpoints partagés, dérivés d'un unique listener resize (voir plus bas).
-    // Initialisés à false pour garantir la cohérence SSR/hydratation : le premier
-    // rendu client reproduit le rendu serveur, puis l'effet met à jour les valeurs.
-    // - isMobile  : ≤639px (breakpoint small) — tiroir sidebar plein écran, focus-trap.
-    // - isCompact : ≤768px — seuil au-dessous duquel le menu mobile de la topbar existe.
+    // Breakpoint partagé, dérivé d'un unique listener resize (voir plus bas).
+    // Initialisé à false pour garantir la cohérence SSR/hydratation : le premier
+    // rendu client reproduit le rendu serveur, puis l'effet met à jour la valeur.
+    // Le seuil lui-même n'est pas codé en dur ici : il est lu depuis la custom
+    // property --breakpoint-small (voir plus bas), dont la source de vérité est
+    // src/styles/utils/breakpoints.scss.
+    // - isMobile : ≤ breakpoint "small" — tiroir sidebar plein écran, focus-trap.
     const [isMobile, setIsMobile] = useState(false);
-    const [isCompact, setIsCompact] = useState(false);
 
     // Récupération du chemin actuel avec Next.js
     const pathname = usePathname();
@@ -83,16 +84,23 @@ export const useNavigation = () => {
     };
 
     // Listener resize UNIQUE partagé par toute la navigation (monté une seule fois via
-    // le NavigationProvider). Il recalcule les deux breakpoints et referme le menu mobile
-    // dès qu'on repasse en desktop (>768px), comportement historique conservé.
+    // le NavigationProvider). Il recalcule le breakpoint et referme le menu mobile dès
+    // qu'on repasse en desktop, comportement historique conservé.
     useEffect(() => {
+        // Lecture des seuils depuis les custom properties CSS (définies dans
+        // typography.scss à partir de breakpoints.scss) plutôt que des nombres en dur,
+        // pour ne jamais désynchroniser JS et SCSS.
+        const rootStyle = getComputedStyle(document.documentElement);
+        const mobileBreakpoint = parseInt(rootStyle.getPropertyValue('--breakpoint-small'), 10);
+        // Seuil au-delà duquel le tiroir topbar/sidebar n'existe plus (cf. TopbarContainer.scss,
+        // qui repasse en navigation inline desktop via breakpoint('large')).
+        const drawerBreakpoint = parseInt(rootStyle.getPropertyValue('--breakpoint-medium'), 10);
+
         const handleResize = () => {
             const width = window.innerWidth;
-            const compact = width <= 768;
-            setIsCompact(compact);
-            setIsMobile(width <= 639);
-            // Au-delà du seuil compact, le menu mobile n'a plus lieu d'être : on le referme.
-            if (!compact) {
+            setIsMobile(width <= mobileBreakpoint);
+            // Au-delà du seuil du tiroir, le menu mobile n'a plus lieu d'être : on le referme.
+            if (width > drawerBreakpoint) {
                 setIsMobileMenuOpen(false);
             }
         };
@@ -131,7 +139,6 @@ export const useNavigation = () => {
         currentPath: pathname,
         isMobileMenuOpen,
         isMobile,
-        isCompact,
 
         // Fonctions d'action
         toggleMobileMenu,

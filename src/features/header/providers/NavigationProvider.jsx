@@ -30,7 +30,6 @@ const NavigationProvider = ({ children }) => {
         hasActiveChildren,
         isMobileMenuOpen,
         isMobile,
-        isCompact,
         toggleMobileMenu,
         closeMobileMenu
     } = useNavigation();
@@ -44,13 +43,12 @@ const NavigationProvider = ({ children }) => {
         hasActiveChildren
     };
 
-    // Valeur « UI » : état du menu mobile + breakpoints partagés.
+    // Valeur « UI » : état du menu mobile + breakpoint partagé.
     const uiValue = {
         isMobileMenuOpen,
         toggleMobileMenu,
         closeMobileMenu,
-        isMobile,
-        isCompact
+        isMobile
     };
 
     return (
@@ -77,10 +75,10 @@ export const useNavigationRoute = () => {
 };
 
 /**
- * Access the UI navigation context (mobile menu state + responsive breakpoints).
+ * Access the UI navigation context (mobile menu state + responsive breakpoint).
  *
  * @returns {{isMobileMenuOpen: boolean, toggleMobileMenu: Function, closeMobileMenu: Function,
- *   isMobile: boolean, isCompact: boolean}} UI context.
+ *   isMobile: boolean}} UI context.
  * @throws {Error} If used outside of a NavigationProvider.
  */
 export const useNavigationUI = () => {
