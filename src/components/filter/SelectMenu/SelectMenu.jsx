@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden/VisuallyHidden';
 import { CheckIcon, CrossIcon, ChevronIcon } from '@/components/icons';
 import { useSelectOptions } from './useSelectOptions';
-import { useDebouncedValue } from './useDebouncedValue';
+import { useDebouncedValue } from '@/hooks/debounce/useDebouncedValue';
 import './SelectMenu.scss';
 
 /**

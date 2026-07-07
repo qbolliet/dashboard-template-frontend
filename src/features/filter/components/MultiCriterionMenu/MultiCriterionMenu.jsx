@@ -6,7 +6,7 @@ import Tooltip from '@/components/filter/Tooltip/Tooltip';
 import { PlusIcon } from '@/components/icons';
 import { DEFAULT_CONNECTORS, defaultValue, isComplete, resolveOperations } from '../../utils/filterTypes';
 import { buildTree, serialize } from '../../utils/filterEngine';
-import { useDebouncedCallback } from '../../hooks/useDebouncedCallback';
+import { useDebouncedCallback } from '@/hooks/debounce/useDebouncedCallback';
 import CriterionMenu from '../CriterionMenu/CriterionMenu';
 import Connector from './Connector/Connector';
 import './MultiCriterionMenu.scss';
