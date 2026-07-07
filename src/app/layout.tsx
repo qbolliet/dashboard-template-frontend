@@ -6,6 +6,7 @@ import Header from '../features/header/components/Header/Header';
 import ThemeProvider from '../features/theme/providers/ThemeProvider';
 import navigationData from '../../config/navigation_new.json';
 import Footer from '../features/footer/components/Footer/Footer';
+import SWRProvider from './providers';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,16 +45,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider>
-          {/* Header avec les données de navigation_new.json (JSON sérialisable passé au client) */}
-          <Header
-              navigationData={navigationData.main_menu}
-              navigationType='sidebar' //'sidebar'//'topbar'
-              useSwitcher={false} //false //true
-          />
-          {children}
-          <Footer copyrightText="© 2025 Dashboard Template" />
-        </ThemeProvider>
+        <SWRProvider>
+          <ThemeProvider>
+            {/* Header avec les données de navigation_new.json (JSON sérialisable passé au client) */}
+            <Header
+                navigationData={navigationData.main_menu}
+                navigationType='sidebar' //'sidebar'//'topbar'
+                useSwitcher={false} //false //true
+            />
+            {children}
+            <Footer copyrightText="© 2025 Dashboard Template" />
+          </ThemeProvider>
+        </SWRProvider>
       </body>
     </html>
   );
