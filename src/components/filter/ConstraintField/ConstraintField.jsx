@@ -38,6 +38,8 @@ import './ConstraintField.scss';
  * @param {Function} onChange      - ({ value } | { min, max }) => void, string payloads.
  * @param {Function} [onValidityChange] - (valid: boolean) => void. VALUE verdict emitted
  *   alongside each onChange (filled AND consistent: type ok, low ≤ high, within bounds).
+ * @param {Function} [onCommit] - Forwarded to the inputs' blur, so a debounced parent can
+ *   flush any pending emission.
  * @param {boolean}  [disabled]
  * @param {boolean}  [showSlider]  - Render the slider bar when the type/bounds allow it.
  * @param {boolean}  [inputsOnTop] - Render the inputs above the track (instead of below).
@@ -58,6 +60,7 @@ const ConstraintField = ({
   defaultValueHigh,
   onChange,
   onValidityChange,
+  onCommit,
   disabled = false,
   showSlider = true,
   inputsOnTop = false,
@@ -408,6 +411,7 @@ const ConstraintField = ({
             validate={validate}
             disabled={disabled}
             onChange={handleLowChange}
+            onCommit={onCommit}
             {...lowForced()} />
         </div>
 
@@ -423,6 +427,7 @@ const ConstraintField = ({
                 validate={validate}
                 disabled={disabled}
                 onChange={handleHighChange}
+                onCommit={onCommit}
                 {...highForced()} />
             </div>
           </>

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden/VisuallyHidden';
 import { CheckIcon, CrossIcon, ChevronIcon } from '@/components/icons';
 import { useSelectOptions } from './useSelectOptions';
+import { useDebouncedValue } from './useDebouncedValue';
 import './SelectMenu.scss';
 
 /**
@@ -58,9 +59,13 @@ const SelectMenu = ({
   const containerRef = useRef(null);
   const filterRef = useRef(null);
 
+  // Terme amorti → clé de requête du hook (réseau). Le filtrage d'affichage reste
+  // immédiat : seul le fetch est amorti, la liste déjà chargée se filtre à la frappe.
+  const debouncedFilter = useDebouncedValue(filter, 250);
+
   // Récupération des options via hook — ignorée quand `options` prop est fournie.
   const { options: hookOptions, groups: hookGroups } = useSelectOptions({
-    fieldName, catalog, groupField, searchTerm: filter,
+    fieldName, catalog, groupField, searchTerm: debouncedFilter,
   });
 
   // Mode statique : filtrage client sur la prop `options` ; groupé non supporté.
@@ -69,10 +74,21 @@ const SelectMenu = ({
         ? options.filter((o) => o.label.toLowerCase().includes(filter.toLowerCase()))
         : options)
     : null;
-    
+
+  // Filtrage d'affichage LOCAL immédiat par-dessus les options déjà chargées par le
+  // hook : la liste se filtre à chaque frappe même si le fetch (amorti) n'a pas encore
+  // répondu pour le terme courant.
+  const localMatch = (o) => o.label.toLowerCase().includes(filter.toLowerCase());
+  const filteredHookOptions = filter ? hookOptions.filter(localMatch) : hookOptions;
+  const filteredHookGroups = filter
+    ? hookGroups
+        .map((g) => ({ ...g, options: g.options.filter(localMatch) }))
+        .filter((g) => g.options.length > 0)
+    : hookGroups;
+
   // Initialisation des options et des groupes affichés
-  const displayOptions = filteredStatic ?? hookOptions;
-  const displayGroups  = options ? [] : hookGroups;
+  const displayOptions = filteredStatic ?? filteredHookOptions;
+  const displayGroups  = options ? [] : filteredHookGroups;
 
   // Ensemble des valeurs sélectionnées — accès O(1) lors du rendu des options.
   const selectedSet = new Set(value.map((v) => v.value));

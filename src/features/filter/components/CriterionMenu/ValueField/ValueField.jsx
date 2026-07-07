@@ -20,7 +20,12 @@ import './ValueField.scss';
  * @param {boolean} isCategorical - Categorical flag of the selected variable.
  * @param {?string} operation - Selected operation value.
  * @param {*} value - Current value in the criterion's internal format.
- * @param {function(*): void} onChange - Emits the next internal value.
+ * @param {function(*, {debounce: boolean}=): void} onChange - Emits the next internal
+ *   value. The second argument tags the emission intent: text/number/date typing is
+ *   `{ debounce: true }` (amortised upstream), categorical selection is
+ *   `{ debounce: false }` (a discrete, structural-like change → immediate).
+ * @param {function(): void} [onCommit] - Forwarded to typing inputs' blur so a debounced
+ *   parent can flush its pending emission (categorical selects need no flush).
  * @param {function(boolean): void} [onValidityChange] - Receives ConstraintField's verdict.
  * @param {?string} fieldName - API field name (= variable id) feeding the primitives' hooks.
  * @param {?string} [catalog] - API catalog forwarded to the primitives.
@@ -34,6 +39,7 @@ const ValueField = ({
   operation,
   value,
   onChange,
+  onCommit,
   onValidityChange,
   fieldName,
   catalog,
@@ -60,7 +66,7 @@ const ValueField = ({
           value={selVal}
           validate={validate}
           placeholder="Sélectionner des valeurs…"
-          onChange={(items) => onChange(items.map((i) => i.value))} />
+          onChange={(items) => onChange(items.map((i) => i.value), { debounce: false })} />
       );
     }
 
@@ -73,7 +79,7 @@ const ValueField = ({
         value={selVal}
         validate={validate}
         placeholder="Sélectionner une valeur…"
-        onChange={(items) => onChange(items[0]?.value ?? null)} />
+        onChange={(items) => onChange(items[0]?.value ?? null, { debounce: false })} />
     );
   }
 
@@ -95,7 +101,8 @@ const ValueField = ({
         inputsOnTop
         defaultValueLow={isRange ? value?.min : value}
         defaultValueHigh={isRange ? value?.max : undefined}
-        onChange={(out) => onChange(isRange ? { min: out.min, max: out.max } : out.value)}
+        onChange={(out) => onChange(isRange ? { min: out.min, max: out.max } : out.value, { debounce: true })}
+        onCommit={onCommit}
         onValidityChange={onValidityChange} />
     );
   }
@@ -116,14 +123,20 @@ const ValueField = ({
         showSlider={showSlider}
         inputsOnTop
         defaultValueLow={value ?? ''}
-        onChange={(out) => onChange(out.value ?? '')}
+        onChange={(out) => onChange(out.value ?? '', { debounce: true })}
+        onCommit={onCommit}
         onValidityChange={onValidityChange} />
     );
   }
 
   // ── Texte (et autres types non catégoriels) ──
   return (
-    <TypeAwareInput inputType="text" value={value ?? ''} validate={validate} onChange={onChange} />
+    <TypeAwareInput
+      inputType="text"
+      value={value ?? ''}
+      validate={validate}
+      onChange={(v) => onChange(v, { debounce: true })}
+      onCommit={onCommit} />
   );
 };
 
