@@ -63,9 +63,10 @@ const SelectMenu = ({
   // immédiat : seul le fetch est amorti, la liste déjà chargée se filtre à la frappe.
   const debouncedFilter = useDebouncedValue(filter, 250);
 
-  // Récupération des options via hook — ignorée quand `options` prop est fournie.
+  // Récupération des options via hook — désactivée (aucun fetch) quand `options` prop
+  // est fournie : le résultat serait de toute façon jeté au profit du filtrage statique.
   const { options: hookOptions, groups: hookGroups } = useSelectOptions({
-    fieldName, catalog, groupField, searchTerm: debouncedFilter,
+    fieldName, catalog, groupField, searchTerm: debouncedFilter, enabled: !options,
   });
 
   // Mode statique : filtrage client sur la prop `options` ; groupé non supporté.

@@ -34,10 +34,13 @@ const MOCK_BOUNDS_BY_FIELD = {
  * @param {Object}  params
  * @param {string}  params.fieldName - API field name. Ignored by the mock resolver.
  * @param {string}  [params.catalog] - API catalog (mock: ignored).
+ * @param {boolean} [params.enabled] - Fetch activé (défaut true). À `false` quand le
+ *   parent ne fournit pas de `fieldName` (bornes `min`/`max` statiques passées en props) :
+ *   court-circuite l'effet réseau, aucun appel n'est déclenché.
  * @returns {{ min: number, max: number, step: number, loading: boolean, error: (Error|null) }}
  *   Resolved bounds, loading flag and error.
  */
-export function useRangeBounds({ fieldName, catalog } = {}) {
+export function useRangeBounds({ fieldName, catalog, enabled = true } = {}) {
   // État du résultat courant. `key` identifie le jeu d'inputs qui l'a produit :
   // on s'en sert pour dériver `loading` sans setState synchrone dans l'effet
   // (interdit par les Rules of Hooks v6 — règle set-state-in-effect).
@@ -50,6 +53,13 @@ export function useRangeBounds({ fieldName, catalog } = {}) {
     // Garde d'annulation : ignore la réponse si les inputs ont changé entre-temps.
     let cancelled = false;
     const key = `${fieldName}|${catalog}`;
+
+    // Désactivé (bornes statiques fournies par le parent, pas de `fieldName`) : pas de
+    // fetch réseau.
+    if (!enabled) {
+      Promise.resolve().then(() => { if (!cancelled) setResult({ key, bounds: MOCK_BOUNDS, error: null }); });
+      return () => { cancelled = true; };
+    }
 
     // --- Fallback mock : résolu en asynchrone pour exercer le même cycle
     //     loading→données que l'API GraphQL réelle. Bornes indexées par champ. ---
@@ -94,7 +104,7 @@ export function useRangeBounds({ fieldName, catalog } = {}) {
       .catch((err) => { if (!cancelled) setResult({ key, bounds: MOCK_BOUNDS, error: err }); });
 
     return () => { cancelled = true; };
-  }, [fieldName, catalog]);
+  }, [fieldName, catalog, enabled]);
 
   // `loading` dérivé : vrai tant que le résultat stocké ne correspond pas aux
   // inputs courants (premier rendu ou inputs qui viennent de changer).
