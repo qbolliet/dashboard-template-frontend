@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigation } from '../../../hooks/useNavigation';
+import { useNavigationUI } from '../../../providers/NavigationProvider';
 import useResizable from '../../../hooks/useResizable';
 import { NavTrigger } from '../../NavTrigger';
 import TopbarMenu from '../TopbarMenu/TopbarMenu';
@@ -31,12 +31,12 @@ const TopbarContainer = ({
     ariaLabel = 'Menu de navigation',
     role = 'navigation'
 }) => {
-    // Utilisation du hook personnalisé pour la navigation
+    // Contexte UI de navigation (état partagé du menu mobile).
     const {
         isMobileMenuOpen,
         toggleMobileMenu,
         closeMobileMenu
-    } = useNavigation();
+    } = useNavigationUI();
 
     // ===== REDIMENSIONNEMENT DU TIROIR (medium uniquement) =====
     const containerRef = useRef(null);

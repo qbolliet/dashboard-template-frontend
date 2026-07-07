@@ -2,7 +2,7 @@
 
 import { useState, createContext, useContext, useEffect, useId, useRef } from 'react';
 import Image from 'next/image';
-import { useNavigation } from '../../../hooks/useNavigation';
+import { useNavigationRoute, useNavigationUI } from '../../../providers/NavigationProvider';
 import useResizable from '../../../hooks/useResizable';
 import SidebarSwitcher from '../SidebarSwitcher/SidebarSwitcher';
 import SidebarMenu from '../SidebarMenu/SidebarMenu';
@@ -74,20 +74,10 @@ const NavigationSideBar = ({
     // useId garantit un ID stable entre le rendu SSR et l'hydratation client
     const sidebarId = `navigation-sidebar-${useId()}`;
 
-    // Détecter le mode mobile (pour activer le focus trap)
-    const [isMobile, setIsMobile] = useState(false);
-
-    useEffect(() => {
-        // Fonction pour détecter le mode mobile (correspond au breakpoint-down small)
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth <= 639); // 639px = breakpoint small
-        };
-
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
+    // Fonctions de route (pathname) et breakpoint mobile, fournis par le contexte partagé
+    // du NavigationProvider — plus de listener resize propre à la sidebar (isMobile ≤639px).
+    const { isActivePath, hasActiveChildren } = useNavigationRoute();
+    const { isMobile } = useNavigationUI();
 
     // Hook pour piéger le focus dans la sidebar en mode mobile
     const focusTrapRef = useFocusTrap({
@@ -144,9 +134,6 @@ const NavigationSideBar = ({
     const [selectedSwitcherItem, setSelectedSwitcherItem] = useState(
         useSwitcher && navigationData.length > 0 ? navigationData[0] : null
     );
-
-    // Hook de navigation existant
-    const navigationHook = useNavigation();
 
     // Détecter si des icônes sont présentes dans les données de navigation.
     const hasIcons = (() => {
@@ -212,13 +199,16 @@ const NavigationSideBar = ({
         className
     ].filter(Boolean).join(' ');
 
-    // Valeur du contexte de la sidebar
+    // Valeur du contexte de la sidebar : champs explicites (plus de spread de useNavigation).
+    // Les fonctions de route proviennent du contexte partagé et sont ré-exposées ici pour que
+    // SidebarItem / SidebarGroup les consomment via useSidebar sans changement.
     const sidebarContextValue = {
         isOpen,
         hasIcons,
         toggleSidebar,
         sidebarId, // Ajout de l'ID pour aria-controls
-        ...navigationHook
+        isActivePath,
+        hasActiveChildren
     };
 
     return (

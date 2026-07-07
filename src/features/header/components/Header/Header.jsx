@@ -13,7 +13,7 @@ import { NavTrigger } from '../NavTrigger';
 import SearchBar from '../SearchBar/SearchBar';
 import ThemeToggleButton from '../../../theme/components/ThemeToggleButton/ThemeToggleButton';
 import { SkipLink } from '@/features/accessibility';
-import { useNavigation } from '../../hooks/useNavigation';
+import NavigationProvider from '../../providers/NavigationProvider';
 import './Header.scss';
 
 /**
@@ -37,8 +37,7 @@ const Header = ({
     // État pour la sidebar (si mode sidebar)
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    // Hook de navigation
-    const navigationHook = useNavigation();
+    // Chemin courant, utilisé uniquement pour dériver le titre de la page (breadcrumb).
     const pathname = usePathname();
 
     // Fonction pour générer le titre de la page courante
@@ -114,20 +113,24 @@ const Header = ({
     };
 
     return (
-        <>
+        // Provider unique de navigation : héberge l'instance partagée (un seul listener
+        // resize, un seul état de menu mobile) consommée par la topbar et la sidebar.
+        <NavigationProvider>
             {/* Skip link pour l'accessibilité */}
             <SkipLink href="#main-content">
                 Passer la navigation
             </SkipLink>
 
-            {/* Sidebar de navigation intégrée */}
+            {/* Sidebar de navigation intégrée.
+                Pas de `key` liée à sidebarOpen : la sidebar se synchronise déjà sur son prop
+                `defaultOpen` (adjust state during render) et doit survivre au toggle (largeur
+                redimensionnée, groupes dépliés, focus). */}
             {isSidebarMode && (
                 <NavigationSideBar
                     navigationData={navigationData}
                     onItemClick={onNavigationItemClick}
                     useSwitcher={useSwitcher}
                     defaultOpen={sidebarOpen}
-                    key={`sidebar-${sidebarOpen}`}
                 />
             )}
             {/* Header principal */}
@@ -174,7 +177,7 @@ const Header = ({
                     <ThemeToggleButton />
                 </div>
             </header>
-        </>
+        </NavigationProvider>
     );
 };
 

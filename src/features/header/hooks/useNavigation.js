@@ -13,6 +13,14 @@ export const useNavigation = () => {
     // État pour gérer l'affichage du menu mobile
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+    // Breakpoints partagés, dérivés d'un unique listener resize (voir plus bas).
+    // Initialisés à false pour garantir la cohérence SSR/hydratation : le premier
+    // rendu client reproduit le rendu serveur, puis l'effet met à jour les valeurs.
+    // - isMobile  : ≤639px (breakpoint small) — tiroir sidebar plein écran, focus-trap.
+    // - isCompact : ≤768px — seuil au-dessous duquel le menu mobile de la topbar existe.
+    const [isMobile, setIsMobile] = useState(false);
+    const [isCompact, setIsCompact] = useState(false);
+
     // Récupération du chemin actuel avec Next.js
     const pathname = usePathname();
 
@@ -74,14 +82,23 @@ export const useNavigation = () => {
         );
     };
 
-    // Fermer le menu mobile lors du redimensionnement de la fenêtre
+    // Listener resize UNIQUE partagé par toute la navigation (monté une seule fois via
+    // le NavigationProvider). Il recalcule les deux breakpoints et referme le menu mobile
+    // dès qu'on repasse en desktop (>768px), comportement historique conservé.
     useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth > 768) {
+            const width = window.innerWidth;
+            const compact = width <= 768;
+            setIsCompact(compact);
+            setIsMobile(width <= 639);
+            // Au-delà du seuil compact, le menu mobile n'a plus lieu d'être : on le referme.
+            if (!compact) {
                 setIsMobileMenuOpen(false);
             }
         };
 
+        // Mesure initiale au montage (les états démarrent à false pour l'hydratation).
+        handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -113,11 +130,13 @@ export const useNavigation = () => {
         // Données
         currentPath: pathname,
         isMobileMenuOpen,
-        
+        isMobile,
+        isCompact,
+
         // Fonctions d'action
         toggleMobileMenu,
         closeMobileMenu,
-        
+
         // Fonctions utilitaires
         isActivePath,
         hasActiveChildren
