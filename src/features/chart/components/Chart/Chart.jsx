@@ -88,7 +88,7 @@ function computeBaseHoverTargets({
    en coordonnées directes). ─────────────────────────────────────────────── */
 function computeHoverTargets({
   chartKind, filteredData, channels, xScale, yScale, x, y, z,
-  stack, stackMain, innerWidth, innerHeight, fill,
+  stack, stackMain, innerWidth, innerHeight, fill, groups,
 }) {
   const out = [];
 
@@ -110,7 +110,10 @@ function computeHoverTargets({
     const valKey = horizontal ? x : y;
     const bandScale = horizontal ? yScale : xScale;
     const valScale = horizontal ? xScale : yScale;
-    const seriesList = groupSeries(filteredData, channels);
+    // `groups` (calculé une fois dans ChartCanvas sur `filteredData`) est partagé
+    // avec le rendu des marks bar — fallback si la fonction est appelée hors
+    // ChartCanvas.
+    const seriesList = groups || groupSeries(filteredData, channels);
     const seriesKeys = seriesList.map((s) => s.key);
     const grouped = new Map();
     for (const row of filteredData) {
@@ -212,7 +215,12 @@ function computeHoverTargets({
       }
     }
     const splitMode = !!splitCol;
-    const seriesList = groupSeries(filteredData, channels);
+    // NOTE : ce `groupSeries` opère sur `filteredData` (fenêtre de zoom) pour les
+    // cibles de survol, alors que ViolinMarks rend ses violons depuis `data` NON
+    // filtré (le zoom ne fait que repositionner le KDE, jamais le recalculer) —
+    // les deux calculs portent donc sur des entrées différentes et ne peuvent PAS
+    // être mutualisés ; `groups` ci-dessous est bien celui de `filteredData`.
+    const seriesList = groups || groupSeries(filteredData, channels);
     const seriesKeys = seriesList.map((s) => s.key);
     const map = new Map();
     for (const row of filteredData) {
@@ -322,7 +330,11 @@ const ChartCanvas = ({
   const stackActive = stackable && stack && stack !== 'none';
   const stackPosKey = chartKind === 'bar-h' ? y : x;
   const stackValKey = chartKind === 'bar-h' ? x : y;
-  const seriesOrder = groupSeries(data, channels).map((s) => s.key);
+  // Regroupement par série sur les données COMPLÈTES : calculé une seule fois et
+  // partagé (ordre de stack, mini-vues line/bar, marks violon — ViolinMarks rend
+  // depuis `data` non filtré, cf. plus bas, JAMAIS `filteredData`).
+  const groupsFull = groupSeries(data, channels);
+  const seriesOrder = groupsFull.map((s) => s.key);
   const stackMini = stackActive
     ? buildStacks({ data, posKey: stackPosKey, valKey: stackValKey, channels, stackBy: stack, seriesOrder, aggregate: 'mean' })
     : null;
@@ -408,6 +420,13 @@ const ChartCanvas = ({
   });
   const { zx, zy } = axisZoom;
 
+  // Regroupement par série sur les données FILTRÉES (fenêtre de zoom) : ne sert
+  // que sur bar/bar-h/violon (cibles de survol + marks bar, qui rendent depuis
+  // `filteredData`) — line/density passent par la couche zoom
+  // (computeBaseHoverTargets, sans notion de série) et heatmap n'en a pas besoin.
+  const needsFilteredGroups = chartKind === 'bar' || chartKind === 'bar-h' || isViolinKind;
+  const groupsFiltered = needsFilteredGroups ? groupSeries(filteredData, channels) : null;
+
   // Graphiques « nuage » (line, density) : voronoï + KDE 2-D dans une couche
   // zoomée par transform (coordonnées de base, non recalculés au zoom).
   const zoomLayer = chartKind === 'line' || chartKind === 'density';
@@ -483,7 +502,7 @@ const ChartCanvas = ({
     : [];
   const hoverTargets = zoomLayer ? [] : computeHoverTargets({
     chartKind, filteredData, channels, xScale, yScale, x, y, z,
-    stack, stackMain, innerWidth, innerHeight, fill,
+    stack, stackMain, innerWidth, innerHeight, fill, groups: groupsFiltered,
   });
 
   // Ancrage adaptatif : bulle du côté OPPOSÉ au point (flip près des bords). En
@@ -607,13 +626,13 @@ const ChartCanvas = ({
   if (chartKind === 'line') {
     marks = <LineMarks data={filteredData} x={x} y={y} channels={channels} xScale={xScale} yScale={yScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} fill={fill} stack={stackMain} baReal={baReal} />;
   } else if (chartKind === 'bar') {
-    marks = <BarMarks data={filteredData} x={x} y={y} channels={channels} xScale={xScale} yScale={yScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="v" fill={fill} stack={stackMain} />;
+    marks = <BarMarks data={filteredData} x={x} y={y} channels={channels} xScale={xScale} yScale={yScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="v" fill={fill} stack={stackMain} groups={groupsFiltered} />;
   } else if (chartKind === 'bar-h') {
-    marks = <BarMarks data={filteredData} x={x} y={y} channels={channels} xScale={xScale} yScale={yScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="h" fill={fill} stack={stackMain} />;
+    marks = <BarMarks data={filteredData} x={x} y={y} channels={channels} xScale={xScale} yScale={yScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="h" fill={fill} stack={stackMain} groups={groupsFiltered} />;
   } else if (chartKind === 'heatmap') {
     marks = <HeatmapMarks data={filteredData} x={x} y={y} z={z} xScale={xScale} yScale={yScale} colorScale={cScale} hovered={hovered} fill={effFill} />;
   } else if (isViolinKind) {
-    marks = <ViolinMarks data={data} x={x} y={y} z={z} channels={channels} xScale={xScale} yScale={yScale} xScaleBase={baseXScale} yScaleBase={baseYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} orient={chartKind === 'violin-h' ? 'h' : 'v'} fill={effFill} stack={stack} hovered={hovered} />;
+    marks = <ViolinMarks data={data} x={x} y={y} z={z} channels={channels} xScale={xScale} yScale={yScale} xScaleBase={baseXScale} yScaleBase={baseYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} orient={chartKind === 'violin-h' ? 'h' : 'v'} fill={effFill} stack={stack} hovered={hovered} groups={groupsFull} />;
   }
 
   // Densité (KDE 2-D) rendue en coordonnées de BASE puis zoomée par le transform.
@@ -625,10 +644,10 @@ const ChartCanvas = ({
   let xMiniContent = null;
   if (chartKind === 'line') {
     const yMini = baseYScale.copy().range([miniH, 0]);
-    xMiniContent = <>{<LineMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} fill={fill} stack={stackMini} mini />}{renderMiniCI(baseXScale, yMini)}</>;
+    xMiniContent = <>{<LineMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} fill={fill} stack={stackMini} groups={groupsFull} mini />}{renderMiniCI(baseXScale, yMini)}</>;
   } else if (chartKind === 'bar') {
     const yMini = baseYScale.copy().range([miniH, 0]);
-    xMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="v" fill={fill} stack={stackMini} mini />}{renderMiniCI(baseXScale, yMini)}</>;
+    xMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="v" fill={fill} stack={stackMini} groups={groupsFull} mini />}{renderMiniCI(baseXScale, yMini)}</>;
   } else if (has2DBrush) {
     xMiniContent = <MiniProjection data={data} posCol={x} posType={xType} valCol={z} posScale={baseXScale} width={innerWidth} height={miniH} direction="x" mode="mean" />;
   } else if (chartKind === 'violin-v') {
@@ -642,7 +661,7 @@ const ChartCanvas = ({
     yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={z} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="mean" />;
   } else if (isBarH) {
     const miniX = baseXScale.copy().range([0, Math.max(2, yMinimapW - 2)]);
-    yMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={miniX} yScale={baseYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="h" fill={fill} stack={stackMini} mini />}{renderMiniCI(miniX, baseYScale)}</>;
+    yMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={miniX} yScale={baseYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="h" fill={fill} stack={stackMini} groups={groupsFull} mini />}{renderMiniCI(miniX, baseYScale)}</>;
   } else if (chartKind === 'violin-v') {
     yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={y} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="count" />;
   } else if (chartKind === 'violin-h') {
@@ -793,7 +812,11 @@ const ChartCanvas = ({
  *   categorical (single-series path), producing horizontal bars (`bar-h`).
  * @param {string} [props.title] - Chart title.
  * @param {number} [props.height=460] - Outer height (px).
- * @param {Array<object>} [props.toolbar=[]] - Toolbar feature descriptors.
+ * @param {Array<object>} [props.toolbar=[]] - Toolbar feature descriptors. Should be a
+ *   STABLE reference across renders unrelated to it (build it once — module scope, or a
+ *   dedicated child component fed only the state it depends on) : a new array/object
+ *   identity on every parent render defeats the React Compiler's ability to bail out
+ *   this <Chart>'s re-render.
  * @param {object} [props.defaults={}] - Initial ON state per tool id ('confidence',
  *   'beforeAfter', 'normalize', 'zoom', 'minimaps' + built-ins 'voronoi', 'tooltips',
  *   'expanded'). Overrides each feature's `defaultOn`.
@@ -1017,7 +1040,10 @@ const Chart = ({
         </div>
       )}
 
-      <ParentSize className="chart-body" parentSizeStyles={{ position: 'relative', width: '100%', minHeight: height }}>
+      <ParentSize
+        className="chart-body" parentSizeStyles={{ position: 'relative', width: '100%', minHeight: height }}
+        debounceTime={150} enableDebounceLeadingCall
+      >
         {({ width }) => (
           width > 0 ? (
             <ChartCanvas

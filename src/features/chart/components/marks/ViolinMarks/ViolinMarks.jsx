@@ -60,12 +60,15 @@ function statsOf(vals) {
  * @param {'fill'|'line'} [props.fill='fill'] - Fill mode.
  * @param {'none'|'all'|'color'|'style'|'marker'} [props.stack='none'] - Stacking mode.
  * @param {*} [props.hovered] - Hovered channel value, or null.
+ * @param {?Array<object>} [props.groups=null] - Pre-computed `groupSeries(data, channels)`
+ *   result (mutualisé côté appelant, cf. Chart.jsx) ; recalculé en interne si absent, pour
+ *   ne pas casser un usage direct du composant.
  * @returns {JSX.Element}
  */
 const ViolinMarks = ({
   data, x, y, z, channels, xScale, yScale, xScaleBase, yScaleBase,
   colorScale, styleScale, hatchScale, markerScale,
-  orient = 'v', fill = 'fill', stack = 'none', hovered,
+  orient = 'v', fill = 'fill', stack = 'none', hovered, groups = null,
 }) => {
   // Initialisation des arguments
   const horizontal = orient === 'h';
@@ -126,7 +129,7 @@ const ViolinMarks = ({
   })();
 
   // Séries (combinaisons des canaux actifs) — ordre stable.
-  const seriesList = groupSeries(data, channels);
+  const seriesList = groups || groupSeries(data, channels);
   const seriesKeys = seriesList.map((s) => s.key);
 
   // band → seriesKey → { vals, zs, colorVal, styleVal }

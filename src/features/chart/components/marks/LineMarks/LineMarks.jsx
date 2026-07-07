@@ -57,16 +57,22 @@ function seriesMatchesHover(g, hovered) {
  * @param {?{offsets: Map}} [props.stack=null] - Stacking offsets, or null.
  * @param {boolean} [props.mini=false] - Minimap (simplified) rendering.
  * @param {?{marker: string, secondary?: boolean}} [props.baReal=null] - Real-series marker descriptor.
+ * @param {?Array<object>} [props.groups=null] - Pre-computed `groupSeries(data, channels)`
+ *   result (mutualisé côté appelant, cf. Chart.jsx) ; recalculé en interne si absent, pour
+ *   ne pas casser un usage direct du composant.
  * @returns {JSX.Element}
  */
 const LineMarks = ({
   data, x, y, channels, xScale, yScale,
   colorScale, styleScale, markerScale, hatchScale,
   hovered, voronoiActive, voronoiActiveRow,
-  fill = 'line', stack = null, mini = false, baReal = null,
+  fill = 'line', stack = null, mini = false, baReal = null, groups = null,
 }) => {
   // Séries triées par abscisse (comparaison Date-aware) — ordre stable de tracé.
-  const series = groupSeries(data, channels);
+  // NOTE : ce tri MUTE `g.rows` en place ; sans risque quand `groups` est partagé
+  // (cf. Chart.jsx) puisque ce résultat est reconstruit à chaque rendu et n'est
+  // jamais consommé par un autre appelant après ce point.
+  const series = groups || groupSeries(data, channels);
   for (const g of series) {
     g.rows.sort((a, b) => {
       const ax = a[x], bx = b[x];

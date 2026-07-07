@@ -688,7 +688,10 @@ const MultiChart = ({
         </div>
       )}
 
-      <ParentSize className="chart-body" parentSizeStyles={{ position: 'relative', width: '100%', minHeight: height }}>
+      <ParentSize
+        className="chart-body" parentSizeStyles={{ position: 'relative', width: '100%', minHeight: height }}
+        debounceTime={150} enableDebounceLeadingCall
+      >
         {({ width }) => (width > 0 ? (
           <MultiChartCanvas
             width={Math.max(320, Math.floor(width))}
