@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useState, useContext, useEffect, useEffectEvent } from 'react';
+import React, { createContext, useState, useContext, useEffect, useEffectEvent, useRef } from 'react';
 
 // Contexte pour le thème
 const ThemeContext = createContext();
@@ -36,27 +36,48 @@ export const ThemeProvider = ({ children }) => {
         return prefersDark ? 'dark' : 'light';
     });
 
-    // État pour l'animation de transition du thème
-    const [isTransitioning, setIsTransitioning] = useState(false);
+    // Minuteurs de la transition en cours (délai avant changement + retrait de la classe).
+    // En refs (et non en state) : la classe `theme-transitioning` est purement visuelle
+    // (CSS sur <body>) et ne doit pas faire re-render tous les consommateurs du contexte
+    // deux fois par toggle — cf. isTransitioning retiré de contextValue plus bas.
+    const themeChangeTimeoutRef = useRef(null);
+    const endTransitionTimeoutRef = useRef(null);
+
+    /**
+     * Applique la classe de transition sur <body>, exécute `applyTheme` après un court délai
+     * (laisse l'animation démarrer) puis retire la classe une fois la transition terminée.
+     * Annule les minuteurs d'un éventuel geste précédent pour rester correct si l'utilisateur
+     * bascule le thème plusieurs fois rapidement (sinon un ancien retrait de classe pourrait
+     * couper la transition en cours).
+     *
+     * @param {Function} applyTheme - Callback posant le nouveau thème (setTheme).
+     */
+    const runThemeTransition = (applyTheme) => {
+        if (typeof window === 'undefined') return;
+
+        if (themeChangeTimeoutRef.current) clearTimeout(themeChangeTimeoutRef.current);
+        if (endTransitionTimeoutRef.current) clearTimeout(endTransitionTimeoutRef.current);
+
+        document.body.classList.add('theme-transitioning');
+
+        // Délai court pour activer l'animation avant le changement de thème.
+        themeChangeTimeoutRef.current = setTimeout(() => {
+            applyTheme();
+        }, 50);
+
+        // Désactiver l'animation après la transition.
+        endTransitionTimeoutRef.current = setTimeout(() => {
+            document.body.classList.remove('theme-transitioning');
+        }, 300);
+    };
 
     /**
      * Basculer entre les thèmes clair et sombre
      */
     const toggleTheme = () => {
-        setIsTransitioning(true);
-        
-        // Délai court pour activer l'animation
-        setTimeout(() => {
-            setTheme(prevTheme => {
-                const newTheme = prevTheme === 'light' ? 'dark' : 'light';
-                return newTheme;
-            });
-        }, 50);
-        
-        // Désactiver l'animation après la transition
-        setTimeout(() => {
-            setIsTransitioning(false);
-        }, 300);
+        runThemeTransition(() => {
+            setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+        });
     };
 
     /**
@@ -70,17 +91,17 @@ export const ThemeProvider = ({ children }) => {
         }
 
         if (newTheme !== theme) {
-            setIsTransitioning(true);
-
-            setTimeout(() => {
-                setTheme(newTheme);
-            }, 50);
-
-            setTimeout(() => {
-                setIsTransitioning(false);
-            }, 300);
+            runThemeTransition(() => setTheme(newTheme));
         }
     };
+
+    // Nettoyage des minuteurs si le provider est démonté en pleine transition.
+    useEffect(() => {
+        return () => {
+            if (themeChangeTimeoutRef.current) clearTimeout(themeChangeTimeoutRef.current);
+            if (endTransitionTimeoutRef.current) clearTimeout(endTransitionTimeoutRef.current);
+        };
+    }, []);
 
     /**
      * Détecter si le thème système a changé et l'adapter si aucun thème manuel n'est défini
@@ -121,18 +142,11 @@ export const ThemeProvider = ({ children }) => {
         const metaThemeColor = document.querySelector('meta[name="theme-color"]');
         if (metaThemeColor) {
             metaThemeColor.setAttribute(
-                'content', 
+                'content',
                 theme === 'dark' ? '#1a1a1a' : '#ffffff'
             );
         }
-
-        // Émettre un événement personnalisé pour informer les autres composants
-        const themeChangeEvent = new CustomEvent('themeChanged', { 
-            detail: { theme, isTransitioning } 
-        });
-        document.dispatchEvent(themeChangeEvent);
-        
-    }, [theme, isTransitioning]);
+    }, [theme]);
 
     // Effect Event : isole la logique non-réactive de l'écoute système.
     // Lit toujours le `theme` courant sans rendre l'effet d'abonnement réactif,
@@ -159,22 +173,10 @@ export const ThemeProvider = ({ children }) => {
         };
     }, []);
 
-    // Effet pour gérer les classes CSS de transition
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-
-        if (isTransitioning) {
-            document.body.classList.add('theme-transitioning');
-        } else {
-            document.body.classList.remove('theme-transitioning');
-        }
-    }, [isTransitioning]);
-
     // Valeurs du contexte
     const contextValue = {
         // État actuel
         theme,
-        isTransitioning,
         isDark: theme === 'dark',
         isLight: theme === 'light',
         
