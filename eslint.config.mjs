@@ -15,6 +15,8 @@ const eslintConfig = [
     // design-system/ est le prototype de référence (D3 en IIFE navigateur, non
     // suivi par git) porté vers src/ — c'est la SOURCE visuelle, pas du code
     // applicatif : exclu du lint au même titre que les archives.
+    // scripts/ contient des scripts Node CommonJS de tooling (ex. check-palette-sync.js),
+    // hors du périmètre applicatif React/Next visé par les règles ci-dessus.
     ignores: [
       ".next/**",
       "node_modules/**",
@@ -22,6 +24,7 @@ const eslintConfig = [
       "old_components/**",
       "old_src/**",
       "design-system/**",
+      "scripts/**",
     ],
   },
 ];
