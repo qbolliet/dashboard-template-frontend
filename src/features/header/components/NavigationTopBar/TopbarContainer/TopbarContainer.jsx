@@ -61,6 +61,10 @@ const TopbarContainer = ({
         getCurrentWidth: () =>
             containerRef.current?.querySelector('.topbar-list')?.getBoundingClientRect().width,
         onResize: setDrawerWidth,
+        // Pendant le drag, la largeur est écrite directement sur le nav (même variable que
+        // celle posée en style inline ci-dessous) : pas de re-render par pixel.
+        elementRef: containerRef,
+        cssProperty: '--topbar-drawer-width',
     });
 
     // Gestion du clic sur un élément de navigation

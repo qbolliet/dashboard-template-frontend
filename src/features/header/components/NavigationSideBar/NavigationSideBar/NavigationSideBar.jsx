@@ -107,6 +107,10 @@ const NavigationSideBar = ({
         max: 480,
         getCurrentWidth: () => asideRef.current?.getBoundingClientRect().width,
         onResize: setOpenWidth,
+        // Pendant le drag, la largeur est écrite directement sur l'aside (même variable
+        // que celle posée en style inline ci-dessous) : pas de re-render par pixel.
+        elementRef: asideRef,
+        cssProperty: '--sidebar-width-open',
     });
 
     // Synchroniser l'état avec la prop defaultOpen quand elle change.

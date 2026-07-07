@@ -20,7 +20,14 @@ import { useEffect, useRef } from 'react';
  * @param {number} [options.min] - Minimum width in px (inclusive).
  * @param {number} [options.max] - Maximum width in px (inclusive).
  * @param {Function} options.getCurrentWidth - Returns the panel's current width in px.
- * @param {Function} options.onResize - Called with the clamped next width in px.
+ * @param {Function} options.onResize - Called with the clamped next width in px. Pendant un
+ *   drag piloté par `elementRef`/`cssProperty`, appelé une seule fois au relâchement (commit) ;
+ *   sinon (ex. flèches clavier) appelé à chaque pas.
+ * @param {Object} [options.elementRef] - Ref vers l'élément DOM du panneau. Si fourni avec
+ *   `cssProperty`, le drag écrit directement la largeur sur cet élément (`style.setProperty`)
+ *   sans passer par React tant que le geste est en cours — évite un re-render par pixel.
+ * @param {string} [options.cssProperty] - Nom de la custom property CSS à écrire pendant le
+ *   drag (ex. '--sidebar-width-open'). Ignoré si `elementRef` n'est pas fourni.
  * @returns {{onPointerDown: Function, onKeyDown: Function}} Handlers to spread on the rail.
  */
 export default function useResizable({
@@ -29,6 +36,8 @@ export default function useResizable({
     max,
     getCurrentWidth,
     onResize,
+    elementRef,
+    cssProperty,
 }) {
     // Geste de drag en cours : conserve la fonction d'arrêt liée à CE geste (avec les
     // bonnes références d'écouteurs) pour pouvoir le nettoyer au démontage. Une ref
@@ -55,21 +64,40 @@ export default function useResizable({
         event.preventDefault();
 
         const startX = event.clientX;
+        // Dernière largeur calculée pendant le drag : c'est elle qui sera commitée en state
+        // au relâchement (React n'est pas synchronisé pixel par pixel pendant le geste).
+        let latestWidth = startWidth;
+        const useImperativeDom = Boolean(elementRef?.current && cssProperty);
 
         // Déplacement du pointeur : largeur de départ + delta horizontal signé selon le bord.
         const handleMove = (moveEvent) => {
             const delta = moveEvent.clientX - startX;
             const signed = direction === 'left' ? -delta : delta;
-            onResize(clamp(startWidth + signed));
+            latestWidth = clamp(startWidth + signed);
+
+            if (useImperativeDom) {
+                // Haute fréquence (un événement par pixel de déplacement) : on écrit la
+                // valeur directement en DOM plutôt que par setState, pour éviter un
+                // re-render complet du composant (et de son contexte) à chaque pixel.
+                // La valeur reste transitoire ; React redevient source de vérité au stop().
+                elementRef.current.style.setProperty(cssProperty, `${latestWidth}px`);
+            } else {
+                onResize(latestWidth);
+            }
         };
 
-        // Fin du geste : on libère le curseur global et les écouteurs.
+        // Fin du geste : on libère le curseur global et les écouteurs, puis on commite la
+        // largeur finale dans le state React (source de vérité unique entre deux drags).
         const stop = () => {
             dragRef.current = null;
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
             window.removeEventListener('pointermove', handleMove);
             window.removeEventListener('pointerup', stop);
+
+            if (useImperativeDom) {
+                onResize(latestWidth);
+            }
         };
 
         dragRef.current = { stop };
