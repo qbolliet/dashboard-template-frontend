@@ -22,6 +22,7 @@
 
 // Importation des modules
 import { useId, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { ParentSize } from '@visx/responsive';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { extent, mean } from 'd3-array';
@@ -47,12 +48,12 @@ import ChartAxisBottom from '../ChartAxis/ChartAxisBottom/ChartAxisBottom';
 import ChartAxisLeft from '../ChartAxis/ChartAxisLeft/ChartAxisLeft';
 import ChannelLegend from '../ChartLegend/ChannelLegend/ChannelLegend';
 import SequentialLegend from '../ChartLegend/SequentialLegend/SequentialLegend';
-import MultiChart from '../MultiChart/MultiChart';
+// LineMarks / BarMarks restent STATIQUES : ce sont les types détectés par défaut,
+// présents sur quasi toutes les pages, et leurs dépendances (@visx/shape, @visx/scale,
+// d3-array, d3-color) sont déjà dans le graphe partagé — les splitter n'éviterait aucune
+// lib du bundle initial et ajouterait un flash sur le chemin nominal.
 import LineMarks from '../marks/LineMarks/LineMarks';
 import BarMarks from '../marks/BarMarks/BarMarks';
-import HeatmapMarks from '../marks/HeatmapMarks/HeatmapMarks';
-import DensityMarks from '../marks/DensityMarks/DensityMarks';
-import ViolinMarks from '../marks/ViolinMarks/ViolinMarks';
 import { VoronoiOverlay, DirectHoverOverlay, ActiveMark } from '../overlays/HoverOverlays/HoverOverlays';
 import ChartTooltip from '../ChartTooltip/ChartTooltip';
 import ChartToolbar from '../ChartToolbar/ChartToolbar';
@@ -60,6 +61,21 @@ import BrushMinimap from '../ChartMinimap/BrushMinimap/BrushMinimap';
 import MiniProjection from '../ChartMinimap/MiniProjection/MiniProjection';
 import MinimapToggle from '../ChartMinimap/MinimapToggle/MinimapToggle';
 import './Chart.scss';
+
+/* ────────────────────────── Renderers chargés à la demande ────────────────
+   Types rares et/ou lourds : sortis du bundle initial via next/dynamic (chemins
+   littéraux, analysables par le bundler). Ils ne sont téléchargés qu'à l'affichage
+   effectif du type correspondant.
+     • DensityMarks → d3-geo + d3-interpolate + d3-contour (KDE 2-D)
+     • ViolinMarks  → d3-contour (KDE Epanechnikov)
+     • HeatmapMarks → léger, mais type rare (uniformise le traitement)
+     • MultiChart   → utile seulement sur la branche isDatasetList(data)
+   ssr: false + fallback null : le squelette (axes/légende) est déjà rendu pendant
+   les quelques dizaines de ms de chargement. */
+const MultiChart = dynamic(() => import('../MultiChart/MultiChart'), { ssr: false });
+const HeatmapMarks = dynamic(() => import('../marks/HeatmapMarks/HeatmapMarks'), { ssr: false });
+const DensityMarks = dynamic(() => import('../marks/DensityMarks/DensityMarks'), { ssr: false });
+const ViolinMarks = dynamic(() => import('../marks/ViolinMarks/ViolinMarks'), { ssr: false });
 
 /* ────────────────────────── Cibles de survol (coordonnées de BASE) ────────
    Pour line / density, les centroïdes sont calculés UNE fois sur les données
