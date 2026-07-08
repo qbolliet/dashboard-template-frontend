@@ -30,10 +30,13 @@ const HANDLE_SIZE = 6;
  *   [cat0,cat1] categorical), or null for the un-zoomed (full) state.
  * @param {Function} props.onChange - Called with the new selection (or null when cleared).
  * @param {React.ReactNode} props.content - Miniature content rendered under the brush.
+ * @param {Function} [props.onBrushingChange] - Notifie le début (`true`) et la fin (`false`)
+ *   d'un geste utilisateur, pour que le parent allège son rendu pendant le drag (ex. sauter
+ *   le calcul des cibles de survol, inutiles tant qu'on glisse).
  * @returns {JSX.Element}
  */
 const BrushMinimap = ({
-  direction = 'x', width, height, scale, selection, onChange, content,
+  direction = 'x', width, height, scale, selection, onChange, content, onBrushingChange,
 }) => {
   const isX = direction === 'x';
   // Échelle catégorielle (band) → pas d'`invert` ; sinon continue (linear/time).
@@ -47,8 +50,12 @@ const BrushMinimap = ({
   const clipId = `chart-minimap-clip-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
 
   // ── Conversions sélection ↔ pixels (le long de l'axe brushé) ──────────────
-  // Pixels d'une sélection : par index de bande (catégoriel, scale.step) ou par
-  // projection directe (continu). Réordonnés [min, max].
+  // Deux réciproques COHÉRENTES pour l'axe catégoriel (indispensable pour que le
+  // brush ne « se décale » pas après commit et qu'une modalité UNIQUE reste
+  // sélectionnable) : selectionToPixels renvoie les bornes PIXEL réelles des
+  // bandes (début de la 1re → fin de la dernière) ; domainToSel retient les bandes
+  // dont le CENTRE tombe dans l'extent. Les centres des bandes sélectionnées sont
+  // alors dans l'intervalle, ceux des voisines non → round-trip stable.
   const selectionToPixels = (sel) => {
     if (!sel) return null;
     if (isCategorical) {
@@ -56,8 +63,12 @@ const BrushMinimap = ({
       const i0 = dom.indexOf(sel[0]);
       const i1 = dom.indexOf(sel[1]);
       if (i0 < 0 || i1 < 0) return null;
-      const step = scale.step ? scale.step() : (isX ? width : height) / Math.max(1, dom.length);
-      return [Math.min(i0, i1) * step, (Math.max(i0, i1) + 1) * step];
+      const lo = Math.min(i0, i1), hi = Math.max(i0, i1);
+      const bw = scale.bandwidth ? scale.bandwidth() : 0;
+      const p0 = scale(dom[lo]);
+      const p1 = scale(dom[hi]) + bw;
+      if (p0 == null || isNaN(p0)) return null;
+      return [p0, p1];
     }
     const p0 = scale(sel[0]);
     const p1 = scale(sel[1]);
@@ -67,13 +78,47 @@ const BrushMinimap = ({
 
   // Domaine @visx/brush → sélection. Continu : bornes réordonnées [min, max]
   // (l'axe y a un range inversé → invert() rend [haut, bas]) ; date : re-Daté
-  // pour rester cohérent avec restrictScale/filtrage. Catégoriel : 1re et
-  // dernière bande de la plage.
+  // pour rester cohérent avec restrictScale/filtrage.
   const domainToSel = (domain) => {
     if (isCategorical) {
-      const values = isX ? domain.xValues : domain.yValues;
-      if (!values || values.length === 0) return null;
-      return [values[0], values[values.length - 1]];
+      // Sélection dérivée de l'EXTENT PIXEL réel du brush (règle du CENTRE) plutôt
+      // que de `domain.xValues` — fragile : @visx y ajoute des `null` (→ dézoom
+      // fantôme / barres vidées) et l'inclusion des bandes dépend d'un bord (→
+      // impossible d'isoler une seule modalité). Une bande est retenue si son
+      // centre est dans l'extent → sélection contiguë stable et réciproque de
+      // selectionToPixels.
+      const dom = scale.domain();
+      const bw = scale.bandwidth ? scale.bandwidth() : 0;
+      const ext = brushRef.current && brushRef.current.state && brushRef.current.state.extent;
+      let p0; let p1;
+      if (ext) {
+        p0 = isX ? Math.min(ext.x0, ext.x1) : Math.min(ext.y0, ext.y1);
+        p1 = isX ? Math.max(ext.x0, ext.x1) : Math.max(ext.y0, ext.y1);
+      } else {
+        // Repli (extent indisponible) : xValues purgé de ses `null`.
+        const raw = isX ? domain.xValues : domain.yValues;
+        const values = Array.isArray(raw) ? raw.filter((v) => v != null) : [];
+        if (values.length === 0) return null;
+        return [values[0], values[values.length - 1]];
+      }
+      const centerIn = (c) => {
+        const s = scale(c);
+        return s != null && !isNaN(s) && (s + bw / 2) >= p0 && (s + bw / 2) <= p1;
+      };
+      const inside = dom.filter(centerIn);
+      if (inside.length > 0) return [inside[0], inside[inside.length - 1]];
+      // Extent trop étroit (aucun centre dedans, entre deux bandes) : retenir la
+      // bande dont le centre est le plus proche du milieu → un geste fin sélectionne
+      // TOUJOURS exactement une modalité (jamais zéro ni « au moins deux »).
+      const mid = (p0 + p1) / 2;
+      let best = null; let bd = Infinity;
+      for (const c of dom) {
+        const s = scale(c);
+        if (s == null || isNaN(s)) continue;
+        const d = Math.abs(s + bw / 2 - mid);
+        if (d < bd) { bd = d; best = c; }
+      }
+      return best == null ? null : [best, best];
     }
     const a = isX ? domain.x0 : domain.y0;
     const b = isX ? domain.x1 : domain.y1;
@@ -83,7 +128,7 @@ const BrushMinimap = ({
   };
 
   // ── Callbacks du brush ────────────────────────────────────────────────────
-  const handleBrushStart = () => { isUserBrushing.current = true; };
+  const handleBrushStart = () => { isUserBrushing.current = true; onBrushingChange?.(true); };
 
   const handleBrushChange = (domain) => {
     // Mouvement programmatique (sync externe) → consommé sans renotifier.
@@ -98,6 +143,7 @@ const BrushMinimap = ({
   const handleBrushEnd = (domain) => {
     isUserBrushing.current = false;
     if (isProgrammatic.current) { isProgrammatic.current = false; return; }
+    onBrushingChange?.(false); // fin du geste → le parent peut recalculer le survol
     if (!domain) { onChange?.(null); return; } // clic sans glissement → dézoom
     const sel = domainToSel(domain);
     onChange?.(sel ?? null);

@@ -20,8 +20,9 @@ import { useEffect, useRef, useState } from 'react';
  * Restricts a base scale to a brush selection, producing the zoomed scale.
  *
  * Categorical: keeps the contiguous slice of the band domain between the two
- * selected values. Continuous (number/date): copies the scale onto the selected
- * domain and re-`nice()`s it, exactly like the prototype.
+ * selected values. Continuous (number/date): copies the scale onto the EXACT
+ * selected domain (no `.nice()`, which would push the bounds to round values
+ * beyond the selected data → empty leading/trailing ticks).
  *
  * @param {object} base - Base (full-domain) visx/d3 scale.
  * @param {'date'|'number'|'categorical'} type - Column type.
@@ -37,7 +38,11 @@ export function restrictScale(base, type, sel) {
     const sub = dom.slice(Math.min(i0, i1), Math.max(i0, i1) + 1);
     return base.copy().domain(sub);
   }
-  return base.copy().domain(sel).nice();
+  // Domaine = sélection EXACTE, SANS .nice() : niceer étendrait le domaine vers des
+  // bornes rondes AU-DELÀ des données sélectionnées → graduations de tête et de
+  // queue sans données en vis-à-vis (+ marge vide aux bords). d3 place de toute
+  // façon des ticks à valeurs rondes À L'INTÉRIEUR de [a, b].
+  return base.copy().domain(sel);
 }
 
 /**

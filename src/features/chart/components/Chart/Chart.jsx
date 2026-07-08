@@ -316,6 +316,9 @@ const ChartCanvas = ({
 
   const [activePos, setActivePos] = useState(null);
   const [activeCentroid, setActiveCentroid] = useState(null);
+  // Geste de brush en cours : on saute alors le calcul (O(n) + voronoï) des cibles
+  // de survol, inutiles tant qu'on glisse — allège chaque frame de drag (bar/violon).
+  const [isBrushing, setIsBrushing] = useState(false);
   const active = voronoiRow; // la row sous le curseur
 
   const has2DBrush = chartKind === 'heatmap' || chartKind === 'density';
@@ -497,10 +500,13 @@ const ChartCanvas = ({
     : { id: t.id, icon: t.icon, label: t.label, on: !!featOn[t.id], onToggle: () => toggleFeature(t.id) }));
 
   // ── Cibles de survol ──────────────────────────────────────────────────────
-  const baseHoverTargets = zoomLayer
+  // Sautées pendant un geste de brush (`isBrushing`) : on ne survole pas en
+  // glissant, et cela évite un recalcul O(n) + une reconstruction du diagramme de
+  // voronoï à chaque frame. Recalculées au relâchement (isBrushing repasse à false).
+  const baseHoverTargets = (zoomLayer && !isBrushing)
     ? computeBaseHoverTargets({ chartKind, data, channels, baseXScale, baseYScale, x, y, stackMini })
     : [];
-  const hoverTargets = zoomLayer ? [] : computeHoverTargets({
+  const hoverTargets = (zoomLayer || isBrushing) ? [] : computeHoverTargets({
     chartKind, filteredData, channels, xScale, yScale, x, y, z,
     stack, stackMain, innerWidth, innerHeight, fill, groups: groupsFiltered,
   });
@@ -753,6 +759,7 @@ const ChartCanvas = ({
               <BrushMinimap
                 direction="y" width={yMinimapW} height={innerHeight}
                 scale={baseYScale} selection={ySel} onChange={setYSel} content={yMiniContent}
+                onBrushingChange={setIsBrushing}
               />
             </g>
           )}
@@ -764,6 +771,7 @@ const ChartCanvas = ({
             <BrushMinimap
               direction="x" width={innerWidth} height={miniH}
               scale={baseXScale} selection={xSel} onChange={setXSel} content={xMiniContent}
+              onBrushingChange={setIsBrushing}
             />
           </g>
         )}
