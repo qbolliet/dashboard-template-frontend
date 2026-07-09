@@ -162,13 +162,10 @@
 }
 
 // ── Dropdown ─────────────────────────────────────────────────────
-// Ancré sous le container (top: 100% - 1px pour fusionner les bordures) ;
-// déborde de ±1px pour s'aligner sur la bordure du container.
+// Portalé sur document.body (échappe à tout ancêtre scrollable/overflow) ;
+// top/left/width calculés en JS par useFloatingPosition et posés en style inline.
 .select-dropdown {
-  position: absolute;
-  top: calc(100% - 1px);
-  left: -1px;
-  right: -1px;
+  position: fixed;
   background: hsl(var(--filter-surface));
   border: 1px solid hsl(var(--filter-border-focus));
   border-top: none;

@@ -2,10 +2,12 @@
 
 // Importation des modules
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden/VisuallyHidden';
 import { CheckIcon, CrossIcon, ChevronIcon } from '@/components/icons';
 import { useSelectOptions } from './useSelectOptions';
 import { useDebouncedValue } from '@/hooks/debounce/useDebouncedValue';
+import { useFloatingPosition } from '@/hooks/floating/useFloatingPosition';
 import './SelectMenu.scss';
 
 /**
@@ -58,6 +60,12 @@ const SelectMenu = ({
   // Références pour la détection du click extérieur et le focus de l'input
   const containerRef = useRef(null);
   const filterRef = useRef(null);
+  // Référence du dropdown portalé (hors de containerRef dans le DOM une fois ouvert)
+  const dropdownRef = useRef(null);
+
+  // Position (viewport) du dropdown, portalé sur document.body pour échapper à
+  // tout ancêtre scrollable/overflow.
+  const dropdownPos = useFloatingPosition(containerRef, open);
 
   // Terme amorti → clé de requête du hook (réseau). Le filtrage d'affichage reste
   // immédiat : seul le fetch est amorti, la liste déjà chargée se filtre à la frappe.
@@ -172,10 +180,14 @@ const SelectMenu = ({
 
   // ── Effets ──────────────────────────────────────────────────────
 
-  // Fermeture au click extérieur (mousedown sur le document)
+  // Fermeture au click extérieur (mousedown sur le document). Le dropdown étant
+  // portalé sur document.body, il n'est plus un descendant DOM de containerRef :
+  // on vérifie aussi dropdownRef pour ne pas fermer sur un click à l'intérieur.
   useEffect(() => {
     const handler = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
+      const insideContainer = containerRef.current?.contains(e.target);
+      const insideDropdown = dropdownRef.current?.contains(e.target);
+      if (!insideContainer && !insideDropdown) {
         setOpen(false);
       }
     };
@@ -396,12 +408,21 @@ const SelectMenu = ({
         <VisuallyHidden>{open ? 'Fermer' : 'Ouvrir'} la liste</VisuallyHidden>
       </button>
 
-      {/* Dropdown : liste ARIA des options */}
-      {open && (
-        <ul id={listboxId} className="select-dropdown" role="listbox" aria-multiselectable={allowMulti || undefined}>
+      {/* Dropdown : liste ARIA des options, portalée sur document.body pour échapper
+          à tout ancêtre scrollable/overflow (position calculée par useFloatingPosition). */}
+      {open && dropdownPos && createPortal(
+        <ul
+          ref={dropdownRef}
+          id={listboxId}
+          className="select-dropdown"
+          role="listbox"
+          aria-multiselectable={allowMulti || undefined}
+          style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
+        >
           {navRows.map((row, i) => renderRow(row, i))}
           {!hasOptionRows && <li className="select-empty" role="presentation">Aucun résultat</li>}
-        </ul>
+        </ul>,
+        document.body,
       )}
     </div>
   );
