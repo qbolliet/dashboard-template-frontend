@@ -539,8 +539,19 @@ const MultiChartCanvas = ({
           )}
         </svg>
 
+        {/* Pastille de bascule, ancrée sur le centre du titre de l'axe x (PAS 50 %
+            du body, aux marges asymétriques) juste sous le svg — le centrage
+            effectif est fait en CSS par MinimapToggle.scss (cf. Chart.jsx). */}
         {showXBrush && (
-          <MinimapToggle open={minimapOpen} direction="x" onToggle={() => setMinimapOpen((o) => !o)} />
+          <MinimapToggle
+            open={minimapOpen}
+            direction="x"
+            onToggle={() => setMinimapOpen((o) => !o)}
+            style={{
+              left: margin.left + innerWidth / 2,
+              top: `calc(${svgH}px + var(--chart-minimap-toggle-offset))`,
+            }}
+          />
         )}
 
         {tooltipsOn && active && activePos && tipModel && (

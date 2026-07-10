@@ -321,7 +321,7 @@ const ChartCanvas = ({
   // Calcul des dimensions du graphique.
   const {
     margins, innerWidth, innerHeight, yTickW,
-    svgH, showXMinimap, showYMinimap, miniH, yMinimapW, yMinimapGap, tickPadX,
+    svgH, showXMinimap, showYMinimap, miniH, yMinimapW, yMinimapGap, tickPadX, yToggleW,
   } = useChartGeometry({
     chartKind, data, x, y, xType, yType, format, labels, maxLabelLength, maxLines,
     overlap, tickDensity, width, height, xMinimapOpen, yMinimapOpen,
@@ -804,16 +804,24 @@ const ChartCanvas = ({
       </svg>
 
       {/* Pastilles de bascule des mini-vues (une par axe applicable, indépendantes).
-          Positionnées par rapport à .chart-svg (svgH, connu en JS) plutôt que par
-          des offsets CSS fixes : x se place juste sous le svg, y juste à sa gauche
-          centré sur sa hauteur — cf. MinimapToggle.scss pour le reste (centrage
-          horizontal de x, décalage/rotation de y). */}
+          Chacune est ALIGNÉE sur le titre de son axe : seul le point d'ancrage
+          (issu de la géométrie, connue ici en JS) est posé en inline ; le centrage
+          effectif — y compris celui de la pastille y pivotée — est fait en CSS pur
+          par MinimapToggle.scss (transform d'ancrage, sans mesure du bouton).
+            • x : centre du titre d'axe x (margins.left + innerWidth/2, PAS 50 % du
+              body : ses marges gauche/droite sont asymétriques), juste sous le svg ;
+            • y : centre de la gouttière yToggleW (réservée par useChartGeometry à
+              gauche du titre d'axe y), centré sur la hauteur du tracé
+              (margins.top + innerHeight/2) comme le titre. */}
       {showXMinimap && (
         <MinimapToggle
           open={xMinimapOpen}
           direction="x"
           onToggle={() => setXMinimapOpen((o) => !o)}
-          style={{ top: `calc(${svgH}px + var(--chart-minimap-toggle-offset))` }}
+          style={{
+            left: margins.left + innerWidth / 2,
+            top: `calc(${svgH}px + var(--chart-minimap-toggle-offset))`,
+          }}
         />
       )}
       {showYMinimap && (
@@ -821,8 +829,10 @@ const ChartCanvas = ({
           open={yMinimapOpen}
           direction="y"
           onToggle={() => setYMinimapOpen((o) => !o)}
-          edgeX={0}
-          centerY={svgH / 2}
+          style={{
+            left: yToggleW / 2,
+            top: margins.top + innerHeight / 2,
+          }}
         />
       )}
 

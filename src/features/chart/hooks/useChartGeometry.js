@@ -48,7 +48,7 @@ import { ticksFor, TICK_FONT_SIZE } from '../components/ChartAxis/tickHelpers';
  *   innerWidth: number, innerHeight: number, yTickW: number, xAxisH: number,
  *   svgH: number, showXMinimap: boolean, showYMinimap: boolean, miniH: number,
  *   minimapXH: number, footerH: number, yMinimapW: number, yMinimapGap: number,
- *   tickPadX: number }}
+ *   tickPadX: number, yToggleW: number }}
  */
 export function useChartGeometry({
   chartKind, data, x, y, xType, yType,
@@ -91,9 +91,15 @@ export function useChartGeometry({
   const yMinimapGap = showYMinimap ? 10 : 0;
   const tickPadX = (showYMinimap && yMinimapOpen) ? (yMinimapW + yMinimapGap) : 0;
 
+  // ── Gouttière de la pastille de bascule y (pendant gauche de footerH) ─────
+  // Bande tout à gauche du tracé accueillant la pastille pivotée, réservée dès
+  // que la minimap y est applicable, même fermée (pour pouvoir la rouvrir) —
+  // sans elle la pastille déborderait dans le padding du chart-frame.
+  const yToggleW = showYMinimap ? 24 : 0;
+
   const marginTop = 16;
   const marginRight = 28;
-  const marginLeft = tickPadX + yTickW + yTickGap + yLabelW + yLabelGap;
+  const marginLeft = yToggleW + tickPadX + yTickW + yTickGap + yLabelW + yLabelGap;
   const innerWidth = Math.max(40, width - marginLeft - marginRight);
 
   // ── Hauteur réelle de l'axe x (ticks + nom d'axe) ─────────────────────────
@@ -144,6 +150,6 @@ export function useChartGeometry({
   return {
     margins, innerWidth, innerHeight, yTickW, xAxisH,
     svgH, showXMinimap, showYMinimap, miniH, minimapXH, footerH,
-    yMinimapW, yMinimapGap, tickPadX,
+    yMinimapW, yMinimapGap, tickPadX, yToggleW,
   };
 }

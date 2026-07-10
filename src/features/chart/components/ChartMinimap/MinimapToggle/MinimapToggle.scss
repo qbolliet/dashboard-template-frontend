@@ -8,12 +8,11 @@
 
 .chart-minimap-toggle {
   position: absolute;
-  // Mini-vue x (horizontale) : centré sous .chart-svg (largeur identique à
-  // .chart-body, son parent positionné) ; `top` calculé en JS depuis svgH
-  // (cf. Chart.jsx) pour se placer juste sous le svg quelle que soit sa hauteur.
-  left: 50%;
-  right: auto;
-  bottom: auto;
+  // Mini-vue x (horizontale) : le parent (Chart.jsx / MultiChart.jsx) pose en
+  // style inline le point d'ancrage — `left` = centre du titre de l'axe x
+  // (margins.left + innerWidth/2, PAS 50 % du body dont les marges gauche/droite
+  // sont asymétriques), `top` = juste sous le svg (svgH + offset). Le transform
+  // ancre la boîte en HAUT-CENTRE sur ce point, quelle que soit sa largeur.
   transform: translateX(-50%);
   display: inline-flex;
   align-items: center;
@@ -31,25 +30,20 @@
   opacity: 0;
 }
 
-// Mini-vue y (verticale) : à GAUCHE de .chart-svg, centrée sur sa hauteur.
-// `left`/`top` sont posés en style inline par MinimapToggle.jsx, calculés à
-// partir des dimensions RÉELLEMENT mesurées du bouton (offsetWidth/Height,
-// cf. le composant) pour placer précisément le bord droit pivoté et le centre
-// vertical — un simple `translateX/Y(%)` ne suffit pas ici car son pourcentage
-// se résout sur la largeur NON pivotée (qui dépend du texte « Réduire »/
-// « Afficher »), pas sur la forme pivotée affichée à l'écran. Comme `left`/`top`
-// positionnent déjà le centre exact, seule la rotation reste nécessaire ici.
+// Mini-vue y (verticale) : dans la gouttière réservée par useChartGeometry
+// (yToggleW, ajoutée à margins.left) tout à GAUCHE du tracé, alignée sur le
+// centre du titre de l'axe y. Le parent pose en inline le point d'ancrage
+// (`left` = centre de la gouttière, `top` = margins.top + innerHeight/2) ; le
+// transform amène d'abord le CENTRE de la boîte NON pivotée sur ce point (les
+// pourcentages de translate() se résolvent sur cette boîte, dont la largeur
+// dépend du texte « Réduire »/« Afficher » — mais le centre, lui, est INVARIANT
+// par la rotation qui suit), puis pivote autour : la position affichée est donc
+// exacte sans aucune mesure JS.
 // Rotation fusionnée dans `transform` (et non en propriété `rotate` séparée) :
 // le pipeline de build (Lightning CSS/Turbopack) perd silencieusement `rotate`
 // quand il coexiste avec une déclaration `transform` dans la même règle.
 .chart-minimap-toggle[data-direction='y'] {
-  right: auto;
-  bottom: auto;
-  // Pas de marge/espace supplémentaire ici (contrairement à x, cf. ci-dessus) :
-  // le bouton pivoté (~var(--chart-minimap-toggle-icon-size) de large à l'écran)
-  // doit tenir dans le padding du chart-frame (--chart-frame-padding) sans le
-  // déborder ; le padding lui-même fait déjà office d'espace visuel.
-  transform: rotate(-90deg);
+  transform: translate(-50%, -50%) rotate(-90deg);
 }
 
 .chart-frame:hover .chart-minimap-toggle,
