@@ -924,7 +924,6 @@ const Chart = ({
       />
     );
   }
-
   if (!y) throw new Error("<Chart>: l'argument `y` est requis.");
 
   const isViolinKind = chartKind === 'violin-v' || chartKind === 'violin-h';
