@@ -514,11 +514,12 @@ const ChartCanvas = ({
   // Boutons supplémentaires de la barre d'outils (features + mini-vues). Le bouton
   // « mini-vues » agit en interrupteur maître : allumé si un axe au moins est
   // ouvert, et bascule les deux axes ensemble au même nouvel état.
+  const minimapsOn = xMinimapOpen || yMinimapOpen;
   const extraTools = tools.map((t) => (t.isMinimaps
     ? {
-        id: t.id, icon: t.icon, label: t.label, on: xMinimapOpen || yMinimapOpen,
+        id: t.id, icon: t.icon, label: t.label, on: minimapsOn,
         onToggle: () => {
-          const next = !(xMinimapOpen || yMinimapOpen);
+          const next = !minimapsOn;
           setXMinimapOpen(next);
           setYMinimapOpen(next);
         },
@@ -813,7 +814,7 @@ const ChartCanvas = ({
             • y : centre de la gouttière yToggleW (réservée par useChartGeometry à
               gauche du titre d'axe y), centré sur la hauteur du tracé
               (margins.top + innerHeight/2) comme le titre. */}
-      {showXMinimap && (
+      {showXMinimap && minimapsOn && (
         <MinimapToggle
           open={xMinimapOpen}
           direction="x"
@@ -824,7 +825,7 @@ const ChartCanvas = ({
           }}
         />
       )}
-      {showYMinimap && (
+      {showYMinimap && minimapsOn && (
         <MinimapToggle
           open={yMinimapOpen}
           direction="y"
