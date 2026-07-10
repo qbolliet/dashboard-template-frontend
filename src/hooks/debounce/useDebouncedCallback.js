@@ -29,9 +29,6 @@ export function useDebouncedCallback(callback, delay = 300) {
   const lastArgsRef = useRef(null);
   const pendingRef = useRef(false);
 
-  // Nettoyage du minuteur au démontage.
-  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
-
   // API construite UNE seule fois via l'initialiseur de useState (valeur d'état = identité
   // stable, lisible pendant le rendu). Les méthodes ne lisent les refs qu'à l'invocation
   // (event handlers / minuteur), jamais pendant le rendu.
@@ -63,5 +60,11 @@ export function useDebouncedCallback(callback, delay = 300) {
       },
     };
   });
+
+  // Nettoyage au démontage : un appel amorti en attente doit être vidé (comme `flush()`)
+  // plutôt qu'annulé silencieusement, sinon la dernière frappe non commitée est perdue
+  // (le blur ne peut pas rattraper ce cas si tout l'arbre démonte avant lui).
+  useEffect(() => () => { if (timerRef.current) api.flush(); }, [api]);
+
   return api;
 }
