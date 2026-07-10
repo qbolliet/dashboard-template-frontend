@@ -14,6 +14,7 @@ import SearchBar from '../SearchBar/SearchBar';
 import ThemeToggleButton from '../../../theme/components/ThemeToggleButton/ThemeToggleButton';
 import { SkipLink } from '@/features/accessibility';
 import NavigationProvider from '../../providers/NavigationProvider';
+import { hasIconsInNavigationData } from '../../utils/hasIconsInNavigationData';
 import './Header.scss';
 
 /**
@@ -73,27 +74,7 @@ const Header = ({
     const isSidebarMode = navigationType === 'sidebar';
 
     // Détecter si des icônes sont présentes dans les données de navigation.
-    const hasIconsInNavigationData = (() => {
-        if (!navigationData || !Array.isArray(navigationData)) {
-            return false;
-        }
-
-        const checkForIcons = (items) => {
-            for (const item of items) {
-                if (item.icon) {
-                    return true;
-                }
-                if (item.children && Array.isArray(item.children)) {
-                    if (checkForIcons(item.children)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        };
-
-        return checkForIcons(navigationData);
-    })();
+    const hasIcons = hasIconsInNavigationData(navigationData);
 
     // Calculer les classes CSS pour le header selon l'état de la sidebar
     const getHeaderClasses = () => {
@@ -104,7 +85,7 @@ const Header = ({
                 classes.push('primary-header--sidebar-open');
             } else {
                 classes.push('primary-header--sidebar-collapsed');
-                if (!hasIconsInNavigationData) {
+                if (!hasIcons) {
                     classes.push('primary-header--sidebar-no-icons');
                 }
             }

@@ -7,6 +7,7 @@ import useResizable from '../../../hooks/useResizable';
 import SidebarSwitcher from '../SidebarSwitcher/SidebarSwitcher';
 import SidebarMenu from '../SidebarMenu/SidebarMenu';
 import { useFocusTrap, useAriaAnnounce } from '@/features/accessibility';
+import { hasIconsInNavigationData } from '../../../utils/hasIconsInNavigationData';
 import './NavigationSideBar.scss';
 
 // Context pour gérer l'état de la sidebar
@@ -18,33 +19,6 @@ export const useSidebar = () => {
         throw new Error('useSidebar doit être utilisé dans un SidebarProvider');
     }
     return context;
-};
-
-// Utilitaire pour détecter si des icônes sont présentes dans les données de navigation
-const hasIconsInNavigationData = (navigationData) => {
-    if (!navigationData || !Array.isArray(navigationData)) {
-        return false;
-    }
-
-    // Fonction récursive pour parcourir tous les niveaux
-    const checkForIcons = (items) => {
-        for (const item of items) {
-            // Si l'item a une icône, on a trouvé au moins une icône
-            if (item.icon) {
-                return true;
-            }
-
-            // Vérifier récursivement les enfants
-            if (item.children && Array.isArray(item.children)) {
-                if (checkForIcons(item.children)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    };
-
-    return checkForIcons(navigationData);
 };
 
 /**
