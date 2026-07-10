@@ -314,8 +314,9 @@ const ChartCanvas = ({
   ciFeature, baFeature, normFactor, channelAssign, baReal,
   expanded, setExpanded, voronoiOn, setVoronoiOn, tooltipsOn, setTooltipsOn,
 }) => {
-  // Ouverture des mini-vues (persiste tant que la largeur reste > 0).
-  const [minimapOpen, setMinimapOpen] = useState(initialMinimapOpen);
+  // Ouverture des mini-vues, indépendante par axe (persiste tant que la largeur reste > 0).
+  const [xMinimapOpen, setXMinimapOpen] = useState(initialMinimapOpen);
+  const [yMinimapOpen, setYMinimapOpen] = useState(initialMinimapOpen);
 
   // Calcul des dimensions du graphique.
   const {
@@ -323,7 +324,7 @@ const ChartCanvas = ({
     svgH, showXMinimap, showYMinimap, miniH, yMinimapW, yMinimapGap, tickPadX,
   } = useChartGeometry({
     chartKind, data, x, y, xType, yType, format, labels, maxLabelLength, maxLines,
-    overlap, tickDensity, width, height, minimapOpen,
+    overlap, tickDensity, width, height, xMinimapOpen, yMinimapOpen,
   });
 
   const svgRef = useRef(null);
@@ -510,9 +511,18 @@ const ChartCanvas = ({
     />
   ));
 
-  // Boutons supplémentaires de la barre d'outils (features + mini-vues).
+  // Boutons supplémentaires de la barre d'outils (features + mini-vues). Le bouton
+  // « mini-vues » agit en interrupteur maître : allumé si un axe au moins est
+  // ouvert, et bascule les deux axes ensemble au même nouvel état.
   const extraTools = tools.map((t) => (t.isMinimaps
-    ? { id: t.id, icon: t.icon, label: t.label, on: minimapOpen, onToggle: () => setMinimapOpen((o) => !o) }
+    ? {
+        id: t.id, icon: t.icon, label: t.label, on: xMinimapOpen || yMinimapOpen,
+        onToggle: () => {
+          const next = !(xMinimapOpen || yMinimapOpen);
+          setXMinimapOpen(next);
+          setYMinimapOpen(next);
+        },
+      }
     : { id: t.id, icon: t.icon, label: t.label, on: !!featOn[t.id], onToggle: () => toggleFeature(t.id) }));
 
   // ── Cibles de survol ──────────────────────────────────────────────────────
@@ -770,7 +780,7 @@ const ChartCanvas = ({
           )}
 
           {/* Mini-vue y — à gauche du tracé (entre les ticks et le bord). */}
-          {showYMinimap && minimapOpen && (
+          {showYMinimap && yMinimapOpen && (
             <g transform={`translate(${-(yMinimapW + yMinimapGap)}, 0)`}>
               <BrushMinimap
                 direction="y" width={yMinimapW} height={innerHeight}
@@ -782,7 +792,7 @@ const ChartCanvas = ({
         </g>
 
         {/* Mini-vue x — sous l'axe des abscisses. */}
-        {showXMinimap && minimapOpen && (
+        {showXMinimap && xMinimapOpen && (
           <g transform={`translate(${margins.left}, ${margins.top + innerHeight + margins.bottom + 8})`}>
             <BrushMinimap
               direction="x" width={innerWidth} height={miniH}
@@ -793,12 +803,26 @@ const ChartCanvas = ({
         )}
       </svg>
 
-      {/* Pastille de bascule des mini-vues (pied de page du corps). */}
-      {(showXMinimap || showYMinimap) && (
+      {/* Pastilles de bascule des mini-vues (une par axe applicable, indépendantes).
+          Positionnées par rapport à .chart-svg (svgH, connu en JS) plutôt que par
+          des offsets CSS fixes : x se place juste sous le svg, y juste à sa gauche
+          centré sur sa hauteur — cf. MinimapToggle.scss pour le reste (centrage
+          horizontal de x, décalage/rotation de y). */}
+      {showXMinimap && (
         <MinimapToggle
-          open={minimapOpen}
-          direction={showYMinimap && !showXMinimap ? 'y' : 'x'}
-          onToggle={() => setMinimapOpen((o) => !o)}
+          open={xMinimapOpen}
+          direction="x"
+          onToggle={() => setXMinimapOpen((o) => !o)}
+          style={{ top: `calc(${svgH}px + var(--chart-minimap-toggle-offset))` }}
+        />
+      )}
+      {showYMinimap && (
+        <MinimapToggle
+          open={yMinimapOpen}
+          direction="y"
+          onToggle={() => setYMinimapOpen((o) => !o)}
+          edgeX={0}
+          centerY={svgH / 2}
         />
       )}
 
@@ -900,6 +924,7 @@ const Chart = ({
       />
     );
   }
+
   if (!y) throw new Error("<Chart>: l'argument `y` est requis.");
 
   const isViolinKind = chartKind === 'violin-v' || chartKind === 'violin-h';

@@ -23,9 +23,9 @@ import { ticksFor, TICK_FONT_SIZE } from '../components/ChartAxis/tickHelpers';
  * Réservation des mini-vues : la minimap x occupe une bande (miniH) sous l'axe,
  * et un pied de page (footerH) accueille la pastille de bascule ; la minimap y
  * s'insère à GAUCHE du tracé (entre les ticks et le bord), décalant les ticks de
- * `tickPadX` quand elle est ouverte (cf. ChartAxisLeft). Les deux ne sont
- * réservées que lorsque `minimapOpen` (mais leur pied de page reste, pour que la
- * pastille de réouverture demeure visible).
+ * `tickPadX` quand elle est ouverte (cf. ChartAxisLeft). Chaque axe se réserve
+ * indépendamment selon son propre `xMinimapOpen`/`yMinimapOpen` (leur pied de
+ * page/pastille reste néanmoins affiché, pour pouvoir rouvrir chaque mini-vue).
  *
  * @param {object} params
  * @param {string} params.chartKind - Detected chart kind (drives band padding).
@@ -42,7 +42,8 @@ import { ticksFor, TICK_FONT_SIZE } from '../components/ChartAxis/tickHelpers';
  * @param {'sparse'|'normal'|'dense'} [params.tickDensity='normal'] - Tick density preset.
  * @param {number} params.width - Available outer width (px, from ParentSize).
  * @param {number} params.height - Outer SVG height (px).
- * @param {boolean} [params.minimapOpen=true] - Whether the brush minimaps are shown.
+ * @param {boolean} [params.xMinimapOpen=true] - Whether the x-axis brush minimap is shown.
+ * @param {boolean} [params.yMinimapOpen=true] - Whether the y-axis brush minimap is shown.
  * @returns {{ margins: {top:number,right:number,bottom:number,left:number},
  *   innerWidth: number, innerHeight: number, yTickW: number, xAxisH: number,
  *   svgH: number, showXMinimap: boolean, showYMinimap: boolean, miniH: number,
@@ -52,7 +53,8 @@ import { ticksFor, TICK_FONT_SIZE } from '../components/ChartAxis/tickHelpers';
 export function useChartGeometry({
   chartKind, data, x, y, xType, yType,
   format = {}, labels = {}, maxLabelLength = {}, maxLines = {},
-  overlap = 'auto', tickDensity = 'normal', width, height, minimapOpen = true,
+  overlap = 'auto', tickDensity = 'normal', width, height,
+  xMinimapOpen = true, yMinimapOpen = true,
 }) {
   // ── Mini-vues applicables selon le type de graphique ──────────────────────
   const isBarH = chartKind === 'bar-h';
@@ -87,7 +89,7 @@ export function useChartGeometry({
   // décale les ticks de l'axe gauche pour dégager cette gouttière.
   const yMinimapW = showYMinimap ? (isBarH ? 48 : 38) : 0;
   const yMinimapGap = showYMinimap ? 10 : 0;
-  const tickPadX = (showYMinimap && minimapOpen) ? (yMinimapW + yMinimapGap) : 0;
+  const tickPadX = (showYMinimap && yMinimapOpen) ? (yMinimapW + yMinimapGap) : 0;
 
   const marginTop = 16;
   const marginRight = 28;
@@ -136,7 +138,7 @@ export function useChartGeometry({
   const minimapH = 44;
   const miniH = minimapH - 6;               // hauteur utile du contenu miniature
   const svgH = Math.max(160, height - footerH);
-  const minimapXH = (showXMinimap && minimapOpen) ? minimapH : 0;
+  const minimapXH = (showXMinimap && xMinimapOpen) ? minimapH : 0;
   const innerHeight = Math.max(120, svgH - marginTop - xAxisH - minimapXH - 8);
 
   return {
