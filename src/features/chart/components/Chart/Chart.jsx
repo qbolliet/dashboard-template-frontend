@@ -39,7 +39,7 @@ import { makeScale } from '../../utils/scales';
 import { exportSvg, exportPng } from '../../utils/exportImage';
 import { useSeriesHover } from '../../hooks/useSeriesHover';
 import { useChartGeometry } from '../../hooks/useChartGeometry';
-import { useBrushZoom } from '../../hooks/useBrushZoom';
+import { useBrushZoom, zoomTransformOf } from '../../hooks/useBrushZoom';
 import { useFeatureState } from '../../hooks/useFeatureState';
 import { nextFreeChannel, REAL_DIST_MARKER } from '../../toolbar-features/channelAssign';
 import { normalizeRefs } from '../../toolbar-features/normalize';
@@ -333,8 +333,11 @@ const ChartCanvas = ({
 
   const [activePos, setActivePos] = useState(null);
   const [activeCentroid, setActiveCentroid] = useState(null);
-  // Geste de brush en cours : on saute alors le calcul (O(n) + voronoï) des cibles
-  // de survol, inutiles tant qu'on glisse — allège chaque frame de drag (bar/violon).
+  // Geste de brush en cours : les marks basculent alors sur un calque de PREVIEW
+  // (coordonnées de base + transform affine par frame, cf. plus bas) et le calcul
+  // des cibles de survol (O(n) + voronoï), inutile en glissant, est sauté. Le
+  // pipeline committé (filteredData/stackMain/échelles restreintes) reste gelé
+  // pendant tout le geste et n'est recalculé qu'au relâchement.
   const [isBrushing, setIsBrushing] = useState(false);
   const active = voronoiRow; // la row sous le curseur
 
@@ -431,12 +434,20 @@ const ChartCanvas = ({
   // ── Zoom (brush + molette) : la molette n'est active que si l'outil zoom est ON.
   const zoomTool = tools.find((t) => t.isZoom);
   const zoomOn = zoomTool ? !!featOn[zoomTool.id] : false;
+  // Groupes SVG dont le `transform` suit la preview de geste — écrit
+  // IMPÉRATIVEMENT par useBrushZoom (setAttribute), sans rendu React par frame :
+  // marks, overlays de features, couche zoom line/density.
+  const previewMarksRef = useRef(null);
+  const previewOverlaysRef = useRef(null);
+  const previewZoomLayerRef = useRef(null);
   const {
-    xSel, ySel, setXSel, setYSel, xScale, yScale, filteredData, axisZoom, resetZoom, canReset,
+    xSel, ySel, setXSel, setYSel, previewXSel, previewYSel,
+    xScale, yScale, filteredData, axisZoom, resetZoom, canReset,
   } = useBrushZoom({
     data, x, y, xType, yType, chartKind,
     baseXScale, baseYScale, innerWidth, innerHeight,
     marginLeft: margins.left, marginTop: margins.top, width, svgRef, zoomOn,
+    previewTargets: [previewMarksRef, previewOverlaysRef, previewZoomLayerRef],
   });
   const { zx, zy } = axisZoom;
 
@@ -448,23 +459,42 @@ const ChartCanvas = ({
   const groupsFiltered = needsFilteredGroups ? groupSeries(filteredData, channels) : null;
 
   // Graphiques « nuage » (line, density) : voronoï + KDE 2-D dans une couche
-  // zoomée par transform (coordonnées de base, non recalculés au zoom).
+  // zoomée par transform (coordonnées de base, non recalculés au zoom). Pendant
+  // un geste de brush, ce transform est réécrit par frame par la preview
+  // impérative (previewZoomLayerRef) puis repris par React au relâchement.
   const zoomLayer = chartKind === 'line' || chartKind === 'density';
-  const zoomTransform = `translate(${zx.t.toFixed(3)}, ${zy.t.toFixed(3)}) scale(${zx.k.toFixed(5)}, ${zy.k.toFixed(5)})`;
+  const zoomTransform = zoomTransformOf(zx, zy);
 
   // ── Empilage des marks affichés (données filtrées par le brush) ───────────
   const stackMain = stackActive
     ? buildStacks({ data: filteredData, posKey: stackPosKey, valKey: stackValKey, channels, stackBy: stack, seriesOrder, aggregate: 'mean' })
     : null;
 
+  // ── Entrées des marks : bascule preview pendant un geste de brush ─────────
+  // Pendant le drag (`isBrushing`), les marks sont rendus UNE fois depuis les
+  // données COMPLÈTES en coordonnées de BASE (mêmes entrées que les mini-vues :
+  // data/baseScales/stackMini/groupsFull) ; leur groupe porte alors le transform
+  // affine base→committé, réécrit par frame en base→brouillon par la preview
+  // impérative — le recalcul filter + stacks + repositionnement n'a lieu qu'au
+  // relâchement, quand la sélection committée change. Hors geste : entrées
+  // committées, rendu strictement inchangé.
+  const mData = isBrushing ? data : filteredData;
+  const mXScale = isBrushing ? baseXScale : xScale;
+  const mYScale = isBrushing ? baseYScale : yScale;
+  const mStack = isBrushing ? stackMini : stackMain;
+  const mGroups = isBrushing ? groupsFull : groupsFiltered;
+
   // ── Contexte de projection passé aux overlays de features ─────────────────
+  // Pendant un geste de brush, il bascule sur les mêmes entrées de BASE que les
+  // marks (mData/mScales/mStack) : les overlays sont alors rendus dans le même
+  // groupe transformé et restent alignés sur la preview sans recalcul par frame.
   const featureCtx = {
     chartKind, x, y, z, xType, yType, channels, hueCols,
-    xScale, yScale, innerWidth, innerHeight,
-    filteredData, typedData: data,
+    xScale: mXScale, yScale: mYScale, innerWidth, innerHeight,
+    filteredData: mData, typedData: data,
     colorScale: cScale, styleScale: styleScaleFn, markerScale: markerScaleFn, hatchScale: hatchScaleFn,
     isBarH, fill, stack, posKey, valKey,
-    stackOffsets: stackMain ? stackMain.offsets : null,
+    stackOffsets: mStack ? mStack.offsets : null,
     ciActive: !!ciFeature,
     ciFill: ciFeature && ciFeature.config ? ciFeature.config.fill : undefined,
     normFactor,
@@ -655,17 +685,19 @@ const ChartCanvas = ({
   }
 
   // ── Marks du kind détecté ────────────────────────────────────────────────
+  // Entrées mData/mScales/mStack/mGroups : committées hors geste, de BASE pendant
+  // un drag (le groupe porteur reçoit alors le transform de preview, cf. le rendu).
   let marks = null;
   if (chartKind === 'line') {
-    marks = <LineMarks data={filteredData} x={x} y={y} channels={channels} xScale={xScale} yScale={yScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} fill={fill} stack={stackMain} baReal={baReal} />;
+    marks = <LineMarks data={mData} x={x} y={y} channels={channels} xScale={mXScale} yScale={mYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} fill={fill} stack={mStack} groups={mGroups} baReal={baReal} />;
   } else if (chartKind === 'bar') {
-    marks = <BarMarks data={filteredData} x={x} y={y} channels={channels} xScale={xScale} yScale={yScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="v" fill={fill} stack={stackMain} groups={groupsFiltered} />;
+    marks = <BarMarks data={mData} x={x} y={y} channels={channels} xScale={mXScale} yScale={mYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="v" fill={fill} stack={mStack} groups={mGroups} />;
   } else if (chartKind === 'bar-h') {
-    marks = <BarMarks data={filteredData} x={x} y={y} channels={channels} xScale={xScale} yScale={yScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="h" fill={fill} stack={stackMain} groups={groupsFiltered} />;
+    marks = <BarMarks data={mData} x={x} y={y} channels={channels} xScale={mXScale} yScale={mYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="h" fill={fill} stack={mStack} groups={mGroups} />;
   } else if (chartKind === 'heatmap') {
-    marks = <HeatmapMarks data={filteredData} x={x} y={y} z={z} xScale={xScale} yScale={yScale} colorScale={cScale} hovered={hovered} fill={effFill} />;
+    marks = <HeatmapMarks data={mData} x={x} y={y} z={z} xScale={mXScale} yScale={mYScale} colorScale={cScale} hovered={hovered} fill={effFill} />;
   } else if (isViolinKind) {
-    marks = <ViolinMarks data={data} x={x} y={y} z={z} channels={channels} xScale={xScale} yScale={yScale} xScaleBase={baseXScale} yScaleBase={baseYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} orient={chartKind === 'violin-h' ? 'h' : 'v'} fill={effFill} stack={stack} hovered={hovered} groups={groupsFull} />;
+    marks = <ViolinMarks data={data} x={x} y={y} z={z} channels={channels} xScale={mXScale} yScale={mYScale} xScaleBase={baseXScale} yScaleBase={baseYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} orient={chartKind === 'violin-h' ? 'h' : 'v'} fill={effFill} stack={stack} hovered={hovered} groups={groupsFull} />;
   }
 
   // Densité (KDE 2-D) rendue en coordonnées de BASE puis zoomée par le transform.
@@ -725,6 +757,8 @@ const ChartCanvas = ({
       >
         <title>{title || 'Graphique'}</title>
         <g transform={`translate(${margins.left}, ${margins.top})`}>
+          {/* Axes sur les échelles COMMITTÉES : gelés pendant un geste de brush
+              (aucun rendu React par frame), recalés au relâchement. */}
           <ChartAxisLeft
             scale={yScale} type={yType} length={innerHeight} width={innerWidth}
             format={format.y} maxLabelLength={maxLabelLength.y} maxLines={maxLines.y || 2}
@@ -746,15 +780,29 @@ const ChartCanvas = ({
               </clipPath>
             )}
           </defs>
+          {/* Pendant un geste de brush, les marks (rendus en coordonnées de BASE,
+              cf. mData/mScales) sont déplacés par le transform affine — la valeur
+              JSX (base→committé) est posée au début du geste puis réécrite par
+              frame par la preview impérative via previewMarksRef ; au relâchement
+              le re-rendu committé retire l'attribut. La classe .chart-zoom-content
+              garde les traits à épaisseur constante (vector-effect). */}
           <g clipPath={`url(#${clipId})`}>
-            <g clipPath={baClip ? `url(#${mainClipId})` : undefined}>{marks}</g>
+            <g clipPath={baClip ? `url(#${mainClipId})` : undefined}>
+              <g
+                ref={previewMarksRef}
+                className={isBrushing ? 'chart-zoom-content' : undefined}
+                transform={isBrushing ? zoomTransform : undefined}
+              >
+                {marks}
+              </g>
+            </g>
           </g>
 
           {/* Couche ZOOM : densité (KDE 2-D) + survol (line/density) en coordonnées
               de BASE, agrandis par transform (traits non-scaling-stroke). */}
           {zoomLayer && (
             <g clipPath={`url(#${clipId})`}>
-              <g className="chart-zoom-content" transform={zoomTransform}>
+              <g ref={previewZoomLayerRef} className="chart-zoom-content" transform={zoomTransform}>
                 {densityZoomMarks}
                 {baseHoverTargets.length > 0 && (voronoiOn
                   ? <VoronoiOverlay points={baseHoverTargets} innerWidth={innerWidth} innerHeight={innerHeight} onHover={(t) => handleHover(t, true)} />
@@ -764,8 +812,18 @@ const ChartCanvas = ({
           )}
 
           {/* Overlays de features (IC, projection, normalisation) AU-DESSUS de la
-              couche zoom (la barre de normalisation passe devant les densités). */}
-          <g clipPath={`url(#${clipId})`}>{featureOverlays}</g>
+              couche zoom (la barre de normalisation passe devant les densités).
+              Pendant un geste de brush ils sont rendus en base (featureCtx) et
+              suivent la preview via le même transform que les marks. */}
+          <g clipPath={`url(#${clipId})`}>
+            <g
+              ref={previewOverlaysRef}
+              className={isBrushing ? 'chart-zoom-content' : undefined}
+              transform={isBrushing ? zoomTransform : undefined}
+            >
+              {featureOverlays}
+            </g>
+          </g>
 
           {/* Survol direct / proximité (charts à bandes). */}
           {!zoomLayer && hoverTargets.length > 0 && (voronoiOn
@@ -785,8 +843,8 @@ const ChartCanvas = ({
             <g transform={`translate(${-(yMinimapW + yMinimapGap)}, 0)`}>
               <BrushMinimap
                 direction="y" width={yMinimapW} height={innerHeight}
-                scale={baseYScale} selection={ySel} onChange={setYSel} content={yMiniContent}
-                onBrushingChange={setIsBrushing}
+                scale={baseYScale} selection={ySel} onChange={setYSel} onPreview={previewYSel}
+                content={yMiniContent} onBrushingChange={setIsBrushing}
               />
             </g>
           )}
@@ -797,8 +855,8 @@ const ChartCanvas = ({
           <g transform={`translate(${margins.left}, ${margins.top + innerHeight + margins.bottom + 8})`}>
             <BrushMinimap
               direction="x" width={innerWidth} height={miniH}
-              scale={baseXScale} selection={xSel} onChange={setXSel} content={xMiniContent}
-              onBrushingChange={setIsBrushing}
+              scale={baseXScale} selection={xSel} onChange={setXSel} onPreview={previewXSel}
+              content={xMiniContent} onBrushingChange={setIsBrushing}
             />
           </g>
         )}

@@ -28,7 +28,12 @@ const HANDLE_SIZE = 6;
  *   categorical, linear/time otherwise). Its pixel range must span [0, width|height].
  * @param {?Array} props.selection - External selection ([v0,v1] continuous /
  *   [cat0,cat1] categorical), or null for the un-zoomed (full) state.
- * @param {Function} props.onChange - Called with the new selection (or null when cleared).
+ * @param {Function} props.onChange - Called with the COMMITTED selection (or null when
+ *   cleared): once per gesture, on release — plus the wheel/reset mirror path.
+ * @param {Function} [props.onPreview] - Called continuously DURING a drag gesture with the
+ *   in-progress selection. When omitted, mid-gesture notifications fall back to `onChange`
+ *   (legacy behaviour). Lets the parent drive a cheap visual preview (SVG transform) while
+ *   deferring its expensive pipeline (filtering, stacking) to the final `onChange`.
  * @param {React.ReactNode} props.content - Miniature content rendered under the brush.
  * @param {Function} [props.onBrushingChange] - Notifie le début (`true`) et la fin (`false`)
  *   d'un geste utilisateur, pour que le parent allège son rendu pendant le drag (ex. sauter
@@ -36,7 +41,7 @@ const HANDLE_SIZE = 6;
  * @returns {JSX.Element}
  */
 const BrushMinimap = ({
-  direction = 'x', width, height, scale, selection, onChange, content, onBrushingChange,
+  direction = 'x', width, height, scale, selection, onChange, onPreview, content, onBrushingChange,
 }) => {
   const isX = direction === 'x';
   // Échelle catégorielle (band) → pas d'`invert` ; sinon continue (linear/time).
@@ -137,7 +142,11 @@ const BrushMinimap = ({
     // seul un END sur sélection vide (clic) doit dézoomer.
     if (!domain) return;
     const sel = domainToSel(domain);
-    if (sel) onChange?.(sel);
+    // Mi-geste : on notifie la PREVIEW (rendu allégé côté parent : simple
+    // transform visuel) quand elle est câblée ; le commit (`onChange`) n'arrive
+    // qu'au relâchement (handleBrushEnd). Sans `onPreview`, repli sur `onChange`
+    // — comportement historique conservé pour les appelants non migrés.
+    if (sel) (onPreview ?? onChange)?.(sel);
   };
 
   const handleBrushEnd = (domain) => {

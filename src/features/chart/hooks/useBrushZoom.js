@@ -7,9 +7,17 @@
 // facteurs {zx, zy} sont exposés ici (cf. Chart.jsx, groupe .chart-zoom-content).
 //
 // Deux niveaux d'échelle coexistent :
-//   • échelle de BASE  — domaine complet (mini-vues, calcul KDE/voronoï) ;
-//   • échelle ZOOMÉE   — domaine restreint à la sélection de brush (axes, marks
-//     à bandes, repositionnement des violons).
+//   • échelle de BASE  — domaine complet (mini-vues, calcul KDE/voronoï, calque
+//     de preview pendant un drag) ;
+//   • échelle ZOOMÉE   — domaine restreint à la sélection COMMITTÉE (axes, marks
+//     à bandes, repositionnement des violons) : GELÉE pendant un geste de drag.
+//
+// Pendant un geste de drag du brush, le brouillon de sélection ne passe PAS par
+// un setState : un re-rendu React par frame re-rendrait les marks (la granularité
+// des scopes du React Compiler ne préserve pas leur identité, mesuré sur bar).
+// Il est stocké dans une ref et le `transform` affine base→brouillon est écrit
+// DIRECTEMENT (setAttribute) sur les groupes SVG enregistrés (`previewTargets`) :
+// coût par frame quasi nul, aucun rendu React.
 
 // Importation des modules
 import { useEffect, useRef, useState } from 'react';
@@ -97,11 +105,33 @@ export function axisZoomFactors(baseScale, zoomedScale, length, type) {
   return { k, t: p0z - k * p0b };
 }
 
+/**
+ * Builds the SVG `transform` string applying a pair of affine axis zoom factors
+ * (see {@link axisZoomFactors}) to a group rendered in BASE coordinates.
+ *
+ * @param {{k: number, t: number}} zx - x-axis factors.
+ * @param {{k: number, t: number}} zy - y-axis factors.
+ * @returns {string} `translate(tx, ty) scale(kx, ky)`.
+ */
+export function zoomTransformOf(zx, zy) {
+  return `translate(${zx.t.toFixed(3)}, ${zy.t.toFixed(3)}) scale(${zx.k.toFixed(5)}, ${zy.k.toFixed(5)})`;
+}
+
 /* ────────────────────────── Hook principal ───────────────────────────────── */
 
 /**
  * Brush-driven zoom state for a chart: brush selections, zoomed scales, brush-
  * filtered data and the affine zoom factors, plus wheel-zoom wiring.
+ *
+ * Two selection levels coexist so a brush DRAG stays cheap on large datasets:
+ * the COMMITTED selection (`xSel`/`ySel`, set once on gesture release or by the
+ * wheel) drives the expensive pipeline (`filteredData`, restricted scales,
+ * stacks), while the DRAFT selection (`previewXSel`/`previewYSel`, fed every
+ * frame by the minimap's `onPreview`) bypasses React entirely: it is kept in a
+ * ref and imperatively writes the base→draft affine `transform` attribute onto
+ * the SVG groups registered through `previewTargets`. During a gesture the
+ * caller renders its marks once in BASE coordinates inside those groups; on
+ * release the commit setters clear the draft and React takes back over.
  *
  * The wheel handler zooms the PRINCIPAL axis for 1-D charts (x, or y for
  * horizontal bars), both axes for heatmap/density: continuous axes zoom around
@@ -125,8 +155,12 @@ export function axisZoomFactors(baseScale, zoomedScale, length, type) {
  * @param {{current: SVGSVGElement|null}} params.svgRef - Ref of the chart SVG (wheel target + bounding rect).
  * @param {boolean} [params.zoomOn=true] - Whether the wheel gesture zooms. TODO(step 7):
  *   piloté par l'outil « zoom » de la barre d'outils (activé par défaut pour l'instant).
+ * @param {Array<{current: ?SVGGElement}>} [params.previewTargets=[]] - Refs of the
+ *   SVG groups whose `transform` attribute mirrors the in-gesture draft selection
+ *   (imperative preview layer). Unmounted refs (null current) are skipped.
  * @returns {{
  *   xSel: ?Array, ySel: ?Array, setXSel: Function, setYSel: Function,
+ *   previewXSel: Function, previewYSel: Function,
  *   xScale: object, yScale: object, filteredData: Array<object>,
  *   axisZoom: {zx: {k:number,t:number}, zy: {k:number,t:number}},
  *   resetZoom: Function, canReset: boolean,
@@ -136,9 +170,20 @@ export function useBrushZoom({
   data, x, y, xType, yType, chartKind,
   baseXScale, baseYScale, innerWidth, innerHeight,
   marginLeft, marginTop, width, svgRef, zoomOn = true,
+  previewTargets = [],
 }) {
-  const [xSel, setXSel] = useState(null); // sélection de brush x (null = plein axe)
-  const [ySel, setYSel] = useState(null); // sélection de brush y
+  const [xSel, setXSelRaw] = useState(null); // sélection COMMITTÉE x (null = plein axe)
+  const [ySel, setYSelRaw] = useState(null); // sélection COMMITTÉE y
+  // Brouillon de GESTE (preview) : dans une ref, JAMAIS dans un state — cf.
+  // l'en-tête du fichier (un setState par frame re-rendrait les marks).
+  const draftRef = useRef({ x: null, y: null });
+
+  // Commit d'une sélection : pose la valeur ET purge le brouillon — le
+  // relâchement du brush, le zoom molette et la réinitialisation rendent donc la
+  // main à React (le re-rendu committé réécrit/retire les transforms de preview).
+  const clearDrafts = () => { draftRef.current.x = null; draftRef.current.y = null; };
+  const setXSel = (sel) => { clearDrafts(); setXSelRaw(sel); };
+  const setYSel = (sel) => { clearDrafts(); setYSelRaw(sel); };
 
   // ── Données filtrées par les brushes ──────────────────────────────────────
   const filteredData = data.filter((r) => {
@@ -161,13 +206,35 @@ export function useBrushZoom({
     return true;
   });
 
-  // ── Échelles zoomées (domaine restreint à la sélection) ───────────────────
+  // ── Échelles zoomées COMMITTÉES (domaine restreint à la sélection) ─────────
+  // Gelées pendant un geste de drag (seul le brouillon bouge) : les marks et le
+  // pipeline coûteux qui en dépendent ne sont recalculés qu'au relâchement.
   const xScale = xSel ? restrictScale(baseXScale, xType, xSel) : baseXScale;
   const yScale = ySel ? restrictScale(baseYScale, yType, ySel) : baseYScale;
 
   // ── Facteurs affines base→zoomé (transformation visuelle sans recalcul) ────
   const zx = axisZoomFactors(baseXScale, xScale, innerWidth, xType);
   const zy = axisZoomFactors(baseYScale, yScale, innerHeight, yType);
+
+  // ── Preview de geste (impérative, hors React) ─────────────────────────────
+  // À chaque notification `onPreview` du minimap : mémorise le brouillon de
+  // l'axe, calcule le transform affine base→(brouillon ?? committé) et l'écrit
+  // sur les groupes enregistrés. Coût O(1) par frame, aucun rendu React — au
+  // relâchement, le commit purge le brouillon et le rendu React reprend la main
+  // sur l'attribut (valeur JSX du groupe).
+  const applyPreview = () => {
+    const dx = draftRef.current.x;
+    const dy = draftRef.current.y;
+    const xs = dx ? restrictScale(baseXScale, xType, dx) : xScale;
+    const ys = dy ? restrictScale(baseYScale, yType, dy) : yScale;
+    const t = zoomTransformOf(
+      axisZoomFactors(baseXScale, xs, innerWidth, xType),
+      axisZoomFactors(baseYScale, ys, innerHeight, yType),
+    );
+    for (const ref of previewTargets) if (ref.current) ref.current.setAttribute('transform', t);
+  };
+  const previewXSel = (sel) => { draftRef.current.x = sel; applyPreview(); };
+  const previewYSel = (sel) => { draftRef.current.y = sel; applyPreview(); };
 
   // ── Zoom à la molette (axe principal pour line/bar ; 2-D heatmap/density) ──
   const applyWheelZoom = (e) => {
@@ -254,6 +321,7 @@ export function useBrushZoom({
 
   return {
     xSel, ySel, setXSel, setYSel,
+    previewXSel, previewYSel,
     xScale, yScale, filteredData,
     axisZoom: { zx, zy },
     resetZoom, canReset,

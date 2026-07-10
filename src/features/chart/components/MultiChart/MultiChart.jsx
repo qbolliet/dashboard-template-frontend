@@ -41,7 +41,7 @@ import { buildStacks } from '../../utils/stacking';
 import { resolveFormatter } from '../../utils/formatters';
 import { measureText, tickCountFor } from '../../utils/measureText';
 import { exportSvg, exportPng } from '../../utils/exportImage';
-import { restrictScale } from '../../hooks/useBrushZoom';
+import { restrictScale, axisZoomFactors, zoomTransformOf } from '../../hooks/useBrushZoom';
 
 import ChartAxisBottom from '../ChartAxis/ChartAxisBottom/ChartAxisBottom';
 import ChartAxisLeft from '../ChartAxis/ChartAxisLeft/ChartAxisLeft';
@@ -273,9 +273,23 @@ const MultiChartCanvas = ({
 }) => {
   const svgRef = useRef(null);
   const [minimapOpen, setMinimapOpen] = useState(initialMinimapOpen);
-  const [xSel, setXSel] = useState(null);
+  const [xSel, setXSel] = useState(null); // sélection COMMITTÉE (relâchement / molette)
+  // Geste de brush en cours : les marks basculent sur un rendu en coordonnées de
+  // BASE (lignes complètes) déplacé par le transform de preview, et les cibles de
+  // survol sont sautées — même mécanisme que <Chart> (cf. useBrushZoom / Chart.jsx).
+  const [isBrushing, setIsBrushing] = useState(false);
   const [active, setActive] = useState(null);
   const [activePos, setActivePos] = useState(null);
+
+  // Brouillon de GESTE (preview) : dans une ref, JAMAIS dans un state — un
+  // setState par frame re-rendrait les marks (cf. en-tête de useBrushZoom.js) ;
+  // le transform est écrit impérativement sur le groupe `previewMarksRef`.
+  const draftXRef = useRef(null);
+  const previewMarksRef = useRef(null);
+
+  // Commit d'une sélection : pose la valeur ET purge le brouillon de geste (le
+  // re-rendu committé reprend la main sur l'attribut transform du groupe).
+  const commitXSel = (sel) => { draftXRef.current = null; setXSel(sel); };
 
   const showXBrush = xTypeAxis !== 'categorical';
 
@@ -311,8 +325,26 @@ const MultiChartCanvas = ({
     baseXScale = scaleLinear({ domain: extent(vals), range: [0, innerWidth], nice: true });
   }
 
-  // Zoom x (brush / molette) : restreint le domaine continu.
+  // Zoom x (brush / molette) : restreint le domaine continu. Échelle COMMITTÉE,
+  // gelée pendant un geste de drag (marks, filtrage, survol, axes).
   const xScale = (xSel && xTypeAxis !== 'categorical') ? restrictScale(baseXScale, xType, xSel) : baseXScale;
+
+  // Transform affine base→committé du calque de preview (x seul : le brush
+  // multi-jeux n'existe qu'en x continu). Posé en JSX au début du geste puis
+  // réécrit par frame en base→brouillon par `previewXSel` (impératif, hors React).
+  const previewTransform = zoomTransformOf(
+    axisZoomFactors(baseXScale, xScale, innerWidth, xType),
+    { k: 1, t: 0 },
+  );
+
+  // Preview de geste : mémorise le brouillon et écrit le transform base→brouillon
+  // directement sur le groupe des marks — coût O(1) par frame, aucun rendu React.
+  const previewXSel = (sel) => {
+    draftXRef.current = sel;
+    const xs = sel ? restrictScale(baseXScale, xType, sel) : xScale;
+    const t = zoomTransformOf(axisZoomFactors(baseXScale, xs, innerWidth, xType), { k: 1, t: 0 });
+    if (previewMarksRef.current) previewMarksRef.current.setAttribute('transform', t);
+  };
 
   // Filtrage par sélection x (continu uniquement).
   const filterRows = (rows) => {
@@ -343,9 +375,14 @@ const MultiChartCanvas = ({
   const yScale = scaleLinear({ domain: [lo, hi], range: [innerHeight, 0], nice: true });
 
   // ── Couches de marks (1er jeu DEVANT → peint en dernier) ──────────────────
+  // Pendant un geste de brush (`isBrushing`), chaque couche est rendue UNE fois
+  // depuis les lignes COMPLÈTES en coordonnées de BASE (échelle x de base), puis
+  // simplement déplacée par frame via `previewTransform` — le refiltrage et les
+  // stacks ne sont recalculés qu'au relâchement (commit de xSel).
+  const mXScale = isBrushing ? baseXScale : xScale;
   const layers = typedSets.map((ds) => {
     const scales = scalesFor(ds);
-    const rows = filterRows(ds.rows);
+    const rows = isBrushing ? ds.rows : filterRows(ds.rows);
     const bar = isBarLike(ds, xTypeAxis);
     const st = (ds.stack && ds.stack !== 'none')
       ? buildStacks({ data: rows, posKey: x, valKey: y, channels: scales.channels, stackBy: ds.stack, seriesOrder: groupSeries(rows, scales.channels).map((s) => s.key), aggregate: 'mean' })
@@ -359,33 +396,38 @@ const MultiChartCanvas = ({
       return (
         <ContinuousBarMarks
           key={ds.index} rows={rows} x={x} y={y} channels={ch}
-          xScale={xScale} yScale={yScale} colorScale={scales.color} styleScale={scales.style}
+          xScale={mXScale} yScale={yScale} colorScale={scales.color} styleScale={scales.style}
           markerScale={scales.marker} hatchScale={scales.hatch} hovered={hovered} fill={ds.fill} stack={ds.stack} />
       );
     }
     return (
       <LineMarks
         key={ds.index} data={rows} x={x} y={y} channels={ch}
-        xScale={xScale} yScale={yScale} colorScale={scales.color} styleScale={scales.style}
+        xScale={mXScale} yScale={yScale} colorScale={scales.color} styleScale={scales.style}
         markerScale={scales.marker} hatchScale={scales.hatch} hovered={hovered}
         fill={ds.fill} stack={st} />
     );
   });
 
   // ── Cibles de survol (tous les jeux) ──────────────────────────────────────
+  // Sautées pendant un geste de brush : on ne survole pas en glissant, et cela
+  // évite la géométrie de barres + la boucle O(n) par frame (recalculées au
+  // relâchement, quand isBrushing repasse à false et xSel est committé).
   const hoverTargets = [];
-  for (const { ds, scales, rows, bar, st } of layers) {
-    const ch = scales.channels;
-    if (bar) {
-      const { bars } = barGeometry(rows, x, y, ch, xScale, yScale, ds.stack);
-      for (const b of bars) hoverTargets.push({ px: b.cx, py: b.top, row: b.row, ds, scales, hit: { type: 'rect', x: b.x, y: b.y, w: b.w, h: b.h } });
-    } else {
-      for (const r of rows) {
-        let py = yScale(r[y]);
-        if (st) { const o = st.offsets.get(seriesKey(r, ch) + '|' + xKeyOf(r[x])); if (o) py = yScale(o.y1); }
-        const px = xScale(r[x]);
-        if (isNaN(px) || isNaN(py)) continue;
-        hoverTargets.push({ px, py, row: r, ds, scales, hit: { type: 'circle', r: 12 } });
+  if (!isBrushing) {
+    for (const { ds, scales, rows, bar, st } of layers) {
+      const ch = scales.channels;
+      if (bar) {
+        const { bars } = barGeometry(rows, x, y, ch, xScale, yScale, ds.stack);
+        for (const b of bars) hoverTargets.push({ px: b.cx, py: b.top, row: b.row, ds, scales, hit: { type: 'rect', x: b.x, y: b.y, w: b.w, h: b.h } });
+      } else {
+        for (const r of rows) {
+          let py = yScale(r[y]);
+          if (st) { const o = st.offsets.get(seriesKey(r, ch) + '|' + xKeyOf(r[x])); if (o) py = yScale(o.y1); }
+          const px = xScale(r[x]);
+          if (isNaN(px) || isNaN(py)) continue;
+          hoverTargets.push({ px, py, row: r, ds, scales, hit: { type: 'circle', r: 12 } });
+        }
       }
     }
   }
@@ -448,9 +490,9 @@ const MultiChartCanvas = ({
     const [b0, b1] = baseXScale.domain().map(Number);
     const bLo = Math.min(b0, b1), bHi = Math.max(b0, b1);
     n0 = Math.max(bLo, n0); n1 = Math.min(bHi, n1);
-    if (n1 - n0 >= (bHi - bLo) * 0.985) { setXSel(null); return; }
+    if (n1 - n0 >= (bHi - bLo) * 0.985) { commitXSel(null); return; }
     if (n1 - n0 < (bHi - bLo) * 0.02) return;
-    setXSel(xType === 'date' ? [new Date(n0), new Date(n1)] : [n0, n1]);
+    commitXSel(xType === 'date' ? [new Date(n0), new Date(n1)] : [n0, n1]);
   };
   const wheelRef = useRef(applyWheel);
   useEffect(() => { wheelRef.current = applyWheel; });
@@ -500,7 +542,7 @@ const MultiChartCanvas = ({
         expanded={expanded} onExpand={() => setExpanded((e) => !e)}
         voronoi={voronoiOn} onVoronoi={() => setVoronoiOn((v) => !v)}
         tooltips={tooltipsOn} onTooltips={() => setTooltipsOn((t) => !t)}
-        onReset={() => setXSel(null)} canReset={!!xSel}
+        onReset={() => commitXSel(null)} canReset={!!xSel}
         onExportSvg={() => exportSvg(svgRef.current, (title || 'chart') + '.svg')}
         onExportPng={() => exportPng(svgRef.current, (title || 'chart') + '.png')}
       />
@@ -512,6 +554,8 @@ const MultiChartCanvas = ({
             <ChartAxisLeft
               scale={yScale} type="number" length={innerHeight} width={innerWidth}
               format={format.y} tickDensity={tickDensity} label={labels.y} tickPadX={0} labelOffset={yTickW + 4} />
+            {/* Axe x sur l'échelle COMMITTÉE : gelé pendant un geste de brush,
+                recalé au relâchement. */}
             <ChartAxisBottom
               scale={xScale} type={xTypeAxis} length={innerWidth} height={innerHeight}
               format={format.x} maxLabelLength={maxLabelLength.x} maxLines={maxLines.x || 2}
@@ -519,7 +563,20 @@ const MultiChartCanvas = ({
             <defs>
               <clipPath id={clipId}><rect x={0} y={0} width={innerWidth} height={innerHeight} /></clipPath>
             </defs>
-            <g clipPath={`url(#${clipId})`}>{markEls}</g>
+            {/* Pendant un geste de brush, les marks (en coordonnées de base) sont
+                déplacés par le transform de preview — la valeur JSX (base→committé)
+                est posée au début du geste puis réécrite par frame via
+                previewMarksRef ; .chart-zoom-content garde les traits à épaisseur
+                constante (vector-effect, cf. Chart.scss). */}
+            <g clipPath={`url(#${clipId})`}>
+              <g
+                ref={previewMarksRef}
+                className={isBrushing ? 'chart-zoom-content' : undefined}
+                transform={isBrushing ? previewTransform : undefined}
+              >
+                {markEls}
+              </g>
+            </g>
 
             {voronoiOn && cleanTargets.length > 0 && (
               <VoronoiOverlay points={cleanTargets} innerWidth={innerWidth} innerHeight={innerHeight} onHover={onHoverTarget} />
@@ -534,7 +591,11 @@ const MultiChartCanvas = ({
 
           {showXBrush && minimapOpen && (
             <g transform={`translate(${margin.left}, ${margin.top + innerHeight + margin.bottom + 8})`}>
-              <BrushMinimap direction="x" width={innerWidth} height={miniH} scale={baseXScale} selection={xSel} onChange={setXSel} content={xMiniContent} />
+              <BrushMinimap
+                direction="x" width={innerWidth} height={miniH} scale={baseXScale}
+                selection={xSel} onChange={commitXSel} onPreview={previewXSel}
+                content={xMiniContent} onBrushingChange={setIsBrushing}
+              />
             </g>
           )}
         </svg>
