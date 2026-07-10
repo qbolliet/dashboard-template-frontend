@@ -160,11 +160,18 @@ export function useFactTable({
   // <Chart> dérive aujourd'hui ses domaines des données ; `extents` reste dispo
   // pour coordonner plusieurs graphiques sur une échelle commune sans recalcul.
 
+  // En cas d'échec du fetch, on renvoie un état vide + `error` : le mock est un
+  // repli "client GraphQL pas encore branché", PAS un repli sur erreur (afficher
+  // le fact table mock complet masquerait la panne au consommateur).
+  if (error) {
+    return { columns: [], rows: [], metadata: null, loading: isLoading, error };
+  }
+
   return {
     columns: data?.columns ?? MOCK_COLUMNS,
     rows: data?.data ?? MOCK_ROWS,
     metadata: data?.metadata ?? MOCK_METADATA,
     loading: isLoading,
-    error: error ?? null,
+    error: null,
   };
 }

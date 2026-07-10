@@ -117,5 +117,12 @@ function fetchVariableMetadata([, catalog, schema]) {
 export function useVariableMetadata({ catalog, schema } = {}) {
   const { data, error, isLoading } = useSWR(['variableMetadata', catalog, schema], fetchVariableMetadata);
 
-  return { fields: data ?? MOCK_METADATA, loading: isLoading, error: error ?? null };
+  // En cas d'échec du fetch, on renvoie un état vide + `error` : le mock est un
+  // repli "client GraphQL pas encore branché", PAS un repli sur erreur (afficher
+  // le jeu mock complet masquerait la panne au consommateur).
+  if (error) {
+    return { fields: [], loading: isLoading, error };
+  }
+
+  return { fields: data ?? MOCK_METADATA, loading: isLoading, error: null };
 }
