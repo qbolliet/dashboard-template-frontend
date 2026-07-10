@@ -156,7 +156,13 @@ const MultiCriterionMenu = ({
   const [criteria, setCriteria] = useState(buildCards);
   const [connectors, setConnectors] = useState(buildInitialConnectors);
 
-  const atMax = maxCriteria != null && maxCriteria > 0 && criteria.length >= maxCriteria;
+  // Prédicat pur unique : le nombre de cartes `n` atteint (ou dépasse) la limite. Utilisé
+  // aux 3 points où l'on teste "encore de la place pour une carte de plus ?" (atMax,
+  // auto-ajout, ajout manuel). Distinct de la réduction du tableau plus bas (`>` strict,
+  // sémantique différente : "y a-t-il un EXCÉDENT à couper ?").
+  const wouldExceedMax = (n) => maxCriteria != null && maxCriteria > 0 && n >= maxCriteria;
+
+  const atMax = wouldExceedMax(criteria.length);
 
   // ── Infrastructure d'émission (event-driven, amortie) ──
   // stateRef = tampon qui découple la LECTURE de l'état de l'IDENTITÉ des handlers : ceux-ci
@@ -215,6 +221,8 @@ const MultiCriterionMenu = ({
   const [prevMax, setPrevMax] = useState(maxCriteria);
   if (prevMax !== maxCriteria) {
     setPrevMax(maxCriteria);
+    // `>` strict et non `wouldExceedMax` (`>=`) : ici on ne coupe que l'EXCÉDENT réel,
+    // pas dès que la longueur atteint la limite (sémantique de réduction, pas d'ajout).
     if (!lockedVars && maxCriteria != null && maxCriteria > 0 && criteria.length > maxCriteria) {
       setCriteria((prev) => prev.slice(0, maxCriteria));
       setConnectors((prev) => prev.slice(0, Math.max(0, maxCriteria - 1)));
@@ -233,7 +241,7 @@ const MultiCriterionMenu = ({
     const { criteria: prev, connectors: prevConn } = stateRef.current;
     let list = prev.map((c, i) => (i === idx ? next : c));
     let conns = prevConn;
-    const atMaxNow = maxCriteria != null && maxCriteria > 0 && list.length >= maxCriteria;
+    const atMaxNow = wouldExceedMax(list.length);
     if (addMode === 'auto' && !lockedVars && idx === prev.length - 1 && isComplete(next) && !atMaxNow) {
       list = [...list, makeBlank(nextId(list))];
       conns = [...conns, defaultConn];
@@ -245,7 +253,7 @@ const MultiCriterionMenu = ({
   // Ajout manuel d'une carte (mode bouton) — action structurelle, émission immédiate.
   const addCriterion = () => {
     const { criteria: prev, connectors: prevConn } = stateRef.current;
-    if (maxCriteria != null && maxCriteria > 0 && prev.length >= maxCriteria) return;
+    if (wouldExceedMax(prev.length)) return;
     commit([...prev, makeBlank(nextId(prev))], [...prevConn, defaultConn], false);
   };
 
