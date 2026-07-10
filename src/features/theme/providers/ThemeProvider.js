@@ -44,13 +44,12 @@ export const ThemeProvider = ({ children }) => {
     const endTransitionTimeoutRef = useRef(null);
 
     /**
-     * Applique la classe de transition sur <body>, exécute `applyTheme` après un court délai
-     * (laisse l'animation démarrer) puis retire la classe une fois la transition terminée.
-     * Annule les minuteurs d'un éventuel geste précédent pour rester correct si l'utilisateur
-     * bascule le thème plusieurs fois rapidement (sinon un ancien retrait de classe pourrait
-     * couper la transition en cours).
+     * Applies the transition class on <body>, runs `applyTheme` after a short delay
+     * (lets the animation start) then removes the class once the transition ends.
+     * Cancels any previous gesture's timers so rapid successive toggles stay correct
+     * (otherwise a stale class removal could cut off the transition in progress).
      *
-     * @param {Function} applyTheme - Callback posant le nouveau thème (setTheme).
+     * @param {Function} applyTheme - Callback that sets the new theme (setTheme).
      */
     const runThemeTransition = (applyTheme) => {
         if (typeof window === 'undefined') return;
@@ -72,7 +71,7 @@ export const ThemeProvider = ({ children }) => {
     };
 
     /**
-     * Basculer entre les thèmes clair et sombre
+     * Toggles between light and dark themes.
      */
     const toggleTheme = () => {
         runThemeTransition(() => {
