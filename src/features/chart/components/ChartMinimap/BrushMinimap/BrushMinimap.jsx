@@ -54,6 +54,8 @@ const BrushMinimap = ({
   const brushRef = useRef(null);          // instance BaseBrush (updateBrush / state)
   const isProgrammatic = useRef(false);   // ignore le prochain onChange (mouvement piloté)
   const isUserBrushing = useRef(false);   // vrai pendant un geste utilisateur
+  const brushingNotified = useRef(false); // dernière valeur émise à onBrushingChange
+  const lastPreviewSel = useRef(null);    // dernier brouillon du geste (commit du filet)
 
   const clipId = `chart-minimap-clip-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
 
@@ -136,11 +138,36 @@ const BrushMinimap = ({
   };
 
   // ── Callbacks du brush ────────────────────────────────────────────────────
-  const handleBrushStart = () => { isUserBrushing.current = true; onBrushingChange?.(true); };
+  // Notification IDEMPOTENTE : n'émet que sur transition. Le parent ne peut donc
+  // jamais rester bloqué en mode preview (un `false` de trop est sans effet, un
+  // `true` déjà émis n'est pas répété) — indispensable car @visx appelle
+  // `onBrushEnd` DEPUIS un updater de setState (potentiellement rejoué), et parce
+  // que le filet `pointerup` ci-dessous peut terminer le geste avant lui.
+  const notifyBrushing = (v) => {
+    if (brushingNotified.current === v) return;
+    brushingNotified.current = v;
+    onBrushingChange?.(v);
+  };
+
+  const handleBrushStart = () => {
+    isUserBrushing.current = true;
+    lastPreviewSel.current = null;
+    notifyBrushing(true);
+  };
 
   const handleBrushChange = (domain) => {
     // Mouvement programmatique (sync externe) → consommé sans renotifier.
+    // CETTE LIGNE DOIT RESTER LA PREMIÈRE : c'est l'onChange que notre propre
+    // `updateBrush` renvoie qui doit consommer le drapeau. Filtrer avant (p. ex.
+    // sur `isUserBrushing`) le laisserait armé, et il avalerait alors le premier
+    // onChange UTILISATEUR suivant.
     if (isProgrammatic.current) { isProgrammatic.current = false; return; }
+    // Hors geste utilisateur, un onChange est un écho parasite de @visx : dernier
+    // onChange du relâchement (émis APRÈS que le parent a committé et repris la
+    // main sur le transform), ou `componentDidUpdate` de BaseBrush sur changement
+    // de width/height (resize). Le suivre ré-armerait un brouillon de preview sur
+    // des marks déjà rendus en coordonnées committées → double transform.
+    if (!isUserBrushing.current) return;
     // Domaine nul transitoire (extent -1 au tout début d'un brush) → ignoré :
     // seul un END sur sélection vide (clic) doit dézoomer.
     if (!domain) return;
@@ -149,17 +176,49 @@ const BrushMinimap = ({
     // transform visuel) quand elle est câblée ; le commit (`onChange`) n'arrive
     // qu'au relâchement (handleBrushEnd). Sans `onPreview`, repli sur `onChange`
     // — comportement historique conservé pour les appelants non migrés.
-    if (sel) (onPreview ?? onChange)?.(sel);
+    if (sel) { lastPreviewSel.current = sel; (onPreview ?? onChange)?.(sel); }
   };
 
   const handleBrushEnd = (domain) => {
+    // Fin de geste : état ET notification remis AVANT tout retour anticipé —
+    // strictement symétrique de handleBrushStart.
     isUserBrushing.current = false;
+    notifyBrushing(false); // le parent peut recalculer le survol
     if (isProgrammatic.current) { isProgrammatic.current = false; return; }
-    onBrushingChange?.(false); // fin du geste → le parent peut recalculer le survol
     if (!domain) { onChange?.(null); return; } // clic sans glissement → dézoom
     const sel = domainToSel(domain);
     onChange?.(sel ?? null);
   };
+
+  // ── Filet de sécurité : pointeur relâché HORS de la mini-vue ───────────────
+  // Le rectangle de drag de @visx/drag ne couvre que la mini-vue (quelques
+  // dizaines de px) et il n'y a pas de pointer capture : relâcher le bouton
+  // ailleurs ne déclenche jamais `onBrushEnd` → sans ce filet, le parent resterait
+  // indéfiniment en mode preview (marks figés, survol mort). On termine alors le
+  // geste nous-mêmes en committant le dernier brouillon.
+  // Le `queueMicrotask` laisse d'abord se dérouler la chaîne React du relâchement
+  // NORMAL (rect → dragEnd → effet de layout de @visx/drag → onBrushEnd, flush
+  // synchrone de l'événement discret) : si elle a eu lieu, `isUserBrushing` est
+  // déjà retombé et le filet ne fait rien.
+  const endGesture = () => {
+    if (!isUserBrushing.current) return;
+    isUserBrushing.current = false;
+    notifyBrushing(false);
+    if (lastPreviewSel.current) onChange?.(lastPreviewSel.current);
+  };
+  // Identité stable requise (add/removeEventListener au seul montage) → ref
+  // rafraîchie après chaque rendu, comme le handler de molette de useBrushZoom.
+  const endGestureRef = useRef(endGesture);
+  useEffect(() => { endGestureRef.current = endGesture; });
+  useEffect(() => {
+    const onLostPointer = () => queueMicrotask(() => endGestureRef.current());
+    window.addEventListener('pointerup', onLostPointer);
+    window.addEventListener('pointercancel', onLostPointer);
+    return () => {
+      window.removeEventListener('pointerup', onLostPointer);
+      window.removeEventListener('pointercancel', onLostPointer);
+    };
+  }, []);
 
   // ── Synchronisation depuis une sélection EXTERNE (molette / réinit) ────────
   // On n'écrit dans le brush que hors geste utilisateur, et seulement si sa

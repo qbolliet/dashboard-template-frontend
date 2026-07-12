@@ -25,7 +25,7 @@
 ═══════════════════════════════════════════════════════════════════════════ */
 
 // Importation des modules
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { ParentSize } from '@visx/responsive';
 import { scaleTime, scaleLinear, scaleBand, scaleOrdinal } from '@visx/scale';
 import { extent, mean } from 'd3-array';
@@ -356,12 +356,22 @@ const MultiChartCanvas = ({
 
   // Preview de geste : mémorise le brouillon et écrit le transform base→brouillon
   // directement sur le groupe des marks — coût O(1) par frame, aucun rendu React.
-  const previewXSel = (sel) => {
-    draftXRef.current = sel;
+  const applyPreview = () => {
+    const sel = draftXRef.current;
     const xs = sel ? restrictScale(baseXScale, xType, sel) : xScale;
     const t = zoomTransformOf(axisZoomFactors(baseXScale, xs, innerWidth, xType), { k: 1, t: 0 });
     if (previewMarksRef.current) previewMarksRef.current.setAttribute('transform', t);
   };
+  const previewXSel = (sel) => { draftXRef.current = sel; applyPreview(); };
+
+  // Ré-assertion du brouillon après CHAQUE rendu committé : React vient d'écrire
+  // la valeur JSX (base→COMMITTÉ) sur le même groupe et écraserait le brouillon
+  // impératif — les deux écritures ne sont pas ordonnées de façon fiable (cf. le
+  // commentaire détaillé dans useBrushZoom.js). Hors geste, `draftXRef` est purgé
+  // par `commitXSel` → l'effet ne fait rien et React garde la main sur l'attribut.
+  useLayoutEffect(() => {
+    if (draftXRef.current) applyPreview();
+  });
 
   // Filtrage par sélection x (continu uniquement).
   const filterRows = (rows) => {

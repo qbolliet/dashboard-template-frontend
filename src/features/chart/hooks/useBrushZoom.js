@@ -20,7 +20,7 @@
 // coût par frame quasi nul, aucun rendu React.
 
 // Importation des modules
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 /* ────────────────────────── Helpers d'échelle ────────────────────────────── */
 
@@ -235,6 +235,20 @@ export function useBrushZoom({
   };
   const previewXSel = (sel) => { draftRef.current.x = sel; applyPreview(); };
   const previewYSel = (sel) => { draftRef.current.y = sel; applyPreview(); };
+
+  // Ré-assertion du brouillon après CHAQUE rendu committé : React vient d'écrire
+  // la valeur JSX du transform (base→COMMITTÉ) sur les mêmes groupes, ce qui
+  // écraserait le brouillon écrit impérativement. Les deux écritures ne sont pas
+  // ordonnées de façon fiable — @visx/brush émet `onChange` depuis un callback de
+  // setState et @visx/drag depuis un effet de layout, donc dans un commit qui
+  // n'est pas forcément celui qui porte l'écriture React (typiquement au tout
+  // début du geste, quand `isBrushing` bascule). Plutôt que de parier sur l'ordre,
+  // on redonne le dernier mot à la couche impérative, avant le paint.
+  // Hors geste, le brouillon est purgé par les setters de commit → l'effet ne fait
+  // rien et React garde la main sur l'attribut.
+  useLayoutEffect(() => {
+    if (draftRef.current.x || draftRef.current.y) applyPreview();
+  });
 
   // ── Zoom à la molette (axe principal pour line/bar ; 2-D heatmap/density) ──
   const applyWheelZoom = (e) => {
