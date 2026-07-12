@@ -69,7 +69,10 @@ const SelectMenu = ({
 
   // Terme amorti → clé de requête du hook (réseau). Le filtrage d'affichage reste
   // immédiat : seul le fetch est amorti, la liste déjà chargée se filtre à la frappe.
-  const debouncedFilter = useDebouncedValue(filter, 250);
+  // En mode `options` statique, useSelectOptions est désactivé (enabled: !options) et
+  // son résultat serait de toute façon jeté : on fige l'entrée du hook (chaîne
+  // constante) pour qu'il ne reprogramme aucun minuteur à chaque frappe.
+  const debouncedFilter = useDebouncedValue(options ? '' : filter, 250);
 
   // Récupération des options via hook — désactivée (aucun fetch) quand `options` prop
   // est fournie : le résultat serait de toute façon jeté au profit du filtrage statique.

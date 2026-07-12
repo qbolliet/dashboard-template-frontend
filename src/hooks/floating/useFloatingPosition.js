@@ -1,5 +1,6 @@
 // Importation des modules
-import { useLayoutEffect, useState } from 'react';
+import { useState } from 'react';
+import { useIsomorphicLayoutEffect } from '@/hooks/layoutEffect/useIsomorphicLayoutEffect';
 
 /**
  * Tracks the viewport-relative position of an anchor element while `open`,
@@ -18,7 +19,9 @@ export function useFloatingPosition(anchorRef, open) {
 
   // Mesure synchrone (avant peinture) pour éviter un flash à (0,0) à l'ouverture.
   // Rien à faire à la fermeture : le return ci-dessous dérive déjà `null` de `open`.
-  useLayoutEffect(() => {
+  // Isomorphe : useEffect côté serveur (composant 'use client' quand même rendu en
+  // SSR par l'App Router) pour éviter le warning React, useLayoutEffect côté client.
+  useIsomorphicLayoutEffect(() => {
     if (!open) return;
 
     const measure = () => {
