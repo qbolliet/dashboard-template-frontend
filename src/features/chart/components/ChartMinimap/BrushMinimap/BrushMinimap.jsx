@@ -11,10 +11,8 @@
 import { useEffect, useId, useRef } from 'react';
 import { Brush } from '@visx/brush';
 import { scaleLinear } from '@visx/scale';
+import { HANDLE_SIZE } from '../../../utils/minimapGeometry';
 import './BrushMinimap.scss';
-
-// Taille des poignées de redimensionnement (cf. ChartMinimap/_tokens.scss).
-const HANDLE_SIZE = 6;
 
 /**
  * A brush minimap over a miniature replica/projection of the chart, clipped to

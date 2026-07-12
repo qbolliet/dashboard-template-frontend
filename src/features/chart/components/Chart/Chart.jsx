@@ -39,6 +39,7 @@ import { makeScale } from '../../utils/scales';
 import { exportSvg, exportPng } from '../../utils/exportImage';
 import { useSeriesHover } from '../../hooks/useSeriesHover';
 import { useChartGeometry } from '../../hooks/useChartGeometry';
+import { useMinimapState, resolveMinimapsVisible } from '../../hooks/useMinimapState';
 import { useBrushZoom, zoomTransformOf } from '../../hooks/useBrushZoom';
 import { useFeatureState } from '../../hooks/useFeatureState';
 import { nextFreeChannel, REAL_DIST_MARKER } from '../../toolbar-features/channelAssign';
@@ -314,14 +315,14 @@ const ChartCanvas = ({
   ciFeature, baFeature, normFactor, channelAssign, baReal,
   expanded, setExpanded, voronoiOn, setVoronoiOn, tooltipsOn, setTooltipsOn,
 }) => {
-  // ── Deux niveaux d'état, DISSOCIÉS (persistent tant que la largeur reste > 0) ──
-  // `minimapsVisible` — interrupteur maître de la barre d'outils : affiche/masque
-  // les mini-vues ET leurs pastilles (rien n'est alors réservé en géométrie).
-  // `xMinimapOpen`/`yMinimapOpen` — pastilles : replient la seule bande de leur
-  // axe ; la pastille, elle, reste visible pour pouvoir la redéplier.
-  const [minimapsVisible, setMinimapsVisible] = useState(initialMinimapOpen);
-  const [xMinimapOpen, setXMinimapOpen] = useState(true);
-  const [yMinimapOpen, setYMinimapOpen] = useState(true);
+  // Modèle d'état des mini-vues, partagé avec <MultiChart> : interrupteur maître
+  // (barre d'outils) + pli par axe (pastilles). Cf. useMinimapState. Persiste tant
+  // que la largeur reste > 0.
+  const {
+    minimapsVisible, setMinimapsVisible,
+    xMinimapOpen, setXMinimapOpen,
+    yMinimapOpen, setYMinimapOpen,
+  } = useMinimapState(initialMinimapOpen);
 
   // Calcul des dimensions du graphique. `showXMinimap`/`showYMinimap` intègrent
   // déjà l'interrupteur maître (mini-vue applicable ET visible).
@@ -1005,7 +1006,7 @@ const Chart = ({
         fill={fill} stack={stack}
         format={format} labels={labels} maxLabelLength={maxLabelLength} maxLines={maxLines}
         overlap={overlap} tickDensity={tickDensity}
-        title={title} height={height} defaults={defaults}
+        title={title} height={height} defaults={defaults} toolbar={toolbar}
       />
     );
   }
@@ -1143,11 +1144,10 @@ const Chart = ({
     }
   };
 
-  // Ouverture des mini-vues par défaut : defaults.minimaps > outil minimaps > prop.
-  const minimapsTool = (toolbar || []).find((t) => t.isMinimaps);
-  const effInitialMinimapOpen = defaults.minimaps != null
-    ? !!defaults.minimaps
-    : (minimapsTool ? !!minimapsTool.defaultOn : initialMinimapOpen);
+  // Visibilité des mini-vues par défaut : defaults.minimaps > outil minimaps > prop.
+  const effInitialMinimapOpen = resolveMinimapsVisible({
+    defaults, toolbar, fallback: initialMinimapOpen,
+  });
 
   const legendInline = expanded;
 

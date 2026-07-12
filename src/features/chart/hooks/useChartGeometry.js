@@ -13,17 +13,7 @@ import { measureText, tickCountFor } from '../utils/measureText';
 import { resolveFormatter } from '../utils/formatters';
 import { makeScale } from '../utils/scales';
 import { ticksFor, TICK_FONT_SIZE } from '../components/ChartAxis/tickHelpers';
-
-// ── Écart mini-vue ↔ pastille de bascule, IDENTIQUE sur les deux axes ─────
-// TOGGLE_GAP : l'écart voulu. BRUSH_OVERSHOOT : les poignées de @visx/brush
-// débordent de HANDLE_SIZE/2 de part et d'autre de la bande (cf. BrushMinimap) —
-// c'est ce débord, et non la bande nominale, que l'œil voit comme son bord.
-// TOGGLE_THICKNESS : épaisseur de la pastille (≈ 16,3 px mesurés ; majorée, une
-// sur-estimation ne fait qu'élargir légèrement l'écart) — elle dépend des tokens
-// de ChartMinimap/_tokens.scss.
-const TOGGLE_GAP = 3;
-const BRUSH_OVERSHOOT = 3;
-const TOGGLE_THICKNESS = 17;
+import { xMinimapLayout, yMinimapLayout } from '../utils/minimapGeometry';
 
 /**
  * Computes the adaptive plot geometry of a chart: outward-composed left margin
@@ -105,24 +95,16 @@ export function useChartGeometry({
   const yLabelW = labels.y ? 16 : 0;
   const yLabelGap = labels.y ? 8 : 0;
 
-  // ── Gouttière de la mini-vue y (réservée seulement quand ouverte) ─────────
-  // Plus large pour le barchart horizontal (axe valeur miniature). Elle s'insère
-  // APRÈS le nom d'axe — même ordre sortant que sur l'axe des abscisses (ticks →
-  // nom d'axe → mini-vue → pastille) : `yMinimapX` est la distance entre l'axe et
-  // son bord GAUCHE (cf. le transform de <BrushMinimap> dans Chart).
-  const yMinimapW = showYMinimap ? (isBarH ? 48 : 38) : 0;
-  const yMinimapGap = showYMinimap ? 10 : 0;
-  const yMinimapBand = (showYMinimap && yMinimapOpen) ? (yMinimapW + yMinimapGap) : 0;
+  // ── Bandes de la mini-vue y (largeurs : cf. yMinimapLayout) ───────────────
+  // La mini-vue s'insère APRÈS le nom d'axe — même ordre sortant que sur l'axe des
+  // abscisses (ticks → nom d'axe → mini-vue → pastille) : `yMinimapX` est la
+  // distance entre l'axe et son bord GAUCHE (cf. le transform de <BrushMinimap>
+  // dans Chart), et la gouttière de la pastille (`yToggleW`) la précède encore.
+  // Cette COMPOSITION sortante reste ici : seul le hook connaît `yTickW`.
+  const { yMinimapW, yMinimapBand, yToggleW } = yMinimapLayout({
+    showYMinimap, yMinimapOpen, wide: isBarH,
+  });
   const yMinimapX = yTickW + yTickGap + yLabelW + yLabelGap + yMinimapBand;
-
-  // ── Gouttière de la pastille de bascule y (pendant gauche de footerH) ─────
-  // Bande tout à gauche du tracé accueillant la pastille pivotée, réservée dès
-  // que la minimap y est applicable, même repliée (pour pouvoir la redéplier) —
-  // sans elle la pastille déborderait dans le padding du chart-frame.
-  // Largeur = épaisseur de la pastille pivotée + 2 × (débord des poignées + écart) :
-  // la pastille étant CENTRÉE dans la gouttière, son bord droit tombe alors à
-  // TOGGLE_GAP du bord visible de la mini-vue — même écart que sur l'axe x.
-  const yToggleW = showYMinimap ? TOGGLE_THICKNESS + 2 * (BRUSH_OVERSHOOT + TOGGLE_GAP) : 0;
 
   const marginTop = 16;
   const marginRight = 28;
@@ -161,26 +143,11 @@ export function useChartGeometry({
 
   const margins = { top: marginTop, right: marginRight, bottom: xAxisH, left: marginLeft };
 
-  // ── Bandes réservées aux mini-vues (dans la hauteur du SVG) ───────────────
-  // footerH : pied de page hors SVG accueillant la pastille de bascule (réservé
-  // dès que la minimap x est applicable, même repliée, pour la redéplier).
-  // minimapH : bande de la mini-vue x (visible seulement quand dépliée) ; miniH
-  // en est la hauteur utile (le brush garde une marge visuelle). Le SVG lui-même
-  // est réduit du footer, et le tracé de la bande x + d'un léger espace.
-  const footerH = showXMinimap ? 24 : 0;
-  const minimapH = 44;
-  const miniH = minimapH - 6;               // hauteur utile du contenu miniature
-  const svgH = Math.max(160, height - footerH);
-  const xOpen = showXMinimap && xMinimapOpen;
-  const minimapXH = xOpen ? minimapH : 0;
-  const innerHeight = Math.max(120, svgH - marginTop - xAxisH - minimapXH - 8);
-
-  // Ancrages de la mini-vue x et de sa pastille (repère du SVG = repère du corps
-  // du graphique, qui commence au même point) : la pastille suit le bord VISIBLE
-  // (bande + débord des poignées) du bas de la mini-vue dépliée, celui de l'axe
-  // sinon — toujours à TOGGLE_GAP, comme la pastille y dans sa gouttière.
-  const xMinimapY = marginTop + innerHeight + xAxisH + 8;
-  const xToggleY = xMinimapY + (xOpen ? miniH + BRUSH_OVERSHOOT : 0) + TOGGLE_GAP;
+  // ── Bandes réservées à la mini-vue x + ancrages (cf. xMinimapLayout) ──────
+  // Le SVG est réduit du pied de page de la pastille, et le tracé de la bande x.
+  const {
+    footerH, svgH, minimapXH, miniH, innerHeight, xMinimapY, xToggleY,
+  } = xMinimapLayout({ height, marginTop, xAxisH, showXMinimap, xMinimapOpen });
 
   return {
     margins, innerWidth, innerHeight, yTickW, xAxisH,

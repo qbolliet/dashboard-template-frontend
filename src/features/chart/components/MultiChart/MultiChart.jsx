@@ -41,7 +41,10 @@ import { buildStacks } from '../../utils/stacking';
 import { resolveFormatter } from '../../utils/formatters';
 import { measureText, tickCountFor } from '../../utils/measureText';
 import { exportSvg, exportPng } from '../../utils/exportImage';
+import { xMinimapLayout } from '../../utils/minimapGeometry';
 import { restrictScale, axisZoomFactors, zoomTransformOf } from '../../hooks/useBrushZoom';
+import { useMinimapState, resolveMinimapsVisible } from '../../hooks/useMinimapState';
+import { TICK_FONT_SIZE } from '../ChartAxis/tickHelpers';
 
 import ChartAxisBottom from '../ChartAxis/ChartAxisBottom/ChartAxisBottom';
 import ChartAxisLeft from '../ChartAxis/ChartAxisLeft/ChartAxisLeft';
@@ -61,12 +64,6 @@ import './MultiChart.scss';
 // caractère de contrôle NUL (0x00), absent de tout libellé affichable — évite
 // toute collision entre « colA + valB » et « colAB + valeur ».
 const NUL = String.fromCharCode(0);
-
-// Écart mini-vue ↔ pastille de bascule, et débord des poignées du brush au-delà de
-// la bande (miroirs de TOGGLE_GAP / BRUSH_OVERSHOOT dans useChartGeometry, dont
-// <MultiChart> n'utilise pas la géométrie : ses marges lui sont propres).
-const TOGGLE_GAP = 3;
-const BRUSH_OVERSHOOT = 3;
 
 // Un jeu se dessine en barres si on force x discret (categorical-x) ou si l'axe
 // x est NATURELLEMENT catégoriel.
@@ -240,7 +237,7 @@ const ContinuousBarMarks = ({
    Estimation calquée sur <Chart>/useChartGeometry : prédit la place des libellés
    d'abscisse (rotation éventuelle) pour réserver la marge basse. ─────────────── */
 function computeXAxisHeight({ allRows, x, xType, xTypeAxis, innerWidth, format, tickDensity, overlap, maxLines, labels }) {
-  const fs = 11;
+  const fs = TICK_FONT_SIZE;
   let labelsArr = [];
   let tickPx;
   if (xTypeAxis === 'categorical') {
@@ -275,10 +272,15 @@ const MultiChartCanvas = ({
   width, outerHeight, typedSets, allRows, x, y, xType, yType, xTypeAxis,
   scalesFor, format, labels, maxLabelLength, maxLines, overlap, tickDensity,
   title, expanded, voronoiOn, setVoronoiOn, tooltipsOn, setTooltipsOn, setExpanded,
-  hovered, initialMinimapOpen,
+  hovered, initialMinimapsVisible, minimapsTool,
 }) => {
   const svgRef = useRef(null);
-  const [minimapOpen, setMinimapOpen] = useState(initialMinimapOpen);
+  // Modèle d'état des mini-vues, partagé avec <Chart> : interrupteur maître (bouton
+  // « mini-vues » de la barre d'outils) + pli par axe (pastille). `yMinimapOpen` est
+  // inutilisé ici — <MultiChart> n'a pas de mini-vue y (cf. useMinimapState).
+  const {
+    minimapsVisible, setMinimapsVisible, xMinimapOpen, setXMinimapOpen,
+  } = useMinimapState(initialMinimapsVisible);
   const [xSel, setXSel] = useState(null); // sélection COMMITTÉE (relâchement / molette)
   // Geste de brush en cours : les marks basculent sur un rendu en coordonnées de
   // BASE (lignes complètes) déplacé par le transform de preview, et les cibles de
@@ -297,9 +299,15 @@ const MultiChartCanvas = ({
   // re-rendu committé reprend la main sur l'attribut transform du groupe).
   const commitXSel = (sel) => { draftXRef.current = null; setXSel(sel); };
 
-  const showXBrush = xTypeAxis !== 'categorical';
+  // Mini-vue x applicable : axe continu ET interrupteur maître armé (à faux, RIEN
+  // n'est réservé — ni bande, ni pied de page, ni pastille).
+  const showXMinimap = minimapsVisible && xTypeAxis !== 'categorical';
 
-  // ── Marges / mesure (calquées sur le prototype) ───────────────────────────
+  // ── Marges / mesure (PROPRES à <MultiChart>, calquées sur le prototype) ────
+  // Elles diffèrent de celles du pivot <Chart> (marge droite dépendante de la
+  // légende, largeur de ticks fixe, pas de mini-vue y) : c'est pourquoi ce
+  // composant n'appelle pas useChartGeometry — seul l'ANCRAGE des mini-vues est
+  // mutualisé, via un helper pur paramétré par ces marges.
   const legendInline = expanded;
   const marginTop = 16;
   const marginRight = legendInline ? 16 : 26;
@@ -310,23 +318,12 @@ const MultiChartCanvas = ({
 
   const xAxisH = computeXAxisHeight({ allRows, x, xType, xTypeAxis, innerWidth, format, tickDensity, overlap, maxLines, labels });
 
-  const minimapH = 44;
-  // Pied de page (hors SVG) accueillant la pastille de pli, réservé dès que la
-  // mini-vue est applicable — même repliée, la pastille reste affichée (cf.
-  // `footerH` de useChartGeometry).
-  const footerH = showXBrush ? 24 : 0;
-  const svgH = Math.max(160, outerHeight - footerH);
-  const xOpen = showXBrush && minimapOpen;
-  const minimapXH = xOpen ? minimapH : 0;
-  const miniH = minimapH - 6;
-  const innerHeight = Math.max(120, svgH - marginTop - xAxisH - minimapXH - 8);
+  // Bandes et ancrages de la mini-vue x : source de vérité unique, partagée avec
+  // useChartGeometry (cf. utils/minimapGeometry).
+  const { svgH, miniH, innerHeight, xMinimapY, xToggleY } = xMinimapLayout({
+    height: outerHeight, marginTop, xAxisH, showXMinimap, xMinimapOpen,
+  });
   const margin = { top: marginTop, right: marginRight, bottom: xAxisH, left: marginLeft };
-
-  // Ancrages de la mini-vue x et de sa pastille (même règle que useChartGeometry :
-  // la pastille suit le BAS de la mini-vue dépliée, celui de l'axe sinon, à
-  // TOGGLE_GAP px).
-  const xMinimapY = marginTop + innerHeight + xAxisH + 8;
-  const xToggleY = xMinimapY + (xOpen ? miniH + BRUSH_OVERSHOOT : 0) + TOGGLE_GAP;
 
   // ── Échelle x de base (domaine complet) ───────────────────────────────────
   let baseXScale;
@@ -563,6 +560,17 @@ const MultiChartCanvas = ({
 
   const clipId = 'mclip-' + useId().replace(/[^a-zA-Z0-9]/g, '');
 
+  // Bouton « mini-vues » de la barre d'outils (seule feature applicable ici) : il
+  // n'agit QUE sur la visibilité de l'ensemble (bande + pastille) ; le pli est la
+  // seule affaire de la pastille, et il est conservé d'un masquage à l'autre —
+  // même contrat que dans <Chart>.
+  const extraTools = minimapsTool
+    ? [{
+        id: minimapsTool.id, icon: minimapsTool.icon, label: minimapsTool.label,
+        on: minimapsVisible, onToggle: () => setMinimapsVisible((v) => !v),
+      }]
+    : [];
+
   return (
     <>
       <ChartToolbar
@@ -572,6 +580,7 @@ const MultiChartCanvas = ({
         onReset={() => commitXSel(null)} canReset={!!xSel}
         onExportSvg={() => exportSvg(svgRef.current, (title || 'chart') + '.svg')}
         onExportPng={() => exportPng(svgRef.current, (title || 'chart') + '.png')}
+        extraTools={extraTools}
       />
 
         {/* Pas de role="img" : cf. Chart.jsx (pruning des descendants interactifs). */}
@@ -621,7 +630,7 @@ const MultiChartCanvas = ({
 
           {/* Mini-vue x — placée par la prop `transform` de BrushMinimap (posée sur son
               <g> racine) */}
-          {showXBrush && minimapOpen && (
+          {showXMinimap && xMinimapOpen && (
             <BrushMinimap
               direction="x"
               transform={`translate(${margin.left}, ${xMinimapY})`}
@@ -635,11 +644,11 @@ const MultiChartCanvas = ({
         {/* Pastille de pli, ancrée sur le centre du titre de l'axe x (PAS 50 % du
             body, aux marges asymétriques), à TOGGLE_GAP px sous la mini-vue — le
             centrage effectif est fait en CSS par MinimapToggle.scss (cf. Chart.jsx). */}
-        {showXBrush && (
+        {showXMinimap && (
           <MinimapToggle
-            open={minimapOpen}
+            open={xMinimapOpen}
             direction="x"
-            onToggle={() => setMinimapOpen((o) => !o)}
+            onToggle={() => setXMinimapOpen((o) => !o)}
             style={{
               left: margin.left + innerWidth / 2,
               top: xToggleY,
@@ -680,13 +689,17 @@ const MultiChartCanvas = ({
  * @param {number} [props.height=460] - Outer height (px).
  * @param {object} [props.defaults={}] - Initial frame state ({ expanded?, voronoi?,
  *   tooltips?, minimaps? }).
+ * @param {Array<object>} [props.toolbar=[]] - Toolbar feature descriptors, forwarded by
+ *   <Chart>. Seule la feature « mini-vues » (`isMinimaps`) est prise en compte : les
+ *   autres (IC, avant/après, normalisation, zoom) n'ont pas de rendu sur la branche
+ *   multi-jeux et sont ignorées.
  * @returns {JSX.Element}
  */
 const MultiChart = ({
   data, x, y, hue, fill = 'line', stack = 'none',
   format = {}, labels = {}, maxLabelLength = {}, maxLines = {},
   overlap = 'auto', tickDensity = 'normal',
-  title, height = 460, defaults = {},
+  title, height = 460, defaults = {}, toolbar = [],
 }) => {
   // Hooks AVANT tout retour/throw anticipé (règles des hooks).
   const [expanded, setExpanded] = useState(!!defaults.expanded);
@@ -775,8 +788,11 @@ const MultiChart = ({
     return { key: ds.index, label: ds.label, fillKind, styleGlyph, headColor, groups };
   });
 
-  // ── Ouverture des mini-vues par défaut ────────────────────────────────────
-  const initialMinimapOpen = defaults.minimaps != null ? !!defaults.minimaps : true;
+  // ── Mini-vues : visibilité par défaut + bouton de la barre d'outils ───────
+  // Même règle de priorité que <Chart> (defaults.minimaps > defaultOn de la feature
+  // > vrai) : cf. resolveMinimapsVisible.
+  const minimapsTool = (toolbar || []).find((t) => t.isMinimaps);
+  const initialMinimapsVisible = resolveMinimapsVisible({ defaults, toolbar });
 
   const legendInline = expanded;
 
@@ -809,7 +825,7 @@ const MultiChart = ({
             voronoiOn={voronoiOn} setVoronoiOn={setVoronoiOn}
             tooltipsOn={tooltipsOn} setTooltipsOn={setTooltipsOn}
             hovered={hovered}
-            initialMinimapOpen={initialMinimapOpen} />
+            initialMinimapsVisible={initialMinimapsVisible} minimapsTool={minimapsTool} />
         ) : null)}
       </ParentSize>
 
