@@ -88,14 +88,19 @@ export default function useResizable({
 
         // Fin du geste : on libère le curseur global et les écouteurs, puis on commite la
         // largeur finale dans le state React (source de vérité unique entre deux drags).
-        const stop = () => {
+        // `options.commit` (par défaut true) permet au cleanup de démontage d'appeler stop()
+        // pour libérer les écouteurs sans déclencher onResize (setState après démontage) :
+        // window.addEventListener('pointerup', stop) invoque stop avec le PointerEvent, qui
+        // n'a pas de propriété `commit` et retombe donc sur la valeur par défaut true.
+        const stop = (options = {}) => {
+            const { commit = true } = options;
             dragRef.current = null;
             document.body.style.cursor = '';
             document.body.style.userSelect = '';
             window.removeEventListener('pointermove', handleMove);
             window.removeEventListener('pointerup', stop);
 
-            if (useImperativeDom) {
+            if (useImperativeDom && commit) {
                 onResize(latestWidth);
             }
         };
@@ -121,9 +126,11 @@ export default function useResizable({
     };
 
     // Nettoyage si le composant est démonté en plein drag : on rejoue l'arrêt du geste
-    // courant (références d'écouteurs exactes). Effet de montage uniquement (deps vides).
+    // courant (références d'écouteurs exactes) mais sans committer la largeur, pour ne
+    // pas déclencher onResize (setState) après le démontage. Effet de montage uniquement
+    // (deps vides).
     useEffect(() => {
-        return () => dragRef.current?.stop?.();
+        return () => dragRef.current?.stop?.({ commit: false });
     }, []);
 
     return { onPointerDown, onKeyDown };

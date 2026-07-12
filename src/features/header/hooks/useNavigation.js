@@ -91,10 +91,19 @@ export const useNavigation = () => {
         // typography.scss à partir de breakpoints.scss) plutôt que des nombres en dur,
         // pour ne jamais désynchroniser JS et SCSS.
         const rootStyle = getComputedStyle(document.documentElement);
-        const mobileBreakpoint = parseInt(rootStyle.getPropertyValue('--breakpoint-small'), 10);
+        const parsedMobileBreakpoint = parseInt(rootStyle.getPropertyValue('--breakpoint-small'), 10);
         // Seuil au-delà duquel le tiroir topbar/sidebar n'existe plus (cf. TopbarContainer.scss,
         // qui repasse en navigation inline desktop via breakpoint('large')).
-        const drawerBreakpoint = parseInt(rootStyle.getPropertyValue('--breakpoint-medium'), 10);
+        const parsedDrawerBreakpoint = parseInt(rootStyle.getPropertyValue('--breakpoint-medium'), 10);
+        // Repli explicite si la custom property est absente (typography.scss n'est pas
+        // importé par globals.scss, donc --breakpoint-small/medium ne sont garanties
+        // présentes que si une feuille de composant les a déjà chargées) : sans ce repli,
+        // parseInt('') → NaN rend toutes les comparaisons ci-dessous fausses en permanence,
+        // ce qui bloque isMobile à false (focus-trap sidebar mort en mobile) et empêche la
+        // fermeture du menu mobile au resize. Valeurs alignées sur $breakpoints-down-px
+        // dans src/styles/utils/breakpoints.scss.
+        const mobileBreakpoint = Number.isNaN(parsedMobileBreakpoint) ? 639 : parsedMobileBreakpoint;
+        const drawerBreakpoint = Number.isNaN(parsedDrawerBreakpoint) ? 1149 : parsedDrawerBreakpoint;
 
         const handleResize = () => {
             const width = window.innerWidth;
