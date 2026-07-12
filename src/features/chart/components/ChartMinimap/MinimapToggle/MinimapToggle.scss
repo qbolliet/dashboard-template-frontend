@@ -68,7 +68,7 @@
   width: var(--chart-minimap-toggle-icon-size);
   height: var(--chart-minimap-toggle-icon-size);
   flex-shrink: 0;
-  // Chevron bas (ouvert) → haut (fermé), en transform CSS pur.
+  // Chevron haut (ouvert) → bas (fermé), en transform CSS pur.
   transition: transform var(--transition-fast);
 }
 .chart-minimap-toggle--closed .chart-minimap-toggle__chevron {

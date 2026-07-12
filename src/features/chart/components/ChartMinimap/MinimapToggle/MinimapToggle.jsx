@@ -44,8 +44,8 @@ const MinimapToggle = ({ open, direction = 'both', onToggle, style }) => {
       data-direction={direction}
       title={label}
     >
-      {/* Chevron mutualisé, pivoté en CSS (chevron bas → haut quand fermé). */}
-      <ChevronIcon direction="down" className="chart-minimap-toggle__chevron" />
+      {/* Chevron mutualisé, pivoté en CSS (chevron haut → bas quand fermé). */}
+      <ChevronIcon direction="up" className="chart-minimap-toggle__chevron" />
       <span className="chart-minimap-toggle__text">{label}</span>
     </button>
   );
