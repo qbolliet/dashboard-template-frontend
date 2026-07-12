@@ -22,6 +22,8 @@ const HANDLE_SIZE = 6;
  *
  * @param {object} props
  * @param {'x'|'y'} [props.direction='x'] - Brush axis.
+ * @param {string} [props.transform] - SVG transform applied to the root group: lets the
+ *   caller place the minimap in the chart frame without an extra wrapper <g>.
  * @param {number} props.width - Minimap width (px).
  * @param {number} props.height - Minimap height (px).
  * @param {object} props.scale - Position scale of the brushed axis (band for
@@ -41,7 +43,8 @@ const HANDLE_SIZE = 6;
  * @returns {JSX.Element}
  */
 const BrushMinimap = ({
-  direction = 'x', width, height, scale, selection, onChange, onPreview, content, onBrushingChange,
+  direction = 'x', transform, width, height, scale, selection, onChange, onPreview, content,
+  onBrushingChange,
 }) => {
   const isX = direction === 'x';
   // Échelle catégorielle (band) → pas d'`invert` ; sinon continue (linear/time).
@@ -200,7 +203,7 @@ const BrushMinimap = ({
     : { start: { y: initPx ? initPx[0] : 0 }, end: { y: initPx ? initPx[1] : height } };
 
   return (
-    <g className={`chart-minimap-brush chart-minimap-brush--${direction}`}>
+    <g transform={transform} className={`chart-minimap-brush chart-minimap-brush--${direction}`}>
       <defs>
         <clipPath id={clipId}>
           <rect x={0} y={0} width={Math.max(0, width)} height={Math.max(0, height)} />

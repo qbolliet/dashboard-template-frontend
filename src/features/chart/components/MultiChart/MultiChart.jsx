@@ -508,7 +508,7 @@ const MultiChartCanvas = ({
   // ── Contenu de la mini-vue (réplique miniature) ───────────────────────────
   const yMini = yScale.copy().range([miniH, 0]);
   const xMiniContent = (
-    <g>
+    <>
       {typedSets.slice().reverse().map((ds) => {
         const scales = scalesFor(ds);
         const ch = scales.channels;
@@ -531,7 +531,7 @@ const MultiChartCanvas = ({
             markerScale={scales.marker} hatchScale={scales.hatch} fill={ds.fill} stack={st} mini />
         );
       })}
-    </g>
+    </>
   );
 
   const clipId = 'mclip-' + useId().replace(/[^a-zA-Z0-9]/g, '');
@@ -567,7 +567,10 @@ const MultiChartCanvas = ({
                 déplacés par le transform de preview — la valeur JSX (base→committé)
                 est posée au début du geste puis réécrite par frame via
                 previewMarksRef ; .chart-zoom-content garde les traits à épaisseur
-                constante (vector-effect, cf. Chart.scss). */}
+                constante (vector-effect, cf. Chart.scss).
+                Les deux <g> sont indispensables : un clip-path est résolu dans le
+                repère de l'élément qui le référence, APRÈS son propre transform —
+                clip et transform sur le même <g> feraient zoomer la découpe. */}
             <g clipPath={`url(#${clipId})`}>
               <g
                 ref={previewMarksRef}
@@ -589,14 +592,16 @@ const MultiChartCanvas = ({
             )}
           </g>
 
+          {/* Mini-vue x — placée par la prop `transform` de BrushMinimap (posée sur son
+              <g> racine) */}
           {showXBrush && minimapOpen && (
-            <g transform={`translate(${margin.left}, ${margin.top + innerHeight + margin.bottom + 8})`}>
-              <BrushMinimap
-                direction="x" width={innerWidth} height={miniH} scale={baseXScale}
-                selection={xSel} onChange={commitXSel} onPreview={previewXSel}
-                content={xMiniContent} onBrushingChange={setIsBrushing}
-              />
-            </g>
+            <BrushMinimap
+              direction="x"
+              transform={`translate(${margin.left}, ${margin.top + innerHeight + margin.bottom + 8})`}
+              width={innerWidth} height={miniH} scale={baseXScale}
+              selection={xSel} onChange={commitXSel} onPreview={previewXSel}
+              content={xMiniContent} onBrushingChange={setIsBrushing}
+            />
           )}
         </svg>
 

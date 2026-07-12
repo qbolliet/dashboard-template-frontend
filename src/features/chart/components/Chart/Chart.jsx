@@ -780,13 +780,24 @@ const ChartCanvas = ({
               </clipPath>
             )}
           </defs>
-          {/* Pendant un geste de brush, les marks (rendus en coordonnées de BASE,
-              cf. mData/mScales) sont déplacés par le transform affine — la valeur
-              JSX (base→committé) est posée au début du geste puis réécrite par
-              frame par la preview impérative via previewMarksRef ; au relâchement
-              le re-rendu committé retire l'attribut. La classe .chart-zoom-content
-              garde les traits à épaisseur constante (vector-effect). */}
+          {/* Zone de tracé — UN SEUL groupe clippé (clipId) partagé par les trois
+              couches ci-dessous ; tout ce qui suit (survol direct, ActiveMark,
+              mini-vues) reste volontairement HORS de ce groupe, donc non clippé.
+              Le clip et le transform de preview NE PEUVENT PAS cohabiter sur le
+              même <g> : un clip-path (userSpaceOnUse) est résolu dans le repère de
+              l'élément qui le référence, APRÈS son propre transform — la fenêtre de
+              découpe zoomerait avec les marks. D'où, dans chaque couche, un <g>
+              dédié au transform, cible de la preview impérative (previewTargets de
+              useBrushZoom) : la valeur JSX (base→committé) est posée au début du
+              geste, réécrite par frame par setAttribute, puis reprise par le rendu
+              committé au relâchement. .chart-zoom-content garde les traits à
+              épaisseur constante (vector-effect). */}
           <g clipPath={`url(#${clipId})`}>
+            {/* Marks, rendus en coordonnées de BASE pendant le geste (cf. mData/mScales).
+                Le <g> intermédiaire porte le clip de feature (baClip) : deux clips ne
+                s'intersectent QU'EN imbriquant (les enfants d'un <clipPath> s'unissent).
+                Il est rendu même sans baClip (attribut undefined) pour garder la forme de
+                l'arbre — et donc le sous-arbre des marks — stable. */}
             <g clipPath={baClip ? `url(#${mainClipId})` : undefined}>
               <g
                 ref={previewMarksRef}
@@ -796,26 +807,22 @@ const ChartCanvas = ({
                 {marks}
               </g>
             </g>
-          </g>
 
-          {/* Couche ZOOM : densité (KDE 2-D) + survol (line/density) en coordonnées
-              de BASE, agrandis par transform (traits non-scaling-stroke). */}
-          {zoomLayer && (
-            <g clipPath={`url(#${clipId})`}>
+            {/* Couche ZOOM : densité (KDE 2-D) + survol (line/density) en coordonnées
+                de BASE, agrandis par transform (traits non-scaling-stroke). */}
+            {zoomLayer && (
               <g ref={previewZoomLayerRef} className="chart-zoom-content" transform={zoomTransform}>
                 {densityZoomMarks}
                 {baseHoverTargets.length > 0 && (voronoiOn
                   ? <VoronoiOverlay points={baseHoverTargets} innerWidth={innerWidth} innerHeight={innerHeight} onHover={(t) => handleHover(t, true)} />
                   : (tooltipsOn ? <DirectHoverOverlay targets={baseHoverTargets} onHover={(t) => handleHover(t, true)} /> : null))}
               </g>
-            </g>
-          )}
+            )}
 
-          {/* Overlays de features (IC, projection, normalisation) AU-DESSUS de la
-              couche zoom (la barre de normalisation passe devant les densités).
-              Pendant un geste de brush ils sont rendus en base (featureCtx) et
-              suivent la preview via le même transform que les marks. */}
-          <g clipPath={`url(#${clipId})`}>
+            {/* Overlays de features (IC, projection, normalisation) AU-DESSUS de la
+                couche zoom (la barre de normalisation passe devant les densités).
+                Pendant un geste de brush ils sont rendus en base (featureCtx) et
+                suivent la preview via le même transform que les marks. */}
             <g
               ref={previewOverlaysRef}
               className={isBrushing ? 'chart-zoom-content' : undefined}
@@ -838,27 +845,28 @@ const ChartCanvas = ({
             />
           )}
 
-          {/* Mini-vue y — à gauche du tracé (entre les ticks et le bord). */}
+          {/* Mini-vue y — à gauche du tracé (entre les ticks et le bord). Le placement
+              passe par la prop `transform` (posée sur le <g> racine de BrushMinimap). */}
           {showYMinimap && yMinimapOpen && (
-            <g transform={`translate(${-(yMinimapW + yMinimapGap)}, 0)`}>
-              <BrushMinimap
-                direction="y" width={yMinimapW} height={innerHeight}
-                scale={baseYScale} selection={ySel} onChange={setYSel} onPreview={previewYSel}
-                content={yMiniContent} onBrushingChange={setIsBrushing}
-              />
-            </g>
+            <BrushMinimap
+              direction="y" transform={`translate(${-(yMinimapW + yMinimapGap)}, 0)`}
+              width={yMinimapW} height={innerHeight}
+              scale={baseYScale} selection={ySel} onChange={setYSel} onPreview={previewYSel}
+              content={yMiniContent} onBrushingChange={setIsBrushing}
+            />
           )}
         </g>
 
-        {/* Mini-vue x — sous l'axe des abscisses. */}
+        {/* Mini-vue x — sous l'axe des abscisses (hors du groupe des marges : son
+            translate est exprimé dans le repère du <svg>). */}
         {showXMinimap && xMinimapOpen && (
-          <g transform={`translate(${margins.left}, ${margins.top + innerHeight + margins.bottom + 8})`}>
-            <BrushMinimap
-              direction="x" width={innerWidth} height={miniH}
-              scale={baseXScale} selection={xSel} onChange={setXSel} onPreview={previewXSel}
-              content={xMiniContent} onBrushingChange={setIsBrushing}
-            />
-          </g>
+          <BrushMinimap
+            direction="x"
+            transform={`translate(${margins.left}, ${margins.top + innerHeight + margins.bottom + 8})`}
+            width={innerWidth} height={miniH}
+            scale={baseXScale} selection={xSel} onChange={setXSel} onPreview={previewXSel}
+            content={xMiniContent} onBrushingChange={setIsBrushing}
+          />
         )}
       </svg>
 
