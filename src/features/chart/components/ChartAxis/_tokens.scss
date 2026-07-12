@@ -1,6 +1,6 @@
 // ===== TOKENS DIMENSIONNELS — ChartAxis (ChartAxisBottom + ChartAxisLeft) =====
 // Tokens MUTUALISÉS entre les deux axes. Le calcul géométrique (rotation -45°,
-// retour à la ligne, décalages de type labelOffset/tickPadX) reste porté par les
+// retour à la ligne, décalages de type labelOffset) reste porté par les
 // props JS des composants (cf. design-system/project/scripts/charts/axis.jsx) —
 // seule la taille de police, réellement stylistique, est exposée en token ici.
 

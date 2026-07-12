@@ -321,7 +321,7 @@ const ChartCanvas = ({
   // Calcul des dimensions du graphique.
   const {
     margins, innerWidth, innerHeight, yTickW,
-    svgH, showXMinimap, showYMinimap, miniH, yMinimapW, yMinimapGap, tickPadX, yToggleW,
+    svgH, showXMinimap, showYMinimap, miniH, yMinimapW, yMinimapX, yToggleW,
   } = useChartGeometry({
     chartKind, data, x, y, xType, yType, format, labels, maxLabelLength, maxLines,
     overlap, tickDensity, width, height, xMinimapOpen, yMinimapOpen,
@@ -763,7 +763,7 @@ const ChartCanvas = ({
             scale={yScale} type={yType} length={innerHeight} width={innerWidth}
             format={format.y} maxLabelLength={maxLabelLength.y} maxLines={maxLines.y || 2}
             overlap={overlap} tickDensity={tickDensity} label={labels.y}
-            tickPadX={tickPadX} labelOffset={yTickW + 10}
+            labelOffset={yTickW + 10}
           />
           <ChartAxisBottom
             scale={xScale} type={xType} length={innerWidth} height={innerHeight}
@@ -845,11 +845,12 @@ const ChartCanvas = ({
             />
           )}
 
-          {/* Mini-vue y — à gauche du tracé (entre les ticks et le bord). Le placement
-              passe par la prop `transform` (posée sur le <g> racine de BrushMinimap). */}
+          {/* Mini-vue y — à gauche du tracé.
+              Le placement passe par la prop `transform` (posée sur le <g> racine de
+              BrushMinimap). */}
           {showYMinimap && yMinimapOpen && (
             <BrushMinimap
-              direction="y" transform={`translate(${-(yMinimapW + yMinimapGap)}, 0)`}
+              direction="y" transform={`translate(${-yMinimapX}, 0)`}
               width={yMinimapW} height={innerHeight}
               scale={baseYScale} selection={ySel} onChange={setYSel} onPreview={previewYSel}
               content={yMiniContent} onBrushingChange={setIsBrushing}

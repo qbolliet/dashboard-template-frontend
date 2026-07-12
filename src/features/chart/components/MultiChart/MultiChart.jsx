@@ -553,7 +553,7 @@ const MultiChartCanvas = ({
           <g transform={`translate(${margin.left}, ${margin.top})`}>
             <ChartAxisLeft
               scale={yScale} type="number" length={innerHeight} width={innerWidth}
-              format={format.y} tickDensity={tickDensity} label={labels.y} tickPadX={0} labelOffset={yTickW + 4} />
+              format={format.y} tickDensity={tickDensity} label={labels.y} labelOffset={yTickW + 4} />
             {/* Axe x sur l'échelle COMMITTÉE : gelé pendant un geste de brush,
                 recalé au relâchement. */}
             <ChartAxisBottom

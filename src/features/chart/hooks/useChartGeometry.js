@@ -22,10 +22,11 @@ import { ticksFor, TICK_FONT_SIZE } from '../components/ChartAxis/tickHelpers';
  *
  * Réservation des mini-vues : la minimap x occupe une bande (miniH) sous l'axe,
  * et un pied de page (footerH) accueille la pastille de bascule ; la minimap y
- * s'insère à GAUCHE du tracé (entre les ticks et le bord), décalant les ticks de
- * `tickPadX` quand elle est ouverte (cf. ChartAxisLeft). Chaque axe se réserve
- * indépendamment selon son propre `xMinimapOpen`/`yMinimapOpen` (leur pied de
- * page/pastille reste néanmoins affiché, pour pouvoir rouvrir chaque mini-vue).
+ * s'insère à GAUCHE du tracé, APRÈS le nom d'axe (`yMinimapX`). Les deux axes ont
+ * ainsi le même ordre sortant : axe → ticks → nom d'axe → mini-vue → pastille.
+ * Chaque axe se réserve indépendamment selon son propre `xMinimapOpen`/`yMinimapOpen`
+ * (leur pied de page/pastille reste néanmoins affiché, pour pouvoir rouvrir chaque
+ * mini-vue).
  *
  * @param {object} params
  * @param {string} params.chartKind - Detected chart kind (drives band padding).
@@ -47,8 +48,8 @@ import { ticksFor, TICK_FONT_SIZE } from '../components/ChartAxis/tickHelpers';
  * @returns {{ margins: {top:number,right:number,bottom:number,left:number},
  *   innerWidth: number, innerHeight: number, yTickW: number, xAxisH: number,
  *   svgH: number, showXMinimap: boolean, showYMinimap: boolean, miniH: number,
- *   minimapXH: number, footerH: number, yMinimapW: number, yMinimapGap: number,
- *   tickPadX: number, yToggleW: number }}
+ *   minimapXH: number, footerH: number, yMinimapW: number, yMinimapX: number,
+ *   yToggleW: number }}
  */
 export function useChartGeometry({
   chartKind, data, x, y, xType, yType,
@@ -85,11 +86,14 @@ export function useChartGeometry({
   const yLabelGap = labels.y ? 8 : 0;
 
   // ── Gouttière de la mini-vue y (réservée seulement quand ouverte) ─────────
-  // Plus large pour le barchart horizontal (axe valeur miniature). `tickPadX`
-  // décale les ticks de l'axe gauche pour dégager cette gouttière.
+  // Plus large pour le barchart horizontal (axe valeur miniature). Elle s'insère
+  // APRÈS le nom d'axe — même ordre sortant que sur l'axe des abscisses (ticks →
+  // nom d'axe → mini-vue → pastille) : `yMinimapX` est la distance entre l'axe et
+  // son bord GAUCHE (cf. le transform de <BrushMinimap> dans Chart).
   const yMinimapW = showYMinimap ? (isBarH ? 48 : 38) : 0;
   const yMinimapGap = showYMinimap ? 10 : 0;
-  const tickPadX = (showYMinimap && yMinimapOpen) ? (yMinimapW + yMinimapGap) : 0;
+  const yMinimapBand = (showYMinimap && yMinimapOpen) ? (yMinimapW + yMinimapGap) : 0;
+  const yMinimapX = yTickW + yTickGap + yLabelW + yLabelGap + yMinimapBand;
 
   // ── Gouttière de la pastille de bascule y (pendant gauche de footerH) ─────
   // Bande tout à gauche du tracé accueillant la pastille pivotée, réservée dès
@@ -99,7 +103,7 @@ export function useChartGeometry({
 
   const marginTop = 16;
   const marginRight = 28;
-  const marginLeft = yToggleW + tickPadX + yTickW + yTickGap + yLabelW + yLabelGap;
+  const marginLeft = yToggleW + yMinimapX;
   const innerWidth = Math.max(40, width - marginLeft - marginRight);
 
   // ── Hauteur réelle de l'axe x (ticks + nom d'axe) ─────────────────────────
@@ -150,6 +154,6 @@ export function useChartGeometry({
   return {
     margins, innerWidth, innerHeight, yTickW, xAxisH,
     svgH, showXMinimap, showYMinimap, miniH, minimapXH, footerH,
-    yMinimapW, yMinimapGap, tickPadX, yToggleW,
+    yMinimapW, yMinimapX, yToggleW,
   };
 }

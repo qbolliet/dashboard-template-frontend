@@ -22,8 +22,9 @@ const SEP = String.fromCharCode(31);
  * axis, categorical overlap only chooses between ellipsis and multiline wrap (no
  * rotation), plus an independent density-based skip when the tick pitch is tight.
  * The tick stub and label are rendered entirely by hand (visx's own tick line is
- * hidden) so they can be shifted left by `tickPadX`, leaving room for an overlay
- * drawn between the ticks and the chart edge (e.g. the y-minimap).
+ * hidden). Ticks then axis name are laid out tight against the axis, in the same
+ * outward order as the bottom axis; anything else (e.g. the y-minimap) is drawn
+ * beyond the axis name by the caller.
  *
  * @param {object} props
  * @param {object} props.scale - visx/d3 scale (band for categorical, linear/time otherwise).
@@ -37,15 +38,14 @@ const SEP = String.fromCharCode(31);
  * @param {'auto'|'multiline'|'skip'} [props.overlap='auto'] - Anti-overlap strategy.
  * @param {'sparse'|'normal'|'dense'} [props.tickDensity='normal'] - Tick count preset.
  * @param {boolean} [props.showGrid=true] - Renders the horizontal grid lines.
- * @param {number} [props.tickPadX=0] - Left offset applied to the tick stub and label.
- * @param {number} [props.labelOffset=50] - Distance between the tick labels and the
+ * @param {number} [props.labelOffset=50] - Distance between the axis and the
  *   rotated axis label.
  * @returns {JSX.Element}
  */
 const ChartAxisLeft = ({
   scale, type, length, width, format, label,
   maxLabelLength, maxLines = 2, overlap = 'auto', tickDensity = 'normal', showGrid = true,
-  tickPadX = 0, labelOffset = 50,
+  labelOffset = 50,
 }) => {
   // Résolution du format
   const fmt = resolveFormatter(format, type, type === 'date' ? scale.domain() : null);
@@ -81,11 +81,12 @@ const ChartAxisLeft = ({
     }
   }
 
-  // Timbre + texte décalés de tickPadX vers la gauche (place réservée à un
-  // élément superposé entre eux et le bord du graphique, ex. la minimap y).
-  const tickTextX = -tickPadX - 6;
-  const stubFar = -tickPadX - 4;
-  const stubNear = -tickPadX;
+  // Timbre + texte collés à l'axe (comme sur l'axe des abscisses) : la gouttière
+  // d'un éventuel élément superposé (ex. la minimap y) est réservée PLUS LOIN, au-delà
+  // du nom d'axe, par l'appelant.
+  const tickTextX = -6;
+  const stubFar = -4;
+  const stubNear = 0;
 
   // Encodage du mode de rendu (multi-lignes / à plat) et du contenu du tick
   // dans la chaîne unique transmise par visx (cf. SEP ci-dessus).
@@ -93,8 +94,7 @@ const ChartAxisLeft = ({
     ? `M${SEP}${formatted[index].join(SEP)}`
     : `P${SEP}${formatted[index]}`);
 
-  // Décodage du mode et rendu du talon + libellé (simple ou réparti en tspans),
-  // décalés de tickPadX vers la gauche.
+  // Décodage du mode et rendu du talon + libellé (simple ou réparti en tspans).
   const tickComponent = ({ y, formattedValue }) => {
     const [mode, ...rest] = (formattedValue ?? '').split(SEP);
     return (
@@ -137,7 +137,7 @@ const ChartAxisLeft = ({
       {label && (
         <text
           className="chart-axis-label"
-          transform={`translate(${-(tickPadX + labelOffset)}, ${length / 2}) rotate(-90)`}
+          transform={`translate(${-labelOffset}, ${length / 2}) rotate(-90)`}
           textAnchor="middle">
           {label}
         </text>
