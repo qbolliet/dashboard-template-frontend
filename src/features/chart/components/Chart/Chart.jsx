@@ -314,17 +314,24 @@ const ChartCanvas = ({
   ciFeature, baFeature, normFactor, channelAssign, baReal,
   expanded, setExpanded, voronoiOn, setVoronoiOn, tooltipsOn, setTooltipsOn,
 }) => {
-  // Ouverture des mini-vues, indépendante par axe (persiste tant que la largeur reste > 0).
-  const [xMinimapOpen, setXMinimapOpen] = useState(initialMinimapOpen);
-  const [yMinimapOpen, setYMinimapOpen] = useState(initialMinimapOpen);
+  // ── Deux niveaux d'état, DISSOCIÉS (persistent tant que la largeur reste > 0) ──
+  // `minimapsVisible` — interrupteur maître de la barre d'outils : affiche/masque
+  // les mini-vues ET leurs pastilles (rien n'est alors réservé en géométrie).
+  // `xMinimapOpen`/`yMinimapOpen` — pastilles : replient la seule bande de leur
+  // axe ; la pastille, elle, reste visible pour pouvoir la redéplier.
+  const [minimapsVisible, setMinimapsVisible] = useState(initialMinimapOpen);
+  const [xMinimapOpen, setXMinimapOpen] = useState(true);
+  const [yMinimapOpen, setYMinimapOpen] = useState(true);
 
-  // Calcul des dimensions du graphique.
+  // Calcul des dimensions du graphique. `showXMinimap`/`showYMinimap` intègrent
+  // déjà l'interrupteur maître (mini-vue applicable ET visible).
   const {
     margins, innerWidth, innerHeight, yTickW,
-    svgH, showXMinimap, showYMinimap, miniH, yMinimapW, yMinimapX, yToggleW,
+    svgH, showXMinimap, showYMinimap, miniH, xMinimapY, xToggleY,
+    yMinimapW, yMinimapX, yToggleW,
   } = useChartGeometry({
     chartKind, data, x, y, xType, yType, format, labels, maxLabelLength, maxLines,
-    overlap, tickDensity, width, height, xMinimapOpen, yMinimapOpen,
+    overlap, tickDensity, width, height, minimapsVisible, xMinimapOpen, yMinimapOpen,
   });
 
   const svgRef = useRef(null);
@@ -542,17 +549,13 @@ const ChartCanvas = ({
   ));
 
   // Boutons supplémentaires de la barre d'outils (features + mini-vues). Le bouton
-  // « mini-vues » agit en interrupteur maître : allumé si un axe au moins est
-  // ouvert, et bascule les deux axes ensemble au même nouvel état.
-  const minimapsOn = xMinimapOpen || yMinimapOpen;
+  // « mini-vues » n'agit QUE sur la visibilité de l'ensemble (mini-vues +
+  // pastilles) : le pli de chaque axe est la seule affaire de sa pastille, et il
+  // est conservé d'un masquage à l'autre.
   const extraTools = tools.map((t) => (t.isMinimaps
     ? {
-        id: t.id, icon: t.icon, label: t.label, on: minimapsOn,
-        onToggle: () => {
-          const next = !minimapsOn;
-          setXMinimapOpen(next);
-          setYMinimapOpen(next);
-        },
+        id: t.id, icon: t.icon, label: t.label, on: minimapsVisible,
+        onToggle: () => setMinimapsVisible((v) => !v),
       }
     : { id: t.id, icon: t.icon, label: t.label, on: !!featOn[t.id], onToggle: () => toggleFeature(t.id) }));
 
@@ -863,7 +866,7 @@ const ChartCanvas = ({
         {showXMinimap && xMinimapOpen && (
           <BrushMinimap
             direction="x"
-            transform={`translate(${margins.left}, ${margins.top + innerHeight + margins.bottom + 8})`}
+            transform={`translate(${margins.left}, ${xMinimapY})`}
             width={innerWidth} height={miniH}
             scale={baseXScale} selection={xSel} onChange={setXSel} onPreview={previewXSel}
             content={xMiniContent} onBrushingChange={setIsBrushing}
@@ -871,28 +874,32 @@ const ChartCanvas = ({
         )}
       </svg>
 
-      {/* Pastilles de bascule des mini-vues (une par axe applicable, indépendantes).
+      {/* Pastilles de pli des mini-vues (une par axe applicable, indépendantes ; ne
+          replient QUE leur bande, sans jamais se masquer elles-mêmes — c'est le rôle
+          du bouton « mini-vues » de la barre d'outils, via `minimapsVisible`, déjà
+          intégré à showXMinimap/showYMinimap).
           Chacune est ALIGNÉE sur le titre de son axe : seul le point d'ancrage
           (issu de la géométrie, connue ici en JS) est posé en inline ; le centrage
           effectif — y compris celui de la pastille y pivotée — est fait en CSS pur
           par MinimapToggle.scss (transform d'ancrage, sans mesure du bouton).
             • x : centre du titre d'axe x (margins.left + innerWidth/2, PAS 50 % du
-              body : ses marges gauche/droite sont asymétriques), juste sous le svg ;
+              body : ses marges gauche/droite sont asymétriques), `xToggleY` px sous
+              le haut du svg (= bas de la mini-vue + TOGGLE_GAP) ;
             • y : centre de la gouttière yToggleW (réservée par useChartGeometry à
-              gauche du titre d'axe y), centré sur la hauteur du tracé
-              (margins.top + innerHeight/2) comme le titre. */}
-      {showXMinimap && minimapsOn && (
+              gauche du titre d'axe y, au même TOGGLE_GAP de la mini-vue), centré sur
+              la hauteur du tracé (margins.top + innerHeight/2) comme le titre. */}
+      {showXMinimap && (
         <MinimapToggle
           open={xMinimapOpen}
           direction="x"
           onToggle={() => setXMinimapOpen((o) => !o)}
           style={{
             left: margins.left + innerWidth / 2,
-            top: `calc(${svgH}px + var(--chart-minimap-toggle-offset))`,
+            top: xToggleY,
           }}
         />
       )}
-      {showYMinimap && minimapsOn && (
+      {showYMinimap && (
         <MinimapToggle
           open={yMinimapOpen}
           direction="y"

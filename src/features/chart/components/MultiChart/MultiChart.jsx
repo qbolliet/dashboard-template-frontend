@@ -62,6 +62,12 @@ import './MultiChart.scss';
 // toute collision entre « colA + valB » et « colAB + valeur ».
 const NUL = String.fromCharCode(0);
 
+// Écart mini-vue ↔ pastille de bascule, et débord des poignées du brush au-delà de
+// la bande (miroirs de TOGGLE_GAP / BRUSH_OVERSHOOT dans useChartGeometry, dont
+// <MultiChart> n'utilise pas la géométrie : ses marges lui sont propres).
+const TOGGLE_GAP = 3;
+const BRUSH_OVERSHOOT = 3;
+
 // Un jeu se dessine en barres si on force x discret (categorical-x) ou si l'axe
 // x est NATURELLEMENT catégoriel.
 function isBarLike(ds, xTypeAxis) {
@@ -305,11 +311,22 @@ const MultiChartCanvas = ({
   const xAxisH = computeXAxisHeight({ allRows, x, xType, xTypeAxis, innerWidth, format, tickDensity, overlap, maxLines, labels });
 
   const minimapH = 44;
-  const svgH = outerHeight;
-  const minimapXH = (showXBrush && minimapOpen) ? minimapH : 0;
+  // Pied de page (hors SVG) accueillant la pastille de pli, réservé dès que la
+  // mini-vue est applicable — même repliée, la pastille reste affichée (cf.
+  // `footerH` de useChartGeometry).
+  const footerH = showXBrush ? 24 : 0;
+  const svgH = Math.max(160, outerHeight - footerH);
+  const xOpen = showXBrush && minimapOpen;
+  const minimapXH = xOpen ? minimapH : 0;
   const miniH = minimapH - 6;
   const innerHeight = Math.max(120, svgH - marginTop - xAxisH - minimapXH - 8);
   const margin = { top: marginTop, right: marginRight, bottom: xAxisH, left: marginLeft };
+
+  // Ancrages de la mini-vue x et de sa pastille (même règle que useChartGeometry :
+  // la pastille suit le BAS de la mini-vue dépliée, celui de l'axe sinon, à
+  // TOGGLE_GAP px).
+  const xMinimapY = marginTop + innerHeight + xAxisH + 8;
+  const xToggleY = xMinimapY + (xOpen ? miniH + BRUSH_OVERSHOOT : 0) + TOGGLE_GAP;
 
   // ── Échelle x de base (domaine complet) ───────────────────────────────────
   let baseXScale;
@@ -597,7 +614,7 @@ const MultiChartCanvas = ({
           {showXBrush && minimapOpen && (
             <BrushMinimap
               direction="x"
-              transform={`translate(${margin.left}, ${margin.top + innerHeight + margin.bottom + 8})`}
+              transform={`translate(${margin.left}, ${xMinimapY})`}
               width={innerWidth} height={miniH} scale={baseXScale}
               selection={xSel} onChange={commitXSel} onPreview={previewXSel}
               content={xMiniContent} onBrushingChange={setIsBrushing}
@@ -605,9 +622,9 @@ const MultiChartCanvas = ({
           )}
         </svg>
 
-        {/* Pastille de bascule, ancrée sur le centre du titre de l'axe x (PAS 50 %
-            du body, aux marges asymétriques) juste sous le svg — le centrage
-            effectif est fait en CSS par MinimapToggle.scss (cf. Chart.jsx). */}
+        {/* Pastille de pli, ancrée sur le centre du titre de l'axe x (PAS 50 % du
+            body, aux marges asymétriques), à TOGGLE_GAP px sous la mini-vue — le
+            centrage effectif est fait en CSS par MinimapToggle.scss (cf. Chart.jsx). */}
         {showXBrush && (
           <MinimapToggle
             open={minimapOpen}
@@ -615,7 +632,7 @@ const MultiChartCanvas = ({
             onToggle={() => setMinimapOpen((o) => !o)}
             style={{
               left: margin.left + innerWidth / 2,
-              top: `calc(${svgH}px + var(--chart-minimap-toggle-offset))`,
+              top: xToggleY,
             }}
           />
         )}

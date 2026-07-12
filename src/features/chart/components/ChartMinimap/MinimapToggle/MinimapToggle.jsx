@@ -1,26 +1,28 @@
 // =================================================================
-// MinimapToggle — pastille chevron d'ouverture/fermeture des mini-vues
+// MinimapToggle — pastille chevron de pli/dépli d'une mini-vue
 // =================================================================
 // Bouton flottant ancré sur le titre d'axe correspondant (apparaît au survol
-// quand ouvert, reste visible quand fermé). Le chevron pivote de 180° en CSS pur
-// (transform) selon l'état — transposé de .ca-minimap-toggle du prototype.
+// quand la mini-vue est dépliée, reste visible quand elle est repliée). Il ne fait
+// QUE plier/déplier la bande de son axe : masquer les mini-vues (pastilles
+// comprises) est le rôle du bouton « mini-vues » de la barre d'outils. Le chevron
+// pivote de 180° en CSS pur (transform) selon l'état.
 
 // Importation des modules
 import { ChevronIcon } from '@/components/icons';
 import './MinimapToggle.scss';
 
 /**
- * Open/close toggle for the brush minimaps.
+ * Collapse/expand toggle for one axis' brush minimap.
  *
  * Positionnement 100 % CSS : le parent fournit via `style` le point d'ancrage
  * (`left`/`top`, calculés depuis la géométrie du tracé), et la feuille de style
  * y ancre la boîte par `transform` — haut-centre pour `direction="x"`, centre
  * exact puis rotation -90° pour `direction="y"`. Le centre étant invariant par
  * rotation, la position affichée ne dépend pas de la largeur du texte
- * (« Réduire »/« Afficher ») : aucune mesure JS n'est nécessaire.
+ * (« Replier »/« Déplier ») : aucune mesure JS n'est nécessaire.
  *
  * @param {object} props
- * @param {boolean} props.open - Whether the minimaps are currently shown.
+ * @param {boolean} props.open - Whether the axis' minimap band is expanded.
  * @param {'x'|'y'|'both'} [props.direction='both'] - Which minimap(s) it controls.
  * @param {Function} props.onToggle - Toggle callback.
  * @param {object} [props.style] - Inline anchor point, relative to the positioned
@@ -29,7 +31,7 @@ import './MinimapToggle.scss';
  * @returns {JSX.Element}
  */
 const MinimapToggle = ({ open, direction = 'both', onToggle, style }) => {
-  const label = open ? 'Réduire la mini-vue' : 'Afficher la mini-vue';
+  const label = open ? 'Replier la mini-vue' : 'Déplier la mini-vue';
 
   return (
     <button

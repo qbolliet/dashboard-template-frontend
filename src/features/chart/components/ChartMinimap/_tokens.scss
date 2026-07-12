@@ -7,13 +7,19 @@
 // <Chart>, elles ne sont pas exposées en CSS (un <svg> ne se dimensionne pas
 // par la cascade). Seule la pastille chevron (chrome DOM, hors SVG) a des
 // tokens dimensionnels CSS ci-dessous.
+//
+// ⚠️ Son ANCRAGE (point left/top posé en style inline par Chart/MultiChart) reste
+// lui aussi en JS : il découle de la géométrie SVG (bas de la mini-vue x, gouttière
+// yToggleW) et de l'écart TOGGLE_GAP défini dans useChartGeometry.js.
 
 :root {
-  // ── Pastille chevron d'ouverture/fermeture ─────────────────────────────
+  // ── Pastille chevron de pli/dépli ──────────────────────────────────────
+  // ⚠️ L'épaisseur de la pastille (padding + bordure + icône ≈ 18px) est reprise
+  // en dur dans le calcul de `yToggleW` (useChartGeometry.js) : la faire varier ici
+  // impose de l'y répercuter.
   --chart-minimap-toggle-font-size: 0.65625rem;  // 10.5px
   --chart-minimap-toggle-radius: 999px;
   --chart-minimap-toggle-icon-size: 0.6875rem;   // 11px
   --chart-minimap-toggle-gap: var(--spacing-xs); // 4px
   --chart-minimap-toggle-pad-y: var(--spacing-2px); // 2px
-  --chart-minimap-toggle-offset: var(--spacing-xs); // 4px — depuis le bas du corps
 }

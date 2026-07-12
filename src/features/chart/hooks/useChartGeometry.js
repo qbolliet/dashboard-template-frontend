@@ -14,6 +14,17 @@ import { resolveFormatter } from '../utils/formatters';
 import { makeScale } from '../utils/scales';
 import { ticksFor, TICK_FONT_SIZE } from '../components/ChartAxis/tickHelpers';
 
+// ── Écart mini-vue ↔ pastille de bascule, IDENTIQUE sur les deux axes ─────
+// TOGGLE_GAP : l'écart voulu. BRUSH_OVERSHOOT : les poignées de @visx/brush
+// débordent de HANDLE_SIZE/2 de part et d'autre de la bande (cf. BrushMinimap) —
+// c'est ce débord, et non la bande nominale, que l'œil voit comme son bord.
+// TOGGLE_THICKNESS : épaisseur de la pastille (≈ 16,3 px mesurés ; majorée, une
+// sur-estimation ne fait qu'élargir légèrement l'écart) — elle dépend des tokens
+// de ChartMinimap/_tokens.scss.
+const TOGGLE_GAP = 3;
+const BRUSH_OVERSHOOT = 3;
+const TOGGLE_THICKNESS = 17;
+
 /**
  * Computes the adaptive plot geometry of a chart: outward-composed left margin
  * (measured categorical tick width + optional axis label + optional y-minimap
@@ -24,9 +35,14 @@ import { ticksFor, TICK_FONT_SIZE } from '../components/ChartAxis/tickHelpers';
  * et un pied de page (footerH) accueille la pastille de bascule ; la minimap y
  * s'insère à GAUCHE du tracé, APRÈS le nom d'axe (`yMinimapX`). Les deux axes ont
  * ainsi le même ordre sortant : axe → ticks → nom d'axe → mini-vue → pastille.
- * Chaque axe se réserve indépendamment selon son propre `xMinimapOpen`/`yMinimapOpen`
- * (leur pied de page/pastille reste néanmoins affiché, pour pouvoir rouvrir chaque
- * mini-vue).
+ *
+ * DEUX niveaux d'état, volontairement dissociés :
+ *   • `minimapsVisible` (interrupteur maître de la barre d'outils) — à faux, RIEN
+ *     n'est réservé : ni bande, ni pied de page, ni gouttière de pastille
+ *     (`showXMinimap`/`showYMinimap` retombent à faux) ;
+ *   • `xMinimapOpen`/`yMinimapOpen` (pastilles) — replient la BANDE de leur axe,
+ *     mais la pastille (et donc son pied de page / sa gouttière) reste réservée,
+ *     pour pouvoir redéplier la mini-vue.
  *
  * @param {object} params
  * @param {string} params.chartKind - Detected chart kind (drives band padding).
@@ -43,29 +59,33 @@ import { ticksFor, TICK_FONT_SIZE } from '../components/ChartAxis/tickHelpers';
  * @param {'sparse'|'normal'|'dense'} [params.tickDensity='normal'] - Tick density preset.
  * @param {number} params.width - Available outer width (px, from ParentSize).
  * @param {number} params.height - Outer SVG height (px).
- * @param {boolean} [params.xMinimapOpen=true] - Whether the x-axis brush minimap is shown.
- * @param {boolean} [params.yMinimapOpen=true] - Whether the y-axis brush minimap is shown.
+ * @param {boolean} [params.minimapsVisible=true] - Master switch (toolbar): minimaps
+ *   AND their toggles. When false, nothing is reserved for them.
+ * @param {boolean} [params.xMinimapOpen=true] - Whether the x-axis minimap band is expanded.
+ * @param {boolean} [params.yMinimapOpen=true] - Whether the y-axis minimap band is expanded.
  * @returns {{ margins: {top:number,right:number,bottom:number,left:number},
  *   innerWidth: number, innerHeight: number, yTickW: number, xAxisH: number,
  *   svgH: number, showXMinimap: boolean, showYMinimap: boolean, miniH: number,
- *   minimapXH: number, footerH: number, yMinimapW: number, yMinimapX: number,
- *   yToggleW: number }}
+ *   minimapXH: number, footerH: number, xMinimapY: number, xToggleY: number,
+ *   yMinimapW: number, yMinimapX: number, yToggleW: number }}
  */
 export function useChartGeometry({
   chartKind, data, x, y, xType, yType,
   format = {}, labels = {}, maxLabelLength = {}, maxLines = {},
   overlap = 'auto', tickDensity = 'normal', width, height,
-  xMinimapOpen = true, yMinimapOpen = true,
+  minimapsVisible = true, xMinimapOpen = true, yMinimapOpen = true,
 }) {
   // ── Mini-vues applicables selon le type de graphique ──────────────────────
+  // (× l'interrupteur maître : masquées, elles ne réservent plus rien.)
   const isBarH = chartKind === 'bar-h';
   const isViolin = chartKind === 'violin-v' || chartKind === 'violin-h';
   const has2DBrush = chartKind === 'heatmap' || chartKind === 'density';
   // Minimap x : sous l'axe des abscisses (la plupart des graphiques, sauf bar-h
   // dont l'axe des valeurs est horizontal).
-  const showXMinimap = ['line', 'bar', 'heatmap', 'density', 'violin-v', 'violin-h'].includes(chartKind);
+  const showXMinimap = minimapsVisible
+    && ['line', 'bar', 'heatmap', 'density', 'violin-v', 'violin-h'].includes(chartKind);
   // Minimap y : le long de l'axe des ORDONNÉES (2-D, barchart horizontal, violons).
-  const showYMinimap = has2DBrush || isBarH || isViolin;
+  const showYMinimap = minimapsVisible && (has2DBrush || isBarH || isViolin);
 
   // ── Largeur réservée aux ticks d'ordonnée (catégoriel : mesuré ; sinon fixe) ──
   let yTickW = 44;
@@ -97,9 +117,12 @@ export function useChartGeometry({
 
   // ── Gouttière de la pastille de bascule y (pendant gauche de footerH) ─────
   // Bande tout à gauche du tracé accueillant la pastille pivotée, réservée dès
-  // que la minimap y est applicable, même fermée (pour pouvoir la rouvrir) —
+  // que la minimap y est applicable, même repliée (pour pouvoir la redéplier) —
   // sans elle la pastille déborderait dans le padding du chart-frame.
-  const yToggleW = showYMinimap ? 24 : 0;
+  // Largeur = épaisseur de la pastille pivotée + 2 × (débord des poignées + écart) :
+  // la pastille étant CENTRÉE dans la gouttière, son bord droit tombe alors à
+  // TOGGLE_GAP du bord visible de la mini-vue — même écart que sur l'axe x.
+  const yToggleW = showYMinimap ? TOGGLE_THICKNESS + 2 * (BRUSH_OVERSHOOT + TOGGLE_GAP) : 0;
 
   const marginTop = 16;
   const marginRight = 28;
@@ -140,20 +163,28 @@ export function useChartGeometry({
 
   // ── Bandes réservées aux mini-vues (dans la hauteur du SVG) ───────────────
   // footerH : pied de page hors SVG accueillant la pastille de bascule (réservé
-  // dès que la minimap x est applicable, même fermée, pour rouvrir la mini-vue).
-  // minimapH : bande de la mini-vue x (visible seulement quand ouverte) ; miniH
+  // dès que la minimap x est applicable, même repliée, pour la redéplier).
+  // minimapH : bande de la mini-vue x (visible seulement quand dépliée) ; miniH
   // en est la hauteur utile (le brush garde une marge visuelle). Le SVG lui-même
   // est réduit du footer, et le tracé de la bande x + d'un léger espace.
   const footerH = showXMinimap ? 24 : 0;
   const minimapH = 44;
   const miniH = minimapH - 6;               // hauteur utile du contenu miniature
   const svgH = Math.max(160, height - footerH);
-  const minimapXH = (showXMinimap && xMinimapOpen) ? minimapH : 0;
+  const xOpen = showXMinimap && xMinimapOpen;
+  const minimapXH = xOpen ? minimapH : 0;
   const innerHeight = Math.max(120, svgH - marginTop - xAxisH - minimapXH - 8);
+
+  // Ancrages de la mini-vue x et de sa pastille (repère du SVG = repère du corps
+  // du graphique, qui commence au même point) : la pastille suit le bord VISIBLE
+  // (bande + débord des poignées) du bas de la mini-vue dépliée, celui de l'axe
+  // sinon — toujours à TOGGLE_GAP, comme la pastille y dans sa gouttière.
+  const xMinimapY = marginTop + innerHeight + xAxisH + 8;
+  const xToggleY = xMinimapY + (xOpen ? miniH + BRUSH_OVERSHOOT : 0) + TOGGLE_GAP;
 
   return {
     margins, innerWidth, innerHeight, yTickW, xAxisH,
     svgH, showXMinimap, showYMinimap, miniH, minimapXH, footerH,
-    yMinimapW, yMinimapX, yToggleW,
+    xMinimapY, xToggleY, yMinimapW, yMinimapX, yToggleW,
   };
 }
