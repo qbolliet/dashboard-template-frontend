@@ -67,16 +67,27 @@ import './Chart.scss';
    Types rares et/ou lourds : sortis du bundle initial via next/dynamic (chemins
    littéraux, analysables par le bundler). Ils ne sont téléchargés qu'à l'affichage
    effectif du type correspondant.
-     • DensityMarks → d3-geo + d3-interpolate + d3-contour (KDE 2-D)
-     • ViolinMarks  → d3-contour (KDE Epanechnikov)
-     • HeatmapMarks → léger, mais type rare (uniformise le traitement)
-     • MultiChart   → utile seulement sur la branche isDatasetList(data)
-   ssr: false + fallback null : le squelette (axes/légende) est déjà rendu pendant
-   les quelques dizaines de ms de chargement. */
-const MultiChart = dynamic(() => import('../MultiChart/MultiChart'), { ssr: false });
+
+   • HeatmapMarks / DensityMarks / ViolinMarks — seules les MARKS sont
+     paresseuses ici : <Chart> a déjà rendu le cadre, les axes, la légende et la
+     barre d'outils avant même de choisir le renderer de marks. ssr: false +
+     fallback null est donc sans risque de trou : ce qui est visible pendant les
+     quelques dizaines de ms de chargement du chunk EST déjà le graphique
+     (squelette axes/légende), il ne manque que le tracé.
+       - DensityMarks → d3-geo + d3-interpolate + d3-contour (KDE 2-D)
+       - ViolinMarks  → d3-contour (KDE Epanechnikov)
+       - HeatmapMarks → léger, mais type rare (uniformise le traitement)
+
+   • MultiChart — cas différent : sur la branche isDatasetList(data), <Chart>
+     délègue TOUT (cadre, axes, légende, barre d'outils) à <MultiChart>, qui EST
+     le graphique entier. <MultiChart> réutilise les
+     mêmes briques déjà SSR-safe que le reste de <Chart> (ChartAxisBottom/Left,
+     LineMarks, overlays de survol — toutes rendues côté serveur sur la branche
+     non-liste). */
 const HeatmapMarks = dynamic(() => import('../marks/HeatmapMarks/HeatmapMarks'), { ssr: false });
 const DensityMarks = dynamic(() => import('../marks/DensityMarks/DensityMarks'), { ssr: false });
 const ViolinMarks = dynamic(() => import('../marks/ViolinMarks/ViolinMarks'), { ssr: false });
+const MultiChart = dynamic(() => import('../MultiChart/MultiChart'));
 
 /* ────────────────────────── Cibles de survol (coordonnées de BASE) ────────
    Pour line / density, les centroïdes sont calculés UNE fois sur les données
