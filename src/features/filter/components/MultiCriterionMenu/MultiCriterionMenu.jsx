@@ -279,14 +279,31 @@ const MultiCriterionMenu = ({
     stateRef.current = { criteria, connectors };
   });
 
-  // Émissions NON-utilisateur : montage (valeur initiale) + resets de configuration
-  // (figeage / maxCriteria). lockSig et maxCriteria NE changent PAS à la frappe → aucune
-  // émission par caractère ici ; les frappes passent par les handlers (event-driven).
+  // Signature de CONFIGURATION : change dès qu'une prop non-utilisateur modifie la sortie
+  // de l'émission. Sert de dépendance UNIQUE à l'effet d'émission ci-dessous.
+  //
+  // RÈGLE (à respecter pour tout ajout futur) : toute prop lue par `buildStructure()` —
+  // directement ou via une valeur dérivée d'elle — DOIT figurer ici. Sans quoi son
+  // changement réécrit silencieusement la structure sans jamais l'émettre, et le parent
+  // conserve un tree/serial périmé alors que l'UI, elle, a déjà changé.
+  // Aujourd'hui : `parentheses` (force les crochets à false) et `defaultConn` (issu de
+  // `connectorOptions`, comble les connecteurs manquants). S'y ajoutent les deux
+  // déclencheurs de RESET d'état — lockSig (figeage) et maxCriteria (troncature) — dont
+  // la structure reconstruite doit elle aussi remonter. Les préfixes (`max:`, `par:`…)
+  // évitent qu'une combinaison de valeurs différente produise la même concaténation.
+  const configSig = `${lockSig}|max:${maxCriteria}|par:${parentheses}|conn:${defaultConn}`;
+
+  // Émissions NON-utilisateur : montage (valeur initiale), resets de configuration
+  // (figeage / maxCriteria) et changements de props qui réécrivent la structure sans
+  // action utilisateur (parentheses / connectorOptions). `configSig` NE change PAS à la
+  // frappe → aucune émission par caractère ici ; les frappes passent par les handlers
+  // (event-driven). `emit` et `buildStructure` sont volontairement hors deps : c'est tout
+  // le principe — on n'émet que sur un changement de configuration, jamais sur l'état.
   useEffect(() => {
     const { criteria: crit, connectors: conns } = stateRef.current;
     emit.callNow(buildStructure(crit, conns));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lockSig, maxCriteria]);
+  }, [configSig]);
 
   // ── Rendu ──
   const showAddButton = !lockedVars && addMode === 'button' && !atMax;

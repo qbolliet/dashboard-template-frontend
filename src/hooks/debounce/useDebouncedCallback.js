@@ -16,6 +16,9 @@ import { useEffect, useRef, useState } from 'react';
  *   - `callNow(...args)`: invoke immediately and drop any pending debounced call.
  *   - `flush()`: if a debounced call is pending, invoke it now with its last args.
  *   - `cancel()`: drop any pending debounced call without invoking it.
+ *
+ * Any pending debounced call is cancelled on unmount: committing a settled value is the
+ * consumer's job (typically on blur), not the cleanup's.
  */
 export function useDebouncedCallback(callback, delay = 300) {
   // Dernière closure/délai, gardés en ref pour ne pas figer une valeur périmée ni changer
@@ -61,10 +64,15 @@ export function useDebouncedCallback(callback, delay = 300) {
     };
   });
 
-  // Nettoyage au démontage : un appel amorti en attente doit être vidé (comme `flush()`)
-  // plutôt qu'annulé silencieusement, sinon la dernière frappe non commitée est perdue
-  // (le blur ne peut pas rattraper ce cas si tout l'arbre démonte avant lui).
-  useEffect(() => () => { if (timerRef.current) api.flush(); }, [api]);
+  // Nettoyage au démontage : on ANNULE l'appel amorti en attente, on ne le vide pas.
+  // Le point de commit d'une valeur est le BLUR (côté consommateur :
+  // TypeAwareInput.handleBlur → onCommit → flush()), qui s'exécute avant tout démontage
+  // déclenché par une interaction — dans le cas nominal la dernière frappe est donc déjà
+  // remontée. Flusher ici invoquerait `callback` — donc typiquement un setState du
+  // parent — depuis le cleanup d'un sous-arbre en cours de destruction, une émission dont
+  // plus aucun composant monté n'est responsable. Pour les cas de bord sans blur préalable
+  // (fermeture au clavier, navigation programmatique), `cancel()` est le défaut sûr.
+  useEffect(() => () => api.cancel(), [api]);
 
   return api;
 }
