@@ -3,6 +3,7 @@
 // (tableaux Linter.Config[]) plutôt que de passer par FlatCompat.
 import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 import nextTypescript from "eslint-config-next/typescript";
+import globals from "globals";
 
 /** @type {import("eslint").Linter.Config[]} */
 const eslintConfig = [
@@ -15,8 +16,6 @@ const eslintConfig = [
     // design-system/ est le prototype de référence (D3 en IIFE navigateur, non
     // suivi par git) porté vers src/ — c'est la SOURCE visuelle, pas du code
     // applicatif : exclu du lint au même titre que les archives.
-    // scripts/ contient des scripts Node CommonJS de tooling (ex. check-palette-sync.js),
-    // hors du périmètre applicatif React/Next visé par les règles ci-dessus.
     ignores: [
       ".next/**",
       "node_modules/**",
@@ -24,8 +23,21 @@ const eslintConfig = [
       "old_components/**",
       "old_src/**",
       "design-system/**",
-      "scripts/**",
     ],
+  },
+  {
+    // scripts/ contient des scripts Node CommonJS de tooling (ex. check-palette-sync.js) :
+    // ni React ni navigateur, donc globals Node (module, require, __dirname, process,
+    // console) plutôt que l'exclusion du lint — ce script garde la palette et doit être
+    // lint comme le reste. `require` y est désactivé volontairement (CommonJS pur, pas
+    // de bundler/ESM), pas une dérive à corriger.
+    files: ["scripts/**/*.js"],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
   },
 ];
 

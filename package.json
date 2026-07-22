@@ -6,8 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint && node scripts/check-palette-sync.js",
-    "check:palette": "node scripts/check-palette-sync.js"
+    "lint": "eslint",
+    "check:palette": "node scripts/check-palette-sync.js",
+    "verify": "npm run lint && npm run check:palette"
   },
   "dependencies": {
     "@visx/axis": "^4.0.0",
