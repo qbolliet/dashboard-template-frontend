@@ -40,29 +40,42 @@ export const ThemeProvider = ({ children }) => {
     // En refs (et non en state) : la classe `theme-transitioning` est purement visuelle
     // (CSS sur <body>) et ne doit pas faire re-render tous les consommateurs du contexte
     // deux fois par toggle — cf. isTransitioning retiré de contextValue plus bas.
-    const themeChangeTimeoutRef = useRef(null);
+    // themeChangeTimeoutsRef est un Set (et non un ref unique) car ces minuteurs sont
+    // CUMULATIFS : chaque clic doit produire son propre basculement de thème, cf.
+    // runThemeTransition ci-dessous.
+    const themeChangeTimeoutsRef = useRef(new Set());
     const endTransitionTimeoutRef = useRef(null);
 
     /**
      * Applies the transition class on <body>, runs `applyTheme` after a short delay
      * (lets the animation start) then removes the class once the transition ends.
-     * Cancels any previous gesture's timers so rapid successive toggles stay correct
-     * (otherwise a stale class removal could cut off the transition in progress).
+     * Only the end-of-transition timer is cancelled/rescheduled on a new gesture;
+     * the theme-change timers are cumulative so rapid successive toggles each still
+     * flip the theme (see param doc).
      *
      * @param {Function} applyTheme - Callback that sets the new theme (setTheme).
      */
     const runThemeTransition = (applyTheme) => {
         if (typeof window === 'undefined') return;
 
-        if (themeChangeTimeoutRef.current) clearTimeout(themeChangeTimeoutRef.current);
+        // Seule la minuterie de FIN de transition (retrait de la classe CSS) est
+        // annulée-reprogrammée : elle ne pilote qu'un effet visuel global, donc un
+        // nouveau clic peut légitimement repousser sa propre fin d'animation.
+        // La minuterie de CHANGEMENT de thème, elle, ne doit JAMAIS être annulée par
+        // un clic suivant : sinon deux clics à moins de 50 ms d'intervalle annulent
+        // le premier setTheme et ne produisent qu'un SEUL basculement au lieu de deux
+        // (un interrupteur double-clic doit ramener au thème initial). On suit donc
+        // plusieurs minuteurs de changement en parallèle, dans un Set.
         if (endTransitionTimeoutRef.current) clearTimeout(endTransitionTimeoutRef.current);
 
         document.body.classList.add('theme-transitioning');
 
         // Délai court pour activer l'animation avant le changement de thème.
-        themeChangeTimeoutRef.current = setTimeout(() => {
+        const changeTimeout = setTimeout(() => {
+            themeChangeTimeoutsRef.current.delete(changeTimeout);
             applyTheme();
         }, 50);
+        themeChangeTimeoutsRef.current.add(changeTimeout);
 
         // Désactiver l'animation après la transition.
         endTransitionTimeoutRef.current = setTimeout(() => {
@@ -94,10 +107,17 @@ export const ThemeProvider = ({ children }) => {
         }
     };
 
-    // Nettoyage des minuteurs si le provider est démonté en pleine transition.
+    // Nettoyage des minuteurs si le provider est démonté en pleine transition :
+    // tous les basculements en attente doivent être annulés, pas seulement le dernier.
+    // Le Set lui-même (contrairement à son contenu) n'est jamais réassigné après le
+    // montage : le copier dans une variable locale ici est donc équivalent à lire
+    // `themeChangeTimeoutsRef.current` au démontage, tout en satisfaisant la règle
+    // react-hooks/exhaustive-deps.
     useEffect(() => {
+        const timeouts = themeChangeTimeoutsRef.current;
         return () => {
-            if (themeChangeTimeoutRef.current) clearTimeout(themeChangeTimeoutRef.current);
+            timeouts.forEach((id) => clearTimeout(id));
+            timeouts.clear();
             if (endTransitionTimeoutRef.current) clearTimeout(endTransitionTimeoutRef.current);
         };
     }, []);
