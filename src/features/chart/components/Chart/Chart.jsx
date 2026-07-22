@@ -373,8 +373,10 @@ const ChartCanvas = ({
   const stackPosKey = chartKind === 'bar-h' ? y : x;
   const stackValKey = chartKind === 'bar-h' ? x : y;
   // Regroupement par série sur les données COMPLÈTES : calculé une seule fois et
-  // partagé (ordre de stack, mini-vues line/bar, marks violon — ViolinMarks rend
-  // depuis `data` non filtré, cf. plus bas, JAMAIS `filteredData`).
+  // partagé (ordre de stack, mini-vues line/bar, marks pendant un geste de brush).
+  // PAS pour <ViolinMarks>, qui regroupe lui-même dans son useMemo de KDE : cette
+  // mémo ne doit dépendre que de valeurs, jamais de l'identité d'un objet calculé
+  // ici (cf. le commentaire du memo dans ViolinMarks.jsx).
   const groupsFull = groupSeries(data, channels);
   const seriesOrder = groupsFull.map((s) => s.key);
   const stackMini = stackActive
@@ -712,7 +714,7 @@ const ChartCanvas = ({
   } else if (chartKind === 'heatmap') {
     marks = <HeatmapMarks data={mData} x={x} y={y} z={z} xScale={mXScale} yScale={mYScale} colorScale={cScale} hovered={hovered} fill={effFill} />;
   } else if (isViolinKind) {
-    marks = <ViolinMarks data={data} x={x} y={y} z={z} channels={channels} xScale={mXScale} yScale={mYScale} xScaleBase={baseXScale} yScaleBase={baseYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} orient={chartKind === 'violin-h' ? 'h' : 'v'} fill={effFill} stack={stack} hovered={hovered} groups={groupsFull} />;
+    marks = <ViolinMarks data={data} x={x} y={y} z={z} channels={channels} xScale={mXScale} yScale={mYScale} xScaleBase={baseXScale} yScaleBase={baseYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} orient={chartKind === 'violin-h' ? 'h' : 'v'} fill={effFill} stack={stack} hovered={hovered} />;
   }
 
   // Densité (KDE 2-D) rendue en coordonnées de BASE puis zoomée par le transform.

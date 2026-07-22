@@ -60,15 +60,12 @@ function statsOf(vals) {
  * @param {'fill'|'line'} [props.fill='fill'] - Fill mode.
  * @param {'none'|'all'|'color'|'style'|'marker'} [props.stack='none'] - Stacking mode.
  * @param {*} [props.hovered] - Hovered channel value, or null.
- * @param {?Array<object>} [props.groups=null] - Pre-computed `groupSeries(data, channels)`
- *   result (mutualisé côté appelant, cf. Chart.jsx) ; recalculé en interne si absent, pour
- *   ne pas casser un usage direct du composant.
  * @returns {JSX.Element}
  */
 const ViolinMarks = ({
   data, x, y, z, channels, xScale, yScale, xScaleBase, yScaleBase,
   colorScale, styleScale, hatchScale, markerScale,
-  orient = 'v', fill = 'fill', stack = 'none', hovered, groups = null,
+  orient = 'v', fill = 'fill', stack = 'none', hovered,
 }) => {
   // Initialisation des arguments
   const horizontal = orient === 'h';
@@ -92,11 +89,20 @@ const ViolinMarks = ({
   // repositionner les points via les échelles ZOOMÉES en aval. Sans ce useMemo,
   // tout le KDE serait reconstruit à CHAQUE frame de drag (les échelles changent
   // d'identité à chaque rendu), ce que le React Compiler n'isole pas à la bonne
-  // granularité. 
-  // Clés = forme des données uniquement + bornes du domaine de base (lo/hi, seules valeurs lues
-  // par le KDE) — JAMAIS les échelles zoomées, sinon la mémo ne tiendrait pas au
-  // zoom. Pendant un drag de brush, seul <ChartCanvas> se re-rend (l'état xSel/ySel
-  // y vit) ; `data` garde donc une référence stable → la mémo tient tout le geste.
+  // granularité.
+  // Clés = référence des données + noms de colonnes/modes + bornes du domaine de BASE
+  // (lo/hi, seules valeurs lues par le KDE). JAMAIS les échelles zoomées, sinon la
+  // mémo ne tiendrait pas au zoom — et JAMAIS l'identité d'un objet dérivé en amont :
+  // c'est pourquoi `seriesList` est regroupée ICI plutôt que reçue en prop depuis
+  // <ChartCanvas>. La chaîne qui la produirait (hue → hueCols → channels →
+  // groupSeries) traverse le composant <Chart>, qui se re-rend à chaque survol de
+  // légende ; faire dépendre la mémo de la mémoïsation du Compiler sur cette chaîne
+  // reviendrait à supposer précisément la garantie que ce useMemo existe pour
+  // apporter — et son échec serait SILENCIEUX (tout le KDE recalculé, sans symptôme
+  // autre qu'une lenteur). Le regroupement est de toute façon O(n), négligeable
+  // devant le KDE calculé juste après dans la même passe.
+  // Pendant un drag de brush, seul <ChartCanvas> se re-rend (l'état xSel/ySel y vit) ;
+  // `data` garde donc une référence stable → la mémo tient tout le geste.
   const baseDomain = valScaleBase.domain();
   const domLo = +baseDomain[0];
   const domHi = +baseDomain[baseDomain.length - 1];
@@ -148,7 +154,7 @@ const ViolinMarks = ({
     })();
 
     // Séries (combinaisons des canaux actifs) — ordre stable.
-    const sList = groups || groupSeries(data, channels);
+    const sList = groupSeries(data, channels);
     const sKeys = sList.map((s) => s.key);
 
     // band → seriesKey → { vals, zs, colorVal, styleVal }
@@ -220,9 +226,12 @@ const ViolinMarks = ({
       seriesList: sList, seriesKeys: sKeys, grouped: grp, curves: crv,
       globalMax: gMax, stackMax: sMax,
     };
-    // Dépendances : forme des données + bornes du domaine de BASE uniquement.
+    // Dépendances : uniquement des VALEURS (référence des données, noms de colonnes,
+    // modes, bornes du domaine de BASE) — aucune identité d'objet construite par un
+    // parent. `channels` est lu comme objet dans le corps mais ses trois champs sont
+    // listés un à un : groupSeries/seriesKey ne lisent rien d'autre.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, x, y, z, channels.color, channels.style, channels.marker, stack, orient, domLo, domHi, groups]);
+  }, [data, x, y, z, channels.color, channels.style, channels.marker, stack, orient, domLo, domHi]);
 
   const bandwidth = bandScale.bandwidth ? bandScale.bandwidth() : 40;
 

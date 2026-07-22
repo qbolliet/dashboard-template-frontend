@@ -69,16 +69,20 @@ const LineMarks = ({
   fill = 'line', stack = null, mini = false, baReal = null, groups = null,
 }) => {
   // Séries triées par abscisse (comparaison Date-aware) — ordre stable de tracé.
-  // NOTE : ce tri MUTE `g.rows` en place ; sans risque quand `groups` est partagé
-  // (cf. Chart.jsx) puisque ce résultat est reconstruit à chaque rendu et n'est
-  // jamais consommé par un autre appelant après ce point.
-  const series = groups || groupSeries(data, channels);
-  for (const g of series) {
-    g.rows.sort((a, b) => {
+  // Le tri porte sur une COPIE : `groups` est partagé entre plusieurs marks (ce
+  // LineMarks principal + sa mini-vue, BarMarks) et potentiellement retenu dans un
+  // cache du React Compiler côté <ChartCanvas> — aucune mark ne doit muter les
+  // objets qu'elle reçoit. Coût : O(n) de copie devant un O(n log n) de tri déjà
+  // payé, et une seule fois par rendu de mark (pendant un geste de brush le
+  // repositionnement est impératif, cf. previewTargets dans Chart.jsx : aucun
+  // rendu React par frame).
+  const series = (groups || groupSeries(data, channels)).map((g) => ({
+    ...g,
+    rows: [...g.rows].sort((a, b) => {
       const ax = a[x], bx = b[x];
       return ax instanceof Date ? ax - bx : (ax < bx ? -1 : ax > bx ? 1 : 0);
-    });
-  }
+    }),
+  }));
 
   const y0px = yScale.range()[0]; // bas de l'aire de tracé (baseline)
 
