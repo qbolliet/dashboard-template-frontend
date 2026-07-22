@@ -20,7 +20,8 @@
 // coût par frame quasi nul, aucun rendu React.
 
 // Importation des modules
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useIsomorphicLayoutEffect } from '@/hooks/layoutEffect/useIsomorphicLayoutEffect';
 
 /* ────────────────────────── Helpers d'échelle ────────────────────────────── */
 
@@ -246,7 +247,7 @@ export function useBrushZoom({
   // on redonne le dernier mot à la couche impérative, avant le paint.
   // Hors geste, le brouillon est purgé par les setters de commit → l'effet ne fait
   // rien et React garde la main sur l'attribut.
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (draftRef.current.x || draftRef.current.y) applyPreview();
   });
 

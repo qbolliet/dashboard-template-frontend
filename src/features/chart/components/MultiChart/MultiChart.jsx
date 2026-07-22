@@ -25,7 +25,8 @@
 ═══════════════════════════════════════════════════════════════════════════ */
 
 // Importation des modules
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { useIsomorphicLayoutEffect } from '@/hooks/layoutEffect/useIsomorphicLayoutEffect';
 import { ParentSize } from '@visx/responsive';
 import { scaleTime, scaleLinear, scaleBand, scaleOrdinal } from '@visx/scale';
 import { extent, mean } from 'd3-array';
@@ -366,7 +367,7 @@ const MultiChartCanvas = ({
   // impératif — les deux écritures ne sont pas ordonnées de façon fiable (cf. le
   // commentaire détaillé dans useBrushZoom.js). Hors geste, `draftXRef` est purgé
   // par `commitXSel` → l'effet ne fait rien et React garde la main sur l'attribut.
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (draftXRef.current) applyPreview();
   });
 
