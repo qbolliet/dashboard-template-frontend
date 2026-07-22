@@ -2,11 +2,12 @@
 
 import { useState, createContext, useContext, useEffect, useId, useRef } from 'react';
 import Image from 'next/image';
-import { useNavigation } from '../../../hooks/useNavigation';
+import { useNavigationRoute, useNavigationUI } from '../../../providers/NavigationProvider';
 import useResizable from '../../../hooks/useResizable';
 import SidebarSwitcher from '../SidebarSwitcher/SidebarSwitcher';
 import SidebarMenu from '../SidebarMenu/SidebarMenu';
 import { useFocusTrap, useAriaAnnounce } from '@/features/accessibility';
+import { hasIconsInNavigationData } from '../../../utils/hasIconsInNavigationData';
 import './NavigationSideBar.scss';
 
 // Context pour gérer l'état de la sidebar
@@ -18,33 +19,6 @@ export const useSidebar = () => {
         throw new Error('useSidebar doit être utilisé dans un SidebarProvider');
     }
     return context;
-};
-
-// Utilitaire pour détecter si des icônes sont présentes dans les données de navigation
-const hasIconsInNavigationData = (navigationData) => {
-    if (!navigationData || !Array.isArray(navigationData)) {
-        return false;
-    }
-
-    // Fonction récursive pour parcourir tous les niveaux
-    const checkForIcons = (items) => {
-        for (const item of items) {
-            // Si l'item a une icône, on a trouvé au moins une icône
-            if (item.icon) {
-                return true;
-            }
-
-            // Vérifier récursivement les enfants
-            if (item.children && Array.isArray(item.children)) {
-                if (checkForIcons(item.children)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    };
-
-    return checkForIcons(navigationData);
 };
 
 /**
@@ -74,20 +48,10 @@ const NavigationSideBar = ({
     // useId garantit un ID stable entre le rendu SSR et l'hydratation client
     const sidebarId = `navigation-sidebar-${useId()}`;
 
-    // Détecter le mode mobile (pour activer le focus trap)
-    const [isMobile, setIsMobile] = useState(false);
-
-    useEffect(() => {
-        // Fonction pour détecter le mode mobile (correspond au breakpoint-down small)
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth <= 639); // 639px = breakpoint small
-        };
-
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
+    // Fonctions de route (pathname) et breakpoint mobile, fournis par le contexte partagé
+    // du NavigationProvider — plus de listener resize propre à la sidebar (isMobile ≤639px).
+    const { isActivePath, hasActiveChildren } = useNavigationRoute();
+    const { isMobile } = useNavigationUI();
 
     // Hook pour piéger le focus dans la sidebar en mode mobile
     const focusTrapRef = useFocusTrap({
@@ -117,6 +81,10 @@ const NavigationSideBar = ({
         max: 480,
         getCurrentWidth: () => asideRef.current?.getBoundingClientRect().width,
         onResize: setOpenWidth,
+        // Pendant le drag, la largeur est écrite directement sur l'aside (même variable
+        // que celle posée en style inline ci-dessous) : pas de re-render par pixel.
+        elementRef: asideRef,
+        cssProperty: '--sidebar-width-open',
     });
 
     // Synchroniser l'état avec la prop defaultOpen quand elle change.
@@ -144,9 +112,6 @@ const NavigationSideBar = ({
     const [selectedSwitcherItem, setSelectedSwitcherItem] = useState(
         useSwitcher && navigationData.length > 0 ? navigationData[0] : null
     );
-
-    // Hook de navigation existant
-    const navigationHook = useNavigation();
 
     // Détecter si des icônes sont présentes dans les données de navigation.
     const hasIcons = (() => {
@@ -212,13 +177,16 @@ const NavigationSideBar = ({
         className
     ].filter(Boolean).join(' ');
 
-    // Valeur du contexte de la sidebar
+    // Valeur du contexte de la sidebar : champs explicites (plus de spread de useNavigation).
+    // Les fonctions de route proviennent du contexte partagé et sont ré-exposées ici pour que
+    // SidebarItem / SidebarGroup les consomment via useSidebar sans changement.
     const sidebarContextValue = {
         isOpen,
         hasIcons,
         toggleSidebar,
         sidebarId, // Ajout de l'ID pour aria-controls
-        ...navigationHook
+        isActivePath,
+        hasActiveChildren
     };
 
     return (

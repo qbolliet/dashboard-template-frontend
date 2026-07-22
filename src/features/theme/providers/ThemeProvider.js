@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useState, useContext, useEffect, useEffectEvent } from 'react';
+import React, { createContext, useState, useContext, useEffect, useEffectEvent, useRef } from 'react';
 
 // Contexte pour le thème
 const ThemeContext = createContext();
@@ -16,39 +16,80 @@ export const ThemeProvider = ({ children }) => {
     const [theme, setTheme] = useState(() => {
         // Vérifier si on est côté client (pour éviter les erreurs SSR)
         if (typeof window === 'undefined') return 'light';
-        
-        // Récupérer le thème sauvegardé
+
+        // Le script anti-FOUC du layout a déjà résolu et posé data-theme sur <html>
+        // avant hydratation ; on relit cette valeur pour rester la source unique de vérité
+        // et garantir la cohérence entre l'attribut DOM et l'état React.
+        const appliedTheme = document.documentElement.dataset.theme;
+        if (appliedTheme === 'light' || appliedTheme === 'dark') {
+            return appliedTheme;
+        }
+
+        // Repli défensif si le script inline n'a pas tourné : même logique d'init.
         const savedTheme = localStorage.getItem('theme');
-        if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+        if (savedTheme === 'light' || savedTheme === 'dark') {
             return savedTheme;
         }
-        
+
         // Détecter la préférence système si aucun thème sauvegardé
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         return prefersDark ? 'dark' : 'light';
     });
 
-    // État pour l'animation de transition du thème
-    const [isTransitioning, setIsTransitioning] = useState(false);
+    // Minuteurs de la transition en cours (délai avant changement + retrait de la classe).
+    // En refs (et non en state) : la classe `theme-transitioning` est purement visuelle
+    // (CSS sur <body>) et ne doit pas faire re-render tous les consommateurs du contexte
+    // deux fois par toggle — cf. isTransitioning retiré de contextValue plus bas.
+    // themeChangeTimeoutsRef est un Set (et non un ref unique) car ces minuteurs sont
+    // CUMULATIFS : chaque clic doit produire son propre basculement de thème, cf.
+    // runThemeTransition ci-dessous.
+    const themeChangeTimeoutsRef = useRef(new Set());
+    const endTransitionTimeoutRef = useRef(null);
 
     /**
-     * Basculer entre les thèmes clair et sombre
+     * Applies the transition class on <body>, runs `applyTheme` after a short delay
+     * (lets the animation start) then removes the class once the transition ends.
+     * Only the end-of-transition timer is cancelled/rescheduled on a new gesture;
+     * the theme-change timers are cumulative so rapid successive toggles each still
+     * flip the theme (see param doc).
+     *
+     * @param {Function} applyTheme - Callback that sets the new theme (setTheme).
+     */
+    const runThemeTransition = (applyTheme) => {
+        if (typeof window === 'undefined') return;
+
+        // Seule la minuterie de FIN de transition (retrait de la classe CSS) est
+        // annulée-reprogrammée : elle ne pilote qu'un effet visuel global, donc un
+        // nouveau clic peut légitimement repousser sa propre fin d'animation.
+        // La minuterie de CHANGEMENT de thème, elle, ne doit JAMAIS être annulée par
+        // un clic suivant : sinon deux clics à moins de 50 ms d'intervalle annulent
+        // le premier setTheme et ne produisent qu'un SEUL basculement au lieu de deux
+        // (un interrupteur double-clic doit ramener au thème initial). On suit donc
+        // plusieurs minuteurs de changement en parallèle, dans un Set.
+        if (endTransitionTimeoutRef.current) clearTimeout(endTransitionTimeoutRef.current);
+
+        document.body.classList.add('theme-transitioning');
+
+        // Délai court pour activer l'animation avant le changement de thème.
+        const changeTimeout = setTimeout(() => {
+            themeChangeTimeoutsRef.current.delete(changeTimeout);
+            applyTheme();
+        }, 50);
+        themeChangeTimeoutsRef.current.add(changeTimeout);
+
+        // Désactiver l'animation après la transition.
+        endTransitionTimeoutRef.current = setTimeout(() => {
+            document.body.classList.remove('theme-transitioning');
+        }, 300);
+    };
+
+    /**
+     * Toggles between light and dark themes.
      */
     const toggleTheme = () => {
-        setIsTransitioning(true);
-        
-        // Délai court pour activer l'animation
-        setTimeout(() => {
-            setTheme(prevTheme => {
-                const newTheme = prevTheme === 'light' ? 'dark' : 'light';
-                return newTheme;
-            });
-        }, 50);
-        
-        // Désactiver l'animation après la transition
-        setTimeout(() => {
-            setIsTransitioning(false);
-        }, 300);
+        runThemeTransition(() => {
+            setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+        });
     };
 
     /**
@@ -62,17 +103,24 @@ export const ThemeProvider = ({ children }) => {
         }
 
         if (newTheme !== theme) {
-            setIsTransitioning(true);
-
-            setTimeout(() => {
-                setTheme(newTheme);
-            }, 50);
-
-            setTimeout(() => {
-                setIsTransitioning(false);
-            }, 300);
+            runThemeTransition(() => setTheme(newTheme));
         }
     };
+
+    // Nettoyage des minuteurs si le provider est démonté en pleine transition :
+    // tous les basculements en attente doivent être annulés, pas seulement le dernier.
+    // Le Set lui-même (contrairement à son contenu) n'est jamais réassigné après le
+    // montage : le copier dans une variable locale ici est donc équivalent à lire
+    // `themeChangeTimeoutsRef.current` au démontage, tout en satisfaisant la règle
+    // react-hooks/exhaustive-deps.
+    useEffect(() => {
+        const timeouts = themeChangeTimeoutsRef.current;
+        return () => {
+            timeouts.forEach((id) => clearTimeout(id));
+            timeouts.clear();
+            if (endTransitionTimeoutRef.current) clearTimeout(endTransitionTimeoutRef.current);
+        };
+    }, []);
 
     /**
      * Détecter si le thème système a changé et l'adapter si aucun thème manuel n'est défini
@@ -113,18 +161,11 @@ export const ThemeProvider = ({ children }) => {
         const metaThemeColor = document.querySelector('meta[name="theme-color"]');
         if (metaThemeColor) {
             metaThemeColor.setAttribute(
-                'content', 
+                'content',
                 theme === 'dark' ? '#1a1a1a' : '#ffffff'
             );
         }
-
-        // Émettre un événement personnalisé pour informer les autres composants
-        const themeChangeEvent = new CustomEvent('themeChanged', { 
-            detail: { theme, isTransitioning } 
-        });
-        document.dispatchEvent(themeChangeEvent);
-        
-    }, [theme, isTransitioning]);
+    }, [theme]);
 
     // Effect Event : isole la logique non-réactive de l'écoute système.
     // Lit toujours le `theme` courant sans rendre l'effet d'abonnement réactif,
@@ -151,22 +192,10 @@ export const ThemeProvider = ({ children }) => {
         };
     }, []);
 
-    // Effet pour gérer les classes CSS de transition
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-
-        if (isTransitioning) {
-            document.body.classList.add('theme-transitioning');
-        } else {
-            document.body.classList.remove('theme-transitioning');
-        }
-    }, [isTransitioning]);
-
     // Valeurs du contexte
     const contextValue = {
         // État actuel
         theme,
-        isTransitioning,
         isDark: theme === 'dark',
         isLight: theme === 'light',
         

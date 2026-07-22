@@ -1,5 +1,5 @@
 // =================================================================
-// MINIMAP TOGGLE — pastille chevron
+// MINIMAP TOGGLE — pastille chevron de pli/dépli
 // =================================================================
 @use '../../../tokens' as *;
 @use '../../../colors' as *;
@@ -8,10 +8,12 @@
 
 .chart-minimap-toggle {
   position: absolute;
-  // Mini-vue x (horizontale) : centré sous le graphe + la légende.
-  left: 50%;
-  right: auto;
-  bottom: var(--chart-minimap-toggle-offset);
+  // Mini-vue x (horizontale) : le parent (Chart.jsx / MultiChart.jsx) pose en
+  // style inline le point d'ancrage — `left` = centre du titre de l'axe x
+  // (margins.left + innerWidth/2, PAS 50 % du body dont les marges gauche/droite
+  // sont asymétriques), `top` = `xToggleY` (bas de la mini-vue + TOGGLE_GAP, cf.
+  // useChartGeometry). Le transform ancre la boîte en HAUT-CENTRE sur ce point,
+  // quelle que soit sa largeur.
   transform: translateX(-50%);
   display: inline-flex;
   align-items: center;
@@ -24,19 +26,26 @@
   background: hsl(var(--chart-minimap-toggle-bg));
   cursor: pointer;
   transition: color var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast);
-  // Discret : apparaît au survol du graphique ; toujours visible quand fermé
-  // (pour pouvoir rouvrir la mini-vue).
+  // Discret : apparaît au survol du graphique ; toujours visible quand la mini-vue
+  // est repliée (pour pouvoir la redéplier sans la chercher).
   opacity: 0;
 }
 
-// Mini-vue y (verticale) : centré dans la hauteur, à gauche du mini-chart.
+// Mini-vue y (verticale) : dans la gouttière réservée par useChartGeometry
+// (yToggleW, ajoutée à margins.left) tout à GAUCHE du tracé, alignée sur le
+// centre du titre de l'axe y. Le parent pose en inline le point d'ancrage
+// (`left` = centre de la gouttière, `top` = margins.top + innerHeight/2) ; le
+// transform amène d'abord le CENTRE de la boîte NON pivotée sur ce point (les
+// pourcentages de translate() se résolvent sur cette boîte, dont la largeur
+// dépend du texte « Replier »/« Déplier » — mais le centre, lui, est INVARIANT
+// par la rotation qui suit), puis pivote autour : la position affichée est donc
+// exacte sans aucune mesure JS. La gouttière fait 2 × TOGGLE_GAP de plus que
+// l'épaisseur de la pastille : centrée, celle-ci tombe à TOGGLE_GAP de la mini-vue.
+// Rotation fusionnée dans `transform` (et non en propriété `rotate` séparée) :
+// le pipeline de build (Lightning CSS/Turbopack) perd silencieusement `rotate`
+// quand il coexiste avec une déclaration `transform` dans la même règle.
 .chart-minimap-toggle[data-direction='y'] {
-  left: var(--spacing-sm);
-  right: auto;
-  top: 50%;
-  rotate: -90deg;
-  bottom: auto;
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%) rotate(-90deg);
 }
 
 .chart-frame:hover .chart-minimap-toggle,
@@ -59,7 +68,7 @@
   width: var(--chart-minimap-toggle-icon-size);
   height: var(--chart-minimap-toggle-icon-size);
   flex-shrink: 0;
-  // Chevron bas (ouvert) → haut (fermé), en transform CSS pur.
+  // Chevron haut (ouvert) → bas (fermé), en transform CSS pur.
   transition: transform var(--transition-fast);
 }
 .chart-minimap-toggle--closed .chart-minimap-toggle__chevron {

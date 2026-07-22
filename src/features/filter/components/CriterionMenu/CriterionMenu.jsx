@@ -17,7 +17,11 @@ import ValueField from './ValueField/ValueField';
  * @param {{variable: ?string, operation: ?string, value: *, sql_type: ?string,
  *   is_categorical: ?boolean, bracketLeft: boolean, bracketRight: boolean}} criterion -
  *   Controlled criterion state.
- * @param {function(object): void} onChange - Receives the updated criterion.
+ * @param {function(object, {debounce: boolean}=): void} onChange - Receives the updated
+ *   criterion. The optional meta forwards the emission intent: absent for structural
+ *   changes (variable/operation/bracket → immediate), `{ debounce }` for value edits.
+ * @param {function(): void} [onCommit] - Value input blur signal, forwarded upstream so a
+ *   debounced parent can flush its pending emission.
  * @param {function(): void} [onRemove] - Removes the criterion; its presence renders
  *   the removal button.
  * @param {{value: string, label: string, sql_type: string, is_categorical: boolean}[]} variables -
@@ -40,6 +44,7 @@ import ValueField from './ValueField/ValueField';
 const CriterionMenu = ({
   criterion,
   onChange,
+  onCommit,
   onRemove,
   variables,
   operationsByType,
@@ -66,8 +71,10 @@ const CriterionMenu = ({
   // changement de variable/opération (le champ ré-émettra à la prochaine saisie).
   const [fieldVerdict, setFieldVerdict] = useState(null);
 
-  // Raccourci de mise à jour partielle du critère contrôlé
-  const patch = (partial) => onChange({ ...criterion, ...partial });
+  // Raccourci de mise à jour partielle du critère contrôlé. `meta` (optionnel) transporte
+  // l'intention d'émission jusqu'au parent : absent = structurel/immédiat, { debounce }
+  // = édition de valeur amortie.
+  const patch = (partial, meta) => onChange({ ...criterion, ...partial }, meta);
 
   // Changement de variable : reset opération et valeur selon le nouveau type
   const onVariable = (id) => {
@@ -162,7 +169,8 @@ const CriterionMenu = ({
           isCategorical={isCategorical}
           operation={criterion.operation}
           value={criterion.value}
-          onChange={(v) => patch({ value: v })}
+          onChange={(v, meta) => patch({ value: v }, meta)}
+          onCommit={onCommit}
           onValidityChange={setFieldVerdict}
           fieldName={criterion.variable}
           catalog={catalog}

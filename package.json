@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:palette": "node scripts/check-palette-sync.js",
+    "verify": "npm run lint && npm run check:palette"
   },
   "dependencies": {
     "@visx/axis": "^4.0.0",
@@ -32,7 +34,8 @@
     "next": "^16.2.9",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "sass": "^1.90.0"
+    "sass": "^1.90.0",
+    "swr": "^2.4.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

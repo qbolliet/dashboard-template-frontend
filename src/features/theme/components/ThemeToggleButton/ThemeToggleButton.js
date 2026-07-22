@@ -1,6 +1,6 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useTheme } from '../../hooks/useTheme';
 import SunMoonIcon from '../../../../components/icons/SunMoonIcon/SunMoonIcon';
 import './ThemeToggleButton.scss';
@@ -16,8 +16,22 @@ const emptySubscribe = () => () => {};
  */
 const ThemeToggleButton = () => {
     // Récupération des fonctions et état du thème
-    const { theme, toggleTheme, isTransitioning } = useTheme();
-    
+    const { theme, toggleTheme } = useTheme();
+
+    // Indicateur visuel de transition local au bouton (n'est plus dans le contexte partagé :
+    // seul ce bouton l'affiche, donc pas de re-render de tous les consommateurs de
+    // ThemeContext à chaque changement). Le minuteur est en ref pour pouvoir annuler un
+    // geste précédent si l'utilisateur re-clique vite (sinon la classe pourrait être retirée
+    // en plein milieu de la nouvelle transition).
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const transitionTimeoutRef = useRef(null);
+
+    useEffect(() => {
+        return () => {
+            if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
+        };
+    }, []);
+
     // Détecte la fin de l'hydratation sans setState-dans-effet : retourne false côté serveur
     // et au premier rendu client (snapshot serveur), puis true une fois hydraté. Évite ainsi
     // toute divergence d'hydration sur les labels dépendant du thème.
@@ -42,7 +56,16 @@ const ThemeToggleButton = () => {
         setTimeout(() => {
             button?.classList.remove('theme-toggle--clicked');
         }, 150);
-        
+
+        // Indicateur de transition local : annule un éventuel minuteur précédent (clics
+        // rapprochés) avant de relancer, pour rester cohérent avec la durée réelle de
+        // l'animation déclenchée par ThemeProvider (cf. runThemeTransition, 300ms).
+        if (transitionTimeoutRef.current) clearTimeout(transitionTimeoutRef.current);
+        setIsTransitioning(true);
+        transitionTimeoutRef.current = setTimeout(() => {
+            setIsTransitioning(false);
+        }, 300);
+
         // Exécuter le changement de thème
         toggleTheme();
     };

@@ -26,6 +26,7 @@
 
 // Importation des modules
 import { useEffect, useId, useRef, useState } from 'react';
+import { useIsomorphicLayoutEffect } from '@/hooks/layoutEffect/useIsomorphicLayoutEffect';
 import { ParentSize } from '@visx/responsive';
 import { scaleTime, scaleLinear, scaleBand, scaleOrdinal } from '@visx/scale';
 import { extent, mean } from 'd3-array';
@@ -41,7 +42,10 @@ import { buildStacks } from '../../utils/stacking';
 import { resolveFormatter } from '../../utils/formatters';
 import { measureText, tickCountFor } from '../../utils/measureText';
 import { exportSvg, exportPng } from '../../utils/exportImage';
-import { restrictScale } from '../../hooks/useBrushZoom';
+import { xMinimapLayout } from '../../utils/minimapGeometry';
+import { restrictScale, axisZoomFactors, zoomTransformOf } from '../../hooks/useBrushZoom';
+import { useMinimapState, resolveMinimapsVisible } from '../../hooks/useMinimapState';
+import { TICK_FONT_SIZE } from '../ChartAxis/tickHelpers';
 
 import ChartAxisBottom from '../ChartAxis/ChartAxisBottom/ChartAxisBottom';
 import ChartAxisLeft from '../ChartAxis/ChartAxisLeft/ChartAxisLeft';
@@ -234,7 +238,7 @@ const ContinuousBarMarks = ({
    Estimation calquée sur <Chart>/useChartGeometry : prédit la place des libellés
    d'abscisse (rotation éventuelle) pour réserver la marge basse. ─────────────── */
 function computeXAxisHeight({ allRows, x, xType, xTypeAxis, innerWidth, format, tickDensity, overlap, maxLines, labels }) {
-  const fs = 11;
+  const fs = TICK_FONT_SIZE;
   let labelsArr = [];
   let tickPx;
   if (xTypeAxis === 'categorical') {
@@ -269,17 +273,42 @@ const MultiChartCanvas = ({
   width, outerHeight, typedSets, allRows, x, y, xType, yType, xTypeAxis,
   scalesFor, format, labels, maxLabelLength, maxLines, overlap, tickDensity,
   title, expanded, voronoiOn, setVoronoiOn, tooltipsOn, setTooltipsOn, setExpanded,
-  hovered, initialMinimapOpen,
+  hovered, initialMinimapsVisible, minimapsTool,
 }) => {
   const svgRef = useRef(null);
-  const [minimapOpen, setMinimapOpen] = useState(initialMinimapOpen);
-  const [xSel, setXSel] = useState(null);
+  // Modèle d'état des mini-vues, partagé avec <Chart> : interrupteur maître (bouton
+  // « mini-vues » de la barre d'outils) + pli par axe (pastille). `yMinimapOpen` est
+  // inutilisé ici — <MultiChart> n'a pas de mini-vue y (cf. useMinimapState).
+  const {
+    minimapsVisible, setMinimapsVisible, xMinimapOpen, setXMinimapOpen,
+  } = useMinimapState(initialMinimapsVisible);
+  const [xSel, setXSel] = useState(null); // sélection COMMITTÉE (relâchement / molette)
+  // Geste de brush en cours : les marks basculent sur un rendu en coordonnées de
+  // BASE (lignes complètes) déplacé par le transform de preview, et les cibles de
+  // survol sont sautées — même mécanisme que <Chart> (cf. useBrushZoom / Chart.jsx).
+  const [isBrushing, setIsBrushing] = useState(false);
   const [active, setActive] = useState(null);
   const [activePos, setActivePos] = useState(null);
 
-  const showXBrush = xTypeAxis !== 'categorical';
+  // Brouillon de GESTE (preview) : dans une ref, JAMAIS dans un state — un
+  // setState par frame re-rendrait les marks (cf. en-tête de useBrushZoom.js) ;
+  // le transform est écrit impérativement sur le groupe `previewMarksRef`.
+  const draftXRef = useRef(null);
+  const previewMarksRef = useRef(null);
 
-  // ── Marges / mesure (calquées sur le prototype) ───────────────────────────
+  // Commit d'une sélection : pose la valeur ET purge le brouillon de geste (le
+  // re-rendu committé reprend la main sur l'attribut transform du groupe).
+  const commitXSel = (sel) => { draftXRef.current = null; setXSel(sel); };
+
+  // Mini-vue x applicable : axe continu ET interrupteur maître armé (à faux, RIEN
+  // n'est réservé — ni bande, ni pied de page, ni pastille).
+  const showXMinimap = minimapsVisible && xTypeAxis !== 'categorical';
+
+  // ── Marges / mesure (PROPRES à <MultiChart>, calquées sur le prototype) ────
+  // Elles diffèrent de celles du pivot <Chart> (marge droite dépendante de la
+  // légende, largeur de ticks fixe, pas de mini-vue y) : c'est pourquoi ce
+  // composant n'appelle pas useChartGeometry — seul l'ANCRAGE des mini-vues est
+  // mutualisé, via un helper pur paramétré par ces marges.
   const legendInline = expanded;
   const marginTop = 16;
   const marginRight = legendInline ? 16 : 26;
@@ -290,11 +319,11 @@ const MultiChartCanvas = ({
 
   const xAxisH = computeXAxisHeight({ allRows, x, xType, xTypeAxis, innerWidth, format, tickDensity, overlap, maxLines, labels });
 
-  const minimapH = 44;
-  const svgH = outerHeight;
-  const minimapXH = (showXBrush && minimapOpen) ? minimapH : 0;
-  const miniH = minimapH - 6;
-  const innerHeight = Math.max(120, svgH - marginTop - xAxisH - minimapXH - 8);
+  // Bandes et ancrages de la mini-vue x : source de vérité unique, partagée avec
+  // useChartGeometry (cf. utils/minimapGeometry).
+  const { svgH, miniH, innerHeight, xMinimapY, xToggleY } = xMinimapLayout({
+    height: outerHeight, marginTop, xAxisH, showXMinimap, xMinimapOpen,
+  });
   const margin = { top: marginTop, right: marginRight, bottom: xAxisH, left: marginLeft };
 
   // ── Échelle x de base (domaine complet) ───────────────────────────────────
@@ -311,8 +340,36 @@ const MultiChartCanvas = ({
     baseXScale = scaleLinear({ domain: extent(vals), range: [0, innerWidth], nice: true });
   }
 
-  // Zoom x (brush / molette) : restreint le domaine continu.
+  // Zoom x (brush / molette) : restreint le domaine continu. Échelle COMMITTÉE,
+  // gelée pendant un geste de drag (marks, filtrage, survol, axes).
   const xScale = (xSel && xTypeAxis !== 'categorical') ? restrictScale(baseXScale, xType, xSel) : baseXScale;
+
+  // Transform affine base→committé du calque de preview (x seul : le brush
+  // multi-jeux n'existe qu'en x continu). Posé en JSX au début du geste puis
+  // réécrit par frame en base→brouillon par `previewXSel` (impératif, hors React).
+  const previewTransform = zoomTransformOf(
+    axisZoomFactors(baseXScale, xScale, innerWidth, xType),
+    { k: 1, t: 0 },
+  );
+
+  // Preview de geste : mémorise le brouillon et écrit le transform base→brouillon
+  // directement sur le groupe des marks — coût O(1) par frame, aucun rendu React.
+  const applyPreview = () => {
+    const sel = draftXRef.current;
+    const xs = sel ? restrictScale(baseXScale, xType, sel) : xScale;
+    const t = zoomTransformOf(axisZoomFactors(baseXScale, xs, innerWidth, xType), { k: 1, t: 0 });
+    if (previewMarksRef.current) previewMarksRef.current.setAttribute('transform', t);
+  };
+  const previewXSel = (sel) => { draftXRef.current = sel; applyPreview(); };
+
+  // Ré-assertion du brouillon après CHAQUE rendu committé : React vient d'écrire
+  // la valeur JSX (base→COMMITTÉ) sur le même groupe et écraserait le brouillon
+  // impératif — les deux écritures ne sont pas ordonnées de façon fiable (cf. le
+  // commentaire détaillé dans useBrushZoom.js). Hors geste, `draftXRef` est purgé
+  // par `commitXSel` → l'effet ne fait rien et React garde la main sur l'attribut.
+  useIsomorphicLayoutEffect(() => {
+    if (draftXRef.current) applyPreview();
+  });
 
   // Filtrage par sélection x (continu uniquement).
   const filterRows = (rows) => {
@@ -343,9 +400,14 @@ const MultiChartCanvas = ({
   const yScale = scaleLinear({ domain: [lo, hi], range: [innerHeight, 0], nice: true });
 
   // ── Couches de marks (1er jeu DEVANT → peint en dernier) ──────────────────
+  // Pendant un geste de brush (`isBrushing`), chaque couche est rendue UNE fois
+  // depuis les lignes COMPLÈTES en coordonnées de BASE (échelle x de base), puis
+  // simplement déplacée par frame via `previewTransform` — le refiltrage et les
+  // stacks ne sont recalculés qu'au relâchement (commit de xSel).
+  const mXScale = isBrushing ? baseXScale : xScale;
   const layers = typedSets.map((ds) => {
     const scales = scalesFor(ds);
-    const rows = filterRows(ds.rows);
+    const rows = isBrushing ? ds.rows : filterRows(ds.rows);
     const bar = isBarLike(ds, xTypeAxis);
     const st = (ds.stack && ds.stack !== 'none')
       ? buildStacks({ data: rows, posKey: x, valKey: y, channels: scales.channels, stackBy: ds.stack, seriesOrder: groupSeries(rows, scales.channels).map((s) => s.key), aggregate: 'mean' })
@@ -359,33 +421,38 @@ const MultiChartCanvas = ({
       return (
         <ContinuousBarMarks
           key={ds.index} rows={rows} x={x} y={y} channels={ch}
-          xScale={xScale} yScale={yScale} colorScale={scales.color} styleScale={scales.style}
+          xScale={mXScale} yScale={yScale} colorScale={scales.color} styleScale={scales.style}
           markerScale={scales.marker} hatchScale={scales.hatch} hovered={hovered} fill={ds.fill} stack={ds.stack} />
       );
     }
     return (
       <LineMarks
         key={ds.index} data={rows} x={x} y={y} channels={ch}
-        xScale={xScale} yScale={yScale} colorScale={scales.color} styleScale={scales.style}
+        xScale={mXScale} yScale={yScale} colorScale={scales.color} styleScale={scales.style}
         markerScale={scales.marker} hatchScale={scales.hatch} hovered={hovered}
         fill={ds.fill} stack={st} />
     );
   });
 
   // ── Cibles de survol (tous les jeux) ──────────────────────────────────────
+  // Sautées pendant un geste de brush : on ne survole pas en glissant, et cela
+  // évite la géométrie de barres + la boucle O(n) par frame (recalculées au
+  // relâchement, quand isBrushing repasse à false et xSel est committé).
   const hoverTargets = [];
-  for (const { ds, scales, rows, bar, st } of layers) {
-    const ch = scales.channels;
-    if (bar) {
-      const { bars } = barGeometry(rows, x, y, ch, xScale, yScale, ds.stack);
-      for (const b of bars) hoverTargets.push({ px: b.cx, py: b.top, row: b.row, ds, scales, hit: { type: 'rect', x: b.x, y: b.y, w: b.w, h: b.h } });
-    } else {
-      for (const r of rows) {
-        let py = yScale(r[y]);
-        if (st) { const o = st.offsets.get(seriesKey(r, ch) + '|' + xKeyOf(r[x])); if (o) py = yScale(o.y1); }
-        const px = xScale(r[x]);
-        if (isNaN(px) || isNaN(py)) continue;
-        hoverTargets.push({ px, py, row: r, ds, scales, hit: { type: 'circle', r: 12 } });
+  if (!isBrushing) {
+    for (const { ds, scales, rows, bar, st } of layers) {
+      const ch = scales.channels;
+      if (bar) {
+        const { bars } = barGeometry(rows, x, y, ch, xScale, yScale, ds.stack);
+        for (const b of bars) hoverTargets.push({ px: b.cx, py: b.top, row: b.row, ds, scales, hit: { type: 'rect', x: b.x, y: b.y, w: b.w, h: b.h } });
+      } else {
+        for (const r of rows) {
+          let py = yScale(r[y]);
+          if (st) { const o = st.offsets.get(seriesKey(r, ch) + '|' + xKeyOf(r[x])); if (o) py = yScale(o.y1); }
+          const px = xScale(r[x]);
+          if (isNaN(px) || isNaN(py)) continue;
+          hoverTargets.push({ px, py, row: r, ds, scales, hit: { type: 'circle', r: 12 } });
+        }
       }
     }
   }
@@ -448,9 +515,9 @@ const MultiChartCanvas = ({
     const [b0, b1] = baseXScale.domain().map(Number);
     const bLo = Math.min(b0, b1), bHi = Math.max(b0, b1);
     n0 = Math.max(bLo, n0); n1 = Math.min(bHi, n1);
-    if (n1 - n0 >= (bHi - bLo) * 0.985) { setXSel(null); return; }
+    if (n1 - n0 >= (bHi - bLo) * 0.985) { commitXSel(null); return; }
     if (n1 - n0 < (bHi - bLo) * 0.02) return;
-    setXSel(xType === 'date' ? [new Date(n0), new Date(n1)] : [n0, n1]);
+    commitXSel(xType === 'date' ? [new Date(n0), new Date(n1)] : [n0, n1]);
   };
   const wheelRef = useRef(applyWheel);
   useEffect(() => { wheelRef.current = applyWheel; });
@@ -466,7 +533,7 @@ const MultiChartCanvas = ({
   // ── Contenu de la mini-vue (réplique miniature) ───────────────────────────
   const yMini = yScale.copy().range([miniH, 0]);
   const xMiniContent = (
-    <g>
+    <>
       {typedSets.slice().reverse().map((ds) => {
         const scales = scalesFor(ds);
         const ch = scales.channels;
@@ -489,10 +556,21 @@ const MultiChartCanvas = ({
             markerScale={scales.marker} hatchScale={scales.hatch} fill={ds.fill} stack={st} mini />
         );
       })}
-    </g>
+    </>
   );
 
   const clipId = 'mclip-' + useId().replace(/[^a-zA-Z0-9]/g, '');
+
+  // Bouton « mini-vues » de la barre d'outils (seule feature applicable ici) : il
+  // n'agit QUE sur la visibilité de l'ensemble (bande + pastille) ; le pli est la
+  // seule affaire de la pastille, et il est conservé d'un masquage à l'autre —
+  // même contrat que dans <Chart>.
+  const extraTools = minimapsTool
+    ? [{
+        id: minimapsTool.id, icon: minimapsTool.icon, label: minimapsTool.label,
+        on: minimapsVisible, onToggle: () => setMinimapsVisible((v) => !v),
+      }]
+    : [];
 
   return (
     <>
@@ -500,9 +578,10 @@ const MultiChartCanvas = ({
         expanded={expanded} onExpand={() => setExpanded((e) => !e)}
         voronoi={voronoiOn} onVoronoi={() => setVoronoiOn((v) => !v)}
         tooltips={tooltipsOn} onTooltips={() => setTooltipsOn((t) => !t)}
-        onReset={() => setXSel(null)} canReset={!!xSel}
+        onReset={() => commitXSel(null)} canReset={!!xSel}
         onExportSvg={() => exportSvg(svgRef.current, (title || 'chart') + '.svg')}
         onExportPng={() => exportPng(svgRef.current, (title || 'chart') + '.png')}
+        extraTools={extraTools}
       />
 
         {/* Pas de role="img" : cf. Chart.jsx (pruning des descendants interactifs). */}
@@ -511,7 +590,9 @@ const MultiChartCanvas = ({
           <g transform={`translate(${margin.left}, ${margin.top})`}>
             <ChartAxisLeft
               scale={yScale} type="number" length={innerHeight} width={innerWidth}
-              format={format.y} tickDensity={tickDensity} label={labels.y} tickPadX={0} labelOffset={yTickW + 4} />
+              format={format.y} tickDensity={tickDensity} label={labels.y} labelOffset={yTickW + 4} />
+            {/* Axe x sur l'échelle COMMITTÉE : gelé pendant un geste de brush,
+                recalé au relâchement. */}
             <ChartAxisBottom
               scale={xScale} type={xTypeAxis} length={innerWidth} height={innerHeight}
               format={format.x} maxLabelLength={maxLabelLength.x} maxLines={maxLines.x || 2}
@@ -519,7 +600,23 @@ const MultiChartCanvas = ({
             <defs>
               <clipPath id={clipId}><rect x={0} y={0} width={innerWidth} height={innerHeight} /></clipPath>
             </defs>
-            <g clipPath={`url(#${clipId})`}>{markEls}</g>
+            {/* Pendant un geste de brush, les marks (en coordonnées de base) sont
+                déplacés par le transform de preview — la valeur JSX (base→committé)
+                est posée au début du geste puis réécrite par frame via
+                previewMarksRef ; .chart-zoom-content garde les traits à épaisseur
+                constante (vector-effect, cf. Chart.scss).
+                Les deux <g> sont indispensables : un clip-path est résolu dans le
+                repère de l'élément qui le référence, APRÈS son propre transform —
+                clip et transform sur le même <g> feraient zoomer la découpe. */}
+            <g clipPath={`url(#${clipId})`}>
+              <g
+                ref={previewMarksRef}
+                className={isBrushing ? 'chart-zoom-content' : undefined}
+                transform={isBrushing ? previewTransform : undefined}
+              >
+                {markEls}
+              </g>
+            </g>
 
             {voronoiOn && cleanTargets.length > 0 && (
               <VoronoiOverlay points={cleanTargets} innerWidth={innerWidth} innerHeight={innerHeight} onHover={onHoverTarget} />
@@ -532,15 +629,32 @@ const MultiChartCanvas = ({
             )}
           </g>
 
-          {showXBrush && minimapOpen && (
-            <g transform={`translate(${margin.left}, ${margin.top + innerHeight + margin.bottom + 8})`}>
-              <BrushMinimap direction="x" width={innerWidth} height={miniH} scale={baseXScale} selection={xSel} onChange={setXSel} content={xMiniContent} />
-            </g>
+          {/* Mini-vue x — placée par la prop `transform` de BrushMinimap (posée sur son
+              <g> racine) */}
+          {showXMinimap && xMinimapOpen && (
+            <BrushMinimap
+              direction="x"
+              transform={`translate(${margin.left}, ${xMinimapY})`}
+              width={innerWidth} height={miniH} scale={baseXScale}
+              selection={xSel} onChange={commitXSel} onPreview={previewXSel}
+              content={xMiniContent} onBrushingChange={setIsBrushing}
+            />
           )}
         </svg>
 
-        {showXBrush && (
-          <MinimapToggle open={minimapOpen} direction="x" onToggle={() => setMinimapOpen((o) => !o)} />
+        {/* Pastille de pli, ancrée sur le centre du titre de l'axe x (PAS 50 % du
+            body, aux marges asymétriques), à TOGGLE_GAP px sous la mini-vue — le
+            centrage effectif est fait en CSS par MinimapToggle.scss (cf. Chart.jsx). */}
+        {showXMinimap && (
+          <MinimapToggle
+            open={xMinimapOpen}
+            direction="x"
+            onToggle={() => setXMinimapOpen((o) => !o)}
+            style={{
+              left: margin.left + innerWidth / 2,
+              top: xToggleY,
+            }}
+          />
         )}
 
         {tooltipsOn && active && activePos && tipModel && (
@@ -576,13 +690,17 @@ const MultiChartCanvas = ({
  * @param {number} [props.height=460] - Outer height (px).
  * @param {object} [props.defaults={}] - Initial frame state ({ expanded?, voronoi?,
  *   tooltips?, minimaps? }).
+ * @param {Array<object>} [props.toolbar=[]] - Toolbar feature descriptors, forwarded by
+ *   <Chart>. Seule la feature « mini-vues » (`isMinimaps`) est prise en compte : les
+ *   autres (IC, avant/après, normalisation, zoom) n'ont pas de rendu sur la branche
+ *   multi-jeux et sont ignorées.
  * @returns {JSX.Element}
  */
 const MultiChart = ({
   data, x, y, hue, fill = 'line', stack = 'none',
   format = {}, labels = {}, maxLabelLength = {}, maxLines = {},
   overlap = 'auto', tickDensity = 'normal',
-  title, height = 460, defaults = {},
+  title, height = 460, defaults = {}, toolbar = [],
 }) => {
   // Hooks AVANT tout retour/throw anticipé (règles des hooks).
   const [expanded, setExpanded] = useState(!!defaults.expanded);
@@ -671,8 +789,11 @@ const MultiChart = ({
     return { key: ds.index, label: ds.label, fillKind, styleGlyph, headColor, groups };
   });
 
-  // ── Ouverture des mini-vues par défaut ────────────────────────────────────
-  const initialMinimapOpen = defaults.minimaps != null ? !!defaults.minimaps : true;
+  // ── Mini-vues : visibilité par défaut + bouton de la barre d'outils ───────
+  // Même règle de priorité que <Chart> (defaults.minimaps > defaultOn de la feature
+  // > vrai) : cf. resolveMinimapsVisible.
+  const minimapsTool = (toolbar || []).find((t) => t.isMinimaps);
+  const initialMinimapsVisible = resolveMinimapsVisible({ defaults, toolbar });
 
   const legendInline = expanded;
 
@@ -688,7 +809,10 @@ const MultiChart = ({
         </div>
       )}
 
-      <ParentSize className="chart-body" parentSizeStyles={{ position: 'relative', width: '100%', minHeight: height }}>
+      <ParentSize
+        className="chart-body" parentSizeStyles={{ position: 'relative', width: '100%', minHeight: height }}
+        debounceTime={150} enableDebounceLeadingCall
+      >
         {({ width }) => (width > 0 ? (
           <MultiChartCanvas
             width={Math.max(320, Math.floor(width))}
@@ -702,7 +826,7 @@ const MultiChart = ({
             voronoiOn={voronoiOn} setVoronoiOn={setVoronoiOn}
             tooltipsOn={tooltipsOn} setTooltipsOn={setTooltipsOn}
             hovered={hovered}
-            initialMinimapOpen={initialMinimapOpen} />
+            initialMinimapsVisible={initialMinimapsVisible} minimapsTool={minimapsTool} />
         ) : null)}
       </ParentSize>
 

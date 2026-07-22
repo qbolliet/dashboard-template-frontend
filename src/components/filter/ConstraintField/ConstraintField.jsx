@@ -38,6 +38,8 @@ import './ConstraintField.scss';
  * @param {Function} onChange      - ({ value } | { min, max }) => void, string payloads.
  * @param {Function} [onValidityChange] - (valid: boolean) => void. VALUE verdict emitted
  *   alongside each onChange (filled AND consistent: type ok, low ≤ high, within bounds).
+ * @param {Function} [onCommit] - Forwarded to the inputs' blur, so a debounced parent can
+ *   flush any pending emission.
  * @param {boolean}  [disabled]
  * @param {boolean}  [showSlider]  - Render the slider bar when the type/bounds allow it.
  * @param {boolean}  [inputsOnTop] - Render the inputs above the track (instead of below).
@@ -58,6 +60,7 @@ const ConstraintField = ({
   defaultValueHigh,
   onChange,
   onValidityChange,
+  onCommit,
   disabled = false,
   showSlider = true,
   inputsOnTop = false,
@@ -71,7 +74,9 @@ const ConstraintField = ({
   const dualInputs = rangeMode && !isDate;
 
   // ── Bornes : API (hook) court-circuitée par les props explicites ────────
-  const api = useRangeBounds({ fieldName, catalog });
+  // Fetch désactivé sans `fieldName` (bornes min/max entièrement statiques : aucun champ
+  // à interroger côté API, cf. useSelectOptions/enabled pour le même pattern).
+  const api = useRangeBounds({ fieldName, catalog, enabled: !!fieldName });
 
   // Convertit une borne (nombre, ou date JJ/MM/AAAA) en nombre de l'axe slider
   const boundToNum = (b) => {
@@ -270,15 +275,31 @@ const ConstraintField = ({
   };
 
   // ── Drag via Pointer Events sur window ──────────────────────────────────
-  // (cf. ancienne implémentation : on évite d'ajouter `snap`/`applyThumb` aux deps,
-  //  qui changent à chaque render — la logique est ré-inlinée ici.)
+  // Ref vers les valeurs lues par les handlers (bornes, `disabled`, `applyThumb` — qui
+  // ferme lui-même sur low/high courants) : réassignée à CHAQUE render, donc toujours à
+  // jour au moment d'un pointermove. Nécessaire car les listeners `window` exigent une
+  // identité de fonction stable entre add/removeEventListener ; si l'effet dépendait de
+  // low/high/minN/maxN (qui changent à chaque mouvement), il retirerait et remonterait
+  // les listeners à chaque frame au lieu de les poser une seule fois par drag.
+  const dragRef = useRef({});
   useEffect(() => {
-    if (!dragging || disabled) return undefined;
+    // Réassignation hors-render (règle des hooks : un ref ne se met pas à jour pendant
+    // le rendu) — cet effet n'a pas de tableau de deps, il tourne donc après CHAQUE render.
+    dragRef.current = { minN, maxN, stepN, disabled, applyThumb };
+  });
+
+  useEffect(() => {
+    if (!dragging) return undefined;
     const move = (e) => {
-      if (!railRef.current) return;
+      const { minN, maxN, stepN, disabled, applyThumb } = dragRef.current;
+      if (disabled || !railRef.current) return;
       const rect = railRef.current.getBoundingClientRect();
       const p = clamp(((e.clientX - rect.left) / rect.width) * 100, 0, 100);
-      const v = snap(minN + (p / 100) * (maxN - minN));
+      // Snap réimplémenté ici (plutôt qu'un appel à `snap()`) pour ne lire que des
+      // valeurs fraîches issues de `dragRef` — la fonction `snap` du render fige ses
+      // bornes au moment de la création de ce handler.
+      const raw = minN + (p / 100) * (maxN - minN);
+      const v = clamp(Math.round(raw / stepN) * stepN, minN, maxN);
       applyThumb(dragging, v);
     };
     const up = () => setDragging(null);
@@ -288,8 +309,7 @@ const ConstraintField = ({
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dragging, low, high, rangeMode, minN, maxN, stepN, disabled, onChange]);
+  }, [dragging]);
 
   // ── Handlers de saisie clavier (via TypeAwareInput) ─────────────────────
   const handleLowChange = (v) => {
@@ -408,6 +428,7 @@ const ConstraintField = ({
             validate={validate}
             disabled={disabled}
             onChange={handleLowChange}
+            onCommit={onCommit}
             {...lowForced()} />
         </div>
 
@@ -423,6 +444,7 @@ const ConstraintField = ({
                 validate={validate}
                 disabled={disabled}
                 onChange={handleHighChange}
+                onCommit={onCommit}
                 {...highForced()} />
             </div>
           </>

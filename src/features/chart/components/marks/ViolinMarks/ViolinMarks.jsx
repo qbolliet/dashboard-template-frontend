@@ -1,5 +1,5 @@
 // Importation des modules
-import { useId } from 'react';
+import { useId, useMemo } from 'react';
 import { scaleBand } from '@visx/scale';
 import { mean } from 'd3-array';
 import { groupSeries, seriesKey, PALETTE } from '../../../utils/encoding';
@@ -82,74 +82,156 @@ const ViolinMarks = ({
   const markerActive = !!channels.marker;
   const isFillMode = fill !== 'line';
 
-  // Colonnes empilées (sélection utilisateur). 'all' → tous les canaux actifs,
-  // sinon le seul canal nommé. Ordre canonique : color → style → marker.
-  const stackCols = (() => {
-    if (!stack || stack === 'none') return [];
-    if (stack === 'all') return ['color', 'style', 'marker'].map((c) => channels[c]).filter(Boolean);
-    return channels[stack] ? [channels[stack]] : [];
-  })();
-  const stackActive = stackCols.length > 0;
+  // ── Bloc INVARIANT AU ZOOM : groupement + KDE + normalisation d'empilage ────
+  // Mémoïsation EXPLICITE :
+  // le KDE (48 échantillons × séries × bandes) est calculé sur le domaine de BASE
+  // (`valScaleBase`), donc STRICTEMENT indépendant du zoom — le brush ne fait que
+  // repositionner les points via les échelles ZOOMÉES en aval. Sans ce useMemo,
+  // tout le KDE serait reconstruit à CHAQUE frame de drag (les échelles changent
+  // d'identité à chaque rendu), ce que le React Compiler n'isole pas à la bonne
+  // granularité.
+  // Clés = référence des données + noms de colonnes/modes + bornes du domaine de BASE
+  // (lo/hi, seules valeurs lues par le KDE). JAMAIS les échelles zoomées, sinon la
+  // mémo ne tiendrait pas au zoom — et JAMAIS l'identité d'un objet dérivé en amont :
+  // c'est pourquoi `seriesList` est regroupée ICI plutôt que reçue en prop depuis
+  // <ChartCanvas>. La chaîne qui la produirait (hue → hueCols → channels →
+  // groupSeries) traverse le composant <Chart>, qui se re-rend à chaque survol de
+  // légende ; faire dépendre la mémo de la mémoïsation du Compiler sur cette chaîne
+  // reviendrait à supposer précisément la garantie que ce useMemo existe pour
+  // apporter — et son échec serait SILENCIEUX (tout le KDE recalculé, sans symptôme
+  // autre qu'une lenteur). Le regroupement est de toute façon O(n), négligeable
+  // devant le KDE calculé juste après dans la même passe.
+  // Pendant un drag de brush, seul <ChartCanvas> se re-rend (l'état xSel/ySel y vit) ;
+  // `data` garde donc une référence stable → la mémo tient tout le geste.
+  const baseDomain = valScaleBase.domain();
+  const domLo = +baseDomain[0];
+  const domHi = +baseDomain[baseDomain.length - 1];
+  const {
+    stackActive, splitMode, splitVals, seriesSideVal,
+    seriesList, seriesKeys, grouped, curves, globalMax, stackMax,
+  } = useMemo(() => {
+    // Colonnes empilées (sélection utilisateur). 'all' → tous les canaux actifs,
+    // sinon le seul canal nommé. Ordre canonique : color → style → marker.
+    const stackCols = (() => {
+      if (!stack || stack === 'none') return [];
+      if (stack === 'all') return ['color', 'style', 'marker'].map((c) => channels[c]).filter(Boolean);
+      return channels[stack] ? [channels[stack]] : [];
+    })();
+    const sActive = stackCols.length > 0;
 
-  // Colonne de SPLIT : la 1re colonne BINAIRE de la liste empilée. Ses deux
-  // modalités se répartissent de part et d'autre de l'axe ; toutes les autres
-  // séries s'EMPILENT à l'intérieur de chaque côté (cumul perpendiculaire).
-  const splitCol = (() => {
-    for (const col of stackCols) {
-      const seen = new Set();
-      for (const r of data) { const v = r[col]; if (v != null) seen.add(String(v)); if (seen.size > 2) break; }
-      if (seen.size === 2) return col;
+    // Colonne de SPLIT : la 1re colonne BINAIRE de la liste empilée. Ses deux
+    // modalités se répartissent de part et d'autre de l'axe ; toutes les autres
+    // séries s'EMPILENT à l'intérieur de chaque côté (cumul perpendiculaire).
+    const splitCol = (() => {
+      for (const col of stackCols) {
+        const seen = new Set();
+        for (const r of data) { const v = r[col]; if (v != null) seen.add(String(v)); if (seen.size > 2) break; }
+        if (seen.size === 2) return col;
+      }
+      return null;
+    })();
+    const spMode = !!splitCol;
+
+    // Canal (color/style/marker) porteur de la colonne de split → lecture de la
+    // modalité directement sur les métadonnées de série.
+    const splitChannel = splitCol == null ? null
+      : splitCol === channels.color ? 'color'
+        : splitCol === channels.style ? 'style'
+          : splitCol === channels.marker ? 'marker' : null;
+    const sideVal = (g) => (splitChannel ? String(g[splitChannel + 'Val']) : null);
+
+    // Modalités du split (ordre de rencontre) : [0] → gauche, [1] → droite.
+    const spVals = (() => {
+      if (!splitCol) return [];
+      const seen = new Set(), out = [];
+      for (const r of data) {
+        const v = r[splitCol];
+        if (v == null) continue;
+        const s = String(v);
+        if (!seen.has(s)) { seen.add(s); out.push(s); }
+      }
+      return out;
+    })();
+
+    // Séries (combinaisons des canaux actifs) — ordre stable.
+    const sList = groupSeries(data, channels);
+    const sKeys = sList.map((s) => s.key);
+
+    // band → seriesKey → { vals, zs, colorVal, styleVal }
+    const grp = new Map();
+    for (const row of data) {
+      const bv = row[bandKey];
+      if (bv == null) continue;
+      const v = +row[valKey];
+      if (isNaN(v)) continue;
+      const sk = seriesKey(row, channels);
+      if (!grp.has(bv)) grp.set(bv, new Map());
+      const m = grp.get(bv);
+      if (!m.has(sk)) {
+        m.set(sk, {
+          key: sk, vals: [], zs: [],
+          colorVal: channels.color ? row[channels.color] : '__all__',
+          styleVal: channels.style ? row[channels.style] : '__all__',
+        });
+      }
+      const g = m.get(sk);
+      g.vals.push(v);
+      if (z != null && row[z] != null && !isNaN(+row[z])) g.zs.push(+row[z]);
     }
-    return null;
-  })();
-  const splitMode = !!splitCol;
 
-  // Canal (color/style/marker) porteur de la colonne de split → lecture de la
-  // modalité directement sur les métadonnées de série.
-  const splitChannel = splitCol == null ? null
-    : splitCol === channels.color ? 'color'
-      : splitCol === channels.style ? 'style'
-        : splitCol === channels.marker ? 'marker' : null;
-  const seriesSideVal = (g) => (splitChannel ? String(g[splitChannel + 'Val']) : null);
-
-  // Modalités du split (ordre de rencontre) : [0] → gauche, [1] → droite.
-  const splitVals = (() => {
-    if (!splitCol) return [];
-    const seen = new Set(), out = [];
-    for (const r of data) {
-      const v = r[splitCol];
-      if (v == null) continue;
-      const s = String(v);
-      if (!seen.has(s)) { seen.add(s); out.push(s); }
+    // KDE — epanechnikov, échantillonné sur le domaine PLEIN de la valeur. La
+    // grille de 48 échantillons et la bande passante (8 % de l'étendue) sont fixées
+    // une fois pour toutes (utils/kde.js), stables au zoom.
+    const kde = epanechnikovKDE([domLo, domHi]);
+    const crv = new Map();
+    let gMax = 0;
+    for (const [bv, sMap] of grp) {
+      const cm = new Map();
+      for (const [sk, g] of sMap) {
+        const curve = kde.estimate(g.vals);
+        cm.set(sk, curve);
+        for (const p of curve) if (p.d > gMax) gMax = p.d;
+      }
+      crv.set(bv, cm);
     }
-    return out;
-  })();
 
-  // Séries (combinaisons des canaux actifs) — ordre stable.
-  const seriesList = groupSeries(data, channels);
-  const seriesKeys = seriesList.map((s) => s.key);
+    // Empilage : densité cumulée maximale par CÔTÉ (somme des KDE des séries
+    // présentes d'un même côté à une position de valeur donnée), tous bandeaux
+    // confondus — normalise la largeur pour que le côté le plus dense tienne dans
+    // la demi-bande. En split, gauche et droite partagent l'échelle ⇒ l'asymétrie
+    // des effectifs reste lisible.
+    const sMax = (() => {
+      if (!sActive) return 0;
+      let smax = 0;
+      for (const [, cm] of crv) {
+        const pres = sList.filter((g) => (cm.get(g.key) || []).length >= 2);
+        if (!pres.length) continue;
+        const n = (cm.get(pres[0].key) || []).length;
+        const sideGroups = spMode
+          ? spVals.map((mod) => pres.filter((g) => sideVal(g) === mod))
+          : [pres];
+        for (const grpSide of sideGroups) {
+          for (let i = 0; i < n; i++) {
+            let sum = 0;
+            for (const g of grpSide) { const c = cm.get(g.key); sum += (c && c[i]) ? c[i].d : 0; }
+            if (sum > smax) smax = sum;
+          }
+        }
+      }
+      return smax;
+    })();
 
-  // band → seriesKey → { vals, zs, colorVal, styleVal }
-  const grouped = new Map();
-  for (const row of data) {
-    const bv = row[bandKey];
-    if (bv == null) continue;
-    const v = +row[valKey];
-    if (isNaN(v)) continue;
-    const sk = seriesKey(row, channels);
-    if (!grouped.has(bv)) grouped.set(bv, new Map());
-    const m = grouped.get(bv);
-    if (!m.has(sk)) {
-      m.set(sk, {
-        key: sk, vals: [], zs: [],
-        colorVal: channels.color ? row[channels.color] : '__all__',
-        styleVal: channels.style ? row[channels.style] : '__all__',
-      });
-    }
-    const g = m.get(sk);
-    g.vals.push(v);
-    if (z != null && row[z] != null && !isNaN(+row[z])) g.zs.push(+row[z]);
-  }
+    return {
+      stackActive: sActive, splitMode: spMode, splitVals: spVals, seriesSideVal: sideVal,
+      seriesList: sList, seriesKeys: sKeys, grouped: grp, curves: crv,
+      globalMax: gMax, stackMax: sMax,
+    };
+    // Dépendances : uniquement des VALEURS (référence des données, noms de colonnes,
+    // modes, bornes du domaine de BASE) — aucune identité d'objet construite par un
+    // parent. `channels` est lu comme objet dans le corps mais ses trois champs sont
+    // listés un à un : groupSeries/seriesKey ne lisent rien d'autre.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, x, y, z, channels.color, channels.style, channels.marker, stack, orient, domLo, domHi]);
 
   const bandwidth = bandScale.bandwidth ? bandScale.bandwidth() : 40;
 
@@ -160,48 +242,6 @@ const ViolinMarks = ({
     range: [0, bandwidth],
     padding: seriesKeys.length > 1 ? 0.12 : 0.25,
   });
-
-  // KDE — epanechnikov, échantillonné sur le domaine PLEIN de la valeur. La
-  // grille de 48 échantillons et la bande passante (8 % de l'étendue) sont fixées
-  // une fois pour toutes (utils/kde.js), stables au zoom.
-  const kde = epanechnikovKDE(valScaleBase.domain());
-  const curves = new Map();
-  let globalMax = 0;
-  for (const [bv, sMap] of grouped) {
-    const cm = new Map();
-    for (const [sk, g] of sMap) {
-      const curve = kde.estimate(g.vals);
-      cm.set(sk, curve);
-      for (const p of curve) if (p.d > globalMax) globalMax = p.d;
-    }
-    curves.set(bv, cm);
-  }
-
-  // Empilage : densité cumulée maximale par CÔTÉ (somme des KDE des séries
-  // présentes d'un même côté à une position de valeur donnée), tous bandeaux
-  // confondus — normalise la largeur pour que le côté le plus dense tienne dans
-  // la demi-bande. En split, gauche et droite partagent l'échelle ⇒ l'asymétrie
-  // des effectifs reste lisible.
-  const stackMax = (() => {
-    if (!stackActive) return 0;
-    let smax = 0;
-    for (const [, cm] of curves) {
-      const pres = seriesList.filter((g) => (cm.get(g.key) || []).length >= 2);
-      if (!pres.length) continue;
-      const n = (cm.get(pres[0].key) || []).length;
-      const groups = splitMode
-        ? splitVals.map((mod) => pres.filter((g) => seriesSideVal(g) === mod))
-        : [pres];
-      for (const grp of groups) {
-        for (let i = 0; i < n; i++) {
-          let sum = 0;
-          for (const g of grp) { const c = cm.get(g.key); sum += (c && c[i]) ? c[i].d : 0; }
-          if (sum > smax) smax = sum;
-        }
-      }
-    }
-    return smax;
-  })();
 
   const defaultFill = (PALETTE && PALETTE[0]) || 'hsl(207, 74.4%, 22.9%)';
 

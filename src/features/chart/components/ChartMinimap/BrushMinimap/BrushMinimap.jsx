@@ -11,10 +11,8 @@
 import { useEffect, useId, useRef } from 'react';
 import { Brush } from '@visx/brush';
 import { scaleLinear } from '@visx/scale';
+import { HANDLE_SIZE } from '../../../utils/minimapGeometry';
 import './BrushMinimap.scss';
-
-// Taille des poignées de redimensionnement (cf. ChartMinimap/_tokens.scss).
-const HANDLE_SIZE = 6;
 
 /**
  * A brush minimap over a miniature replica/projection of the chart, clipped to
@@ -22,18 +20,29 @@ const HANDLE_SIZE = 6;
  *
  * @param {object} props
  * @param {'x'|'y'} [props.direction='x'] - Brush axis.
+ * @param {string} [props.transform] - SVG transform applied to the root group: lets the
+ *   caller place the minimap in the chart frame without an extra wrapper <g>.
  * @param {number} props.width - Minimap width (px).
  * @param {number} props.height - Minimap height (px).
  * @param {object} props.scale - Position scale of the brushed axis (band for
  *   categorical, linear/time otherwise). Its pixel range must span [0, width|height].
  * @param {?Array} props.selection - External selection ([v0,v1] continuous /
  *   [cat0,cat1] categorical), or null for the un-zoomed (full) state.
- * @param {Function} props.onChange - Called with the new selection (or null when cleared).
+ * @param {Function} props.onChange - Called with the COMMITTED selection (or null when
+ *   cleared): once per gesture, on release — plus the wheel/reset mirror path.
+ * @param {Function} [props.onPreview] - Called continuously DURING a drag gesture with the
+ *   in-progress selection. When omitted, mid-gesture notifications fall back to `onChange`
+ *   (legacy behaviour). Lets the parent drive a cheap visual preview (SVG transform) while
+ *   deferring its expensive pipeline (filtering, stacking) to the final `onChange`.
  * @param {React.ReactNode} props.content - Miniature content rendered under the brush.
+ * @param {Function} [props.onBrushingChange] - Notifie le début (`true`) et la fin (`false`)
+ *   d'un geste utilisateur, pour que le parent allège son rendu pendant le drag (ex. sauter
+ *   le calcul des cibles de survol, inutiles tant qu'on glisse).
  * @returns {JSX.Element}
  */
 const BrushMinimap = ({
-  direction = 'x', width, height, scale, selection, onChange, content,
+  direction = 'x', transform, width, height, scale, selection, onChange, onPreview, content,
+  onBrushingChange,
 }) => {
   const isX = direction === 'x';
   // Échelle catégorielle (band) → pas d'`invert` ; sinon continue (linear/time).
@@ -43,12 +52,18 @@ const BrushMinimap = ({
   const brushRef = useRef(null);          // instance BaseBrush (updateBrush / state)
   const isProgrammatic = useRef(false);   // ignore le prochain onChange (mouvement piloté)
   const isUserBrushing = useRef(false);   // vrai pendant un geste utilisateur
+  const brushingNotified = useRef(false); // dernière valeur émise à onBrushingChange
+  const lastPreviewSel = useRef(null);    // dernier brouillon du geste (commit du filet)
 
   const clipId = `chart-minimap-clip-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
 
   // ── Conversions sélection ↔ pixels (le long de l'axe brushé) ──────────────
-  // Pixels d'une sélection : par index de bande (catégoriel, scale.step) ou par
-  // projection directe (continu). Réordonnés [min, max].
+  // Deux réciproques COHÉRENTES pour l'axe catégoriel (indispensable pour que le
+  // brush ne « se décale » pas après commit et qu'une modalité UNIQUE reste
+  // sélectionnable) : selectionToPixels renvoie les bornes PIXEL réelles des
+  // bandes (début de la 1re → fin de la dernière) ; domainToSel retient les bandes
+  // dont le CENTRE tombe dans l'extent. Les centres des bandes sélectionnées sont
+  // alors dans l'intervalle, ceux des voisines non → round-trip stable.
   const selectionToPixels = (sel) => {
     if (!sel) return null;
     if (isCategorical) {
@@ -56,8 +71,12 @@ const BrushMinimap = ({
       const i0 = dom.indexOf(sel[0]);
       const i1 = dom.indexOf(sel[1]);
       if (i0 < 0 || i1 < 0) return null;
-      const step = scale.step ? scale.step() : (isX ? width : height) / Math.max(1, dom.length);
-      return [Math.min(i0, i1) * step, (Math.max(i0, i1) + 1) * step];
+      const lo = Math.min(i0, i1), hi = Math.max(i0, i1);
+      const bw = scale.bandwidth ? scale.bandwidth() : 0;
+      const p0 = scale(dom[lo]);
+      const p1 = scale(dom[hi]) + bw;
+      if (p0 == null || isNaN(p0)) return null;
+      return [p0, p1];
     }
     const p0 = scale(sel[0]);
     const p1 = scale(sel[1]);
@@ -67,13 +86,47 @@ const BrushMinimap = ({
 
   // Domaine @visx/brush → sélection. Continu : bornes réordonnées [min, max]
   // (l'axe y a un range inversé → invert() rend [haut, bas]) ; date : re-Daté
-  // pour rester cohérent avec restrictScale/filtrage. Catégoriel : 1re et
-  // dernière bande de la plage.
+  // pour rester cohérent avec restrictScale/filtrage.
   const domainToSel = (domain) => {
     if (isCategorical) {
-      const values = isX ? domain.xValues : domain.yValues;
-      if (!values || values.length === 0) return null;
-      return [values[0], values[values.length - 1]];
+      // Sélection dérivée de l'EXTENT PIXEL réel du brush (règle du CENTRE) plutôt
+      // que de `domain.xValues` — fragile : @visx y ajoute des `null` (→ dézoom
+      // fantôme / barres vidées) et l'inclusion des bandes dépend d'un bord (→
+      // impossible d'isoler une seule modalité). Une bande est retenue si son
+      // centre est dans l'extent → sélection contiguë stable et réciproque de
+      // selectionToPixels.
+      const dom = scale.domain();
+      const bw = scale.bandwidth ? scale.bandwidth() : 0;
+      const ext = brushRef.current && brushRef.current.state && brushRef.current.state.extent;
+      let p0; let p1;
+      if (ext) {
+        p0 = isX ? Math.min(ext.x0, ext.x1) : Math.min(ext.y0, ext.y1);
+        p1 = isX ? Math.max(ext.x0, ext.x1) : Math.max(ext.y0, ext.y1);
+      } else {
+        // Repli (extent indisponible) : xValues purgé de ses `null`.
+        const raw = isX ? domain.xValues : domain.yValues;
+        const values = Array.isArray(raw) ? raw.filter((v) => v != null) : [];
+        if (values.length === 0) return null;
+        return [values[0], values[values.length - 1]];
+      }
+      const centerIn = (c) => {
+        const s = scale(c);
+        return s != null && !isNaN(s) && (s + bw / 2) >= p0 && (s + bw / 2) <= p1;
+      };
+      const inside = dom.filter(centerIn);
+      if (inside.length > 0) return [inside[0], inside[inside.length - 1]];
+      // Extent trop étroit (aucun centre dedans, entre deux bandes) : retenir la
+      // bande dont le centre est le plus proche du milieu → un geste fin sélectionne
+      // TOUJOURS exactement une modalité (jamais zéro ni « au moins deux »).
+      const mid = (p0 + p1) / 2;
+      let best = null; let bd = Infinity;
+      for (const c of dom) {
+        const s = scale(c);
+        if (s == null || isNaN(s)) continue;
+        const d = Math.abs(s + bw / 2 - mid);
+        if (d < bd) { bd = d; best = c; }
+      }
+      return best == null ? null : [best, best];
     }
     const a = isX ? domain.x0 : domain.y0;
     const b = isX ? domain.x1 : domain.y1;
@@ -83,25 +136,87 @@ const BrushMinimap = ({
   };
 
   // ── Callbacks du brush ────────────────────────────────────────────────────
-  const handleBrushStart = () => { isUserBrushing.current = true; };
+  // Notification IDEMPOTENTE : n'émet que sur transition. Le parent ne peut donc
+  // jamais rester bloqué en mode preview (un `false` de trop est sans effet, un
+  // `true` déjà émis n'est pas répété) — indispensable car @visx appelle
+  // `onBrushEnd` DEPUIS un updater de setState (potentiellement rejoué), et parce
+  // que le filet `pointerup` ci-dessous peut terminer le geste avant lui.
+  const notifyBrushing = (v) => {
+    if (brushingNotified.current === v) return;
+    brushingNotified.current = v;
+    onBrushingChange?.(v);
+  };
+
+  const handleBrushStart = () => {
+    isUserBrushing.current = true;
+    lastPreviewSel.current = null;
+    notifyBrushing(true);
+  };
 
   const handleBrushChange = (domain) => {
     // Mouvement programmatique (sync externe) → consommé sans renotifier.
+    // CETTE LIGNE DOIT RESTER LA PREMIÈRE : c'est l'onChange que notre propre
+    // `updateBrush` renvoie qui doit consommer le drapeau. Filtrer avant (p. ex.
+    // sur `isUserBrushing`) le laisserait armé, et il avalerait alors le premier
+    // onChange UTILISATEUR suivant.
     if (isProgrammatic.current) { isProgrammatic.current = false; return; }
+    // Hors geste utilisateur, un onChange est un écho parasite de @visx : dernier
+    // onChange du relâchement (émis APRÈS que le parent a committé et repris la
+    // main sur le transform), ou `componentDidUpdate` de BaseBrush sur changement
+    // de width/height (resize). Le suivre ré-armerait un brouillon de preview sur
+    // des marks déjà rendus en coordonnées committées → double transform.
+    if (!isUserBrushing.current) return;
     // Domaine nul transitoire (extent -1 au tout début d'un brush) → ignoré :
     // seul un END sur sélection vide (clic) doit dézoomer.
     if (!domain) return;
     const sel = domainToSel(domain);
-    if (sel) onChange?.(sel);
+    // Mi-geste : on notifie la PREVIEW (rendu allégé côté parent : simple
+    // transform visuel) quand elle est câblée ; le commit (`onChange`) n'arrive
+    // qu'au relâchement (handleBrushEnd). Sans `onPreview`, repli sur `onChange`
+    // — comportement historique conservé pour les appelants non migrés.
+    if (sel) { lastPreviewSel.current = sel; (onPreview ?? onChange)?.(sel); }
   };
 
   const handleBrushEnd = (domain) => {
+    // Fin de geste : état ET notification remis AVANT tout retour anticipé —
+    // strictement symétrique de handleBrushStart.
     isUserBrushing.current = false;
+    notifyBrushing(false); // le parent peut recalculer le survol
     if (isProgrammatic.current) { isProgrammatic.current = false; return; }
     if (!domain) { onChange?.(null); return; } // clic sans glissement → dézoom
     const sel = domainToSel(domain);
     onChange?.(sel ?? null);
   };
+
+  // ── Filet de sécurité : pointeur relâché HORS de la mini-vue ───────────────
+  // Le rectangle de drag de @visx/drag ne couvre que la mini-vue (quelques
+  // dizaines de px) et il n'y a pas de pointer capture : relâcher le bouton
+  // ailleurs ne déclenche jamais `onBrushEnd` → sans ce filet, le parent resterait
+  // indéfiniment en mode preview (marks figés, survol mort). On termine alors le
+  // geste nous-mêmes en committant le dernier brouillon.
+  // Le `queueMicrotask` laisse d'abord se dérouler la chaîne React du relâchement
+  // NORMAL (rect → dragEnd → effet de layout de @visx/drag → onBrushEnd, flush
+  // synchrone de l'événement discret) : si elle a eu lieu, `isUserBrushing` est
+  // déjà retombé et le filet ne fait rien.
+  const endGesture = () => {
+    if (!isUserBrushing.current) return;
+    isUserBrushing.current = false;
+    notifyBrushing(false);
+    if (lastPreviewSel.current) onChange?.(lastPreviewSel.current);
+  };
+  // Identité stable requise (add/removeEventListener au seul montage) → ref
+  // rafraîchie après chaque rendu, comme le handler de molette de useBrushZoom.
+  const endGestureRef = useRef(endGesture);
+  useEffect(() => { endGestureRef.current = endGesture; });
+  useEffect(() => {
+    const onLostPointer = () => queueMicrotask(() => endGestureRef.current());
+    window.addEventListener('pointerup', onLostPointer);
+    window.addEventListener('pointercancel', onLostPointer);
+    return () => {
+      window.removeEventListener('pointerup', onLostPointer);
+      window.removeEventListener('pointercancel', onLostPointer);
+    };
+  }, []);
 
   // ── Synchronisation depuis une sélection EXTERNE (molette / réinit) ────────
   // On n'écrit dans le brush que hors geste utilisateur, et seulement si sa
@@ -145,7 +260,7 @@ const BrushMinimap = ({
     : { start: { y: initPx ? initPx[0] : 0 }, end: { y: initPx ? initPx[1] : height } };
 
   return (
-    <g className={`chart-minimap-brush chart-minimap-brush--${direction}`}>
+    <g transform={transform} className={`chart-minimap-brush chart-minimap-brush--${direction}`}>
       <defs>
         <clipPath id={clipId}>
           <rect x={0} y={0} width={Math.max(0, width)} height={Math.max(0, height)} />

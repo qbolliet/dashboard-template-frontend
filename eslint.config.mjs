@@ -3,6 +3,7 @@
 // (tableaux Linter.Config[]) plutôt que de passer par FlatCompat.
 import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 import nextTypescript from "eslint-config-next/typescript";
+import globals from "globals";
 
 /** @type {import("eslint").Linter.Config[]} */
 const eslintConfig = [
@@ -23,6 +24,20 @@ const eslintConfig = [
       "old_src/**",
       "design-system/**",
     ],
+  },
+  {
+    // scripts/ contient des scripts Node CommonJS de tooling (ex. check-palette-sync.js) :
+    // ni React ni navigateur, donc globals Node (module, require, __dirname, process,
+    // console) plutôt que l'exclusion du lint — ce script garde la palette et doit être
+    // lint comme le reste. `require` y est désactivé volontairement (CommonJS pur, pas
+    // de bundler/ESM), pas une dérive à corriger.
+    files: ["scripts/**/*.js"],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
   },
 ];
 

@@ -13,6 +13,15 @@ export const useNavigation = () => {
     // État pour gérer l'affichage du menu mobile
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+    // Breakpoint partagé, dérivé d'un unique listener resize (voir plus bas).
+    // Initialisé à false pour garantir la cohérence SSR/hydratation : le premier
+    // rendu client reproduit le rendu serveur, puis l'effet met à jour la valeur.
+    // Le seuil lui-même n'est pas codé en dur ici : il est lu depuis la custom
+    // property --breakpoint-small (voir plus bas), dont la source de vérité est
+    // src/styles/utils/breakpoints.scss.
+    // - isMobile : ≤ breakpoint "small" — tiroir sidebar plein écran, focus-trap.
+    const [isMobile, setIsMobile] = useState(false);
+
     // Récupération du chemin actuel avec Next.js
     const pathname = usePathname();
 
@@ -74,14 +83,39 @@ export const useNavigation = () => {
         );
     };
 
-    // Fermer le menu mobile lors du redimensionnement de la fenêtre
+    // Listener resize UNIQUE partagé par toute la navigation (monté une seule fois via
+    // le NavigationProvider). Il recalcule le breakpoint et referme le menu mobile dès
+    // qu'on repasse en desktop, comportement historique conservé.
     useEffect(() => {
+        // Lecture des seuils depuis les custom properties CSS (définies dans
+        // typography.scss à partir de breakpoints.scss) plutôt que des nombres en dur,
+        // pour ne jamais désynchroniser JS et SCSS.
+        const rootStyle = getComputedStyle(document.documentElement);
+        const parsedMobileBreakpoint = parseInt(rootStyle.getPropertyValue('--breakpoint-small'), 10);
+        // Seuil au-delà duquel le tiroir topbar/sidebar n'existe plus (cf. TopbarContainer.scss,
+        // qui repasse en navigation inline desktop via breakpoint('large')).
+        const parsedDrawerBreakpoint = parseInt(rootStyle.getPropertyValue('--breakpoint-medium'), 10);
+        // Repli explicite si la custom property est absente (typography.scss n'est pas
+        // importé par globals.scss, donc --breakpoint-small/medium ne sont garanties
+        // présentes que si une feuille de composant les a déjà chargées) : sans ce repli,
+        // parseInt('') → NaN rend toutes les comparaisons ci-dessous fausses en permanence,
+        // ce qui bloque isMobile à false (focus-trap sidebar mort en mobile) et empêche la
+        // fermeture du menu mobile au resize. Valeurs alignées sur $breakpoints-down-px
+        // dans src/styles/utils/breakpoints.scss.
+        const mobileBreakpoint = Number.isNaN(parsedMobileBreakpoint) ? 639 : parsedMobileBreakpoint;
+        const drawerBreakpoint = Number.isNaN(parsedDrawerBreakpoint) ? 1149 : parsedDrawerBreakpoint;
+
         const handleResize = () => {
-            if (window.innerWidth > 768) {
+            const width = window.innerWidth;
+            setIsMobile(width <= mobileBreakpoint);
+            // Au-delà du seuil du tiroir, le menu mobile n'a plus lieu d'être : on le referme.
+            if (width > drawerBreakpoint) {
                 setIsMobileMenuOpen(false);
             }
         };
 
+        // Mesure initiale au montage (les états démarrent à false pour l'hydratation).
+        handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -113,11 +147,12 @@ export const useNavigation = () => {
         // Données
         currentPath: pathname,
         isMobileMenuOpen,
-        
+        isMobile,
+
         // Fonctions d'action
         toggleMobileMenu,
         closeMobileMenu,
-        
+
         // Fonctions utilitaires
         isActivePath,
         hasActiveChildren

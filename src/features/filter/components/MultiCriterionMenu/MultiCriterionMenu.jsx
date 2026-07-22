@@ -1,11 +1,12 @@
 'use client';
 
 // Importation des modules
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import Tooltip from '@/components/filter/Tooltip/Tooltip';
 import { PlusIcon } from '@/components/icons';
 import { DEFAULT_CONNECTORS, defaultValue, isComplete, resolveOperations } from '../../utils/filterTypes';
 import { buildTree, serialize } from '../../utils/filterEngine';
+import { useDebouncedCallback } from '@/hooks/debounce/useDebouncedCallback';
 import CriterionMenu from '../CriterionMenu/CriterionMenu';
 import Connector from './Connector/Connector';
 import './MultiCriterionMenu.scss';
@@ -155,7 +156,52 @@ const MultiCriterionMenu = ({
   const [criteria, setCriteria] = useState(buildCards);
   const [connectors, setConnectors] = useState(buildInitialConnectors);
 
-  const atMax = maxCriteria != null && maxCriteria > 0 && criteria.length >= maxCriteria;
+  // Prédicat pur unique : le nombre de cartes `n` atteint (ou dépasse) la limite. Utilisé
+  // aux 3 points où l'on teste "encore de la place pour une carte de plus ?" (atMax,
+  // auto-ajout, ajout manuel). Distinct de la réduction du tableau plus bas (`>` strict,
+  // sémantique différente : "y a-t-il un EXCÉDENT à couper ?").
+  const wouldExceedMax = (n) => maxCriteria != null && maxCriteria > 0 && n >= maxCriteria;
+
+  const atMax = wouldExceedMax(criteria.length);
+
+  // ── Infrastructure d'émission (event-driven, amortie) ──
+  // stateRef = tampon qui découple la LECTURE de l'état de l'IDENTITÉ des handlers : ceux-ci
+  // lisent stateRef (identité stable) au lieu de capturer criteria/connectors — qui changent
+  // à chaque frappe (sinon TOUTES les cartes re-render). Synchronisé après chaque commit.
+  const stateRef = useRef({ criteria, connectors });
+
+  // Émission amortie vers le parent : call() = amorti (frappe de valeur), callNow() =
+  // immédiat (action structurelle), flush() = vidage au blur. L'API a une identité stable
+  // → les props qui la reçoivent (onCommit) ne se recréent pas à chaque rendu.
+  const emit = useDebouncedCallback((structure) => onChange?.(structure), 300);
+
+  // Dérive la valeur structurée exposée. Le SQL n'est PAS calculé ici (cf. docstring) :
+  // seuls tree/serial sont exposés. `criteria` (liste plate) permet la persistance.
+  const buildStructure = (crit, conns) => {
+    const items = crit.map((c, i) => ({
+      variable: c.variable,
+      operation: c.operation,
+      value: c.value,
+      sql_type: c.sql_type,
+      is_categorical: c.is_categorical,
+      bracketLeft: parentheses ? !!c.bracketLeft : false,
+      bracketRight: parentheses ? !!c.bracketRight : false,
+      connectorBefore: i === 0 ? null : conns[i - 1] || defaultConn,
+    }));
+    const { tree, balanced } = buildTree(items);
+    return { criteria: items, tree, balanced, serial: serialize(tree) };
+  };
+
+  // Point de passage unique : applique le nouvel état, met à jour stateRef (pour la
+  // prochaine mutation), puis émet la structure recalculée (amortie = frappe de valeur,
+  // immédiate = action structurelle). Ne capture que des références stables → identité stable.
+  const commit = (nextCriteria, nextConnectors, debounce) => {
+    setCriteria(nextCriteria);
+    setConnectors(nextConnectors);
+    stateRef.current = { criteria: nextCriteria, connectors: nextConnectors };
+    const structure = buildStructure(nextCriteria, nextConnectors);
+    if (debounce) emit.call(structure); else emit.callNow(structure);
+  };
 
   // ── Réinitialisation au changement de configuration de figeage ──
   // Pattern « ajustement d'état pendant le rendu » (React docs : You Might Not Need an
@@ -175,76 +221,89 @@ const MultiCriterionMenu = ({
   const [prevMax, setPrevMax] = useState(maxCriteria);
   if (prevMax !== maxCriteria) {
     setPrevMax(maxCriteria);
+    // `>` strict et non `wouldExceedMax` (`>=`) : ici on ne coupe que l'EXCÉDENT réel,
+    // pas dès que la longueur atteint la limite (sémantique de réduction, pas d'ajout).
     if (!lockedVars && maxCriteria != null && maxCriteria > 0 && criteria.length > maxCriteria) {
       setCriteria((prev) => prev.slice(0, maxCriteria));
       setConnectors((prev) => prev.slice(0, Math.max(0, maxCriteria - 1)));
     }
   }
 
-  // ── Mutations (gérées dans les handlers d'événements, jamais dans un effet) ──
+  // ── Mutations (dans les handlers d'événements, jamais dans un effet) ──
+  // Chaque handler lit l'état courant via stateRef (et non criteria/connectors capturés) :
+  // son identité ne dépend que de valeurs stables (addMode, lockedVars, maxCriteria,
+  // defaultConn, commit) → l'onChange passé à chaque CriterionMenu reste stable, donc
+  // taper dans une carte ne re-render plus toutes les autres.
 
-  // Mise à jour partielle d'un critère. En mode AUTO, compléter la DERNIÈRE carte
-  // ajoute automatiquement une carte vierge : le comportement vit dans le handler
-  // (réaction à une saisie utilisateur), pas dans un effet de synchronisation.
-  const updateCriterion = (idx, next) => {
-    setCriteria((prev) => prev.map((c, i) => (i === idx ? next : c)));
-    if (
-      addMode === 'auto'
-      && !lockedVars
-      && idx === criteria.length - 1
-      && isComplete(next)
-      && !atMax
-    ) {
-      setCriteria((prev) => [...prev, makeBlank(nextId(prev))]);
-      setConnectors((prev) => [...prev, defaultConn]);
+  // Mise à jour partielle d'un critère. En mode AUTO, compléter la DERNIÈRE carte ajoute
+  // automatiquement une carte vierge — logique dérivée de prev, en une seule passe.
+  const updateCriterion = (idx, next, meta) => {
+    const { criteria: prev, connectors: prevConn } = stateRef.current;
+    let list = prev.map((c, i) => (i === idx ? next : c));
+    let conns = prevConn;
+    const atMaxNow = wouldExceedMax(list.length);
+    if (addMode === 'auto' && !lockedVars && idx === prev.length - 1 && isComplete(next) && !atMaxNow) {
+      list = [...list, makeBlank(nextId(list))];
+      conns = [...conns, defaultConn];
     }
+    // frappe de valeur = amortie ; structurel (variable/opération) = immédiat.
+    commit(list, conns, !!meta?.debounce);
   };
 
-  // Ajout manuel d'une carte (mode bouton)
+  // Ajout manuel d'une carte (mode bouton) — action structurelle, émission immédiate.
   const addCriterion = () => {
-    if (atMax) return;
-    setCriteria((prev) => [...prev, makeBlank(nextId(prev))]);
-    setConnectors((prev) => [...prev, defaultConn]);
+    const { criteria: prev, connectors: prevConn } = stateRef.current;
+    if (wouldExceedMax(prev.length)) return;
+    commit([...prev, makeBlank(nextId(prev))], [...prevConn, defaultConn], false);
   };
 
-  // Suppression d'une carte (et du connecteur adjacent)
+  // Suppression d'une carte (et du connecteur adjacent) — immédiate.
   const removeCriterion = (idx) => {
-    if (criteria.length <= 1) return;
-    setCriteria((prev) => prev.filter((_, i) => i !== idx));
-    setConnectors((prev) => {
-      const nextConn = prev.slice();
-      nextConn.splice(idx > 0 ? idx - 1 : 0, 1);
-      return nextConn;
-    });
+    const { criteria: prev, connectors: prevConn } = stateRef.current;
+    if (prev.length <= 1) return;
+    const nextConn = prevConn.slice();
+    nextConn.splice(idx > 0 ? idx - 1 : 0, 1);
+    commit(prev.filter((_, i) => i !== idx), nextConn, false);
   };
 
-  // Mise à jour d'un connecteur
-  const setConnector = (idx, val) =>
-    setConnectors((prev) => prev.map((c, i) => (i === idx ? val : c)));
+  // Mise à jour d'un connecteur — immédiate.
+  const setConnector = (idx, val) => {
+    const { criteria: prev, connectors: prevConn } = stateRef.current;
+    commit(prev, prevConn.map((c, i) => (i === idx ? val : c)), false);
+  };
 
-  // ── Valeur structurée ──
-  // Dérivation directe (pas de useMemo : le React Compiler mémoïse cette valeur et
-  // garde une référence stable tant que les critères/connecteurs ne changent pas).
-  // Le SQL n'est PAS calculé ici (cf. docstring) : seuls tree/serial sont exposés.
-  const items = criteria.map((c, i) => ({
-    variable: c.variable,
-    operation: c.operation,
-    value: c.value,
-    sql_type: c.sql_type,
-    is_categorical: c.is_categorical,
-    bracketLeft: parentheses ? !!c.bracketLeft : false,
-    bracketRight: parentheses ? !!c.bracketRight : false,
-    connectorBefore: i === 0 ? null : connectors[i - 1] || defaultConn,
-  }));
-  const { tree, balanced } = buildTree(items);
-  // `criteria` (liste plate) permet la persistance : réinjectable en defaultCriteria.
-  const structure = { criteria: items, tree, balanced, serial: serialize(tree) };
-
-  // Remontée de la valeur : effet dépendant de la valeur dérivée `structure`
+  // ── Synchronisation de stateRef + émissions non-utilisateur ──
+  // Synchronise stateRef après chaque commit (pas d'écriture de ref pendant le rendu).
+  // Déclaré AVANT l'effet d'émission ci-dessous pour que stateRef y soit déjà à jour.
   useEffect(() => {
-    onChange?.(structure);
+    stateRef.current = { criteria, connectors };
+  });
+
+  // Signature de CONFIGURATION : change dès qu'une prop non-utilisateur modifie la sortie
+  // de l'émission. Sert de dépendance UNIQUE à l'effet d'émission ci-dessous.
+  //
+  // RÈGLE (à respecter pour tout ajout futur) : toute prop lue par `buildStructure()` —
+  // directement ou via une valeur dérivée d'elle — DOIT figurer ici. Sans quoi son
+  // changement réécrit silencieusement la structure sans jamais l'émettre, et le parent
+  // conserve un tree/serial périmé alors que l'UI, elle, a déjà changé.
+  // Aujourd'hui : `parentheses` (force les crochets à false) et `defaultConn` (issu de
+  // `connectorOptions`, comble les connecteurs manquants). S'y ajoutent les deux
+  // déclencheurs de RESET d'état — lockSig (figeage) et maxCriteria (troncature) — dont
+  // la structure reconstruite doit elle aussi remonter. Les préfixes (`max:`, `par:`…)
+  // évitent qu'une combinaison de valeurs différente produise la même concaténation.
+  const configSig = `${lockSig}|max:${maxCriteria}|par:${parentheses}|conn:${defaultConn}`;
+
+  // Émissions NON-utilisateur : montage (valeur initiale), resets de configuration
+  // (figeage / maxCriteria) et changements de props qui réécrivent la structure sans
+  // action utilisateur (parentheses / connectorOptions). `configSig` NE change PAS à la
+  // frappe → aucune émission par caractère ici ; les frappes passent par les handlers
+  // (event-driven). `emit` et `buildStructure` sont volontairement hors deps : c'est tout
+  // le principe — on n'émet que sur un changement de configuration, jamais sur l'état.
+  useEffect(() => {
+    const { criteria: crit, connectors: conns } = stateRef.current;
+    emit.callNow(buildStructure(crit, conns));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [structure]);
+  }, [configSig]);
 
   // ── Rendu ──
   const showAddButton = !lockedVars && addMode === 'button' && !atMax;
@@ -270,7 +329,8 @@ const MultiCriterionMenu = ({
             <div className="mcm-slot">
               <CriterionMenu
                 criterion={c}
-                onChange={(next) => updateCriterion(i, next)}
+                onChange={(next, meta) => updateCriterion(i, next, meta)}
+                onCommit={emit.flush}
                 onRemove={!lockedVars && criteria.length > 1 ? () => removeCriterion(i) : undefined}
                 variables={variables}
                 operationsByType={operationsByType}

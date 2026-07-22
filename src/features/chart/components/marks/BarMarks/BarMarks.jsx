@@ -50,12 +50,15 @@ function seriesMatchesHover(g, hovered) {
  * @param {'none'|'line'|'fill'} [props.fill='fill'] - Fill mode.
  * @param {?{offsets: Map}} [props.stack=null] - Stacking offsets, or null.
  * @param {boolean} [props.mini=false] - Minimap (simplified) rendering.
+ * @param {?Array<object>} [props.groups=null] - Pre-computed `groupSeries(data, channels)`
+ *   result (mutualisé côté appelant, cf. Chart.jsx) ; recalculé en interne si absent, pour
+ *   ne pas casser un usage direct du composant.
  * @returns {JSX.Element}
  */
 const BarMarks = ({
   data, x, y, channels, xScale, yScale,
   colorScale, styleScale, markerScale, hatchScale,
-  hovered, orient = 'v', fill = 'fill', stack = null, mini = false,
+  hovered, orient = 'v', fill = 'fill', stack = null, mini = false, groups = null,
 }) => {
   // Initialisation des valeurs
   const horizontal = orient === 'h';
@@ -65,7 +68,7 @@ const BarMarks = ({
   const valScale = horizontal ? xScale : yScale;
 
   // Initialisation des Séries
-  const seriesList = groupSeries(data, channels);
+  const seriesList = groups || groupSeries(data, channels);
   const seriesKeys = seriesList.map((s) => s.key);
   // Ordre de PEINTURE inversé : la 1re série est dessinée en dernier (donc AU-DESSUS),
   // pour qu'en empilage le sommet de chaque barre l'emporte sur le socle de la suivante.

@@ -57,22 +57,32 @@ function seriesMatchesHover(g, hovered) {
  * @param {?{offsets: Map}} [props.stack=null] - Stacking offsets, or null.
  * @param {boolean} [props.mini=false] - Minimap (simplified) rendering.
  * @param {?{marker: string, secondary?: boolean}} [props.baReal=null] - Real-series marker descriptor.
+ * @param {?Array<object>} [props.groups=null] - Pre-computed `groupSeries(data, channels)`
+ *   result (mutualisé côté appelant, cf. Chart.jsx) ; recalculé en interne si absent, pour
+ *   ne pas casser un usage direct du composant.
  * @returns {JSX.Element}
  */
 const LineMarks = ({
   data, x, y, channels, xScale, yScale,
   colorScale, styleScale, markerScale, hatchScale,
   hovered, voronoiActive, voronoiActiveRow,
-  fill = 'line', stack = null, mini = false, baReal = null,
+  fill = 'line', stack = null, mini = false, baReal = null, groups = null,
 }) => {
   // Séries triées par abscisse (comparaison Date-aware) — ordre stable de tracé.
-  const series = groupSeries(data, channels);
-  for (const g of series) {
-    g.rows.sort((a, b) => {
+  // Le tri porte sur une COPIE : `groups` est partagé entre plusieurs marks (ce
+  // LineMarks principal + sa mini-vue, BarMarks) et potentiellement retenu dans un
+  // cache du React Compiler côté <ChartCanvas> — aucune mark ne doit muter les
+  // objets qu'elle reçoit. Coût : O(n) de copie devant un O(n log n) de tri déjà
+  // payé, et une seule fois par rendu de mark (pendant un geste de brush le
+  // repositionnement est impératif, cf. previewTargets dans Chart.jsx : aucun
+  // rendu React par frame).
+  const series = (groups || groupSeries(data, channels)).map((g) => ({
+    ...g,
+    rows: [...g.rows].sort((a, b) => {
       const ax = a[x], bx = b[x];
       return ax instanceof Date ? ax - bx : (ax < bx ? -1 : ax > bx ? 1 : 0);
-    });
-  }
+    }),
+  }));
 
   const y0px = yScale.range()[0]; // bas de l'aire de tracé (baseline)
 

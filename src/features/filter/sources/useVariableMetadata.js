@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+// Importation des modules
+import useSWR from 'swr';
 
 // =================================================================
 // SOURCE — VARIABLE METADATA (métadonnées de champs)
@@ -61,13 +62,52 @@ export function metadataToVariables(fields = []) {
   }));
 }
 
+// --- Fallback mock : résolu en asynchrone pour exercer le même cycle
+//     loading→données que l'API GraphQL réelle. ---
+function fetchVariableMetadata([, catalog, schema]) {
+  const promise = Promise.resolve(MOCK_METADATA);
+
+  // ====================================================================
+  // INTÉGRATION GRAPHQL RÉELLE — à décommenter pour brancher l'API
+  // ====================================================================
+  // Prérequis : un client GraphQL (ex: @apollo/client ou graphql-request),
+  // non installé à ce jour. Définir la fonction de requête ci-dessous (idéalement
+  // dans `src/features/filter/sources/`), puis REMPLACER le `const promise = ...`
+  // du fallback mock ci-dessus par :
+  //
+  //   const promise = getVariableMetadata({ catalog, schema });
+  //
+  // Exemple d'implémentation (graphql-request) :
+  //
+  //   import { request, gql } from 'graphql-request';
+  //   const ENDPOINT = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
+  //
+  //   const VARIABLE_METADATA = gql`
+  //     query GetVariableMetadata($catalog: String, $schema: String) {
+  //       getVariableMetadata(catalog: $catalog, schema: $schema) {
+  //         name label python_type sql_type is_categorical is_primary_key
+  //       }
+  //     }`;
+  //   export async function getVariableMetadata({ catalog, schema }) {
+  //     const headers = catalog ? { 'X-Catalog-Id': catalog } : {};
+  //     const data = await request(ENDPOINT, VARIABLE_METADATA, { catalog, schema }, headers);
+  //     return data.getVariableMetadata; // -> [{ name, label, python_type, sql_type, is_categorical, is_primary_key }]
+  //   }
+  //
+  // Le cycle { loading, error } est déjà câblé : `loading` vient de `isLoading`
+  // (SWR), `error` est renseigné par un rejet de la promesse ci-dessus.
+  // ====================================================================
+
+  return promise;
+}
+
 /**
  * Fetches the field metadata of a catalog/schema (rows of the `metadata_table`).
  *
- * Mirrors {@link useSelectOptions}: an effect resolves the request asynchronously and
- * stores the result in state, while `loading` is derived during render from a
- * request-key comparison. By default returns the local mock; swap it for the GraphQL
- * call `getVariableMetadata` (see the commented block).
+ * Backed by SWR: caches and deduplicates requests sharing the same
+ * `['variableMetadata', catalog, schema]` key across component instances. By
+ * default returns the local mock; swap it for the GraphQL call
+ * `getVariableMetadata` inside {@link fetchVariableMetadata} (see the commented block).
  *
  * @param {Object}  [params]
  * @param {string}  [params.catalog] - Ducklake catalog (mock: ignored).
@@ -75,62 +115,14 @@ export function metadataToVariables(fields = []) {
  * @returns {{ fields: Array, loading: boolean, error: (Error|null) }}
  */
 export function useVariableMetadata({ catalog, schema } = {}) {
-  // État du résultat courant. `key` identifie le jeu d'inputs qui l'a produit :
-  // on s'en sert pour dériver `loading` sans setState synchrone dans l'effet
-  // (interdit par les Rules of Hooks v6 — règle set-state-in-effect).
-  const [result, setResult] = useState({ key: null, fields: MOCK_METADATA, error: null });
+  const { data, error, isLoading } = useSWR(['variableMetadata', catalog, schema], fetchVariableMetadata);
 
-  const requestKey = `${catalog}|${schema}`;
+  // En cas d'échec du fetch, on renvoie un état vide + `error` : le mock est un
+  // repli "client GraphQL pas encore branché", PAS un repli sur erreur (afficher
+  // le jeu mock complet masquerait la panne au consommateur).
+  if (error) {
+    return { fields: [], loading: isLoading, error };
+  }
 
-  useEffect(() => {
-    // Garde d'annulation : ignore la réponse si les inputs ont changé entre-temps.
-    let cancelled = false;
-    const key = `${catalog}|${schema}`;
-
-    // --- Fallback mock : résolu en asynchrone pour exercer le même cycle
-    //     loading→données que l'API GraphQL réelle. ---
-    const promise = Promise.resolve(MOCK_METADATA);
-
-    // ====================================================================
-    // INTÉGRATION GRAPHQL RÉELLE — à décommenter pour brancher l'API
-    // ====================================================================
-    // Prérequis : un client GraphQL (ex: @apollo/client ou graphql-request),
-    // non installé à ce jour. Définir la fonction de requête ci-dessous (idéalement
-    // dans `src/features/filter/sources/`), puis REMPLACER le `const promise = ...`
-    // du fallback mock ci-dessus par :
-    //
-    //   const promise = getVariableMetadata({ catalog, schema });
-    //
-    // Exemple d'implémentation (graphql-request) :
-    //
-    //   import { request, gql } from 'graphql-request';
-    //   const ENDPOINT = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
-    //
-    //   const VARIABLE_METADATA = gql`
-    //     query GetVariableMetadata($catalog: String, $schema: String) {
-    //       getVariableMetadata(catalog: $catalog, schema: $schema) {
-    //         name label python_type sql_type is_categorical is_primary_key
-    //       }
-    //     }`;
-    //   export async function getVariableMetadata({ catalog, schema }) {
-    //     const headers = catalog ? { 'X-Catalog-Id': catalog } : {};
-    //     const data = await request(ENDPOINT, VARIABLE_METADATA, { catalog, schema }, headers);
-    //     return data.getVariableMetadata; // -> [{ name, label, python_type, sql_type, is_categorical, is_primary_key }]
-    //   }
-    //
-    // Le cycle { loading, error } est déjà câblé : `loading` se déduit de la
-    // comparaison de clés (plus bas), `error` est renseigné par le .catch ci-dessous.
-    // ====================================================================
-
-    promise
-      .then((fields) => { if (!cancelled) setResult({ key, fields: fields ?? [], error: null }); })
-      .catch((err) => { if (!cancelled) setResult({ key, fields: [], error: err }); });
-
-    return () => { cancelled = true; };
-  }, [catalog, schema]);
-
-  // `loading` dérivé : vrai tant que le résultat stocké ne correspond pas aux inputs courants.
-  const loading = result.key !== requestKey;
-
-  return { fields: result.fields, loading, error: result.error };
+  return { fields: data ?? MOCK_METADATA, loading: isLoading, error: null };
 }

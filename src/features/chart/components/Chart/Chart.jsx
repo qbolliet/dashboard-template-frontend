@@ -22,6 +22,7 @@
 
 // Importation des modules
 import { useId, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { ParentSize } from '@visx/responsive';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { extent, mean } from 'd3-array';
@@ -38,7 +39,8 @@ import { makeScale } from '../../utils/scales';
 import { exportSvg, exportPng } from '../../utils/exportImage';
 import { useSeriesHover } from '../../hooks/useSeriesHover';
 import { useChartGeometry } from '../../hooks/useChartGeometry';
-import { useBrushZoom } from '../../hooks/useBrushZoom';
+import { useMinimapState, resolveMinimapsVisible } from '../../hooks/useMinimapState';
+import { useBrushZoom, zoomTransformOf } from '../../hooks/useBrushZoom';
 import { useFeatureState } from '../../hooks/useFeatureState';
 import { nextFreeChannel, REAL_DIST_MARKER } from '../../toolbar-features/channelAssign';
 import { normalizeRefs } from '../../toolbar-features/normalize';
@@ -47,12 +49,12 @@ import ChartAxisBottom from '../ChartAxis/ChartAxisBottom/ChartAxisBottom';
 import ChartAxisLeft from '../ChartAxis/ChartAxisLeft/ChartAxisLeft';
 import ChannelLegend from '../ChartLegend/ChannelLegend/ChannelLegend';
 import SequentialLegend from '../ChartLegend/SequentialLegend/SequentialLegend';
-import MultiChart from '../MultiChart/MultiChart';
+// LineMarks / BarMarks restent STATIQUES : ce sont les types détectés par défaut,
+// présents sur quasi toutes les pages, et leurs dépendances (@visx/shape, @visx/scale,
+// d3-array, d3-color) sont déjà dans le graphe partagé — les splitter n'éviterait aucune
+// lib du bundle initial et ajouterait un flash sur le chemin nominal.
 import LineMarks from '../marks/LineMarks/LineMarks';
 import BarMarks from '../marks/BarMarks/BarMarks';
-import HeatmapMarks from '../marks/HeatmapMarks/HeatmapMarks';
-import DensityMarks from '../marks/DensityMarks/DensityMarks';
-import ViolinMarks from '../marks/ViolinMarks/ViolinMarks';
 import { VoronoiOverlay, DirectHoverOverlay, ActiveMark } from '../overlays/HoverOverlays/HoverOverlays';
 import ChartTooltip from '../ChartTooltip/ChartTooltip';
 import ChartToolbar from '../ChartToolbar/ChartToolbar';
@@ -60,6 +62,32 @@ import BrushMinimap from '../ChartMinimap/BrushMinimap/BrushMinimap';
 import MiniProjection from '../ChartMinimap/MiniProjection/MiniProjection';
 import MinimapToggle from '../ChartMinimap/MinimapToggle/MinimapToggle';
 import './Chart.scss';
+
+/* ────────────────────────── Renderers chargés à la demande ────────────────
+   Types rares et/ou lourds : sortis du bundle initial via next/dynamic (chemins
+   littéraux, analysables par le bundler). Ils ne sont téléchargés qu'à l'affichage
+   effectif du type correspondant.
+
+   • HeatmapMarks / DensityMarks / ViolinMarks — seules les MARKS sont
+     paresseuses ici : <Chart> a déjà rendu le cadre, les axes, la légende et la
+     barre d'outils avant même de choisir le renderer de marks. ssr: false +
+     fallback null est donc sans risque de trou : ce qui est visible pendant les
+     quelques dizaines de ms de chargement du chunk EST déjà le graphique
+     (squelette axes/légende), il ne manque que le tracé.
+       - DensityMarks → d3-geo + d3-interpolate + d3-contour (KDE 2-D)
+       - ViolinMarks  → d3-contour (KDE Epanechnikov)
+       - HeatmapMarks → léger, mais type rare (uniformise le traitement)
+
+   • MultiChart — cas différent : sur la branche isDatasetList(data), <Chart>
+     délègue TOUT (cadre, axes, légende, barre d'outils) à <MultiChart>, qui EST
+     le graphique entier. <MultiChart> réutilise les
+     mêmes briques déjà SSR-safe que le reste de <Chart> (ChartAxisBottom/Left,
+     LineMarks, overlays de survol — toutes rendues côté serveur sur la branche
+     non-liste). */
+const HeatmapMarks = dynamic(() => import('../marks/HeatmapMarks/HeatmapMarks'), { ssr: false });
+const DensityMarks = dynamic(() => import('../marks/DensityMarks/DensityMarks'), { ssr: false });
+const ViolinMarks = dynamic(() => import('../marks/ViolinMarks/ViolinMarks'), { ssr: false });
+const MultiChart = dynamic(() => import('../MultiChart/MultiChart'));
 
 /* ────────────────────────── Cibles de survol (coordonnées de BASE) ────────
    Pour line / density, les centroïdes sont calculés UNE fois sur les données
@@ -88,7 +116,7 @@ function computeBaseHoverTargets({
    en coordonnées directes). ─────────────────────────────────────────────── */
 function computeHoverTargets({
   chartKind, filteredData, channels, xScale, yScale, x, y, z,
-  stack, stackMain, innerWidth, innerHeight, fill,
+  stack, stackMain, innerWidth, innerHeight, fill, groups,
 }) {
   const out = [];
 
@@ -110,7 +138,10 @@ function computeHoverTargets({
     const valKey = horizontal ? x : y;
     const bandScale = horizontal ? yScale : xScale;
     const valScale = horizontal ? xScale : yScale;
-    const seriesList = groupSeries(filteredData, channels);
+    // `groups` (calculé une fois dans ChartCanvas sur `filteredData`) est partagé
+    // avec le rendu des marks bar — fallback si la fonction est appelée hors
+    // ChartCanvas.
+    const seriesList = groups || groupSeries(filteredData, channels);
     const seriesKeys = seriesList.map((s) => s.key);
     const grouped = new Map();
     for (const row of filteredData) {
@@ -212,7 +243,12 @@ function computeHoverTargets({
       }
     }
     const splitMode = !!splitCol;
-    const seriesList = groupSeries(filteredData, channels);
+    // NOTE : ce `groupSeries` opère sur `filteredData` (fenêtre de zoom) pour les
+    // cibles de survol, alors que ViolinMarks rend ses violons depuis `data` NON
+    // filtré (le zoom ne fait que repositionner le KDE, jamais le recalculer) —
+    // les deux calculs portent donc sur des entrées différentes et ne peuvent PAS
+    // être mutualisés ; `groups` ci-dessous est bien celui de `filteredData`.
+    const seriesList = groups || groupSeries(filteredData, channels);
     const seriesKeys = seriesList.map((s) => s.key);
     const map = new Map();
     for (const row of filteredData) {
@@ -290,16 +326,24 @@ const ChartCanvas = ({
   ciFeature, baFeature, normFactor, channelAssign, baReal,
   expanded, setExpanded, voronoiOn, setVoronoiOn, tooltipsOn, setTooltipsOn,
 }) => {
-  // Ouverture des mini-vues (persiste tant que la largeur reste > 0).
-  const [minimapOpen, setMinimapOpen] = useState(initialMinimapOpen);
+  // Modèle d'état des mini-vues, partagé avec <MultiChart> : interrupteur maître
+  // (barre d'outils) + pli par axe (pastilles). Cf. useMinimapState. Persiste tant
+  // que la largeur reste > 0.
+  const {
+    minimapsVisible, setMinimapsVisible,
+    xMinimapOpen, setXMinimapOpen,
+    yMinimapOpen, setYMinimapOpen,
+  } = useMinimapState(initialMinimapOpen);
 
-  // Calcul des dimensions du graphique.
+  // Calcul des dimensions du graphique. `showXMinimap`/`showYMinimap` intègrent
+  // déjà l'interrupteur maître (mini-vue applicable ET visible).
   const {
     margins, innerWidth, innerHeight, yTickW,
-    svgH, showXMinimap, showYMinimap, miniH, yMinimapW, yMinimapGap, tickPadX,
+    svgH, showXMinimap, showYMinimap, miniH, xMinimapY, xToggleY,
+    yMinimapW, yMinimapX, yToggleW,
   } = useChartGeometry({
     chartKind, data, x, y, xType, yType, format, labels, maxLabelLength, maxLines,
-    overlap, tickDensity, width, height, minimapOpen,
+    overlap, tickDensity, width, height, minimapsVisible, xMinimapOpen, yMinimapOpen,
   });
 
   const svgRef = useRef(null);
@@ -308,6 +352,12 @@ const ChartCanvas = ({
 
   const [activePos, setActivePos] = useState(null);
   const [activeCentroid, setActiveCentroid] = useState(null);
+  // Geste de brush en cours : les marks basculent alors sur un calque de PREVIEW
+  // (coordonnées de base + transform affine par frame, cf. plus bas) et le calcul
+  // des cibles de survol (O(n) + voronoï), inutile en glissant, est sauté. Le
+  // pipeline committé (filteredData/stackMain/échelles restreintes) reste gelé
+  // pendant tout le geste et n'est recalculé qu'au relâchement.
+  const [isBrushing, setIsBrushing] = useState(false);
   const active = voronoiRow; // la row sous le curseur
 
   const has2DBrush = chartKind === 'heatmap' || chartKind === 'density';
@@ -322,7 +372,13 @@ const ChartCanvas = ({
   const stackActive = stackable && stack && stack !== 'none';
   const stackPosKey = chartKind === 'bar-h' ? y : x;
   const stackValKey = chartKind === 'bar-h' ? x : y;
-  const seriesOrder = groupSeries(data, channels).map((s) => s.key);
+  // Regroupement par série sur les données COMPLÈTES : calculé une seule fois et
+  // partagé (ordre de stack, mini-vues line/bar, marks pendant un geste de brush).
+  // PAS pour <ViolinMarks>, qui regroupe lui-même dans son useMemo de KDE : cette
+  // mémo ne doit dépendre que de valeurs, jamais de l'identité d'un objet calculé
+  // ici (cf. le commentaire du memo dans ViolinMarks.jsx).
+  const groupsFull = groupSeries(data, channels);
+  const seriesOrder = groupsFull.map((s) => s.key);
   const stackMini = stackActive
     ? buildStacks({ data, posKey: stackPosKey, valKey: stackValKey, channels, stackBy: stack, seriesOrder, aggregate: 'mean' })
     : null;
@@ -399,33 +455,67 @@ const ChartCanvas = ({
   // ── Zoom (brush + molette) : la molette n'est active que si l'outil zoom est ON.
   const zoomTool = tools.find((t) => t.isZoom);
   const zoomOn = zoomTool ? !!featOn[zoomTool.id] : false;
+  // Groupes SVG dont le `transform` suit la preview de geste — écrit
+  // IMPÉRATIVEMENT par useBrushZoom (setAttribute), sans rendu React par frame :
+  // marks, overlays de features, couche zoom line/density.
+  const previewMarksRef = useRef(null);
+  const previewOverlaysRef = useRef(null);
+  const previewZoomLayerRef = useRef(null);
   const {
-    xSel, ySel, setXSel, setYSel, xScale, yScale, filteredData, axisZoom, resetZoom, canReset,
+    xSel, ySel, setXSel, setYSel, previewXSel, previewYSel,
+    xScale, yScale, filteredData, axisZoom, resetZoom, canReset,
   } = useBrushZoom({
     data, x, y, xType, yType, chartKind,
     baseXScale, baseYScale, innerWidth, innerHeight,
     marginLeft: margins.left, marginTop: margins.top, width, svgRef, zoomOn,
+    previewTargets: [previewMarksRef, previewOverlaysRef, previewZoomLayerRef],
   });
   const { zx, zy } = axisZoom;
 
+  // Regroupement par série sur les données FILTRÉES (fenêtre de zoom) : ne sert
+  // que sur bar/bar-h/violon (cibles de survol + marks bar, qui rendent depuis
+  // `filteredData`) — line/density passent par la couche zoom
+  // (computeBaseHoverTargets, sans notion de série) et heatmap n'en a pas besoin.
+  const needsFilteredGroups = chartKind === 'bar' || chartKind === 'bar-h' || isViolinKind;
+  const groupsFiltered = needsFilteredGroups ? groupSeries(filteredData, channels) : null;
+
   // Graphiques « nuage » (line, density) : voronoï + KDE 2-D dans une couche
-  // zoomée par transform (coordonnées de base, non recalculés au zoom).
+  // zoomée par transform (coordonnées de base, non recalculés au zoom). Pendant
+  // un geste de brush, ce transform est réécrit par frame par la preview
+  // impérative (previewZoomLayerRef) puis repris par React au relâchement.
   const zoomLayer = chartKind === 'line' || chartKind === 'density';
-  const zoomTransform = `translate(${zx.t.toFixed(3)}, ${zy.t.toFixed(3)}) scale(${zx.k.toFixed(5)}, ${zy.k.toFixed(5)})`;
+  const zoomTransform = zoomTransformOf(zx, zy);
 
   // ── Empilage des marks affichés (données filtrées par le brush) ───────────
   const stackMain = stackActive
     ? buildStacks({ data: filteredData, posKey: stackPosKey, valKey: stackValKey, channels, stackBy: stack, seriesOrder, aggregate: 'mean' })
     : null;
 
+  // ── Entrées des marks : bascule preview pendant un geste de brush ─────────
+  // Pendant le drag (`isBrushing`), les marks sont rendus UNE fois depuis les
+  // données COMPLÈTES en coordonnées de BASE (mêmes entrées que les mini-vues :
+  // data/baseScales/stackMini/groupsFull) ; leur groupe porte alors le transform
+  // affine base→committé, réécrit par frame en base→brouillon par la preview
+  // impérative — le recalcul filter + stacks + repositionnement n'a lieu qu'au
+  // relâchement, quand la sélection committée change. Hors geste : entrées
+  // committées, rendu strictement inchangé.
+  const mData = isBrushing ? data : filteredData;
+  const mXScale = isBrushing ? baseXScale : xScale;
+  const mYScale = isBrushing ? baseYScale : yScale;
+  const mStack = isBrushing ? stackMini : stackMain;
+  const mGroups = isBrushing ? groupsFull : groupsFiltered;
+
   // ── Contexte de projection passé aux overlays de features ─────────────────
+  // Pendant un geste de brush, il bascule sur les mêmes entrées de BASE que les
+  // marks (mData/mScales/mStack) : les overlays sont alors rendus dans le même
+  // groupe transformé et restent alignés sur la preview sans recalcul par frame.
   const featureCtx = {
     chartKind, x, y, z, xType, yType, channels, hueCols,
-    xScale, yScale, innerWidth, innerHeight,
-    filteredData, typedData: data,
+    xScale: mXScale, yScale: mYScale, innerWidth, innerHeight,
+    filteredData: mData, typedData: data,
     colorScale: cScale, styleScale: styleScaleFn, markerScale: markerScaleFn, hatchScale: hatchScaleFn,
     isBarH, fill, stack, posKey, valKey,
-    stackOffsets: stackMain ? stackMain.offsets : null,
+    stackOffsets: mStack ? mStack.offsets : null,
     ciActive: !!ciFeature,
     ciFill: ciFeature && ciFeature.config ? ciFeature.config.fill : undefined,
     normFactor,
@@ -472,18 +562,27 @@ const ChartCanvas = ({
     />
   ));
 
-  // Boutons supplémentaires de la barre d'outils (features + mini-vues).
+  // Boutons supplémentaires de la barre d'outils (features + mini-vues). Le bouton
+  // « mini-vues » n'agit QUE sur la visibilité de l'ensemble (mini-vues +
+  // pastilles) : le pli de chaque axe est la seule affaire de sa pastille, et il
+  // est conservé d'un masquage à l'autre.
   const extraTools = tools.map((t) => (t.isMinimaps
-    ? { id: t.id, icon: t.icon, label: t.label, on: minimapOpen, onToggle: () => setMinimapOpen((o) => !o) }
+    ? {
+        id: t.id, icon: t.icon, label: t.label, on: minimapsVisible,
+        onToggle: () => setMinimapsVisible((v) => !v),
+      }
     : { id: t.id, icon: t.icon, label: t.label, on: !!featOn[t.id], onToggle: () => toggleFeature(t.id) }));
 
   // ── Cibles de survol ──────────────────────────────────────────────────────
-  const baseHoverTargets = zoomLayer
+  // Sautées pendant un geste de brush (`isBrushing`) : on ne survole pas en
+  // glissant, et cela évite un recalcul O(n) + une reconstruction du diagramme de
+  // voronoï à chaque frame. Recalculées au relâchement (isBrushing repasse à false).
+  const baseHoverTargets = (zoomLayer && !isBrushing)
     ? computeBaseHoverTargets({ chartKind, data, channels, baseXScale, baseYScale, x, y, stackMini })
     : [];
-  const hoverTargets = zoomLayer ? [] : computeHoverTargets({
+  const hoverTargets = (zoomLayer || isBrushing) ? [] : computeHoverTargets({
     chartKind, filteredData, channels, xScale, yScale, x, y, z,
-    stack, stackMain, innerWidth, innerHeight, fill,
+    stack, stackMain, innerWidth, innerHeight, fill, groups: groupsFiltered,
   });
 
   // Ancrage adaptatif : bulle du côté OPPOSÉ au point (flip près des bords). En
@@ -603,17 +702,19 @@ const ChartCanvas = ({
   }
 
   // ── Marks du kind détecté ────────────────────────────────────────────────
+  // Entrées mData/mScales/mStack/mGroups : committées hors geste, de BASE pendant
+  // un drag (le groupe porteur reçoit alors le transform de preview, cf. le rendu).
   let marks = null;
   if (chartKind === 'line') {
-    marks = <LineMarks data={filteredData} x={x} y={y} channels={channels} xScale={xScale} yScale={yScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} fill={fill} stack={stackMain} baReal={baReal} />;
+    marks = <LineMarks data={mData} x={x} y={y} channels={channels} xScale={mXScale} yScale={mYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} fill={fill} stack={mStack} groups={mGroups} baReal={baReal} />;
   } else if (chartKind === 'bar') {
-    marks = <BarMarks data={filteredData} x={x} y={y} channels={channels} xScale={xScale} yScale={yScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="v" fill={fill} stack={stackMain} />;
+    marks = <BarMarks data={mData} x={x} y={y} channels={channels} xScale={mXScale} yScale={mYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="v" fill={fill} stack={mStack} groups={mGroups} />;
   } else if (chartKind === 'bar-h') {
-    marks = <BarMarks data={filteredData} x={x} y={y} channels={channels} xScale={xScale} yScale={yScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="h" fill={fill} stack={stackMain} />;
+    marks = <BarMarks data={mData} x={x} y={y} channels={channels} xScale={mXScale} yScale={mYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="h" fill={fill} stack={mStack} groups={mGroups} />;
   } else if (chartKind === 'heatmap') {
-    marks = <HeatmapMarks data={filteredData} x={x} y={y} z={z} xScale={xScale} yScale={yScale} colorScale={cScale} hovered={hovered} fill={effFill} />;
+    marks = <HeatmapMarks data={mData} x={x} y={y} z={z} xScale={mXScale} yScale={mYScale} colorScale={cScale} hovered={hovered} fill={effFill} />;
   } else if (isViolinKind) {
-    marks = <ViolinMarks data={data} x={x} y={y} z={z} channels={channels} xScale={xScale} yScale={yScale} xScaleBase={baseXScale} yScaleBase={baseYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} orient={chartKind === 'violin-h' ? 'h' : 'v'} fill={effFill} stack={stack} hovered={hovered} />;
+    marks = <ViolinMarks data={data} x={x} y={y} z={z} channels={channels} xScale={mXScale} yScale={mYScale} xScaleBase={baseXScale} yScaleBase={baseYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} orient={chartKind === 'violin-h' ? 'h' : 'v'} fill={effFill} stack={stack} hovered={hovered} />;
   }
 
   // Densité (KDE 2-D) rendue en coordonnées de BASE puis zoomée par le transform.
@@ -625,10 +726,10 @@ const ChartCanvas = ({
   let xMiniContent = null;
   if (chartKind === 'line') {
     const yMini = baseYScale.copy().range([miniH, 0]);
-    xMiniContent = <>{<LineMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} fill={fill} stack={stackMini} mini />}{renderMiniCI(baseXScale, yMini)}</>;
+    xMiniContent = <>{<LineMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} fill={fill} stack={stackMini} groups={groupsFull} mini />}{renderMiniCI(baseXScale, yMini)}</>;
   } else if (chartKind === 'bar') {
     const yMini = baseYScale.copy().range([miniH, 0]);
-    xMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="v" fill={fill} stack={stackMini} mini />}{renderMiniCI(baseXScale, yMini)}</>;
+    xMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="v" fill={fill} stack={stackMini} groups={groupsFull} mini />}{renderMiniCI(baseXScale, yMini)}</>;
   } else if (has2DBrush) {
     xMiniContent = <MiniProjection data={data} posCol={x} posType={xType} valCol={z} posScale={baseXScale} width={innerWidth} height={miniH} direction="x" mode="mean" />;
   } else if (chartKind === 'violin-v') {
@@ -642,7 +743,7 @@ const ChartCanvas = ({
     yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={z} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="mean" />;
   } else if (isBarH) {
     const miniX = baseXScale.copy().range([0, Math.max(2, yMinimapW - 2)]);
-    yMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={miniX} yScale={baseYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="h" fill={fill} stack={stackMini} mini />}{renderMiniCI(miniX, baseYScale)}</>;
+    yMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={miniX} yScale={baseYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="h" fill={fill} stack={stackMini} groups={groupsFull} mini />}{renderMiniCI(miniX, baseYScale)}</>;
   } else if (chartKind === 'violin-v') {
     yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={y} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="count" />;
   } else if (chartKind === 'violin-h') {
@@ -673,11 +774,13 @@ const ChartCanvas = ({
       >
         <title>{title || 'Graphique'}</title>
         <g transform={`translate(${margins.left}, ${margins.top})`}>
+          {/* Axes sur les échelles COMMITTÉES : gelés pendant un geste de brush
+              (aucun rendu React par frame), recalés au relâchement. */}
           <ChartAxisLeft
             scale={yScale} type={yType} length={innerHeight} width={innerWidth}
             format={format.y} maxLabelLength={maxLabelLength.y} maxLines={maxLines.y || 2}
             overlap={overlap} tickDensity={tickDensity} label={labels.y}
-            tickPadX={tickPadX} labelOffset={yTickW + 10}
+            labelOffset={yTickW + 10}
           />
           <ChartAxisBottom
             scale={xScale} type={xType} length={innerWidth} height={innerHeight}
@@ -694,26 +797,57 @@ const ChartCanvas = ({
               </clipPath>
             )}
           </defs>
+          {/* Zone de tracé — UN SEUL groupe clippé (clipId) partagé par les trois
+              couches ci-dessous ; tout ce qui suit (survol direct, ActiveMark,
+              mini-vues) reste volontairement HORS de ce groupe, donc non clippé.
+              Le clip et le transform de preview NE PEUVENT PAS cohabiter sur le
+              même <g> : un clip-path (userSpaceOnUse) est résolu dans le repère de
+              l'élément qui le référence, APRÈS son propre transform — la fenêtre de
+              découpe zoomerait avec les marks. D'où, dans chaque couche, un <g>
+              dédié au transform, cible de la preview impérative (previewTargets de
+              useBrushZoom) : la valeur JSX (base→committé) est posée au début du
+              geste, réécrite par frame par setAttribute, puis reprise par le rendu
+              committé au relâchement. .chart-zoom-content garde les traits à
+              épaisseur constante (vector-effect). */}
           <g clipPath={`url(#${clipId})`}>
-            <g clipPath={baClip ? `url(#${mainClipId})` : undefined}>{marks}</g>
-          </g>
+            {/* Marks, rendus en coordonnées de BASE pendant le geste (cf. mData/mScales).
+                Le <g> intermédiaire porte le clip de feature (baClip) : deux clips ne
+                s'intersectent QU'EN imbriquant (les enfants d'un <clipPath> s'unissent).
+                Il est rendu même sans baClip (attribut undefined) pour garder la forme de
+                l'arbre — et donc le sous-arbre des marks — stable. */}
+            <g clipPath={baClip ? `url(#${mainClipId})` : undefined}>
+              <g
+                ref={previewMarksRef}
+                className={isBrushing ? 'chart-zoom-content' : undefined}
+                transform={isBrushing ? zoomTransform : undefined}
+              >
+                {marks}
+              </g>
+            </g>
 
-          {/* Couche ZOOM : densité (KDE 2-D) + survol (line/density) en coordonnées
-              de BASE, agrandis par transform (traits non-scaling-stroke). */}
-          {zoomLayer && (
-            <g clipPath={`url(#${clipId})`}>
-              <g className="chart-zoom-content" transform={zoomTransform}>
+            {/* Couche ZOOM : densité (KDE 2-D) + survol (line/density) en coordonnées
+                de BASE, agrandis par transform (traits non-scaling-stroke). */}
+            {zoomLayer && (
+              <g ref={previewZoomLayerRef} className="chart-zoom-content" transform={zoomTransform}>
                 {densityZoomMarks}
                 {baseHoverTargets.length > 0 && (voronoiOn
                   ? <VoronoiOverlay points={baseHoverTargets} innerWidth={innerWidth} innerHeight={innerHeight} onHover={(t) => handleHover(t, true)} />
                   : (tooltipsOn ? <DirectHoverOverlay targets={baseHoverTargets} onHover={(t) => handleHover(t, true)} /> : null))}
               </g>
-            </g>
-          )}
+            )}
 
-          {/* Overlays de features (IC, projection, normalisation) AU-DESSUS de la
-              couche zoom (la barre de normalisation passe devant les densités). */}
-          <g clipPath={`url(#${clipId})`}>{featureOverlays}</g>
+            {/* Overlays de features (IC, projection, normalisation) AU-DESSUS de la
+                couche zoom (la barre de normalisation passe devant les densités).
+                Pendant un geste de brush ils sont rendus en base (featureCtx) et
+                suivent la preview via le même transform que les marks. */}
+            <g
+              ref={previewOverlaysRef}
+              className={isBrushing ? 'chart-zoom-content' : undefined}
+              transform={isBrushing ? zoomTransform : undefined}
+            >
+              {featureOverlays}
+            </g>
+          </g>
 
           {/* Survol direct / proximité (charts à bandes). */}
           {!zoomLayer && hoverTargets.length > 0 && (voronoiOn
@@ -728,34 +862,66 @@ const ChartCanvas = ({
             />
           )}
 
-          {/* Mini-vue y — à gauche du tracé (entre les ticks et le bord). */}
-          {showYMinimap && minimapOpen && (
-            <g transform={`translate(${-(yMinimapW + yMinimapGap)}, 0)`}>
-              <BrushMinimap
-                direction="y" width={yMinimapW} height={innerHeight}
-                scale={baseYScale} selection={ySel} onChange={setYSel} content={yMiniContent}
-              />
-            </g>
+          {/* Mini-vue y — à gauche du tracé.
+              Le placement passe par la prop `transform` (posée sur le <g> racine de
+              BrushMinimap). */}
+          {showYMinimap && yMinimapOpen && (
+            <BrushMinimap
+              direction="y" transform={`translate(${-yMinimapX}, 0)`}
+              width={yMinimapW} height={innerHeight}
+              scale={baseYScale} selection={ySel} onChange={setYSel} onPreview={previewYSel}
+              content={yMiniContent} onBrushingChange={setIsBrushing}
+            />
           )}
         </g>
 
-        {/* Mini-vue x — sous l'axe des abscisses. */}
-        {showXMinimap && minimapOpen && (
-          <g transform={`translate(${margins.left}, ${margins.top + innerHeight + margins.bottom + 8})`}>
-            <BrushMinimap
-              direction="x" width={innerWidth} height={miniH}
-              scale={baseXScale} selection={xSel} onChange={setXSel} content={xMiniContent}
-            />
-          </g>
+        {/* Mini-vue x — sous l'axe des abscisses (hors du groupe des marges : son
+            translate est exprimé dans le repère du <svg>). */}
+        {showXMinimap && xMinimapOpen && (
+          <BrushMinimap
+            direction="x"
+            transform={`translate(${margins.left}, ${xMinimapY})`}
+            width={innerWidth} height={miniH}
+            scale={baseXScale} selection={xSel} onChange={setXSel} onPreview={previewXSel}
+            content={xMiniContent} onBrushingChange={setIsBrushing}
+          />
         )}
       </svg>
 
-      {/* Pastille de bascule des mini-vues (pied de page du corps). */}
-      {(showXMinimap || showYMinimap) && (
+      {/* Pastilles de pli des mini-vues (une par axe applicable, indépendantes ; ne
+          replient QUE leur bande, sans jamais se masquer elles-mêmes — c'est le rôle
+          du bouton « mini-vues » de la barre d'outils, via `minimapsVisible`, déjà
+          intégré à showXMinimap/showYMinimap).
+          Chacune est ALIGNÉE sur le titre de son axe : seul le point d'ancrage
+          (issu de la géométrie, connue ici en JS) est posé en inline ; le centrage
+          effectif — y compris celui de la pastille y pivotée — est fait en CSS pur
+          par MinimapToggle.scss (transform d'ancrage, sans mesure du bouton).
+            • x : centre du titre d'axe x (margins.left + innerWidth/2, PAS 50 % du
+              body : ses marges gauche/droite sont asymétriques), `xToggleY` px sous
+              le haut du svg (= bas de la mini-vue + TOGGLE_GAP) ;
+            • y : centre de la gouttière yToggleW (réservée par useChartGeometry à
+              gauche du titre d'axe y, au même TOGGLE_GAP de la mini-vue), centré sur
+              la hauteur du tracé (margins.top + innerHeight/2) comme le titre. */}
+      {showXMinimap && (
         <MinimapToggle
-          open={minimapOpen}
-          direction={showYMinimap && !showXMinimap ? 'y' : 'x'}
-          onToggle={() => setMinimapOpen((o) => !o)}
+          open={xMinimapOpen}
+          direction="x"
+          onToggle={() => setXMinimapOpen((o) => !o)}
+          style={{
+            left: margins.left + innerWidth / 2,
+            top: xToggleY,
+          }}
+        />
+      )}
+      {showYMinimap && (
+        <MinimapToggle
+          open={yMinimapOpen}
+          direction="y"
+          onToggle={() => setYMinimapOpen((o) => !o)}
+          style={{
+            left: yToggleW / 2,
+            top: margins.top + innerHeight / 2,
+          }}
         />
       )}
 
@@ -793,7 +959,11 @@ const ChartCanvas = ({
  *   categorical (single-series path), producing horizontal bars (`bar-h`).
  * @param {string} [props.title] - Chart title.
  * @param {number} [props.height=460] - Outer height (px).
- * @param {Array<object>} [props.toolbar=[]] - Toolbar feature descriptors.
+ * @param {Array<object>} [props.toolbar=[]] - Toolbar feature descriptors. Should be a
+ *   STABLE reference across renders unrelated to it (build it once — module scope, or a
+ *   dedicated child component fed only the state it depends on) : a new array/object
+ *   identity on every parent render defeats the React Compiler's ability to bail out
+ *   this <Chart>'s re-render.
  * @param {object} [props.defaults={}] - Initial ON state per tool id ('confidence',
  *   'beforeAfter', 'normalize', 'zoom', 'minimaps' + built-ins 'voronoi', 'tooltips',
  *   'expanded'). Overrides each feature's `defaultOn`.
@@ -849,7 +1019,7 @@ const Chart = ({
         fill={fill} stack={stack}
         format={format} labels={labels} maxLabelLength={maxLabelLength} maxLines={maxLines}
         overlap={overlap} tickDensity={tickDensity}
-        title={title} height={height} defaults={defaults}
+        title={title} height={height} defaults={defaults} toolbar={toolbar}
       />
     );
   }
@@ -987,11 +1157,10 @@ const Chart = ({
     }
   };
 
-  // Ouverture des mini-vues par défaut : defaults.minimaps > outil minimaps > prop.
-  const minimapsTool = (toolbar || []).find((t) => t.isMinimaps);
-  const effInitialMinimapOpen = defaults.minimaps != null
-    ? !!defaults.minimaps
-    : (minimapsTool ? !!minimapsTool.defaultOn : initialMinimapOpen);
+  // Visibilité des mini-vues par défaut : defaults.minimaps > outil minimaps > prop.
+  const effInitialMinimapOpen = resolveMinimapsVisible({
+    defaults, toolbar, fallback: initialMinimapOpen,
+  });
 
   const legendInline = expanded;
 
@@ -1017,7 +1186,10 @@ const Chart = ({
         </div>
       )}
 
-      <ParentSize className="chart-body" parentSizeStyles={{ position: 'relative', width: '100%', minHeight: height }}>
+      <ParentSize
+        className="chart-body" parentSizeStyles={{ position: 'relative', width: '100%', minHeight: height }}
+        debounceTime={150} enableDebounceLeadingCall
+      >
         {({ width }) => (
           width > 0 ? (
             <ChartCanvas

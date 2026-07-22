@@ -1,19 +1,40 @@
 @use 'sass:map';
+@use 'sass:math';
 
-// Breakpoints permettant la transition entre les design écran d'ordinateur, tablette et téléphone portable
-// 640px, 1150px, 1400px
-$breakpoints-up: (
-	'medium': '40em',
-	'large': '71.875em',
-	'xlarge': '87.5em',
+// Breakpoints permettant la transition entre les design écran d'ordinateur, tablette et téléphone portable.
+//
+// SOURCE UNIQUE DE VÉRITÉ (en px) : toute valeur ci-dessous est également exposée en
+// custom property CSS (--breakpoint-*) dans src/styles/globals/typography.scss, afin que
+// le JS (ex. src/features/header/hooks/useNavigation.js, via getComputedStyle) reste
+// synchronisé sans dupliquer les seuils. Ne jamais recoder ces nombres ailleurs.
+$breakpoints-down-px: (
+	'small': 639,
+	'medium': 1149,
+	'large': 1399,
 );
 
-// 639px, 1149px, 1399px
-$breakpoints-down: (
-	'small': '39.9375em',
-	'medium': '71.8125em',
-	'large': '87.4375em',
+// Bornes basses (min-width) des paliers suivants : chaque palier commence juste après
+// la fin (max-width) du précédent, d'où le "+ 1" plutôt qu'une valeur recopiée à la main.
+$breakpoints-up-px: (
+	'medium': map.get($breakpoints-down-px, 'small') + 1,
+	'large': map.get($breakpoints-down-px, 'medium') + 1,
+	'xlarge': map.get($breakpoints-down-px, 'large') + 1,
 );
+
+@function to-em($px) {
+	@return math.div($px, 16) * 1em;
+}
+
+@function em-map($px-map) {
+	$result: ();
+	@each $name, $px in $px-map {
+		$result: map.merge($result, ($name: to-em($px)));
+	}
+	@return $result;
+}
+
+$breakpoints-up: em-map($breakpoints-up-px);
+$breakpoints-down: em-map($breakpoints-down-px);
 
 @mixin breakpoint($size) {
 	@media (min-width: map.get($breakpoints-up, $size)) {

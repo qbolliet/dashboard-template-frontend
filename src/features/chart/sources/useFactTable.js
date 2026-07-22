@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+// Importation des modules
+import useSWR from 'swr';
 
 // =================================================================
 // SOURCE — FACT TABLE (lignes de faits au format long)
@@ -62,14 +63,71 @@ export const MOCK_METADATA = {
   generatedAt: new Date(0).toISOString(),
 };
 
+// --- Fallback mock : résolu en asynchrone pour exercer le même cycle
+//     loading→données que l'API GraphQL réelle. ---
+function fetchFactTable([, fields, structuredFilters, limit, offset, sort, catalog, schema]) {
+  const promise = Promise.resolve({ columns: MOCK_COLUMNS, data: MOCK_ROWS, metadata: MOCK_METADATA });
+
+  // ====================================================================
+  // INTÉGRATION GRAPHQL RÉELLE — à décommenter pour brancher l'API
+  // ====================================================================
+  // Prérequis : un client GraphQL (ex: @apollo/client ou graphql-request),
+  // non installé à ce jour. Définir la fonction de requête ci-dessous (idéalement
+  // dans `src/features/chart/sources/`), puis REMPLACER le `const promise = ...`
+  // du fallback mock ci-dessus par :
+  //
+  //   const promise = getFactTableWithMetadata({
+  //     fields, structuredFilters, limit, offset, sort, format: 'OBJECTS', catalog, schema,
+  //   });
+  //
+  // Exemple d'implémentation (graphql-request) :
+  //
+  //   import { request, gql } from 'graphql-request';
+  //   const ENDPOINT = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
+  //
+  //   const FACT_TABLE = gql`
+  //     query GetFactTableWithMetadata(
+  //       $fields: [String!], $structuredFilters: [Filter],
+  //       $limit: Int!, $offset: Int!, $sort: [SortInput!],
+  //       $format: DataFormat = OBJECTS, $catalog: String, $schema: String
+  //     ) {
+  //       getFactTableWithMetadata(
+  //         fields: $fields, structuredFilters: $structuredFilters,
+  //         limit: $limit, offset: $offset, sort: $sort,
+  //         format: $format, catalog: $catalog, schema: $schema
+  //       ) {
+  //         columns
+  //         data
+  //         metadata { count extents total hasNextPage currentPage totalPages generatedAt }
+  //       }
+  //     }`;
+  //   export async function getFactTableWithMetadata(vars) {
+  //     // `catalog` / `schema` sont routés via les en-têtes ducklake (surcharge
+  //     // les valeurs par défaut du serveur), en plus des arguments de requête.
+  //     const headers = {
+  //       ...(vars.catalog ? { 'X-Catalog-Id': vars.catalog } : {}),
+  //       ...(vars.schema ? { 'X-Schema-Id': vars.schema } : {}),
+  //     };
+  //     const res = await request(ENDPOINT, FACT_TABLE, vars, headers);
+  //     return res.getFactTableWithMetadata; // -> { columns, data, metadata }
+  //   }
+  //
+  // `data` (format OBJECTS) est directement le tableau de lignes long attendu par
+  // <Chart> : AUCUN reformatage. Le cycle { loading, error } est déjà câblé —
+  // `loading` vient de `isLoading` (SWR), `error` d'un rejet de la promesse.
+  // ====================================================================
+
+  return promise;
+}
+
 /**
  * Fetches a long-format fact table ready to feed <Chart> (`format: OBJECTS`).
  *
- * Mirrors {@link useVariableMetadata}: an effect resolves the request asynchronously
- * and stores the result in state, while `loading` is derived during render from a
- * request-key comparison (no synchronous setState in the effect — Rules of Hooks v6).
- * By default returns the local mock; swap it for the GraphQL call
- * `getFactTableWithMetadata` (see the commented block).
+ * Backed by SWR: caches and deduplicates requests sharing the same
+ * `['factTable', fields, structuredFilters, limit, offset, sort, catalog, schema]`
+ * key across component instances. By default returns the local mock; swap it
+ * for the GraphQL call `getFactTableWithMetadata` inside {@link fetchFactTable}
+ * (see the commented block).
  *
  * The returned `rows` are passed AS-IS to `<Chart data={rows} />`: no reshaping —
  * ISO date strings are coerced by the chart itself. `metadata.extents` can
@@ -88,94 +146,8 @@ export const MOCK_METADATA = {
 export function useFactTable({
   fields, structuredFilters, limit = 100, offset = 0, sort, catalog, schema,
 } = {}) {
-  // État du résultat courant. `key` identifie le jeu d'inputs qui l'a produit :
-  // on s'en sert pour dériver `loading` sans setState synchrone dans l'effet
-  // (interdit par les Rules of Hooks v6 — règle set-state-in-effect).
-  const [result, setResult] = useState({
-    key: null, columns: MOCK_COLUMNS, rows: MOCK_ROWS, metadata: MOCK_METADATA, error: null,
-  });
-
-  // Clé de requête : sérialise tous les paramètres qui invalident le cache.
-  const requestKey = JSON.stringify({ fields, structuredFilters, limit, offset, sort, catalog, schema });
-
-  useEffect(() => {
-    // Garde d'annulation : ignore la réponse si les inputs ont changé entre-temps.
-    let cancelled = false;
-    const key = JSON.stringify({ fields, structuredFilters, limit, offset, sort, catalog, schema });
-
-    // --- Fallback mock : résolu en asynchrone pour exercer le même cycle
-    //     loading→données que l'API GraphQL réelle. ---
-    const promise = Promise.resolve({ columns: MOCK_COLUMNS, data: MOCK_ROWS, metadata: MOCK_METADATA });
-
-    // ====================================================================
-    // INTÉGRATION GRAPHQL RÉELLE — à décommenter pour brancher l'API
-    // ====================================================================
-    // Prérequis : un client GraphQL (ex: @apollo/client ou graphql-request),
-    // non installé à ce jour. Définir la fonction de requête ci-dessous (idéalement
-    // dans `src/features/chart/sources/`), puis REMPLACER le `const promise = ...`
-    // du fallback mock ci-dessus par :
-    //
-    //   const promise = getFactTableWithMetadata({
-    //     fields, structuredFilters, limit, offset, sort, format: 'OBJECTS', catalog, schema,
-    //   });
-    //
-    // Exemple d'implémentation (graphql-request) :
-    //
-    //   import { request, gql } from 'graphql-request';
-    //   const ENDPOINT = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
-    //
-    //   const FACT_TABLE = gql`
-    //     query GetFactTableWithMetadata(
-    //       $fields: [String!], $structuredFilters: [Filter],
-    //       $limit: Int!, $offset: Int!, $sort: [SortInput!],
-    //       $format: DataFormat = OBJECTS, $catalog: String, $schema: String
-    //     ) {
-    //       getFactTableWithMetadata(
-    //         fields: $fields, structuredFilters: $structuredFilters,
-    //         limit: $limit, offset: $offset, sort: $sort,
-    //         format: $format, catalog: $catalog, schema: $schema
-    //       ) {
-    //         columns
-    //         data
-    //         metadata { count extents total hasNextPage currentPage totalPages generatedAt }
-    //       }
-    //     }`;
-    //   export async function getFactTableWithMetadata(vars) {
-    //     // `catalog` / `schema` sont routés via les en-têtes ducklake (surcharge
-    //     // les valeurs par défaut du serveur), en plus des arguments de requête.
-    //     const headers = {
-    //       ...(vars.catalog ? { 'X-Catalog-Id': vars.catalog } : {}),
-    //       ...(vars.schema ? { 'X-Schema-Id': vars.schema } : {}),
-    //     };
-    //     const res = await request(ENDPOINT, FACT_TABLE, vars, headers);
-    //     return res.getFactTableWithMetadata; // -> { columns, data, metadata }
-    //   }
-    //
-    // `data` (format OBJECTS) est directement le tableau de lignes long attendu par
-    // <Chart> : AUCUN reformatage. Le cycle { loading, error } est déjà câblé —
-    // `loading` se déduit de la comparaison de clés (plus bas), `error` du .catch.
-    // ====================================================================
-
-    promise
-      .then((res) => {
-        if (cancelled) return;
-        setResult({
-          key,
-          columns: res?.columns ?? [],
-          rows: res?.data ?? [],
-          metadata: res?.metadata ?? null,
-          error: null,
-        });
-      })
-      .catch((err) => {
-        if (!cancelled) setResult({ key, columns: [], rows: [], metadata: null, error: err });
-      });
-
-    return () => { cancelled = true; };
-  }, [requestKey, fields, structuredFilters, limit, offset, sort, catalog, schema]);
-
-  // `loading` dérivé : vrai tant que le résultat stocké ne correspond pas aux inputs courants.
-  const loading = result.key !== requestKey;
+  const key = ['factTable', fields, structuredFilters, limit, offset, sort, catalog, schema];
+  const { data, error, isLoading } = useSWR(key, fetchFactTable);
 
   // ── Usage optionnel de metadata.extents ───────────────────────────────────
   // Pour fixer les domaines d'axes SANS re-parcourir `rows`, on peut lire
@@ -188,11 +160,18 @@ export function useFactTable({
   // <Chart> dérive aujourd'hui ses domaines des données ; `extents` reste dispo
   // pour coordonner plusieurs graphiques sur une échelle commune sans recalcul.
 
+  // En cas d'échec du fetch, on renvoie un état vide + `error` : le mock est un
+  // repli "client GraphQL pas encore branché", PAS un repli sur erreur (afficher
+  // le fact table mock complet masquerait la panne au consommateur).
+  if (error) {
+    return { columns: [], rows: [], metadata: null, loading: isLoading, error };
+  }
+
   return {
-    columns: result.columns,
-    rows: result.rows,
-    metadata: result.metadata,
-    loading,
-    error: result.error,
+    columns: data?.columns ?? MOCK_COLUMNS,
+    rows: data?.data ?? MOCK_ROWS,
+    metadata: data?.metadata ?? MOCK_METADATA,
+    loading: isLoading,
+    error: null,
   };
 }

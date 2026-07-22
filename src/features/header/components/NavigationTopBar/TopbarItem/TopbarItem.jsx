@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useNavigation } from '../../../hooks/useNavigation';
+import { useNavigationRoute } from '../../../providers/NavigationProvider';
 import './TopbarItem.scss';
 
 /**
@@ -21,8 +21,8 @@ const TopbarItem = ({
     itemClassName = '',
     activeClassName = ''
 }) => {
-    // Hook personnalisé pour les fonctions utilitaires de navigation
-    const { isActivePath } = useNavigation();
+    // Contexte de route : ne dépend que du pathname (stable au toggle du menu mobile).
+    const { isActivePath } = useNavigationRoute();
 
     // Déterminer si le lien est actif
     const isActive = isActivePath(item.path);

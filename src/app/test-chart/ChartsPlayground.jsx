@@ -51,6 +51,11 @@ const AREA_SERIES = makeAreaSeries();
 // Bornes d'IC communes (colonnes basses/hautes des deux bandes).
 const CI_BOUNDS = { below: ['lo1', 'lo2'], above: ['hi1', 'hi2'] };
 
+// Barre d'outils « universelle » (zoom + mini-vues) : ne dépend d'AUCUN state du
+// panneau ⇒ référence de module figée une fois pour toutes (jamais reconstruite),
+// partagée par les blocs violon et API.
+const UNIVERSAL_TOOLBAR = [F.zoom(), F.minimaps()];
+
 // ── Métadonnées des blocs (titres, meta, notes) — reprises À L'IDENTIQUE du
 //    prototype charts.html (tableau `blocks`). ────────────────────────────────
 const BLOCKS = {
@@ -158,6 +163,249 @@ const Block = ({ id, children }) => (
   </section>
 );
 
+// ── Blocs de démonstration ────────────────────────────────────────────────────
+// Chacun est un composant à part entière qui ne reçoit QUE les states du panneau
+// qui le concernent (et construit sa PROPRE barre d'outils à partir de ceux-ci) :
+// un changement de state hors de cette liste laisse ses props identiques, donc le
+// React Compiler peut bail out son rendu (au lieu de tout recréer avec le pivot
+// précédent, qui reconstruisait les 6 tableaux `toolbar` — donc leurs `Chart` — à
+// chaque frappe, quel que soit le bloc réellement concerné).
+
+/** Linechart (date + num + hue), IC + projection + normalisation. */
+const LineDemo = ({
+  nHue, fill, stack, ciFill, baSide, baReplace, draggable,
+  projName, projColor, projDash, normName, normColor, normDash,
+  tickDensity, overlap,
+}) => {
+  const ciData = LINE_CI[nHue] || LINE_CI[1];
+  const fcData = LINE_FORECAST[nHue] || LINE_FORECAST[1];
+  const fcCI = LINE_FORECAST_CI[nHue] || LINE_FORECAST_CI[1];
+  const normParams = { color: normColor, dash: normDash || undefined, label: normName };
+  const toolbar = [
+    F.confidenceInterval({
+      data: ciData, ...CI_BOUNDS, fill: ciFill,
+      labels: { legend: 'Intervalle', bands: ['68 %', '95 %'] },
+    }),
+    F.beforeAfter({
+      // `data` peut aussi être une fonction (ctx) => rows ; ici un jeu figé.
+      data: fcData, value: new Date(2023, 4, 1), side: baSide, draggable, replace: baReplace,
+      // Apparence paramétrable : nom, couleur (distinction à hue 0), type de trait.
+      label: projName, color: projColor, dash: projDash, labels: { legend: projName },
+      // IC propre à la projection — visible quand l'IC de la barre est actif.
+      ci: { data: fcCI, ...CI_BOUNDS },
+    }),
+    F.normalize({ value: new Date(2020, 0, 1), draggable, ...normParams }),
+    F.zoom(), F.minimaps(),
+  ];
+  return (
+    <Block id="line">
+      <Chart
+        data={LINE_BY_HUE[nHue]}
+        x="Date" y="PIB" hue={['Country', 'CrossVal', 'Model'].slice(0, nHue)}
+        fill={fill} stack={stack}
+        format={{ x: '%Y-%m', y: '.3~f' }}
+        tickDensity={tickDensity} overlap={overlap}
+        labels={{ x: 'Date', y: 'PIB (indice 2020 = 100)', color: 'Pays', style: 'Entraînement', marker: 'Modèle' }}
+        title="PIB mensuel — Pays × Entraînement × Modèle"
+        toolbar={toolbar}
+        defaults={{ confidence: true }}
+        height={460} />
+    </Block>
+  );
+};
+
+/** Bar chart vertical (cat + num + hue), IC + normalisation. */
+const BarDemo = ({ nHue, fill, stack, ciFill, draggable, normName, normColor, normDash, tickDensity, overlap }) => {
+  const normParams = { color: normColor, dash: normDash || undefined, label: normName };
+  const toolbar = [
+    F.confidenceInterval({
+      data: BAR_CI, ...CI_BOUNDS, fill: ciFill,
+      labels: { legend: 'Intervalle', bands: ['±1', '±2'] },
+    }),
+    F.normalize({ value: 'Industrie', draggable, ...normParams }),
+    F.zoom(), F.minimaps(),
+  ];
+  return (
+    <Block id="bar">
+      <Chart
+        data={BAR}
+        x="Secteur" y="ValeurAjoutée" hue={['Année', 'Scénario', 'Méthode'].slice(0, nHue)}
+        fill={fill} stack={stack}
+        format={{ y: '.3~s' }}
+        tickDensity={tickDensity} overlap={overlap}
+        maxLabelLength={{ x: 14 }}
+        labels={{ x: 'Secteur (NAF A06)', y: 'Valeur ajoutée (Md€)', color: 'Année', style: 'Scénario', marker: 'Méthode' }}
+        title="Valeur ajoutée brute par secteur"
+        toolbar={toolbar}
+        height={440} />
+    </Block>
+  );
+};
+
+/** Bar chart horizontal (num + cat + hue), IC + normalisation. */
+const BarHDemo = ({ nHue, fill, stack, ciFill, draggable, normName, normColor, normDash, tickDensity, overlap }) => {
+  const normParams = { color: normColor, dash: normDash || undefined, label: normName };
+  const toolbar = [
+    F.confidenceInterval({
+      data: BAR_H_CI, ...CI_BOUNDS, fill: ciFill,
+      labels: { legend: 'Intervalle', bands: ['±1', '±2'] },
+    }),
+    F.normalize({ value: 'Île-de-France', draggable, ...normParams }),
+    F.zoom(), F.minimaps(),
+  ];
+  return (
+    <Block id="bar-h">
+      <Chart
+        data={BAR_H}
+        x="Adoption" y="Région" hue={['Année', 'Scénario', 'Méthode'].slice(0, nHue)}
+        fill={fill} stack={stack}
+        format={{ x: '.0f' }}
+        tickDensity={tickDensity} overlap={overlap}
+        maxLabelLength={{ y: 22 }}
+        labels={{ x: "Taux d'adoption (%)", y: 'Région', color: 'Année', style: 'Scénario', marker: 'Méthode' }}
+        title="Taux d'adoption par région (axes inversés)"
+        toolbar={toolbar}
+        height={460} />
+    </Block>
+  );
+};
+
+/** Heatmap (cat × cat + num z) — normalisation en réticule + zoom/mini-vues. */
+const HeatmapDemo = ({ fill, draggable, normName, normColor, normDash, tickDensity, overlap }) => {
+  const normParams = { color: normColor, dash: normDash || undefined, label: normName };
+  // Charts x,y,z : la normalisation devient un RÉTICULE déplaçable sur un point.
+  const toolbar = [F.normalize({ value: { x: 'Juin', y: 'France' }, draggable, ...normParams }), F.zoom(), F.minimaps()];
+  return (
+    <Block id="heatmap">
+      <Chart
+        data={HEATMAP}
+        x="Mois" y="Pays" z="Inflation"
+        fill={fill}
+        format={{ z: '.2f' }}
+        tickDensity={tickDensity} overlap={overlap}
+        labels={{ x: 'Mois', y: 'Pays', z: 'Inflation (%)' }}
+        title="Inflation mensuelle par pays"
+        toolbar={toolbar}
+        height={460} />
+    </Block>
+  );
+};
+
+/** Violin plot vertical (cat + num + hue) — toolbar universelle (zoom/mini-vues). */
+const ViolinVDemo = ({ nHue, fill, stack, tickDensity, overlap }) => (
+  <Block id="violin-v">
+    <Chart
+      data={VIOLIN}
+      x="Modèle" y="RMSE" z="Échantillon" hue={['Jeu', 'Optimiseur', 'Init'].slice(0, nHue)}
+      fill={fill} stack={stack}
+      format={{ y: '.2f', z: '.0f' }}
+      tickDensity={tickDensity} overlap={overlap}
+      labels={{ x: 'Modèle', y: 'RMSE (validation)', z: 'Échantillon moyen', color: 'Jeu', style: 'Optimiseur', marker: 'Initialisation' }}
+      title="Distribution de RMSE par modèle"
+      toolbar={UNIVERSAL_TOOLBAR}
+      height={460} />
+  </Block>
+);
+
+/** Violin plot horizontal (num + cat + hue) — toolbar universelle (zoom/mini-vues). */
+const ViolinHDemo = ({ nHue, fill, stack, tickDensity, overlap }) => (
+  <Block id="violin-h">
+    <Chart
+      data={VIOLIN}
+      x="RMSE" y="Modèle" z="Échantillon" hue={['Jeu', 'Optimiseur', 'Init'].slice(0, nHue)}
+      fill={fill} stack={stack}
+      format={{ x: '.2f', z: '.0f' }}
+      tickDensity={tickDensity} overlap={overlap}
+      maxLabelLength={{ y: 14 }}
+      labels={{ x: 'RMSE (validation)', y: 'Modèle', z: 'Échantillon moyen', color: 'Jeu', style: 'Optimiseur', marker: 'Initialisation' }}
+      title="Distribution de RMSE par modèle (axes inversés)"
+      toolbar={UNIVERSAL_TOOLBAR}
+      height={460} />
+  </Block>
+);
+
+/** Density plot (num × num + hue) — normalisation en réticule + zoom/mini-vues. */
+const DensityDemo = ({ nHue, fill, draggable, normName, normColor, normDash, tickDensity, overlap }) => {
+  const normParams = { color: normColor, dash: normDash || undefined, label: normName };
+  const toolbar = [F.normalize({ value: { x: 55, y: 50 }, draggable, ...normParams }), F.zoom(), F.minimaps()];
+  return (
+    <Block id="density">
+      <Chart
+        data={DENSITY}
+        x="ChômageTaux" y="EmploiTaux" z="Densité" hue={['Type', 'Source', 'Période'].slice(0, nHue)}
+        fill={fill}
+        format={{ x: '.0f', y: '.0f', z: '.0f' }}
+        tickDensity={tickDensity} overlap={overlap}
+        labels={{ x: 'Taux de chômage (%)', y: "Taux d'emploi (%)", z: 'Densité moyenne', color: 'Type', style: 'Source', marker: 'Période' }}
+        title="Densité chômage × emploi (KDE 2D)"
+        toolbar={toolbar}
+        height={500} />
+    </Block>
+  );
+};
+
+/** Multi-jeux : linechart mensuel + barchart trimestriel (pas de toolbar). */
+const ComboBarDemo = ({ tickDensity, overlap }) => (
+  <Block id="combo-bar">
+    <Chart
+      x="Date" y="Croissance"
+      data={[
+        { label: 'Mensuelle', data: COMBO_MONTHLY, fill: 'line', hue: 'Pays' },
+        { label: 'Trimestrielle', data: COMBO_QUARTERLY, fill: 'fill', hue: 'Pays', 'categorical-x': true },
+      ]}
+      format={{ x: '%Y-%m', y: '.1f' }}
+      tickDensity={tickDensity} overlap={overlap}
+      labels={{ x: 'Date', y: 'Croissance (%)' }}
+      title="Croissance — mensuelle (ligne) + trimestrielle (barres)"
+      height={460} />
+  </Block>
+);
+
+/** Multi-jeux : même jeu rendu en aire puis en ligne (pas de toolbar). */
+const ComboAreaDemo = ({ tickDensity, overlap }) => (
+  <Block id="combo-area">
+    <Chart
+      x="Date" y="Production"
+      data={[
+        { label: 'Ligne', data: AREA_SERIES, fill: 'line', hue: 'Pays' },
+        { label: 'Aire', data: AREA_SERIES, fill: 'fill', hue: 'Pays' },
+      ]}
+      format={{ x: '%Y-%m', y: '.0f' }}
+      tickDensity={tickDensity} overlap={overlap}
+      labels={{ x: 'Date', y: 'Production (indice)' }}
+      title="Production — aire + ligne (même jeu)"
+      height={460} />
+  </Block>
+);
+
+/** 10e bloc — passage direct des lignes de l'API (useFactTable) au <Chart>. */
+const ApiDemo = ({ tickDensity, overlap, apiRows, apiMeta, apiLoading, apiError }) => (
+  <Block id="api">
+    {apiError ? (
+      <p className="charts-api-status charts-api-status--error">Erreur de chargement : {String(apiError)}</p>
+    ) : apiLoading ? (
+      <p className="charts-api-status">Chargement des données API…</p>
+    ) : (
+      <>
+        <Chart
+          data={apiRows}
+          x="date_obs" y="gdp" hue="country"
+          format={{ x: '%Y-%m', y: '.1f' }}
+          tickDensity={tickDensity} overlap={overlap}
+          labels={{ x: "Date d'observation", y: 'PIB (indice)', color: 'Pays' }}
+          title="PIB par pays — getFactTableWithMetadata (mock)"
+          toolbar={UNIVERSAL_TOOLBAR}
+          height={420} />
+        {apiMeta && (
+          <p className="charts-api-status">
+            {apiMeta.count} lignes · extents PIB [{apiMeta.extents?.gdp?.join(' ; ')}] (issus de metadata.extents)
+          </p>
+        )}
+      </>
+    )}
+  </Block>
+);
+
 const ChartsPlayground = () => {
   // ── Panneau de contrôle (défauts alignés sur TWEAK_DEFAULTS du prototype) ──
   const [shown, setShown] = useState('all');
@@ -182,52 +430,6 @@ const ChartsPlayground = () => {
 
   // Un seul bloc ou tous.
   const visible = (id) => shown === 'all' || shown === id;
-
-  // ── Barres d'outils configurables (reconstruites à chaque rendu) ───────────
-  // Le <Chart> gère son état interne (options actives, position des barres) et ne
-  // garde que celles dont supports(chartKind) est vrai. Paramétrage commun de la
-  // barre de normalisation (couleur / trait / nom), valable pour tout type.
-  const ciData = LINE_CI[nHue] || LINE_CI[1];
-  const fcData = LINE_FORECAST[nHue] || LINE_FORECAST[1];
-  const fcCI = LINE_FORECAST_CI[nHue] || LINE_FORECAST_CI[1];
-  const normParams = { color: normColor, dash: normDash || undefined, label: normName };
-
-  const lineToolbar = [
-    F.confidenceInterval({
-      data: ciData, ...CI_BOUNDS, fill: ciFill,
-      labels: { legend: 'Intervalle', bands: ['68 %', '95 %'] },
-    }),
-    F.beforeAfter({
-      // `data` peut aussi être une fonction (ctx) => rows ; ici un jeu figé.
-      data: fcData, value: new Date(2023, 4, 1), side: baSide, draggable, replace: baReplace,
-      // Apparence paramétrable : nom, couleur (distinction à hue 0), type de trait.
-      label: projName, color: projColor, dash: projDash, labels: { legend: projName },
-      // IC propre à la projection — visible quand l'IC de la barre est actif.
-      ci: { data: fcCI, ...CI_BOUNDS },
-    }),
-    F.normalize({ value: new Date(2020, 0, 1), draggable, ...normParams }),
-    F.zoom(), F.minimaps(),
-  ];
-  const barToolbar = [
-    F.confidenceInterval({
-      data: BAR_CI, ...CI_BOUNDS, fill: ciFill,
-      labels: { legend: 'Intervalle', bands: ['±1', '±2'] },
-    }),
-    F.normalize({ value: 'Industrie', draggable, ...normParams }),
-    F.zoom(), F.minimaps(),
-  ];
-  const barHToolbar = [
-    F.confidenceInterval({
-      data: BAR_H_CI, ...CI_BOUNDS, fill: ciFill,
-      labels: { legend: 'Intervalle', bands: ['±1', '±2'] },
-    }),
-    F.normalize({ value: 'Île-de-France', draggable, ...normParams }),
-    F.zoom(), F.minimaps(),
-  ];
-  // Charts x,y,z : la normalisation devient un RÉTICULE déplaçable sur un point.
-  const heatmapToolbar = [F.normalize({ value: { x: 'Juin', y: 'France' }, draggable, ...normParams }), F.zoom(), F.minimaps()];
-  const densityToolbar = [F.normalize({ value: { x: 55, y: 50 }, draggable, ...normParams }), F.zoom(), F.minimaps()];
-  const universalToolbar = [F.zoom(), F.minimaps()];
 
   return (
     <ThemeProvider>
@@ -317,172 +519,57 @@ const ChartsPlayground = () => {
         {/* ── Blocs de démonstration ── */}
         <section className="tp-section charts-demos">
           {visible('line') && (
-            <Block id="line">
-              <Chart
-                data={LINE_BY_HUE[nHue]}
-                x="Date" y="PIB" hue={['Country', 'CrossVal', 'Model'].slice(0, nHue)}
-                fill={fill} stack={stack}
-                format={{ x: '%Y-%m', y: '.3~f' }}
-                tickDensity={tickDensity} overlap={overlap}
-                labels={{ x: 'Date', y: 'PIB (indice 2020 = 100)', color: 'Pays', style: 'Entraînement', marker: 'Modèle' }}
-                title="PIB mensuel — Pays × Entraînement × Modèle"
-                toolbar={lineToolbar}
-                defaults={{ confidence: true }}
-                height={460} />
-            </Block>
+            <LineDemo
+              nHue={nHue} fill={fill} stack={stack} ciFill={ciFill} baSide={baSide} baReplace={baReplace}
+              draggable={draggable} projName={projName} projColor={projColor} projDash={projDash}
+              normName={normName} normColor={normColor} normDash={normDash}
+              tickDensity={tickDensity} overlap={overlap} />
           )}
 
           {visible('bar') && (
-            <Block id="bar">
-              <Chart
-                data={BAR}
-                x="Secteur" y="ValeurAjoutée" hue={['Année', 'Scénario', 'Méthode'].slice(0, nHue)}
-                fill={fill} stack={stack}
-                format={{ y: '.3~s' }}
-                tickDensity={tickDensity} overlap={overlap}
-                maxLabelLength={{ x: 14 }}
-                labels={{ x: 'Secteur (NAF A06)', y: 'Valeur ajoutée (Md€)', color: 'Année', style: 'Scénario', marker: 'Méthode' }}
-                title="Valeur ajoutée brute par secteur"
-                toolbar={barToolbar}
-                height={440} />
-            </Block>
+            <BarDemo
+              nHue={nHue} fill={fill} stack={stack} ciFill={ciFill} draggable={draggable}
+              normName={normName} normColor={normColor} normDash={normDash}
+              tickDensity={tickDensity} overlap={overlap} />
           )}
 
           {visible('bar-h') && (
-            <Block id="bar-h">
-              <Chart
-                data={BAR_H}
-                x="Adoption" y="Région" hue={['Année', 'Scénario', 'Méthode'].slice(0, nHue)}
-                fill={fill} stack={stack}
-                format={{ x: '.0f' }}
-                tickDensity={tickDensity} overlap={overlap}
-                maxLabelLength={{ y: 22 }}
-                labels={{ x: "Taux d'adoption (%)", y: 'Région', color: 'Année', style: 'Scénario', marker: 'Méthode' }}
-                title="Taux d'adoption par région (axes inversés)"
-                toolbar={barHToolbar}
-                height={460} />
-            </Block>
+            <BarHDemo
+              nHue={nHue} fill={fill} stack={stack} ciFill={ciFill} draggable={draggable}
+              normName={normName} normColor={normColor} normDash={normDash}
+              tickDensity={tickDensity} overlap={overlap} />
           )}
 
           {visible('heatmap') && (
-            <Block id="heatmap">
-              <Chart
-                data={HEATMAP}
-                x="Mois" y="Pays" z="Inflation"
-                fill={fill}
-                format={{ z: '.2f' }}
-                tickDensity={tickDensity} overlap={overlap}
-                labels={{ x: 'Mois', y: 'Pays', z: 'Inflation (%)' }}
-                title="Inflation mensuelle par pays"
-                toolbar={heatmapToolbar}
-                height={460} />
-            </Block>
+            <HeatmapDemo
+              fill={fill} draggable={draggable}
+              normName={normName} normColor={normColor} normDash={normDash}
+              tickDensity={tickDensity} overlap={overlap} />
           )}
 
           {visible('violin-v') && (
-            <Block id="violin-v">
-              <Chart
-                data={VIOLIN}
-                x="Modèle" y="RMSE" z="Échantillon" hue={['Jeu', 'Optimiseur', 'Init'].slice(0, nHue)}
-                fill={fill} stack={stack}
-                format={{ y: '.2f', z: '.0f' }}
-                tickDensity={tickDensity} overlap={overlap}
-                labels={{ x: 'Modèle', y: 'RMSE (validation)', z: 'Échantillon moyen', color: 'Jeu', style: 'Optimiseur', marker: 'Initialisation' }}
-                title="Distribution de RMSE par modèle"
-                toolbar={universalToolbar}
-                height={460} />
-            </Block>
+            <ViolinVDemo nHue={nHue} fill={fill} stack={stack} tickDensity={tickDensity} overlap={overlap} />
           )}
 
           {visible('violin-h') && (
-            <Block id="violin-h">
-              <Chart
-                data={VIOLIN}
-                x="RMSE" y="Modèle" z="Échantillon" hue={['Jeu', 'Optimiseur', 'Init'].slice(0, nHue)}
-                fill={fill} stack={stack}
-                format={{ x: '.2f', z: '.0f' }}
-                tickDensity={tickDensity} overlap={overlap}
-                maxLabelLength={{ y: 14 }}
-                labels={{ x: 'RMSE (validation)', y: 'Modèle', z: 'Échantillon moyen', color: 'Jeu', style: 'Optimiseur', marker: 'Initialisation' }}
-                title="Distribution de RMSE par modèle (axes inversés)"
-                toolbar={universalToolbar}
-                height={460} />
-            </Block>
+            <ViolinHDemo nHue={nHue} fill={fill} stack={stack} tickDensity={tickDensity} overlap={overlap} />
           )}
 
           {visible('density') && (
-            <Block id="density">
-              <Chart
-                data={DENSITY}
-                x="ChômageTaux" y="EmploiTaux" z="Densité" hue={['Type', 'Source', 'Période'].slice(0, nHue)}
-                fill={fill}
-                format={{ x: '.0f', y: '.0f', z: '.0f' }}
-                tickDensity={tickDensity} overlap={overlap}
-                labels={{ x: 'Taux de chômage (%)', y: "Taux d'emploi (%)", z: 'Densité moyenne', color: 'Type', style: 'Source', marker: 'Période' }}
-                title="Densité chômage × emploi (KDE 2D)"
-                toolbar={densityToolbar}
-                height={500} />
-            </Block>
+            <DensityDemo
+              nHue={nHue} fill={fill} draggable={draggable}
+              normName={normName} normColor={normColor} normDash={normDash}
+              tickDensity={tickDensity} overlap={overlap} />
           )}
 
-          {visible('combo-bar') && (
-            <Block id="combo-bar">
-              <Chart
-                x="Date" y="Croissance"
-                data={[
-                  { label: 'Mensuelle', data: COMBO_MONTHLY, fill: 'line', hue: 'Pays' },
-                  { label: 'Trimestrielle', data: COMBO_QUARTERLY, fill: 'fill', hue: 'Pays', 'categorical-x': true },
-                ]}
-                format={{ x: '%Y-%m', y: '.1f' }}
-                tickDensity={tickDensity} overlap={overlap}
-                labels={{ x: 'Date', y: 'Croissance (%)' }}
-                title="Croissance — mensuelle (ligne) + trimestrielle (barres)"
-                height={460} />
-            </Block>
-          )}
+          {visible('combo-bar') && <ComboBarDemo tickDensity={tickDensity} overlap={overlap} />}
 
-          {visible('combo-area') && (
-            <Block id="combo-area">
-              <Chart
-                x="Date" y="Production"
-                data={[
-                  { label: 'Ligne', data: AREA_SERIES, fill: 'line', hue: 'Pays' },
-                  { label: 'Aire', data: AREA_SERIES, fill: 'fill', hue: 'Pays' },
-                ]}
-                format={{ x: '%Y-%m', y: '.0f' }}
-                tickDensity={tickDensity} overlap={overlap}
-                labels={{ x: 'Date', y: 'Production (indice)' }}
-                title="Production — aire + ligne (même jeu)"
-                height={460} />
-            </Block>
-          )}
+          {visible('combo-area') && <ComboAreaDemo tickDensity={tickDensity} overlap={overlap} />}
 
-          {/* 10e bloc — passage direct des lignes de l'API au <Chart>. */}
           {visible('api') && (
-            <Block id="api">
-              {apiError ? (
-                <p className="charts-api-status charts-api-status--error">Erreur de chargement : {String(apiError)}</p>
-              ) : apiLoading ? (
-                <p className="charts-api-status">Chargement des données API…</p>
-              ) : (
-                <>
-                  <Chart
-                    data={apiRows}
-                    x="date_obs" y="gdp" hue="country"
-                    format={{ x: '%Y-%m', y: '.1f' }}
-                    tickDensity={tickDensity} overlap={overlap}
-                    labels={{ x: "Date d'observation", y: 'PIB (indice)', color: 'Pays' }}
-                    title="PIB par pays — getFactTableWithMetadata (mock)"
-                    toolbar={universalToolbar}
-                    height={420} />
-                  {apiMeta && (
-                    <p className="charts-api-status">
-                      {apiMeta.count} lignes · extents PIB [{apiMeta.extents?.gdp?.join(' ; ')}] (issus de metadata.extents)
-                    </p>
-                  )}
-                </>
-              )}
-            </Block>
+            <ApiDemo
+              tickDensity={tickDensity} overlap={overlap}
+              apiRows={apiRows} apiMeta={apiMeta} apiLoading={apiLoading} apiError={apiError} />
           )}
         </section>
       </div>

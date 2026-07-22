@@ -43,6 +43,8 @@ const RANGE_PENDING = ' → …';
  * @param {number}   [precision] - Decimal places used to normalise floats on blur.
  * @param {string}   value      - Controlled value.
  * @param {Function} onChange   - (value: string) => void.
+ * @param {Function} [onCommit] - Called on blur, once the value is settled. Lets a
+ *   debounced parent flush any pending emission (no stale last keystroke).
  * @param {boolean}  [disabled]
  * @param {string}   [id]       - Input id, for an external <label htmlFor>.
  * @param {"success"|"error"} [forcedState] - External VALUE verdict overriding the
@@ -61,6 +63,7 @@ const TypeAwareInput = ({
   precision = 2,
   value = '',
   onChange,
+  onCommit,
   disabled = false,
   id,
   forcedState,
@@ -162,14 +165,15 @@ const TypeAwareInput = ({
           validateValue(normalized);
         }
       }
-      return;
-    }
-
-    // Dates : on signale un format incomplet/erroné resté en l'état
-    if (isDate && validate && value) {
+    } else if (isDate && validate && value) {
+      // Dates : on signale un format incomplet/erroné resté en l'état
       if (DATE_SINGLE_RE.test(value) || DATE_RANGE_RE.test(value)) validateValue(value);
       else if (!value.endsWith(RANGE_PENDING)) { setState('error'); setMessage('Format JJ/MM/AAAA'); }
     }
+
+    // Valeur stabilisée : on laisse un parent amorti vider son émission en attente
+    // (la normalisation éventuelle ci-dessus a déjà été émise via onChange).
+    onCommit?.();
   };
 
   // ── Sélection au calendrier ─────────────────────────────────────

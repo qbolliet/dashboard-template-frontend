@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { useNavigation } from '../../../hooks/useNavigation';
+import { useNavigationRoute } from '../../../providers/NavigationProvider';
 import TopbarToggleButton from '../TopbarToggleButton/TopbarToggleButton';
 import TopbarNode from '../TopbarNode/TopbarNode';
 import './TopbarGroup.scss';
@@ -35,8 +35,8 @@ const TopbarGroup = ({
     // Référence vers le bouton toggle (pour y renvoyer le focus à la fermeture clavier)
     const toggleButtonRef = useRef(null);
 
-    // Hook personnalisé pour les fonctions utilitaires de navigation
-    const { isActivePath, hasActiveChildren } = useNavigation();
+    // Contexte de route : ne dépend que du pathname (stable au toggle du menu mobile).
+    const { isActivePath, hasActiveChildren } = useNavigationRoute();
 
     /**
      * Gère les clics à l'extérieur du dropdown pour le fermer.

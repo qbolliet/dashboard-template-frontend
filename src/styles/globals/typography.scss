@@ -1,7 +1,18 @@
 // ===== SYSTÈME TYPOGRAPHIQUE =====
 // Base: 1rem = 16px
 
+@use 'sass:map';
+@use '../utils/breakpoints' as bp;
+
 :root {
+  // Seuils de largeur d'écran (px), miroir des mixins `breakpoint`/`breakpoint-down`
+  // définis dans src/styles/utils/breakpoints.scss. Exposés ici (fichier compilé une
+  // seule fois globalement) pour que le JS puisse les lire via getComputedStyle sans
+  // dupliquer les valeurs — voir src/features/header/hooks/useNavigation.js.
+  @each $name, $px in bp.$breakpoints-down-px {
+    --breakpoint-#{$name}: #{$px}px;
+  }
+
   // Tailles de police basées sur une échelle modulaire
   --font-size-xs: 0.75rem;      // 12px
   --font-size-sm: 0.875rem;     // 14px  
