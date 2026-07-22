@@ -1,0 +1,43 @@
+// ===== HOVER TOOLBAR — barre d'outils flottante (haut-droit) =====
+//  Visibilité pilotée en CSS PUR au survol / focus de l'hôte — aucun état React.
+@use '../tokens' as *;
+@use '../colors' as *;
+
+.toolbar {
+  position: absolute;
+  top: var(--toolbar-inset-top);
+  right: var(--toolbar-inset-right);
+  // Empilement LOCAL à l'hôte (au-dessus du contenu, sous les popovers du
+  // composant) : les tokens globaux --z-* démarrent à 1000 et sortiraient la
+  // barre du contexte de son cadre.
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--toolbar-gap);
+  padding: var(--toolbar-padding);
+  background: hsl(var(--toolbar-bg));
+  border: 1px solid hsl(var(--toolbar-border));
+  border-radius: var(--toolbar-radius);
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  transform: translateY(-2px);
+  pointer-events: none;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+// Contrat de révélation : l'hôte (cadre du graphique, section du tableau…) porte
+// la classe `hover-toolbar-host`, rien d'autre n'est requis côté React.
+.hover-toolbar-host:hover .toolbar,
+.hover-toolbar-host:focus-within .toolbar {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.toolbar-sep {
+  display: inline-block;
+  width: var(--toolbar-sep-width);
+  height: var(--toolbar-sep-height);
+  background: hsl(var(--toolbar-sep-color));
+  margin: 0 var(--spacing-2px);
+}

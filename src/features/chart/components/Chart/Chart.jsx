@@ -1164,8 +1164,10 @@ const Chart = ({
 
   const legendInline = expanded;
 
+  // `hover-toolbar-host` : contrat CSS qui révèle <HoverToolbar> au survol /
+  // focus du cadre (cf. components/toolbar/HoverToolbar).
   return (
-    <figure className={`chart-frame${expanded ? ' chart-frame--expanded' : ''}`}>
+    <figure className={`chart-frame hover-toolbar-host${expanded ? ' chart-frame--expanded' : ''}`}>
       <figcaption className="chart-header">
         {title && <h3 className="chart-title">{title}</h3>}
       </figcaption>

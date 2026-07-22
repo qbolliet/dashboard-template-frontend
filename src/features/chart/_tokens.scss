@@ -1,6 +1,6 @@
 // ===== TOKENS DIMENSIONNELS — FEATURE CHART =====
 // Valeurs MUTUALISÉES entre tous les composants de la feature chart. Chaque
-// composant définit ses propres tokens préfixés (--chart-toolbar-*, --chart-
+// composant définit ses propres tokens préfixés (--chart-frame-*, --chart-
 // tooltip-*, …) qui reprennent PAR DÉFAUT ces valeurs mais peuvent être ajustés
 // localement (cf. header : features/header/_tokens.scss + composants).
 //
@@ -8,15 +8,9 @@
 // de ce composant, pas ici. Les valeurs px du prototype (design-system/project/
 // styles/charts.css) sont converties en rem ; quand un token de typography.scss
 // correspond exactement, on le référence plutôt que de dupliquer la valeur.
-
-:root {
-  // ===== Barre d'outils (survol, haut-droit du graphique) =====
-  --chart-toolbar-btn-size: var(--font-size-3xl);  // 28px - bouton carré
-  --chart-toolbar-icon-size: var(--spacing-lg);    // 16px - icône interne au bouton
-  --chart-toolbar-gap: var(--spacing-px);          // 1px - entre boutons contigus
-  --chart-toolbar-padding: 0.1875rem;              // 3px - padding interne du conteneur
-  --chart-toolbar-radius: var(--border-radius-md);
-  --chart-toolbar-btn-radius: var(--border-radius-sm);
-  --chart-toolbar-sep-width: var(--spacing-px);    // 1px - séparateur vertical
-  --chart-toolbar-sep-height: var(--font-size-lg); // 18px - hauteur du séparateur
-}
+//
+// ℹ️ Aucune dimension mutualisée à ce jour : les tokens de la barre d'outils
+// (anciens --chart-toolbar-*) ont rejoint la toolbar mutualisée chart/table,
+// dans src/components/toolbar/_tokens.scss. Ce fichier reste le point d'entrée
+// `@use '…/tokens'` des scss de la feature et accueillera les prochaines
+// dimensions partagées.

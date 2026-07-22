@@ -1,0 +1,25 @@
+// ===== TOKENS DE COULEURS — TOOLBAR MUTUALISÉE =====
+// Reprennent par défaut les couleurs de chrome globales ; ajustables ici sans
+// toucher aux autres composants. Import dans les scss enfants :
+// @use '../colors' as *.
+
+:root {
+  --toolbar-bg: var(--color-surface);
+  --toolbar-border: var(--color-border);
+  --toolbar-sep-color: var(--color-border);
+
+  --toolbar-btn-color: var(--color-text-tertiary);
+  --toolbar-btn-hover-bg: var(--color-gray-100);
+  --toolbar-btn-hover-color: var(--color-text-primary);
+  --toolbar-btn-active-color: var(--color-primary-500);
+  // Confirmation transitoire d'une action (libellé remplacé par « ✓ »).
+  --toolbar-btn-done-color: var(--color-success-500);
+
+  --toolbar-tip-bg: var(--color-gray-900);
+  --toolbar-tip-color: var(--color-surface);
+}
+
+[data-theme='dark'] {
+  --toolbar-tip-bg: var(--color-gray-200);
+  --toolbar-tip-color: var(--color-gray-900);
+}
