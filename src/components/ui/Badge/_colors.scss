@@ -1,0 +1,24 @@
+// ===== TOKENS DE COULEURS — BADGE =====
+// Fond et point (::before) reprennent la couleur sémantique brute (success/
+// warning) ou le gris neutre ; le texte utilise une teinte propre au badge
+// (--badge-*-color), choisie pour son contraste sur le fond teinté plutôt que
+// la couleur sémantique elle-même — cf. .tbl-badge--actif/wip du prototype.
+
+:root {
+  --badge-success-bg: var(--color-success-500);
+  --badge-success-dot: var(--color-success-500);
+  --badge-success-color: 138 60% 32%;
+
+  --badge-warning-bg: var(--color-warning-500);
+  --badge-warning-dot: var(--color-warning-500);
+  --badge-warning-color: 38 80% 35%;
+
+  --badge-neutral-bg: var(--color-gray-100);
+  --badge-neutral-dot: var(--color-gray-400);
+  --badge-neutral-color: var(--color-text-tertiary);
+}
+
+[data-theme='dark'] {
+  --badge-success-color: 138 70% 65%;
+  --badge-warning-color: 38 90% 65%;
+}
