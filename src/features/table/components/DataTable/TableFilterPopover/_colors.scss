@@ -1,0 +1,27 @@
+// ===== TOKENS DE COULEURS — TABLE FILTER POPOVER =====
+// Les icônes/boutons neutres (recherche, croix d'effacement, Tout/Aucun,
+// compteurs) partagent tous la même couleur tertiaire au repos et le même
+// hover gris — --table-pop-control-* factorise ces quatre éléments plutôt que
+// de répéter le triplet par élément.
+
+:root {
+  --table-pop-bg: var(--color-surface);
+  --table-pop-border: var(--color-border);
+
+  --table-pop-search-bg: var(--color-gray-50);
+  --table-pop-search-color: var(--color-text-primary);
+  --table-pop-search-focus-border: var(--color-primary-500);
+  --table-pop-search-focus-bg: var(--color-surface);
+
+  // Icônes de recherche/effacement, boutons Tout/Aucun, compteurs.
+  --table-pop-control-color: var(--color-text-tertiary);
+  --table-pop-control-hover-bg: var(--color-gray-100);
+  --table-pop-control-hover-color: var(--color-text-primary);
+
+  --table-pop-item-color: var(--color-text-primary);
+  --table-pop-item-hover-bg: var(--color-gray-50);
+  --table-pop-checkbox-border: var(--color-border-hover);
+  --table-pop-checkbox-checked-bg: var(--color-primary-500);
+  --table-pop-check-icon-color: var(--color-white);
+  --table-pop-check-icon-color-dark: var(--color-gray-50);
+}
