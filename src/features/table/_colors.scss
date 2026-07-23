@@ -1,0 +1,17 @@
+// ===== TOKENS DE COULEURS — FEATURE TABLE =====
+// Couleurs MUTUALISÉES entre tous les composants de la feature table. Chaque
+// composant définit ses propres tokens préfixés (--data-table-*, --table-th-*,
+// --table-pop-*, …) qui REPRENNENT PAR DÉFAUT ces valeurs mais peuvent être
+// ajustés localement.
+//
+// ⚠️ RÈGLE : une couleur propre à UN seul composant vit dans le _colors.scss de
+// ce composant, pas ici.
+
+:root {
+  // ===== Bandes de fond partagées =====
+  // Survol de ligne du corps du tableau — .tbl-grid tbody tr:hover td.
+  --table-row-hover-bg: var(--color-gray-50);
+  // Fond des bandes « chrome » (en-tête, pied, rangée de chips, méta) — .tbl-header,
+  // .tbl-footer, .tbl-active-filters, .tbl-meta.
+  --table-band-bg: var(--color-gray-50);
+}

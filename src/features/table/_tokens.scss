@@ -1,0 +1,25 @@
+// ===== TOKENS DIMENSIONNELS — FEATURE TABLE =====
+// Valeurs MUTUALISÉES entre tous les composants de la feature table. Chaque
+// composant définit ses propres tokens préfixés (--data-table-*, --table-th-*,
+// --table-pop-*, …) qui reprennent PAR DÉFAUT ces valeurs mais peuvent être
+// ajustés localement.
+//
+// ⚠️ RÈGLE : une dimension propre à UN seul composant vit dans le _tokens.scss
+// de ce composant, pas ici. Les valeurs px du prototype (design-system/project/
+// styles/tables.css) sont converties en rem (base 16px) ; quand un token de
+// typography.scss correspond exactement, on le référence plutôt que de
+// dupliquer la valeur.
+
+:root {
+  // ===== Zone de défilement du corps du tableau =====
+  // Hauteur maximale avant scroll interne (en-tête sticky) — .tbl-scroll, 520px.
+  --table-scroll-max-height: 32.5rem;
+
+  // ===== En-têtes de colonne =====
+  // Hauteur minimale d'une cellule d'en-tête (label + icônes tri/filtre) — .tbl-th-inner, 38px.
+  --table-th-min-height: 2.375rem;
+
+  // ===== Cellules =====
+  // Largeur maximale d'une cellule avant troncature (ellipsis) — .tbl-grid tbody td, 240px.
+  --table-cell-max-width: 15rem;
+}
