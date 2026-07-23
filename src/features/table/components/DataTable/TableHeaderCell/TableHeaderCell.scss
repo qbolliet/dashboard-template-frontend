@@ -1,0 +1,181 @@
+// =================================================================
+// TABLE HEADER CELL — en-tête de colonne (tri, filtre, suppression)
+// =================================================================
+// Le th est sticky et fait donc lui-même office de contexte de positionnement
+// pour la croix de suppression ; l'inner (position: relative) sert d'ancre au
+// popover de filtre, rendu comme un descendant DOM direct (non portalé).
+@use '../../../tokens' as *;
+@use '../../../colors' as *;
+@use './tokens' as *;
+@use './colors' as *;
+
+.data-table-th {
+  position: sticky;
+  top: 0;
+  z-index: var(--table-th-z);
+  background: hsl(var(--table-th-bg));
+  border-bottom: 1px solid hsl(var(--table-th-border));
+  text-align: left;
+  vertical-align: middle;
+  padding: 0;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.data-table-th-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  padding: var(--table-th-padding-y) var(--spacing-md);
+  min-height: var(--table-th-min-height);
+}
+.data-table-th--num .data-table-th-inner { flex-direction: row-reverse; }
+.data-table-th-inner--removable { padding-right: var(--table-th-remove-clearance); }
+.data-table-th--num .data-table-th-inner--removable {
+  padding-right: var(--spacing-md);
+  padding-left: var(--table-th-remove-clearance);
+}
+
+// ----- Libellé statique (tri désactivé) -----
+.data-table-th-plain {
+  display: inline-flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  padding: var(--table-th-trigger-padding-y) var(--table-th-trigger-padding-x);
+}
+.data-table-th--num .data-table-th-plain { justify-content: flex-end; }
+
+// ----- Croix de suppression (hover du th, coin haut-droit) -----
+.data-table-th-remove {
+  position: absolute;
+  top: var(--table-th-remove-inset);
+  right: var(--table-th-remove-inset);
+  z-index: var(--table-th-remove-z);
+  width: var(--table-th-remove-size);
+  height: var(--table-th-remove-size);
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--border-radius-sm);
+  color: hsl(var(--table-th-idle-color));
+  background: hsl(var(--table-th-bg));
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity var(--transition-fast), transform var(--transition-fast),
+    background var(--transition-fast), color var(--transition-fast);
+  cursor: pointer;
+}
+.data-table-th:hover .data-table-th-remove,
+.data-table-th:focus-within .data-table-th-remove {
+  opacity: 1;
+  transform: scale(1);
+}
+.data-table-th-remove:hover {
+  background: hsl(var(--table-th-remove-hover-bg) / 0.12);
+  color: hsl(var(--table-th-remove-hover-color));
+}
+.data-table-th-remove svg {
+  width: var(--table-th-remove-icon-size);
+  height: var(--table-th-remove-icon-size);
+}
+
+// ----- Libellé (partagé par le déclencheur de tri et le libellé statique) -----
+.data-table-th-label {
+  font-size: var(--table-th-label-font-size);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(var(--table-th-idle-color));
+}
+
+// ----- Conteneur du bouton entonnoir (opacité au repos, plein au survol/actif) -----
+.data-table-th-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2px);
+  opacity: var(--table-th-actions-idle-opacity);
+  transition: opacity var(--transition-fast);
+}
+.data-table-th:hover .data-table-th-actions,
+.data-table-th:focus-within .data-table-th-actions,
+.data-table-th-actions--has-active {
+  opacity: 1;
+}
+.data-table-th-btn {
+  width: var(--table-th-btn-size);
+  height: var(--table-th-btn-size);
+  display: inline-grid;
+  place-items: center;
+  color: hsl(var(--table-th-idle-color));
+  border-radius: var(--border-radius-sm);
+  transition: background var(--transition-fast), color var(--transition-fast);
+  cursor: pointer;
+}
+.data-table-th-btn:hover {
+  background: hsl(var(--table-th-hover-bg));
+  color: hsl(var(--table-th-hover-color));
+}
+.data-table-th-btn--active {
+  background: hsl(var(--table-th-active-color) / 0.12);
+  color: hsl(var(--table-th-active-color));
+}
+[data-theme='dark'] .data-table-th-btn--active {
+  background: hsl(var(--table-th-active-color) / 0.2);
+}
+.data-table-th-btn svg {
+  width: var(--table-th-btn-icon-size);
+  height: var(--table-th-btn-icon-size);
+}
+
+// ----- Déclencheur de tri (libellé + icône, cible de clic pleine largeur) -----
+.data-table-th-sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--table-th-sort-gap);
+  flex: 1;
+  min-width: 0;
+  padding: var(--table-th-trigger-padding-y) var(--table-th-trigger-padding-x);
+  border-radius: var(--border-radius-sm);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  transition: background var(--transition-fast);
+}
+.data-table-th--num .data-table-th-sort-btn {
+  justify-content: flex-end;
+  flex-direction: row-reverse;
+  text-align: right;
+}
+.data-table-th-sort-btn:hover {
+  background: hsl(var(--table-th-hover-bg));
+}
+.data-table-th-sort-btn--active .data-table-th-label {
+  color: hsl(var(--table-th-active-color));
+}
+
+// ----- Icône de direction de tri (révélée au survol, pleine dès qu'active) -----
+.data-table-th-sort-icon {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: var(--table-th-sort-icon-size);
+  height: var(--table-th-sort-icon-size);
+  color: hsl(var(--table-th-idle-color));
+  opacity: 0;
+  transition: opacity var(--transition-fast), color var(--transition-fast);
+}
+.data-table-th-sort-btn:hover .data-table-th-sort-icon,
+.data-table-th-sort-icon--on {
+  opacity: 1;
+}
+.data-table-th-sort-icon--on {
+  color: hsl(var(--table-th-active-color));
+}
+.data-table-th-sort-icon svg {
+  width: 100%;
+  height: 100%;
+}

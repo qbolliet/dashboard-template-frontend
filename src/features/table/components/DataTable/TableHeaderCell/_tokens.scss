@@ -1,0 +1,39 @@
+// ===== TOKENS DIMENSIONNELS — TABLE HEADER CELL =====
+// Dimensions propres à l'en-tête de colonne (th, déclencheur de tri, entonnoir
+// de filtre, croix de suppression). La hauteur de la cellule est mutualisée
+// avec le reste de la feature — voir --table-th-min-height dans
+// features/table/_tokens.scss.
+//
+// ⚠️ RÈGLE : dérivation en calc() plutôt que multiplication des tokens
+// (--table-th-remove-clearance ci-dessous).
+
+:root {
+  // Empilement local : au-dessus du corps du tableau lors du scroll (sticky).
+  --table-th-z: 2;
+
+  // ===== Cellule d'en-tête =====
+  --table-th-padding-y: 0.625rem; // 10px
+
+  // Padding commun au libellé statique et au déclencheur de tri.
+  --table-th-trigger-padding-y: 0.125rem;  // 2px
+  --table-th-trigger-padding-x: 0.1875rem; // 3px
+  --table-th-label-font-size: 0.65625rem;  // 10.5px
+
+  // ===== Croix de suppression (coin haut-droit, révélée au survol) =====
+  --table-th-remove-size: 1rem;           // 16px
+  --table-th-remove-inset: 0.1875rem;     // 3px
+  --table-th-remove-icon-size: 0.6875rem; // 11px
+  --table-th-remove-z: 3;
+  // Dégagement réservé à la croix dans le padding de l'en-tête : inset des
+  // deux côtés + sa taille (3 + 16 + 3 = 22px).
+  --table-th-remove-clearance: calc(var(--table-th-remove-inset) * 2 + var(--table-th-remove-size));
+
+  // ===== Bouton entonnoir (filtre) =====
+  --table-th-actions-idle-opacity: 0.45;
+  --table-th-btn-size: 1.375rem;        // 22px
+  --table-th-btn-icon-size: 0.78125rem; // 12.5px
+
+  // ===== Icône de tri (à côté du libellé) =====
+  --table-th-sort-gap: 0.3125rem;       // 5px
+  --table-th-sort-icon-size: 0.8125rem; // 13px
+}
