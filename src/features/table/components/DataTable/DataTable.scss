@@ -1,0 +1,121 @@
+// =================================================================
+// DATA TABLE — cadre-carte, en-tête, défilement, grille, cellules, état vide
+// =================================================================
+// Portage fidèle de design-system/project/styles/tables.css (px → rem, mêmes
+// valeurs rendues). Ce fichier ne couvre QUE l'enveloppe : les <th> (sticky,
+// tri, entonnoir) appartiennent à TableHeaderCell.scss ; le pied, la rangée de
+// chips, le popover et le panneau de code ont chacun leur propre SCSS.
+@use '../../tokens' as *;
+@use '../../colors' as *;
+@use './tokens' as *;
+@use './colors' as *;
+
+// ── Cadre-carte ──
+.data-table {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: hsl(var(--data-table-bg));
+  border: 1px solid hsl(var(--data-table-border));
+  border-radius: var(--data-table-radius);
+  box-shadow: var(--shadow-sm);
+  color: hsl(var(--color-text-primary));
+  transition: box-shadow var(--transition-fast);
+}
+.data-table:hover { box-shadow: var(--shadow-md); }
+
+// ── En-tête (titre + méta) ──
+.data-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  min-height: var(--data-table-header-min-height);
+  border-bottom: 1px solid hsl(var(--data-table-border));
+}
+.data-table-title {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: hsl(var(--color-text-primary));
+}
+.data-table-meta {
+  margin: 0;
+  padding: var(--spacing-2px) 0.4375rem; // 2px 7px
+  font-family: var(--font-mono);
+  font-size: var(--data-table-meta-font-size);
+  letter-spacing: 0.02em;
+  color: hsl(var(--data-table-meta-color));
+  background: hsl(var(--data-table-meta-bg));
+  border: 1px solid hsl(var(--data-table-border));
+  border-radius: var(--border-radius-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+// ── Zone de défilement (en-tête sticky) ──
+.data-table-scroll {
+  overflow: auto;
+  max-height: var(--table-scroll-max-height);
+}
+
+// ── Grille ──
+.data-table-grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-primary));
+  font-variant-numeric: tabular-nums;
+}
+
+// ── Cellules du corps ──
+.data-table-td {
+  max-width: var(--table-cell-max-width);
+  padding: var(--data-table-td-padding-y) var(--spacing-md);
+  border-bottom: 1px solid hsl(var(--data-table-border));
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.data-table-grid tbody tr:last-child .data-table-td { border-bottom: none; }
+.data-table-grid tbody tr:hover .data-table-td { background: hsl(var(--data-table-row-hover-bg)); }
+
+// Colonnes numériques / monospace : alignement droite (num), police mono compacte.
+.data-table-td--num {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: var(--data-table-cell-font-size);
+  color: hsl(var(--data-table-cell-muted-color));
+}
+.data-table-td--mono {
+  font-family: var(--font-mono);
+  font-size: var(--data-table-cell-font-size);
+  color: hsl(var(--data-table-cell-muted-color));
+}
+.data-table-td--strong {
+  font-weight: 500;
+  color: hsl(var(--data-table-cell-strong-color));
+}
+
+// ── État vide ──
+.data-table-empty {
+  padding: var(--spacing-3xl) var(--spacing-lg);
+  text-align: center;
+  color: hsl(var(--data-table-empty-color));
+  font-size: var(--font-size-sm);
+}
+.data-table-empty button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+  color: hsl(var(--data-table-empty-action-color));
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+.data-table-empty button:hover { text-decoration: underline; }

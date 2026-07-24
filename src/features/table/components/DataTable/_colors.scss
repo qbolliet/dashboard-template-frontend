@@ -1,0 +1,23 @@
+// ===== TOKENS DE COULEURS — DATA TABLE (cadre / grille) =====
+// Couleurs propres au cadre-carte et au corps du tableau. Le survol de ligne et
+// le fond des bandes « chrome » sont mutualisés au niveau feature
+// (--table-row-hover-bg / --table-band-bg) et référencés ici.
+
+:root {
+  --data-table-bg: var(--color-surface);
+  --data-table-border: var(--color-border);
+
+  // Méta encadrée (capsule mono de l'en-tête).
+  --data-table-meta-color: var(--color-text-tertiary);
+  --data-table-meta-bg: var(--table-band-bg);
+
+  // Corps du tableau.
+  --data-table-row-hover-bg: var(--table-row-hover-bg);
+  // Cellules numériques / monospace : texte atténué.
+  --data-table-cell-muted-color: var(--color-text-secondary);
+  --data-table-cell-strong-color: var(--color-text-primary);
+
+  // État vide.
+  --data-table-empty-color: var(--color-text-tertiary);
+  --data-table-empty-action-color: var(--color-primary-500);
+}
