@@ -1,8 +1,7 @@
 // =================================================================
 // DATA TABLE — cadre-carte, en-tête, défilement, grille, cellules, état vide
 // =================================================================
-// Portage fidèle de design-system/project/styles/tables.css (px → rem, mêmes
-// valeurs rendues). Ce fichier ne couvre QUE l'enveloppe : les <th> (sticky,
+// Ce fichier ne couvre QUE l'enveloppe : les <th> (sticky,
 // tri, entonnoir) appartiennent à TableHeaderCell.scss ; le pied, la rangée de
 // chips, le popover et le panneau de code ont chacun leur propre SCSS.
 @use '../../tokens' as *;
