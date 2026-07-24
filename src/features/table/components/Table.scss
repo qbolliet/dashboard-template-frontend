@@ -1,11 +1,11 @@
 // =================================================================
-// DATA TABLE — cadre-carte, en-tête, défilement, grille, cellules, état vide
+// TABLE — cadre-carte, en-tête, défilement, grille, cellules, état vide
 // =================================================================
 // Ce fichier ne couvre QUE l'enveloppe : les <th> (sticky,
 // tri, entonnoir) appartiennent à TableHeaderCell.scss ; le pied, la rangée de
 // chips, le popover et le panneau de code ont chacun leur propre SCSS.
-@use '../../tokens' as *;
-@use '../../colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
 @use './tokens' as *;
 @use './colors' as *;
 

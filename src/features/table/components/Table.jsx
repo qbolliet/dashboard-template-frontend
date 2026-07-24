@@ -1,7 +1,7 @@
 'use client';
 
 // =================================================================
-// DATA TABLE — tableau de données interactif (racine de la feature table)
+// TABLE — tableau de données interactif (racine de la feature table)
 // =================================================================
 // Seule frontière 'use client' de la feature : orchestre l'état (via
 // useDataTableState), dérive les colonnes des métadonnées API, assemble la
@@ -13,15 +13,15 @@
 import HoverToolbar from '@/components/toolbar/HoverToolbar/HoverToolbar';
 import { ResetIcon, DownloadIcon, CopyIcon } from '@/components/icons';
 import { isNumericSqlType } from '@/features/filter/utils/filterTypes';
-import useDataTableState from '../../hooks/useDataTableState';
-import { formatCell, isNumericCol } from '../../utils/formatCell';
-import { toCsv, downloadBlob, copyToClipboard } from '../../utils/exporters';
-import { buildQueryVariables, snippetFetch, snippetPython, snippetCurl } from '../../utils/querySnippets';
+import useDataTableState from '../hooks/useDataTableState';
+import { formatCell, isNumericCol } from '../utils/formatCell';
+import { toCsv, downloadBlob, copyToClipboard } from '../utils/exporters';
+import { buildQueryVariables, snippetFetch, snippetPython, snippetCurl } from '../utils/querySnippets';
 import TableHeaderCell from './TableHeaderCell/TableHeaderCell';
 import TableChipRow from './TableChipRow/TableChipRow';
 import TableFooter from './TableFooter/TableFooter';
 import TableSnippetReveal from './TableSnippetReveal/TableSnippetReveal';
-import './DataTable.scss';
+import './Table.scss';
 
 /**
  * @typedef {object} ColumnDef
@@ -73,7 +73,7 @@ const SNIPPET_BUILDERS = { js: snippetFetch, py: snippetPython, curl: snippetCur
  * @param {Object} [props.style]
  * @returns {JSX.Element}
  */
-const DataTable = ({
+const Table = ({
   data,
   columns,
   columnsMetadata,
@@ -292,4 +292,4 @@ const DataTable = ({
   );
 };
 
-export default DataTable;
+export default Table;
