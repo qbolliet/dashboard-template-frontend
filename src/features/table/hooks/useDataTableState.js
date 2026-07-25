@@ -27,7 +27,10 @@ import { normalizeDefaultFilter, deriveFiltersFromDefault } from '../utils/defau
  * @param {Array<import('../utils/formatCell').ColumnDef>} config.columns - Resolved
  *   column definitions (already merged with columnsMetadata by DataTable).
  * @param {*} [config.defaultFilter] - `<MultiCriterionMenu>` output / raw tree /
- *   criteria array, materialized into a per-column value seed.
+ *   criteria array, materialized into a per-column value seed. Passed by
+ *   reference: a new object identity re-seeds the per-column filters (dropping
+ *   manual overrides). Consumers must keep the reference stable while the filter
+ *   is unchanged, otherwise overrides would reset on every render.
  * @param {boolean} config.enableSort - Enables sorting.
  * @param {boolean} config.enableFilter - Enables per-column value filters.
  * @param {boolean} config.enableColumnRemoval - Enables hiding columns.
@@ -90,6 +93,18 @@ const useDataTableState = ({
   const dfTree = normalizeDefaultFilter(defaultFilter);
   const seeded = deriveFiltersFromDefault(dfTree, data, columns, uniqueValues);
   const [overrides, setOverrides] = useState({});
+  // Prop contrôlée : un changement d'IDENTITÉ de `defaultFilter` réamorce le seed.
+  // Ajustement d'état AU RENDU (D9), sur le modèle de MultiCriterionMenu
+  // (bloc prevMax) — jamais dans un useEffect (react-hooks v6 le rejette).
+  // Effet de bord assumé : au changement de defaultFilter, les éditions manuelles
+  // de colonnes NON concernées sont aussi effacées (le filtre par défaut redevient
+  // autoritaire). Compromis retenu. Contrat : le consommateur DOIT passer une
+  // référence stable tant que le filtre ne change pas (sinon boucle de reset).
+  const [prevDefaultFilter, setPrevDefaultFilter] = useState(defaultFilter);
+  if (prevDefaultFilter !== defaultFilter) {
+    setPrevDefaultFilter(defaultFilter);
+    setOverrides({});
+  }
   const filters = Object.fromEntries(
     columns.map((c) => [c.key, c.key in overrides ? overrides[c.key] : seeded[c.key]]),
   );
