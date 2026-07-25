@@ -6,17 +6,26 @@
 
 /**
  * Serializes rows to CSV, RFC 4180-style: values containing a quote, comma,
- * newline, or semicolon are quoted and internal quotes doubled.
+ * newline, or semicolon are quoted and internal quotes doubled. Values that
+ * would be interpreted as formulas by Excel/Google Sheets (leading `=`, `+`,
+ * `-`, `@` or tab) are neutralized with a leading apostrophe before escaping,
+ * since row values come from the GraphQL API and are not trusted. The output
+ * is prefixed with a UTF-8 BOM so Excel on Windows (which ignores the
+ * `charset` of the Blob's MIME type) decodes accented characters correctly.
  *
  * @param {Array<Object>} rows - Data rows (raw, unformatted values).
  * @param {Array<{key: string, label?: string}>} columns - Columns to export,
  *   in order.
- * @returns {string} CSV content (header row + data rows, `\n`-separated).
+ * @returns {string} CSV content (BOM + header row + data rows, `\n`-separated).
  */
 export function toCsv(rows, columns) {
+  // Neutralisation anti-injection de formule (CSV injection) : un `'` en tête
+  // force Excel/Sheets à traiter la cellule comme du texte plutôt que comme
+  // une formule (=, +, -, @ ou tabulation en première position).
+  const neutralize = (s) => (/^[=+\-@\t]/.test(s) ? `'${s}` : s);
   const esc = (v) => {
     if (v == null) return '';
-    const s = String(v);
+    const s = neutralize(String(v));
     // Échappement RFC 4180 : guillemets doublés si la valeur contient un
     // caractère spécial (guillemet, virgule, saut de ligne, point-virgule).
     if (/[",\n;]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
@@ -24,7 +33,7 @@ export function toCsv(rows, columns) {
   };
   const head = columns.map((c) => esc(c.label || c.key)).join(',');
   const body = rows.map((r) => columns.map((c) => esc(r[c.key])).join(',')).join('\n');
-  return `${head}\n${body}`;
+  return `﻿${head}\n${body}`;
 }
 
 /**
