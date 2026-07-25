@@ -1,0 +1,54 @@
+{
+  "columns": ["id", "code", "indicator", "sector", "source", "frequency", "lastUpdate", "observations", "status", "montant"],
+  "data": [
+    { "id": 1,  "code": "PIB.T",    "indicator": "PIB trimestriel",              "sector": "Macro",         "source": "INSEE",    "frequency": "Trimestriel", "lastUpdate": "2026-04-30", "observations": 124,  "status": "actif",    "montant": 12400 },
+    { "id": 2,  "code": "IPC.M",    "indicator": "Inflation (IPC)",              "sector": "Macro",         "source": "INSEE",    "frequency": "Mensuel",     "lastUpdate": "2026-05-15", "observations": 372,  "status": "actif",    "montant": 37200 },
+    { "id": 3,  "code": "UNEMP.T",  "indicator": "Taux de chômage",              "sector": "Emploi",        "source": "INSEE",    "frequency": "Trimestriel", "lastUpdate": "2026-04-30", "observations": 96,   "status": "actif",    "montant": 9600 },
+    { "id": 4,  "code": "IPI.M",    "indicator": "Production industrielle",      "sector": "Industrie",     "source": "INSEE",    "frequency": "Mensuel",     "lastUpdate": "2026-05-10", "observations": 288,  "status": "actif",    "montant": 28800 },
+    { "id": 5,  "code": "HICP.M",   "indicator": "Indice prix conso harmonisé",  "sector": "Macro",         "source": "Eurostat", "frequency": "Mensuel",     "lastUpdate": "2026-05-12", "observations": 240,  "status": "actif",    "montant": 24000 },
+    { "id": 6,  "code": "ECB.D",    "indicator": "Taux directeur BCE",           "sector": "Finance",       "source": "BCE",      "frequency": "Quotidien",   "lastUpdate": "2026-05-22", "observations": 6420, "status": "actif",    "montant": 642000 },
+    { "id": 7,  "code": "TRADE.M",  "indicator": "Balance commerciale",          "sector": "Commerce",      "source": "Douanes",  "frequency": "Mensuel",     "lastUpdate": "2026-04-30", "observations": 312,  "status": "obsolete", "montant": 31200 },
+    { "id": 8,  "code": "FIRMS.M",  "indicator": "Créations d'entreprises",      "sector": "Entreprises",   "source": "INSEE",    "frequency": "Mensuel",     "lastUpdate": "2026-04-15", "observations": 156,  "status": "actif",    "montant": 15600 },
+    { "id": 9,  "code": "DEBT.T",   "indicator": "Endettement public",           "sector": "Finance",       "source": "INSEE",    "frequency": "Trimestriel", "lastUpdate": "2026-03-31", "observations": 88,   "status": "wip",      "montant": 8800 },
+    { "id": 10, "code": "WAGE.T",   "indicator": "Salaires moyens",              "sector": "Emploi",        "source": "DARES",    "frequency": "Trimestriel", "lastUpdate": "2026-03-31", "observations": 64,   "status": "actif",    "montant": 6400 },
+    { "id": 11, "code": "BUILD.M",  "indicator": "Permis de construire",         "sector": "Immobilier",    "source": "SDES",     "frequency": "Mensuel",     "lastUpdate": "2026-04-30", "observations": 204,  "status": "actif",    "montant": 20400 },
+    { "id": 12, "code": "INVST.T",  "indicator": "Investissement BTP",           "sector": "Immobilier",    "source": "INSEE",    "frequency": "Trimestriel", "lastUpdate": "2026-04-30", "observations": 76,   "status": "actif",    "montant": 7600 },
+    { "id": 13, "code": "CO2.Y",    "indicator": "Émissions CO₂",                "sector": "Environnement", "source": "Citepa",   "frequency": "Annuel",      "lastUpdate": "2025-12-31", "observations": 32,   "status": "actif",    "montant": 3200 },
+    { "id": 14, "code": "ENR.T",    "indicator": "Part énergie renouvelable",    "sector": "Environnement", "source": "SDES",     "frequency": "Trimestriel", "lastUpdate": "2026-03-31", "observations": 56,   "status": "wip",      "montant": 5600 },
+    { "id": 15, "code": "POP.Y",    "indicator": "Démographie active",           "sector": "Emploi",        "source": "INSEE",    "frequency": "Annuel",      "lastUpdate": "2025-12-31", "observations": 28,   "status": "actif",    "montant": 2800 },
+    { "id": 16, "code": "RETAIL.M", "indicator": "Ventes au détail",             "sector": "Commerce",      "source": "INSEE",    "frequency": "Mensuel",     "lastUpdate": "2026-05-08", "observations": 196,  "status": "actif",    "montant": 19600 },
+    { "id": 17, "code": "TOUR.M",   "indicator": "Nuitées hôtelières",           "sector": "Services",      "source": "INSEE",    "frequency": "Mensuel",     "lastUpdate": "2026-04-30", "observations": 144,  "status": "actif",    "montant": 14400 },
+    { "id": 18, "code": "EXCH.D",   "indicator": "Taux change EUR/USD",          "sector": "Finance",       "source": "BCE",      "frequency": "Quotidien",   "lastUpdate": "2026-05-22", "observations": 5840, "status": "actif",    "montant": 584000 },
+    { "id": 19, "code": "OIL.D",    "indicator": "Prix Brent",                   "sector": "Finance",       "source": "Eurostat", "frequency": "Quotidien",   "lastUpdate": "2026-05-22", "observations": 5610, "status": "actif",    "montant": 561000 },
+    { "id": 20, "code": "CONF.M",   "indicator": "Confiance des ménages",        "sector": "Macro",         "source": "INSEE",    "frequency": "Mensuel",     "lastUpdate": "2026-05-01", "observations": 432,  "status": "actif",    "montant": 43200 }
+  ],
+  "metadata": {
+    "count": 20,
+    "extents": {
+      "id": [1, 20],
+      "sector": ["Commerce", "Services"],
+      "source": ["BCE", "SDES"],
+      "frequency": ["Annuel", "Trimestriel"],
+      "lastUpdate": ["2025-12-31", "2026-05-22"],
+      "observations": [28, 6420],
+      "status": ["actif", "wip"],
+      "montant": [2800, 642000]
+    },
+    "total": 20,
+    "hasNextPage": false,
+    "currentPage": 1,
+    "totalPages": 1,
+    "generatedAt": "2026-05-22T00:00:00.000Z"
+  },
+  "columnsMetadata": [
+    { "name": "id",            "label": "ID",                       "sql_type": "integer", "is_categorical": false, "is_primary_key": true },
+    { "name": "code",          "label": "Code",                     "sql_type": "text",    "is_categorical": false, "is_primary_key": false },
+    { "name": "indicator",     "label": "Indicateur",                "sql_type": "text",    "is_categorical": false, "is_primary_key": false },
+    { "name": "sector",        "label": "Secteur",                  "sql_type": "text",    "is_categorical": true,  "is_primary_key": false },
+    { "name": "source",        "label": "Source",                   "sql_type": "text",    "is_categorical": true,  "is_primary_key": false },
+    { "name": "frequency",     "label": "Fréquence",                 "sql_type": "text",    "is_categorical": true,  "is_primary_key": false },
+    { "name": "status",        "label": "Statut",                   "sql_type": "text",    "is_categorical": true,  "is_primary_key": false },
+    { "name": "lastUpdate",    "label": "Dernière mise à jour",      "sql_type": "date",    "is_categorical": false, "is_primary_key": false },
+    { "name": "observations",  "label": "Observations",             "sql_type": "integer", "is_categorical": false, "is_primary_key": false }
+  ]
+}

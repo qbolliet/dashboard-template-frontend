@@ -1,0 +1,95 @@
+// =================================================================
+// PAGE /test-table — mise en page (partie statique + sections client)
+// =================================================================
+// Tailwind réservé au layout (cf. CLAUDE.md) ; ici SCSS pour rester cohérent
+// avec les autres pages test-* (mise en page reprise de /test-chart).
+
+.test-table-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3xl, 2.5rem);
+}
+
+// ── Entête statique ──
+.test-table-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+.test-table-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: hsl(var(--color-text-primary));
+}
+.test-table-sub {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-tertiary));
+  line-height: var(--line-height-relaxed);
+  max-width: 72ch;
+
+  code {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85em;
+    background: hsl(var(--color-primary-500) / 0.08);
+    color: hsl(var(--color-primary-500));
+    padding: 1px 5px;
+    border-radius: var(--border-radius-sm, 3px);
+  }
+}
+
+// ── Blocs de démonstration (un <Table> + intertitre, pattern /test-chart) ──
+.table-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+.table-block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+.table-block-title {
+  font-size: var(--font-size-lg, 1.125rem);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: hsl(var(--color-text-primary));
+}
+.table-block-meta {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: hsl(var(--color-text-tertiary));
+  white-space: nowrap;
+}
+.table-block-note {
+  font-size: var(--font-size-sm, 0.875rem);
+  color: hsl(var(--color-text-tertiary));
+  line-height: var(--line-height-relaxed);
+  max-width: 76ch;
+  margin-bottom: var(--spacing-xs);
+
+  code {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85em;
+    background: hsl(var(--color-primary-500) / 0.08);
+    color: hsl(var(--color-primary-500));
+    padding: 1px 5px;
+    border-radius: var(--border-radius-sm, 3px);
+  }
+}
+
+// ── Section 5 : bascule de densité (extraTools) ──
+// Démonstration d'extensibilité : un consommateur module un token de la
+// feature depuis l'extérieur, sans toucher à Table.scss.
+.data-table--dense {
+  --data-table-td-padding-y: 0.25rem;
+}
+
+// ── Section 6 : MultiCriterionMenu en direct ──
+.table-mcm-live {
+  margin-top: var(--spacing-sm);
+}
