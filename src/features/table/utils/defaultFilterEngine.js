@@ -78,6 +78,17 @@ export function evalCriterion(row, leaf) {
   if (!key || !op) return true; // Critère incomplet → ignoré.
   const cell = row[key];
 
+  // Appartenance (in/not_in) : sémantique indépendante du type — traitée avant
+  // le routage numérique/date/catégoriel/texte pour couvrir aussi les arbres
+  // bruts tiers (cf. normalizeDefaultFilter) où `in` porte sur une colonne
+  // non catégorielle (isCategorical falsy).
+  if (op === 'in' || op === 'not_in') {
+    const list = Array.isArray(value) ? value : [];
+    if (!list.length) return true; // Liste vide → critère neutre (ignoré).
+    const inc = list.map(String).includes(String(cell));
+    return op === 'not_in' ? !inc : inc;
+  }
+
   if (isNumericSqlType(sqlType)) {
     const c = dfNum(cell);
     if (c == null) return false;
@@ -121,12 +132,6 @@ export function evalCriterion(row, leaf) {
   }
 
   if (isCategorical) {
-    if (op === 'in' || op === 'not_in') {
-      const list = Array.isArray(value) ? value : [];
-      if (!list.length) return true;
-      const inc = list.map(String).includes(String(cell));
-      return op === 'not_in' ? !inc : inc;
-    }
     if (value == null || value === '') return true;
     return String(cell) === String(value);
   }
