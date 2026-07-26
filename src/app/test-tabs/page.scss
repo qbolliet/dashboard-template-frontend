@@ -1,0 +1,377 @@
+// =================================================================
+// PAGE /test-tabs — mise en page (partie statique + démos client)
+// =================================================================
+// Tailwind réservé au layout (cf. CLAUDE.md) ; ici SCSS pour rester cohérent avec
+// les autres pages test-* (classes tp-* / ctrl-* redéclarées localement, comme
+// dans test-chart et test-multi-criterion-menu). Reprise de l'entête <style> du
+// prototype (design-system/project/ds/tabs.html) en substituant les variables
+// globales du repo. AUCUN style des onglets ici : ils vivent dans
+// src/components/ui/Tabs/.
+
+.test-tabs-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
+}
+
+// ── Entête statique ──
+.test-tabs-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+.test-tabs-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: hsl(var(--color-text-primary));
+}
+.test-tabs-sub {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-tertiary));
+  line-height: var(--line-height-relaxed);
+  max-width: 68ch;
+
+  code {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85em;
+    background: hsl(var(--color-primary-500) / 0.08);
+    color: hsl(var(--color-primary-500));
+    padding: 0.0625rem 0.3125rem;
+    border-radius: var(--border-radius-sm);
+  }
+}
+
+// ── Étiquette de section (uppercase, filet bas) ──
+.tabs-section-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--color-text-tertiary));
+  margin: 0 0 var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid hsl(var(--color-border));
+}
+
+// ── Cartes d'API ──
+.tabs-api {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+.api-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+.api-card-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: hsl(var(--color-text-primary));
+}
+.api-card-note {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-secondary));
+  line-height: var(--line-height-relaxed);
+  max-width: 72ch;
+
+  code {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85em;
+    background: hsl(var(--color-primary-500) / 0.08);
+    color: hsl(var(--color-primary-500));
+    padding: 0.0625rem 0.3125rem;
+    border-radius: var(--border-radius-sm);
+  }
+}
+// Note placée SOUS le tableau (mention du hook useTabsShared).
+.api-card-note--after { margin-top: var(--spacing-xs); }
+
+.api-card-scroll {
+  overflow-x: auto;
+  border: 1px solid hsl(var(--color-border));
+  border-radius: var(--border-radius-lg);
+  background: hsl(var(--color-surface));
+}
+.api-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-xs);
+  // Couleur explicite : le <body> n'en déclare aucune, l'héritage donnerait du
+  // noir sur fond sombre en thème dark.
+  color: hsl(var(--color-text-primary));
+
+  th, td {
+    text-align: left;
+    padding: 0.4375rem 0.625rem;
+    border-bottom: 1px solid hsl(var(--color-border));
+    vertical-align: top;
+  }
+  th {
+    font-weight: 500;
+    color: hsl(var(--color-text-tertiary));
+    font-size: 0.65625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  code {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.71875rem;
+    color: hsl(var(--color-primary-500));
+    background: hsl(var(--color-primary-500) / 0.08);
+    padding: 0.0625rem 0.3125rem;
+    border-radius: var(--border-radius-sm);
+  }
+  .api-typ {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.6875rem;
+    color: hsl(var(--color-text-tertiary));
+    white-space: nowrap;
+  }
+}
+
+// ── Démonstrations ──
+.tabs-playground {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
+}
+.tabs-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+.tabs-block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+.tabs-block-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: hsl(var(--color-text-primary));
+}
+.tabs-block-meta {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--font-size-xs);
+  color: hsl(var(--color-text-tertiary));
+  white-space: nowrap;
+}
+.tabs-block-note {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-tertiary));
+  line-height: var(--line-height-relaxed);
+  max-width: 72ch;
+  margin-bottom: var(--spacing-xs);
+
+  code {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85em;
+    background: hsl(var(--color-primary-500) / 0.08);
+    color: hsl(var(--color-primary-500));
+    padding: 0.0625rem 0.3125rem;
+    border-radius: var(--border-radius-sm);
+  }
+}
+
+// ── Cadre de démonstration (repris du prototype) ──
+.demo-card {
+  border: 1px solid hsl(var(--color-border));
+  border-radius: var(--border-radius-xl);
+  background: hsl(var(--color-surface));
+  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-2xl);
+}
+.demo-stack {
+  display: grid;
+  gap: var(--spacing-4xl);
+}
+.demo-caption {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--font-size-xs);
+  color: hsl(var(--color-text-tertiary));
+  margin: 0 0 var(--spacing-md);
+
+  code {
+    color: hsl(var(--color-primary-500));
+  }
+}
+.panel-note {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-secondary));
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+
+  code {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85em;
+    background: hsl(var(--color-primary-500) / 0.08);
+    color: hsl(var(--color-primary-500));
+    padding: 0.0625rem 0.3125rem;
+    border-radius: var(--border-radius-sm);
+  }
+}
+
+// ── Champ du cas keepMounted ──
+.demo-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  align-items: flex-start;
+}
+.demo-field-label {
+  font-size: var(--font-size-xs);
+  color: hsl(var(--color-text-tertiary));
+}
+
+// ── Bouton factice de la zone d'actions (TabList actions) ──
+.tabs-demo-action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: var(--font-size-xs);
+  font-family: inherit;
+  border: 1px solid hsl(var(--color-border));
+  border-radius: var(--border-radius-sm);
+  background: hsl(var(--color-surface));
+  color: hsl(var(--color-text-secondary));
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition-fast) ease, border-color var(--transition-fast) ease,
+    color var(--transition-fast) ease;
+
+  &:hover {
+    border-color: hsl(var(--color-border-hover));
+    color: hsl(var(--color-text-primary));
+  }
+  svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+// ── Tableau du spotlight (local à la page : pas encore de composant <Table>) ──
+.quarter-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-primary));
+
+  th, td {
+    text-align: left;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid hsl(var(--color-border));
+  }
+  thead th {
+    font-weight: 500;
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: hsl(var(--color-text-tertiary));
+  }
+  tbody th {
+    font-weight: 500;
+    color: hsl(var(--color-text-primary));
+  }
+  tbody tr:last-child th,
+  tbody tr:last-child td { border-bottom: none; }
+
+  // Colonnes numériques : alignées à droite, chiffres à chasse fixe pour que les
+  // ordres de grandeur s'alignent d'une ligne à l'autre. Sélecteur qualifié par la
+  // balise pour l'emporter sur le `text-align: left` de `th, td` ci-dessus.
+  th.quarter-table-num,
+  td.quarter-table-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+}
+.quarter-table-caption {
+  text-align: left;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--color-text-primary));
+  padding-bottom: var(--spacing-md);
+}
+// ── Panneau de contrôle (classes partagées avec les autres pages test-*) ──
+.tp-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+.ctrl-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+.ctrl-group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.ctrl-label {
+  font-size: 0.75rem;
+  color: hsl(var(--color-text-tertiary));
+  margin-right: 0.25rem;
+  white-space: nowrap;
+}
+.ctrl-hint {
+  margin: var(--spacing-xs) 0 0;
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+  color: hsl(var(--color-text-tertiary));
+  max-width: 68ch;
+
+  code {
+    font-family: var(--font-mono, monospace);
+    color: hsl(var(--color-primary-500));
+  }
+}
+
+.tp-ctrl-btn {
+  padding: 0.25rem 0.7rem;
+  font-size: 0.75rem;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid hsl(var(--color-border));
+  background: hsl(var(--color-surface));
+  color: hsl(var(--color-text-secondary));
+  cursor: pointer;
+  transition: background var(--transition-fast) ease, border-color var(--transition-fast) ease,
+    color var(--transition-fast) ease;
+  font-family: inherit;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: hsl(var(--color-text-tertiary));
+    color: hsl(var(--color-text-primary));
+  }
+}
+.tp-ctrl-btn--active {
+  background: hsl(var(--color-primary-500) / 0.12);
+  border-color: hsl(var(--color-primary-500));
+  color: hsl(var(--color-primary-500));
+  font-weight: 500;
+}
+
+.ctrl-select,
+.ctrl-text {
+  padding: 0.2rem 0.4rem;
+  font-size: 0.75rem;
+  border: 1px solid hsl(var(--color-border));
+  border-radius: var(--border-radius-sm);
+  background: hsl(var(--color-surface));
+  color: hsl(var(--color-text-primary));
+  outline: none;
+  font-family: inherit;
+
+  &:focus { border-color: hsl(var(--color-primary-500)); }
+}
+.ctrl-text { width: 14rem; }
