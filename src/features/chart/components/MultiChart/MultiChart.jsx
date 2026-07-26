@@ -797,8 +797,9 @@ const MultiChart = ({
 
   const legendInline = expanded;
 
+  // `hover-toolbar-host` : cf. Chart.jsx — révélation CSS de la toolbar.
   return (
-    <figure className={`chart-frame${expanded ? ' chart-frame--expanded' : ''}`}>
+    <figure className={`chart-frame hover-toolbar-host${expanded ? ' chart-frame--expanded' : ''}`}>
       <figcaption className="chart-header">
         {title && <h3 className="chart-title">{title}</h3>}
       </figcaption>

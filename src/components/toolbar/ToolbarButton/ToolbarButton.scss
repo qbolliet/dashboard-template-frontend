@@ -1,0 +1,109 @@
+// ===== TOOLBAR BUTTON — bouton d'outil + infobulle =====
+// Transposé de charts.css (.ca-toolbar-btn*, .ca-toolbar-tooltip) pour la
+// variante carrée, et de tables.css (.tbl-toolbar-btn*) pour la variante à
+// libellé. L'état actif utilise la couleur primaire à opacité réduite (calcul de
+// couleur, pas un token).
+@use '../tokens' as *;
+@use '../colors' as *;
+
+.toolbar-btn {
+  position: relative;
+  width: var(--toolbar-btn-size);
+  height: var(--toolbar-btn-size);
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--toolbar-btn-radius);
+  color: hsl(var(--toolbar-btn-color));
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.toolbar-btn:hover {
+  background: hsl(var(--toolbar-btn-hover-bg));
+  color: hsl(var(--toolbar-btn-hover-color));
+}
+.toolbar-btn:focus-visible {
+  outline: var(--spacing-2px) solid hsl(var(--color-focus));
+  outline-offset: var(--spacing-px);
+}
+.toolbar-btn--active {
+  background: hsl(var(--toolbar-btn-active-color) / 0.12);
+  color: hsl(var(--toolbar-btn-active-color));
+}
+[data-theme='dark'] .toolbar-btn--active {
+  background: hsl(var(--toolbar-btn-active-color) / 0.2);
+}
+
+// Confirmation d'action : prioritaire sur la couleur de repos et de survol.
+.toolbar-btn--done,
+.toolbar-btn--done:hover {
+  color: hsl(var(--toolbar-btn-done-color));
+}
+
+// Outil indisponible : survol inerte, pas de curseur d'action.
+.toolbar-btn:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+.toolbar-btn:disabled:hover {
+  background: transparent;
+  color: hsl(var(--toolbar-btn-color));
+}
+
+.toolbar-btn-icon {
+  width: var(--toolbar-icon-size);
+  height: var(--toolbar-icon-size);
+  display: inline-grid;
+  place-items: center;
+}
+.toolbar-btn-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+// ===== Variante à libellé : le carré s'élargit autour du texte =====
+.toolbar-btn--caption {
+  width: auto;
+  height: var(--toolbar-btn-caption-height);
+  min-width: var(--toolbar-btn-size);
+  padding: 0 var(--toolbar-caption-padding-x);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+.toolbar-btn--caption .toolbar-btn-icon {
+  width: var(--toolbar-caption-icon-size);
+  height: var(--toolbar-caption-icon-size);
+  flex-shrink: 0;
+}
+
+// Typographie portée par le LIBELLÉ seul (et non par le <button>) : l'infobulle,
+// sœur du libellé, garde ainsi la police du document sans réinitialisation.
+.toolbar-btn-caption {
+  font-family: var(--font-mono);
+  font-size: var(--toolbar-caption-font-size);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+// Infobulle sous le bouton, révélée au survol du bouton seul (CSS pur).
+.toolbar-tooltip {
+  position: absolute;
+  top: calc(100% + 0.375rem);
+  right: 0;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  padding: var(--spacing-xs) 0.4375rem;
+  border-radius: var(--border-radius-sm);
+  background: hsl(var(--toolbar-tip-bg));
+  color: hsl(var(--toolbar-tip-color));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast);
+  z-index: 10;
+}
+.toolbar-btn:hover .toolbar-tooltip {
+  opacity: 1;
+}

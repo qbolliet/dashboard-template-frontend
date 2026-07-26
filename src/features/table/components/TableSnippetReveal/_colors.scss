@@ -1,0 +1,26 @@
+// ===== TOKENS DE COULEURS — TABLE SNIPPET REVEAL =====
+// Fond inversé en thème sombre (gray-900 → gray-200, texte clair → foncé). 
+// Les teintes de coloration syntaxique (.k .s .c) ont chacune
+// une variante dark explicite ; .n et .p n'en ont volontairement pas — le
+// prototype ne les réajuste pas non plus pour ce fond inversé.
+
+:root {
+  --table-snippet-bg: var(--color-gray-900);
+  --table-snippet-color: var(--color-gray-100);
+  --table-snippet-lang-color: var(--color-gray-400);
+
+  --table-snippet-k: 212 100% 73%;
+  --table-snippet-s: 138 76% 65%;
+  --table-snippet-c: 218 11% 55%;
+  --table-snippet-n: 38 92% 65%;
+  --table-snippet-p: 218 11% 70%;
+}
+
+[data-theme='dark'] {
+  --table-snippet-bg: var(--color-gray-200);
+  --table-snippet-color: var(--color-gray-800);
+
+  --table-snippet-k: 212 80% 35%;
+  --table-snippet-s: 138 60% 30%;
+  --table-snippet-c: 218 11% 50%;
+}

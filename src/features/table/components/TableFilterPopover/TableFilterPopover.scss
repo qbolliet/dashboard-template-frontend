@@ -1,0 +1,176 @@
+// =================================================================
+// TABLE FILTER POPOVER — recherche + Tout/Aucun + liste de valeurs
+// =================================================================
+// Ancré sous le <th> hôte (position: relative posée par
+// TableHeaderCell.scss sur .data-table-th-inner) ; `side` choisit le bord
+// d'alignement pour rester dans le cadre du tableau sur la dernière colonne.
+@use '../../tokens' as *;
+@use '../../colors' as *;
+@use './tokens' as *;
+@use './colors' as *;
+
+.data-table-pop {
+  position: absolute;
+  top: calc(100% + var(--spacing-xs));
+  z-index: var(--table-pop-z);
+  min-width: var(--table-pop-min-width);
+  max-width: var(--table-pop-max-width);
+  background: hsl(var(--table-pop-bg));
+  border: 1px solid hsl(var(--table-pop-border));
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--table-pop-padding);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+.data-table-pop--right { right: 0; }
+.data-table-pop--left { left: 0; }
+
+// ----- Recherche -----
+.data-table-pop-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.data-table-pop-search svg {
+  position: absolute;
+  left: var(--table-pop-search-icon-inset);
+  width: var(--table-pop-search-icon-size);
+  height: var(--table-pop-search-icon-size);
+  color: hsl(var(--table-pop-control-color));
+  pointer-events: none;
+}
+.data-table-pop-search input {
+  width: 100%;
+  height: var(--table-pop-search-height);
+  padding: 0 var(--table-pop-search-padding-x);
+  border: 1px solid hsl(var(--table-pop-border));
+  border-radius: var(--border-radius-sm);
+  background: hsl(var(--table-pop-search-bg));
+  font-size: var(--font-size-sm);
+  outline: none;
+  color: hsl(var(--table-pop-search-color));
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.data-table-pop-search input:focus {
+  border-color: hsl(var(--table-pop-search-focus-border));
+  box-shadow: 0 0 0 3px hsl(var(--table-pop-search-focus-border) / .15);
+  background: hsl(var(--table-pop-search-focus-bg));
+}
+.data-table-pop-search-clear {
+  position: absolute;
+  right: var(--table-pop-search-clear-inset);
+  width: var(--table-pop-search-clear-size);
+  height: var(--table-pop-search-clear-size);
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--border-radius-sm);
+  color: hsl(var(--table-pop-control-color));
+}
+.data-table-pop-search-clear:hover {
+  background: hsl(var(--table-pop-control-hover-bg));
+  color: hsl(var(--table-pop-control-hover-color));
+}
+.data-table-pop-search-clear svg {
+  width: var(--table-pop-search-clear-icon-size);
+  height: var(--table-pop-search-clear-icon-size);
+}
+
+// ----- Barre Tout/Aucun + compteur -----
+.data-table-pop-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--table-pop-bar-padding);
+  font-size: var(--table-pop-bar-font-size);
+}
+.data-table-pop-bar-actions {
+  display: inline-flex;
+  gap: var(--spacing-2px);
+}
+.data-table-pop-bar-actions button {
+  padding: var(--spacing-2px) var(--spacing-xs);
+  font-size: var(--table-pop-bar-font-size);
+  color: hsl(var(--table-pop-control-color));
+  border-radius: var(--border-radius-sm);
+  font-family: var(--font-sans);
+}
+.data-table-pop-bar-actions button:hover {
+  background: hsl(var(--table-pop-control-hover-bg));
+  color: hsl(var(--table-pop-control-hover-color));
+}
+.data-table-pop-bar-count {
+  font-family: var(--font-mono);
+  font-size: var(--table-pop-count-font-size);
+  color: hsl(var(--table-pop-control-color));
+}
+
+// ----- Liste de valeurs -----
+.data-table-pop-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: var(--table-pop-list-max-height);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-px);
+}
+.data-table-pop-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--table-pop-item-padding-y) var(--table-pop-item-padding-x);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--table-pop-item-color));
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  text-align: left;
+  width: 100%;
+}
+.data-table-pop-item:hover {
+  background: hsl(var(--table-pop-item-hover-bg));
+}
+.data-table-pop-item-checkbox {
+  width: var(--table-pop-checkbox-size);
+  height: var(--table-pop-checkbox-size);
+  border-radius: var(--table-pop-checkbox-radius);
+  border: 1px solid hsl(var(--table-pop-checkbox-border));
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.data-table-pop-item[aria-checked='true'] .data-table-pop-item-checkbox {
+  background: hsl(var(--table-pop-checkbox-checked-bg));
+  border-color: hsl(var(--table-pop-checkbox-checked-bg));
+}
+.data-table-pop-item[aria-checked='true'] .data-table-pop-item-checkbox svg {
+  color: hsl(var(--table-pop-check-icon-color));
+  width: var(--table-pop-check-icon-size);
+  height: var(--table-pop-check-icon-size);
+}
+[data-theme='dark'] .data-table-pop-item[aria-checked='true'] .data-table-pop-item-checkbox svg {
+  color: hsl(var(--table-pop-check-icon-color-dark));
+}
+.data-table-pop-item-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.data-table-pop-item-count {
+  font-family: var(--font-mono);
+  font-size: var(--table-pop-count-font-size);
+  color: hsl(var(--table-pop-control-color));
+}
+
+// ----- État vide -----
+.data-table-pop-empty {
+  margin: 0;
+  padding: var(--table-pop-empty-padding);
+  text-align: center;
+  color: hsl(var(--table-pop-control-color));
+  font-size: var(--font-size-xs);
+}

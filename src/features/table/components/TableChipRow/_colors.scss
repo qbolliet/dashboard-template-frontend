@@ -1,0 +1,24 @@
+// ===== TOKENS DE COULEURS — TABLE CHIP ROW =====
+// Icône et libellé de tri partagent un même accent primaire
+// (--data-table-chip-sort-accent) ; la variante « colonne masquée » reprend la
+// couleur tertiaire des chips et ne vire au primaire qu'au survol de sa croix
+// de restauration. Le fond du bandeau et sa bordure réutilisent directement
+// les tokens mutualisés de la feature (--table-band-bg, --color-border).
+
+:root {
+  --data-table-chip-bg: var(--color-surface);
+  --data-table-chip-border: var(--color-border);
+  --data-table-chip-color: var(--color-text-primary);
+  --data-table-chip-key-color: var(--color-text-tertiary);
+  --data-table-chip-remove-color: var(--color-text-tertiary);
+  --data-table-chip-remove-hover-bg: var(--color-gray-100);
+  --data-table-chip-remove-hover-color: var(--color-text-primary);
+
+  --data-table-chip-hidden-bg: var(--color-gray-50);
+  --data-table-chip-hidden-restore-color: var(--color-primary-500);
+
+  --data-table-chip-sort-accent: var(--color-primary-500);
+
+  --data-table-chips-reset-color: var(--color-text-tertiary);
+  --data-table-chips-reset-hover-color: var(--color-text-primary);
+}

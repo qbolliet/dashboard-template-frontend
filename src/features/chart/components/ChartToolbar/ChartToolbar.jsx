@@ -1,16 +1,15 @@
 // =================================================================
 // CHART TOOLBAR — barre d'outils (haut-droit, révélée au survol)
 // =================================================================
-// Barre absolue en haut à droite du graphique, révélée en CSS PUR au survol /
-// focus du frame (aucun état React de visibilité). Outils intégrés (voronoï,
-// tooltip, réinit. zoom, export SVG/PNG, agrandir) + `extraTools` issus de la
-// prop `toolbar` (features configurables + mini-vues).
+// Assemblage fin au-dessus de <HoverToolbar> (toolbar mutualisée chart/table) :
+// traduit les props du graphique en GROUPES d'opérations, la révélation et le
+// rendu des boutons étant entièrement pris en charge par la primitive. Outils
+// intégrés (voronoï, tooltip, réinit. zoom, export SVG/PNG, agrandir) +
+// `extraTools` issus de la prop `toolbar` (features configurables + mini-vues).
 
 // Importation des modules
-import { Fragment } from 'react';
+import HoverToolbar from '@/components/toolbar/HoverToolbar/HoverToolbar';
 import ToolIcon from './ToolIcon/ToolIcon';
-import ToolbarButton from './ToolbarButton/ToolbarButton';
-import './ChartToolbar.scss';
 
 /**
  * Hover-revealed toolbar. Feature/minimap buttons (`extraTools`) come first, then
@@ -34,29 +33,36 @@ import './ChartToolbar.scss';
 const ChartToolbar = ({
   expanded, onExpand, voronoi, onVoronoi, tooltips, onTooltips,
   onReset, canReset, onExportSvg, onExportPng, extraTools = [],
-}) => (
-  <div className="chart-toolbar" role="toolbar" aria-label="Outils du graphique">
-    {extraTools.length > 0 && (
-      <Fragment>
-        {extraTools.map((t) => (
-          <ToolbarButton key={t.id} icon={ToolIcon[t.icon]} label={t.label} active={t.on} onClick={t.onToggle} />
-        ))}
-        <span className="chart-toolbar-sep" />
-      </Fragment>
-    )}
-    <ToolbarButton icon={ToolIcon.Voronoi} label="Hover proximité (Voronoï)" active={voronoi} onClick={onVoronoi} />
-    <ToolbarButton icon={ToolIcon.Tooltip} label="Tooltip sur points" active={tooltips} onClick={onTooltips} />
-    <ToolbarButton icon={ToolIcon.Reset} label="Réinitialiser le zoom" onClick={canReset ? onReset : undefined} />
-    <span className="chart-toolbar-sep" />
-    <ToolbarButton icon={ToolIcon.Svg} label="Exporter en SVG" onClick={onExportSvg} />
-    <ToolbarButton icon={ToolIcon.Png} label="Exporter en PNG" onClick={onExportPng} />
-    <span className="chart-toolbar-sep" />
-    <ToolbarButton
-      icon={expanded ? ToolIcon.Compress : ToolIcon.Expand}
-      label={expanded ? 'Replier' : 'Agrandir (pleine largeur)'}
-      active={expanded} onClick={onExpand}
-    />
-  </div>
-);
+}) => {
+  // Groupes séparés visuellement par la toolbar : features → interaction →
+  // export → mise en page. Un groupe vide (extraTools absents) est ignoré.
+  const groups = [
+    extraTools.map((t) => ({
+      id: t.id, icon: ToolIcon[t.icon], label: t.label, active: t.on, onClick: t.onToggle,
+    })),
+    [
+      { id: 'voronoi', icon: ToolIcon.Voronoi, label: 'Hover proximité (Voronoï)', active: voronoi, onClick: onVoronoi },
+      { id: 'tooltips', icon: ToolIcon.Tooltip, label: 'Tooltip sur points', active: tooltips, onClick: onTooltips },
+      // Sans zoom actif le bouton reste d'apparence normale mais inerte (pas
+      // `disabled` : la réinitialisation n'est pas une capacité indisponible).
+      { id: 'reset', icon: ToolIcon.Reset, label: 'Réinitialiser le zoom', onClick: canReset ? onReset : undefined },
+    ],
+    [
+      { id: 'svg', icon: ToolIcon.Svg, label: 'Exporter en SVG', onClick: onExportSvg },
+      { id: 'png', icon: ToolIcon.Png, label: 'Exporter en PNG', onClick: onExportPng },
+    ],
+    [
+      {
+        id: 'expand',
+        icon: expanded ? ToolIcon.Compress : ToolIcon.Expand,
+        label: expanded ? 'Replier' : 'Agrandir (pleine largeur)',
+        active: expanded,
+        onClick: onExpand,
+      },
+    ],
+  ];
+
+  return <HoverToolbar groups={groups} label="Outils du graphique" />;
+};
 
 export default ChartToolbar;

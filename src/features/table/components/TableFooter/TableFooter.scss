@@ -1,0 +1,25 @@
+// =================================================================
+// TABLE FOOTER — indice SQL + compteurs lignes/colonnes
+// =================================================================
+@use '../../tokens' as *;
+@use '../../colors' as *;
+
+.data-table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-lg); // 8px 16px
+  border-top: 1px solid hsl(var(--color-border));
+  background: hsl(var(--table-band-bg));
+  font-family: var(--font-mono);
+  font-size: 0.6875rem; // 11px
+  color: hsl(var(--color-text-tertiary));
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table-footer-right {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}

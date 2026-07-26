@@ -1,0 +1,20 @@
+// ===== TOKENS DE COULEURS — TABLE HEADER CELL =====
+// Chrome de l'en-tête de colonne. Les quatre éléments neutres au repos
+// (libellé, icône de tri, bouton entonnoir, croix de suppression) partagent la
+// même couleur tertiaire — un seul token (--table-th-idle-color) plutôt qu'une
+// répétition par élément.
+
+:root {
+  --table-th-bg: var(--color-surface);
+  --table-th-border: var(--color-border);
+
+  --table-th-idle-color: var(--color-text-tertiary);
+  --table-th-hover-bg: var(--color-gray-100);
+  --table-th-hover-color: var(--color-text-primary);
+  // Colonne triée / filtre actif (libellé, icône de tri, bouton entonnoir).
+  --table-th-active-color: var(--color-primary-500);
+
+  // Survol de la croix de suppression : seule exception à la couleur neutre.
+  --table-th-remove-hover-bg: var(--color-error-500);
+  --table-th-remove-hover-color: var(--color-error-500);
+}

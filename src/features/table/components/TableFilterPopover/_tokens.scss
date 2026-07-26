@@ -1,0 +1,38 @@
+// ===== TOKENS DIMENSIONNELS — TABLE FILTER POPOVER =====
+// Dimensions propres au popover de filtre par valeurs (recherche, barre
+// Tout/Aucun, liste).
+
+:root {
+  // Empilement local, au-dessus du contenu du tableau.
+  --table-pop-z: 30;
+
+  // ===== Cadre =====
+  --table-pop-min-width: 13.75rem; // 220px
+  --table-pop-max-width: 17.5rem;  // 280px
+  --table-pop-padding: 0.375rem;   // 6px
+
+  // ===== Recherche =====
+  --table-pop-search-height: 1.875rem;          // 30px
+  --table-pop-search-icon-size: 0.8125rem;      // 13px
+  --table-pop-search-icon-inset: 0.5rem;        // 8px
+  --table-pop-search-padding-x: 1.75rem;        // 28px - dégage icône + croix
+  --table-pop-search-clear-size: 1.125rem;      // 18px
+  --table-pop-search-clear-inset: 0.375rem;     // 6px
+  --table-pop-search-clear-icon-size: 0.625rem; // 10px
+
+  // ===== Barre Tout/Aucun + compteur =====
+  --table-pop-bar-padding: var(--spacing-xs) var(--spacing-xs) var(--spacing-2px);
+  --table-pop-bar-font-size: 0.6875rem;   // 11px
+  --table-pop-count-font-size: 0.65625rem; // 10.5px
+
+  // ===== Liste de valeurs =====
+  --table-pop-list-max-height: 13.75rem;   // 220px
+  --table-pop-item-padding-y: 0.3125rem;   // 5px
+  --table-pop-item-padding-x: 0.375rem;    // 6px
+  --table-pop-checkbox-size: 0.8125rem;    // 13px
+  --table-pop-checkbox-radius: 0.1875rem;  // 3px
+  --table-pop-check-icon-size: 0.5625rem;  // 9px
+
+  // ===== État vide =====
+  --table-pop-empty-padding: 0.75rem; // 12px
+}

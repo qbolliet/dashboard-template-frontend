@@ -1,0 +1,23 @@
+// ===== TOKENS DIMENSIONNELS — DATA TABLE (cadre / grille) =====
+// Dimensions propres au cadre-carte, à l'en-tête, à la zone de défilement et aux
+// cellules du corps. Les dimensions mutualisées avec le reste de la feature
+// (hauteur de défilement, largeur de cellule) vivent dans features/table/
+// _tokens.scss et sont référencées ici, pas redupliquées.
+//
+// ⚠️ RÈGLE : ne créer un token que pour un paramètre réellement ajustable ;
+// dériver le reste (cf. DESIGN_SYSTEM.md §8).
+
+:root {
+  // ===== Cadre-carte =====
+  --data-table-radius: var(--border-radius-lg);
+
+  // ===== En-tête (titre + méta) =====
+  --data-table-header-min-height: 2.75rem; // 44px
+  // Méta « n lignes » : capsule mono encadrée.
+  --data-table-meta-font-size: 0.65625rem; // 10.5px
+
+  // ===== Cellules du corps =====
+  --data-table-td-padding-y: 0.5625rem; // 9px
+  // Police des cellules numériques / monospace (plus compacte que le corps).
+  --data-table-cell-font-size: var(--font-size-xs); // 12px
+}
