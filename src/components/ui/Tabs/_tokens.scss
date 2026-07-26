@@ -5,8 +5,7 @@
 //
 // ⚠️ RÈGLE : si une dimension ne sert qu'à UN sous-composant, la mettre dans
 // Tabs/[SousComposant]/_tokens.scss.
-// Les valeurs px du prototype (design-system/project/styles/tabs.css) sont converties
-// en rem ; quand un token de typography.scss correspond exactement, on le référence
+// Quand un token de typography.scss correspond exactement, on le référence
 // plutôt que de dupliquer la valeur.
 
 :root {
