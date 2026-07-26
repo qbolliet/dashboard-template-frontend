@@ -29,12 +29,12 @@ const TAB_PROPS = [
   ['value', 'string (requis)', "Identifiant — relie l'onglet à son <TabPanel>."],
   ['icon', 'ReactNode?', 'Icône optionnelle, à gauche du titre. Absente ⇒ titre seul.'],
   ['count', 'number | string?', 'Pastille de compteur optionnelle, à droite du titre.'],
+  ['countLabel', 'string?', 'Nom de ce que compte count (« alertes ») : lu à la place du nombre seul.'],
   ['disabled', 'boolean = false', 'Onglet inactif (non sélectionnable, ignoré au clavier).'],
   ['children', 'ReactNode', "Le titre de l'onglet."],
 ];
 
 const PARTS_PROPS = [
-  ['TabList · actions', 'ReactNode?', 'Zone d\'actions alignée à droite, hors zone de défilement.'],
   ['TabPanels · flush', 'boolean = false', "Supprime l'espacement au-dessus des panneaux."],
   ['TabPanel · value', 'string (requis)', 'Doit correspondre au value d\'un <Tab>.'],
   ['TabPanel · children', 'ReactNode | (shared) => ReactNode', 'Contenu ; en render-prop, reçoit le contexte partagé.'],

@@ -1,7 +1,7 @@
 // =================================================================
 // TABS — racine du système d'onglets
 // =================================================================
-// Structure : <section.tabs.tabs--{accent}> > [.tab-list | .tab-strip] + .tab-panels
+// Structure : <section.tabs.tabs--{accent}> > .tab-list + .tab-panels
 //
 // Rôle : colonne flex qui empile la barre d'onglets et les panneaux, et point d'entrée
 // de la variable d'accent --tab-accent (consommée par Tab.scss pour le soulignement,

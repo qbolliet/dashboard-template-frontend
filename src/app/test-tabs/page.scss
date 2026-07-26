@@ -231,33 +231,6 @@
   color: hsl(var(--color-text-tertiary));
 }
 
-// ── Bouton factice de la zone d'actions (TabList actions) ──
-.tabs-demo-action {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-md);
-  font-size: var(--font-size-xs);
-  font-family: inherit;
-  border: 1px solid hsl(var(--color-border));
-  border-radius: var(--border-radius-sm);
-  background: hsl(var(--color-surface));
-  color: hsl(var(--color-text-secondary));
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background var(--transition-fast) ease, border-color var(--transition-fast) ease,
-    color var(--transition-fast) ease;
-
-  &:hover {
-    border-color: hsl(var(--color-border-hover));
-    color: hsl(var(--color-text-primary));
-  }
-  svg {
-    width: 0.875rem;
-    height: 0.875rem;
-  }
-}
-
 // ── Tableau du spotlight (local à la page : pas encore de composant <Table>) ──
 .quarter-table {
   width: 100%;

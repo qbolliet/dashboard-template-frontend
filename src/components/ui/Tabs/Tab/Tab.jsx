@@ -1,6 +1,7 @@
 'use client';
 
 // Importation des modules
+import { VisuallyHidden } from '@/features/accessibility';
 import { useTabs } from '../TabsContext';
 import './Tab.scss';
 
@@ -14,6 +15,8 @@ import './Tab.scss';
  * @param {string} props.value - Tab identifier, must match a `<TabPanel>` value.
  * @param {React.ReactNode} [props.icon] - Optional icon rendered before the label.
  * @param {number|string} [props.count] - Optional counter badge rendered after the label.
+ * @param {string} [props.countLabel] - Noun naming what `count` counts ("alertes"), read by
+ *     screen readers instead of the bare number.
  * @param {boolean} [props.disabled=false] - Makes the tab unselectable and skipped by the keyboard.
  * @param {React.ReactNode} props.children - The tab label.
  * @param {string} [props.className] - Extra class names.
@@ -25,6 +28,7 @@ const Tab = ({
     value,
     icon,
     count,
+    countLabel,
     disabled = false,
     children,
     className,
@@ -63,7 +67,14 @@ const Tab = ({
         >
             {icon != null && <span className="tab-icon">{icon}</span>}
             <span className="tab-label">{children}</span>
-            {count != null && <span className="tab-count">{count}</span>}
+            {count != null && (
+                <>
+                    {/* Avec un libellé, la pastille visuelle est masquée aux lecteurs d'écran :
+                        « Alertes 3 » (ambigu) devient « Alertes, 3 alertes ». */}
+                    <span className="tab-count" aria-hidden={countLabel ? 'true' : undefined}>{count}</span>
+                    {countLabel && <VisuallyHidden>{`${count} ${countLabel}`}</VisuallyHidden>}
+                </>
+            )}
         </button>
     );
 };

@@ -7,14 +7,14 @@
 // à contexte partagé (graphique + tableau sur les mêmes données), playground
 // piloté par un panneau de contrôles (équivalent du TweaksPanel du prototype),
 // galerie des 3 variantes, barre à 9 onglets (défilement) et cas de vérification
-// (disabled, keepMounted, actions, mode contrôlé). Seul ce fichier est
+// (disabled, keepMounted, mode contrôlé). Seul ce fichier est
 // 'use client' : l'entête et les tableaux d'API restent dans page.js (serveur).
 
 // Importation des modules
 import { useState } from 'react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@/components/ui';
 import {
-  BellIcon, ChartIcon, CogIcon, DocIcon, DownloadIcon,
+  BellIcon, ChartIcon, CogIcon, DocIcon,
   GridIcon, PulseIcon, TableIcon, UsersIcon,
 } from '@/components/icons';
 import { Chart } from '@/features/chart';
@@ -202,7 +202,7 @@ const VariantGallery = () => (
               <TabList>
                 <Tab value="a" icon={<GridIcon />}>Vue d&apos;ensemble</Tab>
                 <Tab value="b" icon={<DocIcon />}>Documentation</Tab>
-                <Tab value="c" icon={<BellIcon />} count="3">Alertes</Tab>
+                <Tab value="c" icon={<BellIcon />} count="3" countLabel="alertes">Alertes</Tab>
               </TabList>
               <TabPanels>
                 <TabPanel value="a">
@@ -294,16 +294,15 @@ const KeepMountedDemo = () => {
   );
 };
 
-/** Four edge cases: disabled tab, keepMounted, actions slot and controlled mode. */
+/** Three edge cases: disabled tab, keepMounted and controlled mode. */
 const EdgeCases = () => {
   const [controlled, setControlled] = useState('jour');
 
   return (
     <section className="tabs-block">
       <p className="tabs-block-note">
-        Quatre comportements à éprouver : un onglet <code>disabled</code>, la persistance
-        d&apos;un panneau via <code>keepMounted</code>, la zone <code>actions</code> d&apos;une{' '}
-        <code>&lt;TabList&gt;</code> et le mode contrôlé (<code>value</code> +{' '}
+        Trois comportements à éprouver : un onglet <code>disabled</code>, la persistance
+        d&apos;un panneau via <code>keepMounted</code> et le mode contrôlé (<code>value</code> +{' '}
         <code>onChange</code>).
       </p>
       <div className="demo-stack">
@@ -328,28 +327,6 @@ const EdgeCases = () => {
         <article>
           <p className="demo-caption">keepMounted — la saisie survit au changement d&apos;onglet</p>
           <div className="demo-card"><KeepMountedDemo /></div>
-        </article>
-
-        <article>
-          <p className="demo-caption">TabList actions — zone d&apos;actions à droite, hors défilement</p>
-          <div className="demo-card">
-            <Tabs defaultValue="resultats">
-              <TabList
-                actions={(
-                  <button type="button" className="tabs-demo-action">
-                    <DownloadIcon />
-                    Exporter
-                  </button>
-                )}>
-                <Tab value="resultats" icon={<ChartIcon />}>Résultats</Tab>
-                <Tab value="donnees" icon={<TableIcon />}>Données</Tab>
-              </TabList>
-              <TabPanels>
-                <TabPanel value="resultats"><p className="panel-note">Sorties du modèle.</p></TabPanel>
-                <TabPanel value="donnees"><p className="panel-note">Jeu de données source.</p></TabPanel>
-              </TabPanels>
-            </Tabs>
-          </div>
         </article>
 
         <article>

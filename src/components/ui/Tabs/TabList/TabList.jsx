@@ -11,18 +11,17 @@ const NAVIGATION_KEYS = ['ArrowRight', 'ArrowLeft', 'Home', 'End'];
 /**
  * Tab strip: renders the `role="tablist"` track and handles roving keyboard navigation.
  *
- * Layout options (variant, size, align, fitted) are read from the `<Tabs>` context, so
- * the component only needs its children — and optionally an `actions` slot pinned to the
- * right, outside the scrollable track.
+ * Layout options (variant, size, align, fitted) are read from the `<Tabs>` context, so the
+ * component only needs its children. To place controls next to the tabs, compose the row at
+ * the call site (`<header><TabList/><button/></header>`) rather than through a slot prop.
  *
  * @param {Object} props - Component props.
- * @param {React.ReactNode} [props.actions] - Right-aligned actions, kept out of the scroll area.
  * @param {React.ReactNode} props.children - The `<Tab>` elements.
  * @param {string} [props.className] - Extra class names.
  * @param {Object} [props.style] - Inline styles.
- * @returns {JSX.Element} The tab strip, wrapped in a header when actions are provided.
+ * @returns {JSX.Element} The tab strip.
  */
-const TabList = ({ actions, children, className, style, ...rest }) => {
+const TabList = ({ children, className, style, ...rest }) => {
     const ctx = useTabs();
 
     // Ref sur la piste : sert à retrouver les onglets réellement rendus (le clavier doit
@@ -31,6 +30,13 @@ const TabList = ({ actions, children, className, style, ...rest }) => {
 
     // Navigation clavier parmi les onglets NON désactivés. Fonction simple : elle est
     // passée à onKeyDown (événement React), aucune identité stable n'est requise.
+    //
+    // Volontairement inline plutôt que délégué à useKeyboardNavigation (features/accessibility) :
+    // ce hook expose un index en state React et ne déplace jamais le focus DOM — il est taillé
+    // pour un listbox `aria-activedescendant` piloté par un tableau d'items. Le motif ARIA
+    // « tabs » exige l'inverse : un roving tabindex sur le focus DOM réel, au-dessus d'enfants
+    // composés (<Tab> arbitraires) dont on ne connaît pas la liste. L'utiliser ajouterait une
+    // seconde source de vérité à côté de ctx.value sans supprimer la ref ni le .focus().
     const handleKeyDown = (event) => {
         if (!NAVIGATION_KEYS.includes(event.key)) return;
 
@@ -39,8 +45,13 @@ const TabList = ({ actions, children, className, style, ...rest }) => {
         );
         if (!tabs.length) return;
 
-        const currentIndex = tabs.indexOf(document.activeElement);
         event.preventDefault();
+
+        // Focus hors des onglets (enfant non-tab dans la piste) : on repart du dernier index,
+        // ce qui envoie ArrowRight sur le premier onglet et ArrowLeft sur le dernier. Sans
+        // cette garde, l'index -1 ferait tomber ArrowLeft sur l'AVANT-dernier onglet.
+        const activeIndex = tabs.indexOf(document.activeElement);
+        const currentIndex = activeIndex === -1 ? tabs.length - 1 : activeIndex;
 
         // Flèches circulaires (le modulo ramène au premier/dernier onglet).
         let nextIndex;
@@ -66,28 +77,20 @@ const TabList = ({ actions, children, className, style, ...rest }) => {
         className
     ].filter(Boolean).join(' ');
 
-    const list = (
+    // {...rest} étalé EN PREMIER : les props internes (rôle, ref, clavier) restent
+    // prioritaires — sinon un onKeyDown fourni par l'appelant écraserait toute la
+    // navigation clavier sans le moindre avertissement.
+    return (
         <nav
+            {...rest}
             className={classes}
             role="tablist"
             ref={listRef}
             onKeyDown={handleKeyDown}
             style={style}
-            {...rest}
         >
             {children}
         </nav>
-    );
-
-    // Sans actions, la piste se suffit à elle-même.
-    if (actions == null) return list;
-
-    // Avec actions : on encadre la piste pour garder les actions hors du défilement.
-    return (
-        <header className="tab-strip">
-            {list}
-            <aside className="tab-list-actions">{actions}</aside>
-        </header>
     );
 };
 

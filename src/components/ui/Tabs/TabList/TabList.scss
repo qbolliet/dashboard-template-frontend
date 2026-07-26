@@ -2,7 +2,6 @@
 // TAB LIST — piste des onglets (role="tablist")
 // =================================================================
 // Structure : <nav.tab-list.tab-list--{variant}[…]> > <button.tab>*
-// Avec actions : <header.tab-strip> > [ <nav.tab-list> + <aside.tab-list-actions> ]
 //
 // Ici : uniquement ce qui style LA PISTE (écart, débordement, fond/bordure de barre,
 // alignement, étirement des onglets). Le bouton lui-même vit dans ../Tab/Tab.scss.
@@ -17,6 +16,9 @@
   display: flex;
   align-items: stretch;
   gap: var(--tab-list-gap);
+
+  // Autorise la piste à rétrécir sous la largeur de son contenu : indispensable si
+  // l'appelant la compose dans une ligne flex (onglets + bouton à droite).
   min-width: 0;
 
   // Débordement : autant d'onglets que voulu → défilement horizontal discret
@@ -67,22 +69,4 @@
     gap: var(--tab-list-gap);
     border-bottom: 1px solid hsl(var(--color-border));
   }
-}
-
-// ===== ENVELOPPE AVEC ACTIONS =====
-// Sépare la zone défilante (la piste) de la zone d'actions, qui reste fixe.
-.tab-strip {
-  display: flex;
-  align-items: stretch;
-  min-width: 0;
-}
-
-// ===== ZONE D'ACTIONS (à droite, hors défilement) =====
-.tab-list-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  flex-shrink: 0;
-  margin-left: auto;
-  padding-left: var(--spacing-md);
 }
