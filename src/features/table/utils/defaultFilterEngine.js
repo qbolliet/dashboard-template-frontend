@@ -212,15 +212,21 @@ export function collectRefKeys(node, acc) {
  * more elaborate tree (OR across columns, nested groups) is approximated by
  * this per-column materialization, same as the prototype.
  *
+ * Ne prend délibérément PAS de `uniqueValues` précalculé en paramètre : le
+ * total distinct par colonne référencée est recompté ici, sur `data` brut,
+ * uniquement pour les colonnes de `refKeys` (au lieu de TOUTES les colonnes
+ * comme le fait le scan `uniqueValues` du hook appelant). Ça évite de dépendre
+ * de l'identité d'un objet reconstruit à chaque rendu — nécessaire pour que
+ * useDataTableState puisse mémoïser le seed sur des dépendances stables
+ * (data, defaultFilter, signature des clés de colonnes).
+ *
  * @param {?object} dfTree - Normalized filter tree (see `normalizeDefaultFilter`).
  * @param {Array<Object>} data - Raw rows.
  * @param {Array<{key: string}>} columns - Column definitions.
- * @param {Object<string, Array>} uniqueValues - Distinct values per column key
- *   (as computed on the raw data).
  * @returns {Object<string, ?Array>} Per-column filter selection (`null` = all
  *   selected, i.e. no filter for that column).
  */
-export function deriveFiltersFromDefault(dfTree, data, columns, uniqueValues) {
+export function deriveFiltersFromDefault(dfTree, data, columns) {
   const base = Object.fromEntries(columns.map((c) => [c.key, null]));
   if (!dfTree) return base;
   const passRows = data.filter((r) => evalFilterNode(r, dfTree));
@@ -235,8 +241,14 @@ export function deriveFiltersFromDefault(dfTree, data, columns, uniqueValues) {
       if (v == null || v === '') continue;
       if (!seen.has(v)) { seen.add(v); arr.push(v); }
     }
-    const all = uniqueValues[key] || [];
-    base[key] = (arr.length === all.length) ? null : arr;
+    const seenAll = new Set();
+    let allCount = 0;
+    for (const r of data) {
+      const v = r[key];
+      if (v == null || v === '') continue;
+      if (!seenAll.has(v)) { seenAll.add(v); allCount++; }
+    }
+    base[key] = (arr.length === allCount) ? null : arr;
   });
   return base;
 }

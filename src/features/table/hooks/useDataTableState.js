@@ -9,11 +9,16 @@
 //   • D9 — aucun setState dans un useEffect pour synchroniser le seed du
 //     defaultFilter : on dérive le seed au rendu (pur) et on ne stocke QUE les
 //     colonnes que l'utilisateur a explicitement modifiées (état « overrides »).
-//   • D10 — aucun useMemo / useCallback : le React Compiler mémoïse. Les
-//     dérivations sont de simples const recalculées au rendu.
+//   • D10 — aucun useMemo / useCallback par défaut : le React Compiler mémoïse.
+//     Exception UNIQUE assumée sur le seed du defaultFilter (cf. commentaire
+//     inline plus bas) : la recomputation est lourde (data.filter sur tout
+//     l'arbre + scan de valeurs distinctes) et ses entrées naturelles
+//     (columns, uniqueValues) changent d'IDENTITÉ à chaque rendu du parent,
+//     ce que le Compiler ne peut pas isoler — même schéma que le bloc KDE de
+//     ViolinMarks.jsx.
 
 // Importation des modules
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { isNumericCol } from '../utils/formatCell';
 import { normalizeDefaultFilter, deriveFiltersFromDefault } from '../utils/defaultFilterEngine';
 
@@ -87,11 +92,29 @@ const useDataTableState = ({
   }
 
   // ── Seed du defaultFilter sans setState-dans-effet (D9) ──
-  // dfTree et seed sont dérivés au rendu (purs) ; seules les colonnes
-  // explicitement touchées vivent dans l'état `overrides`. La sélection
-  // effective d'une colonne = override si présent, sinon seed.
-  const dfTree = normalizeDefaultFilter(defaultFilter);
-  const seeded = deriveFiltersFromDefault(dfTree, data, columns, uniqueValues);
+  // Le seed est dérivé (pur) ; seules les colonnes explicitement touchées
+  // vivent dans l'état `overrides`. La sélection effective d'une colonne =
+  // override si présent, sinon seed.
+  //
+  // Mémoïsation JUSTIFIÉE (exception D10 ci-dessus) : deriveFiltersFromDefault
+  // fait un data.filter(evalFilterNode) (O(lignes × arbre)) + un scan de
+  // valeurs distinctes par colonne référencée. Sans ce useMemo, cette passe
+  // se rejouerait à CHAQUE rendu du hook — y compris les rendus purement
+  // transitoires (flash(), setReveal(), toggleSort...) — car `columns`
+  // (resolvedColumns dans Table.jsx) change d'identité à chaque rendu du
+  // parent, ce que le Compiler ne peut pas isoler. Dépendances VOLONTAIREMENT
+  // réduites à des valeurs stables : la référence `data`, la référence
+  // `defaultFilter` (déjà contractuellement stable tant que le filtre ne
+  // change pas, cf. JSDoc ci-dessus) et une SIGNATURE des clés de colonnes
+  // (pas l'objet `columns` lui-même, reconstruit à chaque rendu). C'est pour
+  // rester libre de cette dépendance instable que deriveFiltersFromDefault
+  // ne prend plus `uniqueValues` en paramètre (cf. defaultFilterEngine.js).
+  const columnKeysSig = columns.map((c) => c.key).join(',');
+  const seeded = useMemo(() => {
+    const tree = normalizeDefaultFilter(defaultFilter);
+    return deriveFiltersFromDefault(tree, data, columns);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, defaultFilter, columnKeysSig]);
   const [overrides, setOverrides] = useState({});
   // Prop contrôlée : un changement d'IDENTITÉ de `defaultFilter` réamorce le seed.
   // Ajustement d'état AU RENDU (D9), sur le modèle de MultiCriterionMenu
