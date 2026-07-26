@@ -1,0 +1,11 @@
+// ===== TOKENS DE COULEURS DU BOUTON D'ONGLET =====
+// Couleurs utilisées par le SEUL <Tab>. Importées par Tab.scss via @use './colors'.
+// Les couleurs partagées du groupe (accent, texte, surfaces) sont dans ../_colors.scss.
+
+:root {
+  // ===== PASTILLE DE COMPTEUR =====
+  --tab-count-color: var(--color-text-secondary);
+  --tab-count-bg:    var(--color-gray-100);
+  // Pastille de l'onglet ACTIF : hsl(var(--tab-accent)) / hsl(var(--tab-accent) / 0.12)
+  // — dérivée de l'accent, pas de token dédié.
+}

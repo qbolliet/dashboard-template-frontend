@@ -1,0 +1,22 @@
+// =================================================================
+// TAB PANELS — conteneur d'espacement des panneaux
+// =================================================================
+// Structure : <section.tab-panels[.tab-panels--flush]> > .tab-panel*
+//
+// Rôle : espacer la barre d'onglets des panneaux. Aucun style des panneaux
+// eux-mêmes ici (voir ../TabPanel/TabPanel.scss).
+//
+// Tokens : ./_tokens.scss.
+
+@use './tokens' as *;    // Tokens propres au conteneur (--tab-panels-gap)
+
+// ===== CONTENEUR =====
+.tab-panels {
+  min-width: 0;
+  padding-top: var(--tab-panels-gap);
+}
+
+// ===== MODE FLUSH (pas d'espacement) =====
+.tab-panels--flush {
+  padding-top: 0;
+}

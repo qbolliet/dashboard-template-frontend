@@ -1,0 +1,17 @@
+// ===== TOKENS DIMENSIONNELS — SYSTÈME D'ONGLETS =====
+// Valeurs partagées par plusieurs sous-composants du groupe Tabs. Import dans les
+// scss enfants : @use '../tokens' as *.
+// Pour les tokens de couleurs, voir src/components/ui/Tabs/_colors.scss.
+//
+// ⚠️ RÈGLE : si une dimension ne sert qu'à UN sous-composant, la mettre dans
+// Tabs/[SousComposant]/_tokens.scss.
+// Les valeurs px du prototype (design-system/project/styles/tabs.css) sont converties
+// en rem ; quand un token de typography.scss correspond exactement, on le référence
+// plutôt que de dupliquer la valeur.
+
+:root {
+  // ===== ICÔNE D'ONGLET (partagée Tab × tailles de TabList) =====
+  --tab-icon-size: 1rem;          // 16px (md)
+  --tab-icon-size-sm: 0.875rem;   // 14px
+  --tab-icon-size-lg: 1.125rem;   // 18px
+}

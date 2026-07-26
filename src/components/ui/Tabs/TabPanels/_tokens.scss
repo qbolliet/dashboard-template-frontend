@@ -1,0 +1,7 @@
+// ===== TOKENS DU CONTENEUR DE PANNEAUX =====
+// Variable propre à <TabPanels>. Importée par TabPanels.scss via @use './tokens'.
+
+:root {
+  // ===== PANNEAUX =====
+  --tab-panels-gap: var(--spacing-2xl);      // espace barre → panneaux (0 si flush)
+}

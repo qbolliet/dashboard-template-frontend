@@ -1,0 +1,36 @@
+// =================================================================
+// TAB PANEL — panneau (role="tabpanel")
+// =================================================================
+// Structure : <article.tab-panel role="tabpanel" [hidden] [data-tab-active]>
+//
+// Rôle : le panneau lui-même — masquage natif via [hidden], apparition douce à
+// l'activation via [data-tab-active]. L'espacement au-dessus du groupe vit dans
+// ../TabPanels/TabPanels.scss.
+
+// ===== PANNEAU =====
+.tab-panel {
+  min-width: 0;
+}
+
+.tab-panel[hidden] {
+  display: none;
+}
+
+// Apparition douce à l'activation — encadrée par prefers-reduced-motion : aucune
+// animation pour les utilisateurs qui la désactivent.
+@media (prefers-reduced-motion: no-preference) {
+  .tab-panel[data-tab-active] {
+    animation: tab-panel-in var(--transition-normal) ease both;
+  }
+}
+
+@keyframes tab-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

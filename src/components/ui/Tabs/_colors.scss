@@ -1,0 +1,27 @@
+// ===== TOKENS DE COULEURS — SYSTÈME D'ONGLETS =====
+// Couleurs partagées entre plusieurs sous-composants du groupe Tabs. Import dans les
+// scss enfants : @use '../colors' as *.
+//
+// ⚠️ RÈGLE : Si une couleur n'est utilisée que dans UN sous-composant, la mettre dans
+// Tabs/[SousComposant]/_colors.scss
+
+:root {
+  // ===== ACCENT (onglet actif — décliné par .tabs--{accent} dans Tabs.scss) =====
+  --tab-accent-primary:  var(--color-primary-500);
+  --tab-accent-positive: var(--color-success-500);
+  --tab-accent-warning:  var(--color-warning-500);
+  --tab-accent-negative: var(--color-error-500);
+
+  // ===== TEXTE DES ONGLETS =====
+  --tab-color:          var(--color-text-tertiary);
+  --tab-color-hover:    var(--color-text-secondary);
+  --tab-color-selected: var(--color-text-primary);
+
+  // ===== SURFACES (piste pills, onglet actif pills/enclosed) =====
+  --tab-track-bg:       var(--color-gray-100);   // piste pills + hover enclosed
+  --tab-selected-bg:    var(--color-surface);    // pill/dossier actif
+}
+
+// ===== THÈME SOMBRE =====
+// Aucun bloc [data-theme="dark"] : tous les tokens ci-dessus référencent des variables
+// globales qui sont déjà redéfinies pour le thème sombre.

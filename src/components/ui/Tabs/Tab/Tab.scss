@@ -1,0 +1,183 @@
+// =================================================================
+// TAB — bouton d'onglet (role="tab")
+// =================================================================
+// Structure : <button.tab> > [span.tab-icon] span.tab-label [span.tab-count]
+//
+// Ici : uniquement ce qui style LE BOUTON. Les déclinaisons par variante et par taille
+// sont portées par les modificateurs de la piste, donc écrites avec le sélecteur parent
+// SCSS (`.tab-list--underline & { … }` → `.tab-list--underline .tab`).
+//
+// ⚠️ Ces blocs `.tab-list--… &` restent À LA RACINE du bloc `.tab` : les imbriquer dans
+// un autre `&` démultiplierait la chaîne de parents (piège rencontré sur la nav).
+// ⚠️ ORDRE : tailles AVANT variantes (spécificité égale) — comme dans le prototype, la
+// variante doit pouvoir écraser le padding de la taille.
+//
+// Tokens : ./_tokens.scss, ../_tokens.scss. Couleurs : ./_colors.scss, ../_colors.scss.
+
+@use '../tokens' as *;   // Tokens partagés du groupe (--tab-icon-size…)
+@use '../colors' as *;   // Couleurs partagées du groupe (accent, texte, surfaces)
+@use './tokens' as *;    // Tokens propres au bouton (pastille, soulignement)
+@use './colors' as *;    // Couleurs propres à la pastille
+
+// ===== BOUTON =====
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  color: hsl(var(--tab-color));
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: color var(--transition-fast) ease,
+              background var(--transition-fast) ease,
+              border-color var(--transition-fast) ease;
+
+  &:hover { color: hsl(var(--tab-color-hover)); }
+
+  &:focus-visible {
+    outline: 2px solid hsl(var(--color-focus) / 0.45);
+    outline-offset: 1px;
+  }
+
+  &[aria-selected='true'] {
+    color: hsl(var(--tab-color-selected));
+    font-weight: 600;
+  }
+
+  // Désactivé : aria-disabled (le bouton reste dans le DOM mais devient inerte).
+  &[aria-disabled='true'] {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  // ===== TAILLE SM =====
+  .tab-list--sm & {
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-xs);
+    gap: 0.375rem;
+  }
+
+  // ===== TAILLE LG =====
+  .tab-list--lg & {
+    padding: var(--spacing-lg) var(--spacing-xl);
+    font-size: var(--font-size-base);
+  }
+
+  // ===== VARIANTE UNDERLINE (défaut) =====
+  .tab-list--underline & {
+    border-radius: 0;
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+    margin-right: var(--spacing-lg);
+    border-bottom: var(--tab-underline-thickness) solid transparent;
+    // Aligne la bordure de l'onglet sur celle de la barre.
+    margin-bottom: -1px;
+
+    &:last-of-type { margin-right: 0; }
+
+    &:hover { border-bottom-color: hsl(var(--color-border-hover)); }
+
+    // En underline, c'est le texte ENTIER qui prend l'accent (icône comprise, via
+    // currentColor) — d'où l'absence de règle dédiée à .tab-icon ici.
+    &[aria-selected='true'] {
+      color: hsl(var(--tab-accent));
+      border-bottom-color: hsl(var(--tab-accent));
+    }
+  }
+
+  // ===== VARIANTE PILLS =====
+  .tab-list--pills & {
+    border-radius: var(--border-radius-md);
+
+    &:hover { background: hsl(var(--color-surface) / 0.6); }
+
+    &[aria-selected='true'] {
+      color: hsl(var(--tab-color-selected));
+      background: hsl(var(--tab-selected-bg));
+      box-shadow: var(--shadow-sm);
+    }
+  }
+
+  // ===== VARIANTE ENCLOSED (onglets « dossier ») =====
+  .tab-list--enclosed & {
+    border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+    border: 1px solid transparent;
+    border-bottom: none;
+    // Idem underline : l'onglet mord d'1px sur la bordure de la barre, et récupère
+    // cette hauteur en padding pour rester optiquement centré.
+    margin-bottom: -1px;
+    padding-bottom: calc(var(--spacing-md) + 1px);
+
+    &:hover { background: hsl(var(--tab-track-bg) / 0.6); }
+
+    &[aria-selected='true'] {
+      color: hsl(var(--tab-color-selected));
+      background: hsl(var(--tab-selected-bg));
+      border-color: hsl(var(--color-border));
+    }
+  }
+}
+
+// ===== ICÔNE (optionnelle, à gauche du titre) =====
+.tab-icon {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: currentColor;
+
+  svg {
+    width: var(--tab-icon-size);
+    height: var(--tab-icon-size);
+    display: block;
+  }
+
+  .tab-list--sm & svg {
+    width: var(--tab-icon-size-sm);
+    height: var(--tab-icon-size-sm);
+  }
+
+  .tab-list--lg & svg {
+    width: var(--tab-icon-size-lg);
+    height: var(--tab-icon-size-lg);
+  }
+
+  // Onglet actif : icône colorée à l'accent en pills et enclosed seulement — en
+  // underline le texte entier est déjà accentué.
+  .tab-list--pills .tab[aria-selected='true'] &,
+  .tab-list--enclosed .tab[aria-selected='true'] & {
+    color: hsl(var(--tab-accent));
+  }
+}
+
+// ===== PASTILLE DE COMPTEUR (optionnelle, à droite du titre) =====
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tab-count-size);
+  height: var(--tab-count-size);
+  padding: 0 var(--tab-count-padding-x);
+  border-radius: var(--border-radius-full);
+  font-size: var(--tab-count-font-size);
+  font-weight: 600;
+  // Chiffres à chasse fixe : la pastille ne « respire » pas quand le compteur change.
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: hsl(var(--tab-count-color));
+  background: hsl(var(--tab-count-bg));
+
+  // Onglet actif : pastille dérivée de l'accent, quelle que soit la variante.
+  // (tabs.css:131-134 redéclare la même chose pour underline : strict doublon, omis.)
+  .tab[aria-selected='true'] & {
+    color: hsl(var(--tab-accent));
+    background: hsl(var(--tab-accent) / 0.12);
+  }
+}

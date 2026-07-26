@@ -1,0 +1,8 @@
+// ===== TOKENS DE LA PISTE D'ONGLETS =====
+// Variables propres à la barre <TabList>. Importées par TabList.scss via @use './tokens'.
+// Les tokens partagés du groupe (taille d'icône) sont dans ../_tokens.scss.
+
+:root {
+  // ===== PISTE =====
+  --tab-list-gap: var(--spacing-xs);         // écart entre onglets (pills/enclosed)
+}
