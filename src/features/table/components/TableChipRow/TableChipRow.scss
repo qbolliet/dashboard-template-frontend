@@ -39,7 +39,7 @@
   background: hsl(var(--data-table-chip-bg));
   border: 1px solid hsl(var(--data-table-chip-border));
   color: hsl(var(--data-table-chip-color));
-  border-radius: var(--border-radius-full);
+  border-radius: var(--border-radius-md); 
   font-size: 0.71875rem; // 11.5px
 }
 .data-table-chip-key {
