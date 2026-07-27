@@ -33,8 +33,11 @@
   }
 
   // ===== ALIGNEMENTS (le défaut « start » n'émet aucun modificateur) =====
-  &--center { justify-content: center; }
-  &--end { justify-content: flex-end; }
+  // Pistes pleine largeur (underline/enclosed) : on répartit les onglets DANS la piste.
+  // Le mot-clé `safe` est indispensable ici, la piste étant un défileur : avec un `center`
+  // nu, le début du contenu qui déborde devient inatteignable au scroll.
+  &--center { justify-content: safe center; }
+  &--end { justify-content: safe flex-end; }
 
   // ===== MODE FITTED (onglets à largeur égale) =====
   &--fitted .tab {
@@ -60,7 +63,16 @@
     align-self: flex-start;
     max-width: 100%;
 
-    // …sauf en fitted, où elle doit occuper toute la largeur disponible.
+    // …c'est donc ELLE qu'on déplace pour honorer `align` : rétrécie au contenu, elle
+    // n'a aucun espace libre à répartir, et le justify-content ci-dessus reste sans
+    // effet. `.tabs` étant une colonne flex, align-self agit sur l'axe transversal,
+    // c'est-à-dire l'horizontale.
+    &.tab-list--center { align-self: center; }
+    &.tab-list--end { align-self: flex-end; }
+
+    // …sauf en fitted, où elle doit occuper toute la largeur disponible. Déclaré EN
+    // DERNIER : à spécificité égale (0,2,0) avec les deux alignements ci-dessus, c'est
+    // l'ordre source qui tranche.
     &.tab-list--fitted { align-self: stretch; }
   }
 

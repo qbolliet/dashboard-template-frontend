@@ -16,12 +16,15 @@ const NAVIGATION_KEYS = ['ArrowRight', 'ArrowLeft', 'Home', 'End'];
  * the call site (`<header><TabList/><button/></header>`) rather than through a slot prop.
  *
  * @param {Object} props - Component props.
+ * @param {string} [props.label] - Accessible name for the tab strip (`aria-label`).
+ *   Recommended as soon as several tab groups coexist on a page, otherwise screen
+ *   readers announce every one of them as a bare "tab list".
  * @param {React.ReactNode} props.children - The `<Tab>` elements.
  * @param {string} [props.className] - Extra class names.
  * @param {Object} [props.style] - Inline styles.
  * @returns {JSX.Element} The tab strip.
  */
-const TabList = ({ children, className, style, ...rest }) => {
+const TabList = ({ label, children, className, style, ...rest }) => {
     const ctx = useTabs();
 
     // Ref sur la piste : sert à retrouver les onglets réellement rendus (le clavier doit
@@ -80,8 +83,14 @@ const TabList = ({ children, className, style, ...rest }) => {
     // {...rest} étalé EN PREMIER : les props internes (rôle, ref, clavier) restent
     // prioritaires — sinon un onKeyDown fourni par l'appelant écraserait toute la
     // navigation clavier sans le moindre avertissement.
+    //
+    // aria-label fait EXCEPTION et passe AVANT rest : sans `label`, il vaudrait
+    // undefined et effacerait alors un aria-label (ou un aria-labelledby doublé d'un
+    // aria-label) posé en direct par l'appelant. Ici l'appelant doit gagner : `label`
+    // n'est qu'un raccourci, pas une garantie de fonctionnement comme le rôle.
     return (
         <nav
+            aria-label={label}
             {...rest}
             className={classes}
             role="tablist"

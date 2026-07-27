@@ -159,7 +159,9 @@ const SharedSpotlight = () => (
     </p>
     <div className="demo-card">
       <Tabs defaultValue="graph" shared={{ data: CA_TRIM }}>
-        <TabList>
+        {/* `label` : la page compte plusieurs barres d'onglets, chacune a donc besoin
+            de son propre nom accessible pour être distinguée au lecteur d'écran. */}
+        <TabList label="Vues du chiffre d'affaires">
           <Tab value="graph" icon={<ChartIcon />}>Graphique</Tab>
           <Tab value="table" icon={<TableIcon />}>Tableau</Tab>
         </TabList>
@@ -420,7 +422,7 @@ const TabsPlayground = () => {
           <Tabs
             defaultValue="apercu"
             variant={variant} size={size} align={align} fitted={fitted} accent={accent}>
-            <TabList>
+            <TabList label="Sections du projet">
               <Tab value="apercu" icon={showIcons ? <GridIcon /> : undefined}>Aperçu</Tab>
               <Tab value="activite" icon={showIcons ? <PulseIcon /> : undefined} count="12">Activité</Tab>
               <Tab value="equipe" icon={showIcons ? <UsersIcon /> : undefined}>Équipe</Tab>

@@ -19,7 +19,7 @@ const TABS_PROPS = [
   ['shared', 'any', 'Contexte partagé, lu par tous les panneaux (useTabsShared / render-prop).'],
   ['variant', "'underline'|'pills'|'enclosed'", "Style de la barre. Défaut 'underline'."],
   ['size', "'sm'|'md'|'lg'", "Taille des onglets. Défaut 'md'."],
-  ['align', "'start'|'center'|'end'", 'Alignement des onglets dans la barre.'],
+  ['align', "'start'|'center'|'end'", "Alignement des onglets dans la barre — en pills, de la piste entière."],
   ['fitted', 'boolean = false', 'Onglets étirés à largeur égale.'],
   ['accent', "'primary'|'positive'|'warning'|'negative'", "Couleur de l'onglet actif."],
   ['keepMounted', 'boolean = false', 'Garde les panneaux inactifs montés (mais cachés).'],
@@ -35,6 +35,7 @@ const TAB_PROPS = [
 ];
 
 const PARTS_PROPS = [
+  ['TabList · label', 'string?', "Nom accessible de la barre d'onglets (aria-label)."],
   ['TabPanels · flush', 'boolean = false', "Supprime l'espacement au-dessus des panneaux."],
   ['TabPanel · value', 'string (requis)', 'Doit correspondre au value d\'un <Tab>.'],
   ['TabPanel · children', 'ReactNode | (shared) => ReactNode', 'Contenu ; en render-prop, reçoit le contexte partagé.'],

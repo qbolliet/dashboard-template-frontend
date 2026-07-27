@@ -10,6 +10,9 @@ import './TabPanel.scss';
  * When inactive and `keepMounted` is not set on `<Tabs>`, the panel unmounts entirely
  * (returns `null`) rather than merely hiding — cheaper for panels with heavy content.
  *
+ * The panel is always keyboard reachable (`tabIndex={0}`, per the ARIA tabs pattern), so
+ * that tabbing out of the tab strip never skips a panel made of non-focusable content.
+ *
  * `children` may be a render-prop `(shared) => ReactNode` to read the `shared` payload
  * of `<Tabs>` (e.g. a chart tab and a table tab rendering the same dataset). Note that
  * a function is not serializable across the Server/Client Components boundary: using
@@ -44,6 +47,12 @@ const TabPanel = ({ value, children, className, style, ...rest }) => {
             // l'animation d'apparition en CSS (voir TabPanel.scss).
             hidden={!active || undefined}
             data-tab-active={active ? '' : undefined}
+            // Panneau atteignable au clavier (motif ARIA « tabs ») : sans ça, un Tab
+            // depuis l'onglet actif saute tout le panneau quand celui-ci ne contient
+            // aucun élément focusable. Un panneau caché reste hors de l'ordre de
+            // tabulation ([hidden] → display: none), keepMounted n'est donc pas affecté.
+            // Placé avant {...rest} : l'appelant peut l'écraser.
+            tabIndex={0}
             className={classes}
             style={style}
             {...rest}
