@@ -1,0 +1,27 @@
+// =================================================================
+// TABS — racine du système d'onglets
+// =================================================================
+// Structure : <section.tabs.tabs--{accent}> > .tab-list + .tab-panels
+//
+// Rôle : colonne flex qui empile la barre d'onglets et les panneaux, et point d'entrée
+// de la variable d'accent --tab-accent (consommée par Tab.scss pour le soulignement,
+// la couleur active et la pastille de compteur).
+//
+// Couleurs : ../_colors.scss (tokens partagés du groupe).
+
+@use '../colors' as *;   // Tokens de couleurs du groupe — émet leur :root
+
+// ===== RACINE =====
+.tabs {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  // Accent par défaut ; les modificateurs ci-dessous ne font que le réassigner.
+  --tab-accent: var(--tab-accent-primary);
+}
+
+// ===== DÉCLINAISONS D'ACCENT =====
+.tabs--positive { --tab-accent: var(--tab-accent-positive); }
+.tabs--warning  { --tab-accent: var(--tab-accent-warning); }
+.tabs--negative { --tab-accent: var(--tab-accent-negative); }

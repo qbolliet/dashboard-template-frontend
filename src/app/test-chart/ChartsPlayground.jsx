@@ -21,6 +21,7 @@ import {
   makeHeatmapData, makeDensityData, makeViolinData,
   makeComboMonthly, makeComboQuarterly, makeAreaSeries,
 } from '@/features/chart/sources/demoData';
+import { CtrlRadio, CtrlSelect, CtrlToggle, CtrlText, CtrlColor } from '../_playground';
 
 // ── Jeux de démonstration construits une fois (générateurs à graine fixe) ────
 // Références stables au niveau module : les données ne dépendent d'aucun état du
@@ -85,71 +86,6 @@ const SHOWN_OPTIONS = [
   { value: 'combo-area', label: 'Line + areaplot (multi-jeux)' },
   { value: 'api', label: 'Données API (useFactTable)' },
 ];
-
-// ── Composants du panneau de contrôle (classes globales tp-ctrl-btn / ctrl-*) ──
-
-/** Group of exclusive buttons (radio). `options` = [{ value, label }]. */
-const CtrlRadio = ({ label, options, value, onChange }) => (
-  <div className="ctrl-group">
-    <span className="ctrl-label">{label} :</span>
-    {options.map((opt) => (
-      <button
-        key={String(opt.value)}
-        type="button"
-        className={value === opt.value ? 'tp-ctrl-btn tp-ctrl-btn--active' : 'tp-ctrl-btn'}
-        onClick={() => onChange(opt.value)}>
-        {opt.label}
-      </button>
-    ))}
-  </div>
-);
-
-/** Native <select>. `options` = [{ value, label }]. */
-const CtrlSelect = ({ label, options, value, onChange }) => (
-  <div className="ctrl-group">
-    <label className="ctrl-label">{label} :</label>
-    <select className="ctrl-select" value={value} onChange={(e) => onChange(e.target.value)}>
-      {options.map((o) => (
-        <option key={String(o.value)} value={o.value}>{o.label}</option>
-      ))}
-    </select>
-  </div>
-);
-
-/** Boolean toggle rendered as an on/off button. */
-const CtrlToggle = ({ label, value, onChange }) => (
-  <button
-    type="button"
-    className={value ? 'tp-ctrl-btn tp-ctrl-btn--active' : 'tp-ctrl-btn'}
-    onClick={() => onChange(!value)}>
-    {label}
-  </button>
-);
-
-/** Free-text input. */
-const CtrlText = ({ label, value, placeholder, onChange }) => (
-  <div className="ctrl-group">
-    <label className="ctrl-label">{label} :</label>
-    <input
-      type="text"
-      className="ctrl-text"
-      value={value}
-      placeholder={placeholder}
-      onChange={(e) => onChange(e.target.value)} />
-  </div>
-);
-
-/** Native color picker (hex). */
-const CtrlColor = ({ label, value, onChange }) => (
-  <div className="ctrl-group">
-    <label className="ctrl-label">{label} :</label>
-    <input
-      type="color"
-      className="ctrl-color"
-      value={value}
-      onChange={(e) => onChange(e.target.value)} />
-  </div>
-);
 
 /** Section titre + corps du bloc de démonstration (entête + note). */
 const Block = ({ id, children }) => (

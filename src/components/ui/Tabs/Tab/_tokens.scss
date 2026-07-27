@@ -1,0 +1,21 @@
+// ===== TOKENS DU BOUTON D'ONGLET =====
+// Variables propres au bouton et à sa pastille de compteur. Importées par Tab.scss via
+// @use './tokens'. La taille d'icône est partagée avec les tailles de piste : voir
+// ../_tokens.scss.
+
+:root {
+  // ===== RYTHME VERTICAL =====
+  // Padding haut/bas du bouton, à la taille md. Les modificateurs de taille de la piste le
+  // réassignent sur l'onglet lui-même (Tab.scss). Exposé en variable — et non écrit en dur
+  // dans le raccourci `padding` — pour que la variante `enclosed` puisse dériver son padding
+  // bas compensé d'1px SANS dupliquer une valeur par taille.
+  --tab-padding-y: var(--spacing-md);
+
+  // ===== PASTILLE DE COMPTEUR =====
+  --tab-count-size: 1.125rem;                // 18px — min-width ET height
+  --tab-count-font-size: 0.6875rem;          // 11px
+  --tab-count-padding-x: 0.3125rem;          // 5px
+
+  // ===== VARIANTE UNDERLINE =====
+  --tab-underline-thickness: var(--spacing-2px);   // épaisseur du soulignement actif
+}

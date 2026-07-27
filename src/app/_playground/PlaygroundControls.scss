@@ -1,0 +1,135 @@
+// =================================================================
+// CONTRÔLES DE PLAYGROUND — feuille unique des pages de démonstration
+// =================================================================
+// Ces sélecteurs étaient redéclarés dans les quatre page.scss de /test-tabs,
+// /test-chart, /test-criterion-menu et /test-multi-criterion-menu, avec des
+// valeurs divergentes : comme ils sont globaux, la dernière feuille chargée
+// l'emportait. Source unique désormais, alignée sur les versions tokenisées de
+// test-tabs / test-chart (les deux plus abouties).
+//
+// Importée en effet de bord par PlaygroundControls.jsx : les quatre pages
+// consomment au moins un contrôle, la feuille est donc toujours chargée.
+//
+// Les tokens globaux (--spacing-*, --font-size-*, --color-*) proviennent de
+// src/styles/globals, injectés pour toute l'application par app/globals.scss.
+
+// ── Tokens du module ──
+// Seul endroit où des valeurs littérales apparaissent : c'est la couche de
+// définition. Tout le reste de la feuille les consomme via var().
+:root {
+  --pg-ctrl-font-size:     var(--font-size-xs);
+  --pg-ctrl-padding:       0.25rem 0.7rem;   // boutons
+  --pg-ctrl-field-padding: 0.2rem 0.4rem;    // select / input
+  --pg-ctrl-radius:        var(--border-radius-sm);
+  --pg-ctrl-gap:           var(--spacing-xs);
+  --pg-ctrl-row-gap:       var(--spacing-sm) var(--spacing-lg);
+  --pg-ctrl-text-width:    8rem;
+  --pg-ctrl-number-width:  4.5rem;
+  --pg-ctrl-color-width:   2rem;             // hauteur dérivée en calc()
+  --pg-ctrl-accent:        var(--color-primary-500);
+}
+
+// ── Mise en page du panneau ──
+.tp-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+.ctrl-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pg-ctrl-row-gap);
+}
+.ctrl-group {
+  display: flex;
+  align-items: center;
+  gap: var(--pg-ctrl-gap);
+}
+.ctrl-label {
+  font-size: var(--pg-ctrl-font-size);
+  color: hsl(var(--color-text-tertiary));
+  margin-right: var(--pg-ctrl-gap);
+  white-space: nowrap;
+}
+.ctrl-hint {
+  margin: var(--spacing-xs) 0 0;
+  font-size: var(--pg-ctrl-font-size);
+  line-height: var(--line-height-normal);
+  color: hsl(var(--color-text-tertiary));
+  max-width: 68ch;
+
+  code {
+    font-family: var(--font-mono, monospace);
+    color: hsl(var(--pg-ctrl-accent));
+  }
+}
+
+// ── Bouton de contrôle (bascule simple ou option d'un groupe exclusif) ──
+.tp-ctrl-btn {
+  padding: var(--pg-ctrl-padding);
+  font-size: var(--pg-ctrl-font-size);
+  border-radius: var(--pg-ctrl-radius);
+  border: 1px solid hsl(var(--color-border));
+  background: hsl(var(--color-surface));
+  color: hsl(var(--color-text-secondary));
+  cursor: pointer;
+  transition: background var(--transition-fast) ease, border-color var(--transition-fast) ease,
+    color var(--transition-fast) ease;
+  font-family: inherit;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: hsl(var(--color-text-tertiary));
+    color: hsl(var(--color-text-primary));
+  }
+
+  &:focus-visible {
+    outline: 2px solid hsl(var(--color-focus) / 0.45);
+    outline-offset: 1px;
+  }
+}
+// État actif : doublé par aria-pressed côté JSX, la couleur n'est pas le seul signal.
+.tp-ctrl-btn--active {
+  background: hsl(var(--pg-ctrl-accent) / 0.12);
+  border-color: hsl(var(--pg-ctrl-accent));
+  color: hsl(var(--pg-ctrl-accent));
+  font-weight: 500;
+}
+
+// ── Champs de saisie ──
+.ctrl-select,
+.ctrl-text,
+.ctrl-number {
+  padding: var(--pg-ctrl-field-padding);
+  font-size: var(--pg-ctrl-font-size);
+  border: 1px solid hsl(var(--color-border));
+  border-radius: var(--pg-ctrl-radius);
+  background: hsl(var(--color-surface));
+  color: hsl(var(--color-text-primary));
+  font-family: inherit;
+
+  // Le changement de border-color seul est un indicateur de focus trop faible :
+  // on garde l'anneau natif du navigateur au clavier (même motif que Tab.scss).
+  &:focus-visible {
+    outline: 2px solid hsl(var(--color-focus) / 0.45);
+    outline-offset: 1px;
+    border-color: hsl(var(--pg-ctrl-accent));
+  }
+}
+.ctrl-text { width: var(--pg-ctrl-text-width); }
+.ctrl-number { width: var(--pg-ctrl-number-width); }
+.ctrl-color {
+  width: var(--pg-ctrl-color-width);
+  height: calc(var(--pg-ctrl-color-width) * 0.8);
+  padding: 0;
+  border: 1px solid hsl(var(--color-border));
+  border-radius: var(--pg-ctrl-radius);
+  background: hsl(var(--color-surface));
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid hsl(var(--color-focus) / 0.45);
+    outline-offset: 1px;
+  }
+}
