@@ -2,7 +2,7 @@
 
 // Importation des modules
 import { useRef } from 'react';
-import { useTabs } from '../TabsContext';
+import { useTabsContext } from '../TabsContext';
 import './TabList.scss';
 
 // Touches interceptées par la navigation clavier du tablist (motif ARIA « tabs »).
@@ -25,7 +25,7 @@ const NAVIGATION_KEYS = ['ArrowRight', 'ArrowLeft', 'Home', 'End'];
  * @returns {JSX.Element} The tab strip.
  */
 const TabList = ({ label, children, className, style, ...rest }) => {
-    const ctx = useTabs();
+    const ctx = useTabsContext('TabList');
 
     // Ref sur la piste : sert à retrouver les onglets réellement rendus (le clavier doit
     // suivre l'ordre du DOM, y compris avec des enfants générés dynamiquement).

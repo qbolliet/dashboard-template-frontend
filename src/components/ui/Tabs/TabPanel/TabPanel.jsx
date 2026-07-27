@@ -1,7 +1,7 @@
 'use client';
 
 // Importation des modules
-import { useTabs } from '../TabsContext';
+import { useTabsContext } from '../TabsContext';
 import './TabPanel.scss';
 
 /**
@@ -28,7 +28,7 @@ import './TabPanel.scss';
  * @returns {?JSX.Element} The panel, or `null` when inactive and not kept mounted.
  */
 const TabPanel = ({ value, children, className, style, ...rest }) => {
-    const ctx = useTabs();
+    const ctx = useTabsContext('TabPanel');
     const active = ctx.value === value;
 
     // Démonté quand inactif, sauf si <Tabs keepMounted> demande de le garder en vie

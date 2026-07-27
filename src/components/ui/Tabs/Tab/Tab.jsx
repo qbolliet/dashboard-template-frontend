@@ -2,7 +2,7 @@
 
 // Importation des modules
 import { VisuallyHidden } from '@/features/accessibility';
-import { useTabs } from '../TabsContext';
+import { useTabsContext } from '../TabsContext';
 import './Tab.scss';
 
 /**
@@ -36,7 +36,7 @@ const Tab = ({
     onClick,
     ...rest
 }) => {
-    const ctx = useTabs();
+    const ctx = useTabsContext('Tab');
     const selected = ctx.value === value;
 
     const classes = ['tab', className].filter(Boolean).join(' ');
