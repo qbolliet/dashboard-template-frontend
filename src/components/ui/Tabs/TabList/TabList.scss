@@ -91,13 +91,14 @@
   // ===== VARIANTE PILLS =====
   &--pills {
     gap: var(--tab-list-gap);
-    // La capsule a son propre rembourrage, et il TIENT LIEU de marge de débordement : il
-    // couvre déjà l'anneau de focus, et aucun onglet ne déborde de sa boîte en pills. On
-    // réassigne donc le token au lieu de rembourrer deux fois — padding et scroll-padding
-    // du bloc de base suivent, et la capsule visible garde sa taille d'origine.
-    --tab-list-bleed: var(--spacing-xs);
-    // …mais elle, contrairement aux autres pistes, ne doit pas être tirée hors du flux :
-    // c'est une surface visible, pas une réserve transparente.
+    // La capsule n'a pas de rembourrage propre : c'est le padding de débordement du bloc
+    // de base (--tab-list-bleed) qui TIENT LIEU des deux à la fois — il couvre déjà
+    // l'anneau de focus, et aucun onglet ne déborde de sa boîte en pills. Rien à
+    // réassigner donc : régler le token suffit à régler la géométrie de la capsule.
+    //
+    // En revanche, contrairement aux autres pistes, elle ne doit pas être tirée hors du
+    // flux : c'est une surface visible, pas une réserve transparente. C'est CETTE ligne,
+    // et elle seule, qui rend le rembourrage visible en pills.
     margin: 0;
     background: hsl(var(--tab-track-bg));
     border-radius: var(--border-radius-lg);

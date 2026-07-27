@@ -88,6 +88,14 @@ const TabList = ({ label, children, className, style, ...rest }) => {
     const handleKeyDown = (event) => {
         if (!NAVIGATION_KEYS.includes(event.key)) return;
 
+        // Le handler est posé sur le <nav>, il reçoit donc TOUT ce qui remonte de la piste.
+        // Or celle-ci est composable : l'appelant peut y glisser autre chose qu'un <Tab>
+        // (champ de recherche, lien…). Sans ce filtre, une flèche frappée dans un champ
+        // verrait son déplacement de curseur confisqué (preventDefault ci-dessous), le focus
+        // arraché vers un onglet — et cet onglet activé au passage (click(), activation
+        // automatique). On ne prend donc la main que si l'événement part bien d'un onglet.
+        if (!event.target.closest('[role="tab"]')) return;
+
         const tabs = Array.from(
             listRef.current.querySelectorAll('[role="tab"]:not([aria-disabled="true"])')
         );
@@ -98,8 +106,10 @@ const TabList = ({ label, children, className, style, ...rest }) => {
         const activeIndex = tabs.indexOf(document.activeElement);
 
         // Flèches circulaires (le modulo ramène au premier/dernier onglet), avec une entrée
-        // par les extrémités quand le focus n'est PAS sur un onglet (enfant non-tab placé
-        // dans la piste) : ArrowRight entre par le premier onglet, ArrowLeft par le dernier.
+        // par les extrémités quand le focus n'est pas sur un onglet ÉLIGIBLE — cas réel
+        // depuis le filtre ci-dessus : un onglet désactivé, qui reste focusable (aria-disabled,
+        // voir Tab.jsx) mais est exclu de `tabs`. ArrowRight entre alors par le premier
+        // onglet, ArrowLeft par le dernier.
         //
         // Ce cas exige une branche par touche, il ne peut pas se réduire à un index de
         // départ : partir de `tabs.length - 1` donnerait bien 0 sur ArrowRight, mais
