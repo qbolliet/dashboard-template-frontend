@@ -19,9 +19,30 @@
 
   // ===== SURFACES (piste pills, onglet actif pills/enclosed) =====
   --tab-track-bg:       var(--color-gray-100);   // piste pills + hover enclosed
-  --tab-selected-bg:    var(--color-surface);    // pill/dossier actif
+  --tab-selected-bg:    var(--color-surface);    // dossier actif (enclosed) — doit rester
+                                                  // identique à la surface du panneau sous la
+                                                  // piste, dans les deux thèmes (cf. bloc sombre)
+  --tab-pill-bg:        var(--color-surface);    // pilule active (pills) — doit rester plus
+                                                  // claire que --tab-track-bg (cf. bloc sombre)
 }
 
 // ===== THÈME SOMBRE =====
-// Aucun bloc [data-theme="dark"] : tous les tokens ci-dessus référencent des variables
-// globales qui sont déjà redéfinies pour le thème sombre.
+// --tab-selected-bg (dossier enclosed) n'a PAS besoin d'override : il reste --color-surface
+// dans les deux thèmes, et c'est voulu — l'onglet actif doit se fondre avec le panneau/carte
+// affiché sous la piste, quel que soit le thème (les deux référencent le même token global).
+//
+// --tab-pill-bg, en revanche, EN A besoin. C'est le piège : deux tokens peuvent référencer des
+// globales déjà redéfinies pour le sombre sans que leur ORDRE RELATIF survive à la
+// redéfinition, alors que le rendu (relief de la pilule sur sa piste) dépend justement de cet
+// ordre.
+//   - Clair  : --tab-track-bg (--color-gray-100 = 210 40% 96%) < --color-surface (blanc, 100%)
+//              → la pilule active est plus claire que sa piste, en relief (+ --shadow-sm).
+//   - Sombre : --tab-track-bg (--color-gray-100 = 220 39% 11%) > --color-surface
+//              (--color-gray-50 = 222 20% 7%) → l'ordre s'inverse, la pilule devient plus
+//              sombre que sa piste ET se fond dans le panneau ambiant (même token que lui).
+// On élève donc --tab-pill-bg d'un cran de gris (--color-gray-200 = 215 25% 17%) pour rétablir
+// un écart d'au moins ~6 points de L au-dessus de la piste (11 % → 17 %), sans inventer de
+// primitive.
+[data-theme="dark"] {
+  --tab-pill-bg: var(--color-gray-200);
+}

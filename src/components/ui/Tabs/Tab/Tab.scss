@@ -101,7 +101,7 @@
 
     &[aria-selected='true'] {
       color: hsl(var(--tab-color-selected));
-      background: hsl(var(--tab-selected-bg));
+      background: hsl(var(--tab-pill-bg));
       box-shadow: var(--shadow-sm);
     }
   }
