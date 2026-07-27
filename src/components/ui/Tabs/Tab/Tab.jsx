@@ -38,6 +38,10 @@ const Tab = ({
 }) => {
     const ctx = useTabsContext('Tab');
     const selected = ctx.value === value;
+    // Le panneau ciblé n'existe dans le DOM que si actif ou si `keepMounted` est posé
+    // sur `<Tabs>` (voir TabPanel.jsx, condition de démontage) : un `aria-controls`
+    // vers un id absent est invalide et fait échouer aria-valid-attr-value (axe-core).
+    const panelMounted = selected || ctx.keepMounted;
 
     const classes = ['tab', className].filter(Boolean).join(' ');
 
@@ -70,7 +74,7 @@ const Tab = ({
             role="tab"
             id={`${ctx.baseId}-tab-${value}`}
             aria-selected={selected}
-            aria-controls={`${ctx.baseId}-panel-${value}`}
+            aria-controls={panelMounted ? `${ctx.baseId}-panel-${value}` : undefined}
             // tabIndex rotatif : seul l'onglet actif est atteignable via Tab, les autres
             // le sont via les flèches (motif ARIA « roving tabindex »).
             tabIndex={selected ? 0 : -1}

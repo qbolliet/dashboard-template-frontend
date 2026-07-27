@@ -25,7 +25,8 @@ import './TabPanel.scss';
  *   `(shared) => ReactNode` receiving the `shared` payload of `<Tabs>`.
  * @param {string} [props.className] - Extra class names.
  * @param {Object} [props.style] - Inline styles.
- * @returns {?JSX.Element} The panel, or `null` when inactive and not kept mounted.
+ * @returns {?JSX.Element} The `<section role="tabpanel">` panel, or `null` when inactive
+ *   and not kept mounted.
  */
 const TabPanel = ({ value, children, className, style, ...rest }) => {
     const ctx = useTabsContext('TabPanel');
@@ -39,7 +40,10 @@ const TabPanel = ({ value, children, className, style, ...rest }) => {
     const content = typeof children === 'function' ? children(ctx.shared) : children;
 
     return (
-        <article
+        // <section>, pas <article> : selon ARIA in HTML, <article> n'autorise pas le
+        // rôle tabpanel (seulement application/document/feed/main/none/presentation/
+        // region), alors que <section> l'autorise explicitement.
+        <section
             role="tabpanel"
             id={`${ctx.baseId}-panel-${value}`}
             aria-labelledby={`${ctx.baseId}-tab-${value}`}
@@ -58,7 +62,7 @@ const TabPanel = ({ value, children, className, style, ...rest }) => {
             {...rest}
         >
             {content}
-        </article>
+        </section>
     );
 };
 

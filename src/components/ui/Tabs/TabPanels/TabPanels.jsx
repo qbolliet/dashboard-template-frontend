@@ -1,6 +1,10 @@
 // Pas de directive 'use client' : composant purement présentationnel (aucun hook),
 // il ne fait qu'espacer la barre d'onglets et les panneaux. Il reste donc importable
 // depuis un Server Component comme depuis un Client Component.
+//
+// <section> sans rôle ARIA explicite : sans nom accessible, son rôle implicite est
+// `generic` (pas `region`), donc pas de rôle parasite ici. C'est <TabPanel> qui porte
+// role="tabpanel" — ne pas confondre les deux <section> de l'arborescence des Tabs.
 
 import './TabPanels.scss';
 
