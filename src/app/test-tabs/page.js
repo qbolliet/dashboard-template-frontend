@@ -13,7 +13,7 @@ import './page.scss';
 // Tableaux d'API — repris À L'IDENTIQUE des api-card du prototype (tabs.html).
 // Statiques : rendus côté serveur, aucun JavaScript embarqué.
 const TABS_PROPS = [
-  ['defaultValue', 'string', 'Onglet actif au départ (mode non contrôlé).'],
+  ['defaultValue', 'string', 'Onglet actif au départ (mode non contrôlé). Omis ⇒ aucun panneau affiché, mais la barre reste atteignable au clavier (repli sur le premier onglet).'],
   ['value', 'string?', 'Onglet actif imposé (mode contrôlé).'],
   ['onChange', '(value) => void', "Appelé à chaque changement d'onglet."],
   ['shared', 'any', 'Contexte partagé, lu par tous les panneaux (useTabsShared / render-prop).'],

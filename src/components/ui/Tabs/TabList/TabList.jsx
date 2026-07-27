@@ -2,6 +2,7 @@
 
 // Importation des modules
 import { useRef } from 'react';
+import { useIsomorphicLayoutEffect } from '@/hooks/layoutEffect/useIsomorphicLayoutEffect';
 import { useTabsContext } from '../TabsContext';
 import './TabList.scss';
 
@@ -14,6 +15,10 @@ const NAVIGATION_KEYS = ['ArrowRight', 'ArrowLeft', 'Home', 'End'];
  * Layout options (variant, size, align, fitted) are read from the `<Tabs>` context, so the
  * component only needs its children. To place controls next to the tabs, compose the row at
  * the call site (`<header><TabList/><button/></header>`) rather than through a slot prop.
+ *
+ * The strip stays keyboard reachable even when no tab matches the active value (a `<Tabs>`
+ * without `defaultValue`, a controlled value reset to `null`…): the first enabled tab then
+ * falls back to `tabindex="0"` without being selected, so tabbing in still works.
  *
  * @param {Object} props - Component props.
  * @param {string} [props.label] - Accessible name for the tab strip (`aria-label`).
@@ -30,6 +35,46 @@ const TabList = ({ label, children, className, style, ...rest }) => {
     // Ref sur la piste : sert à retrouver les onglets réellement rendus (le clavier doit
     // suivre l'ordre du DOM, y compris avec des enfants générés dynamiquement).
     const listRef = useRef(null);
+
+    // Repli du roving tabindex : la piste doit TOUJOURS exposer exactement un onglet à
+    // tabindex="0". Chaque <Tab> pose tabIndex={selected ? 0 : -1} (Tab.jsx), donc dès
+    // qu'aucun onglet ne correspond à ctx.value (<Tabs> sans defaultValue, valeur mal
+    // orthographiée, `value` contrôlée repassée à ''/null, onglet actif retiré d'une liste
+    // dynamique) ils tombent tous à -1 : la tabulation saute la barre entière, et comme
+    // handleKeyDown est posé sur le <nav> — non focusable — les flèches ne se déclenchent
+    // jamais. On désigne donc un onglet de repli, qui ouvre seulement la porte : il reste
+    // aria-selected="false" et ctx.setValue n'est pas appelé, donc aucun onChange n'est émis.
+    //
+    // La sonde est aria-selected, PAS tabindex : le repli impératif reflète lui aussi 0 dans
+    // l'attribut, chercher [tabindex="0"] croirait la piste saine et ne nettoierait jamais.
+    //
+    // useIsomorphicLayoutEffect plutôt que useEffect : l'ajustement précède la peinture, donc
+    // aucune frame à deux tabindex="0" (React ne réécrit pas l'ancien repli — sa prop vaut -1
+    // avant comme après, pas de diff : c'est la boucle ci-dessous qui le remet à -1).
+    //
+    // Aucun tableau de dépendances : les enfants sont arbitraires et rien n'en donne de clé
+    // fiable. « À chaque rendu de TabList » couvre exactement les deux déclencheurs utiles —
+    // ctx.value (consommateur de contexte) et children (rendu du parent).
+    useIsomorphicLayoutEffect(() => {
+        // Tous les onglets, désactivés COMPRIS : un onglet désactivé ne peut pas servir de
+        // repli, mais il doit quand même être remis à -1 s'il traîne un 0 obsolète.
+        const tabs = Array.from(listRef.current.querySelectorAll('[role="tab"]'));
+
+        // L'onglet actif gagne toujours ; sinon, repli sur le premier non désactivé.
+        // Aucun onglet éligible (piste vide, ou tous désactivés) : `roving` vaut undefined
+        // et la boucle remet simplement tout le monde à -1 — rien n'est opérable, la piste
+        // n'a donc rien à exposer à la tabulation.
+        const roving =
+            tabs.find((tab) => tab.getAttribute('aria-selected') === 'true')
+            ?? tabs.find((tab) => tab.getAttribute('aria-disabled') !== 'true');
+
+        // Recalcul intégral plutôt que mémorisation du repli précédent : la boucle couvre
+        // pose ET nettoyage d'un seul geste, et reste idempotente si elle rejoue à vide.
+        tabs.forEach((tab) => {
+            const wanted = tab === roving ? 0 : -1;
+            if (tab.tabIndex !== wanted) tab.tabIndex = wanted;
+        });
+    });
 
     // Navigation clavier parmi les onglets NON désactivés. Fonction simple : elle est
     // passée à onKeyDown (événement React), aucune identité stable n'est requise.
@@ -50,18 +95,23 @@ const TabList = ({ label, children, className, style, ...rest }) => {
 
         event.preventDefault();
 
-        // Focus hors des onglets (enfant non-tab dans la piste) : on repart du dernier index,
-        // ce qui envoie ArrowRight sur le premier onglet et ArrowLeft sur le dernier. Sans
-        // cette garde, l'index -1 ferait tomber ArrowLeft sur l'AVANT-dernier onglet.
         const activeIndex = tabs.indexOf(document.activeElement);
-        const currentIndex = activeIndex === -1 ? tabs.length - 1 : activeIndex;
 
-        // Flèches circulaires (le modulo ramène au premier/dernier onglet).
+        // Flèches circulaires (le modulo ramène au premier/dernier onglet), avec une entrée
+        // par les extrémités quand le focus n'est PAS sur un onglet (enfant non-tab placé
+        // dans la piste) : ArrowRight entre par le premier onglet, ArrowLeft par le dernier.
+        //
+        // Ce cas exige une branche par touche, il ne peut pas se réduire à un index de
+        // départ : partir de `tabs.length - 1` donnerait bien 0 sur ArrowRight, mais
+        // (len - 2 + len) % len = len - 2 sur ArrowLeft, soit l'AVANT-dernier onglet — le
+        // même résultat que l'index -1 brut ((-1 - 1 + len) % len = len - 2). Home et End
+        // ignorent de toute façon la position courante.
         let nextIndex;
         if (event.key === 'Home') nextIndex = 0;
         else if (event.key === 'End') nextIndex = tabs.length - 1;
-        else if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length;
-        else nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+        else if (activeIndex === -1) nextIndex = event.key === 'ArrowRight' ? 0 : tabs.length - 1;
+        else if (event.key === 'ArrowRight') nextIndex = (activeIndex + 1) % tabs.length;
+        else nextIndex = (activeIndex - 1 + tabs.length) % tabs.length;
 
         // focus() PUIS click() : activation immédiate au déplacement (motif « automatic
         // activation » d'ARIA), le clic passant par le handler du <Tab>.

@@ -296,16 +296,16 @@ const KeepMountedDemo = () => {
   );
 };
 
-/** Three edge cases: disabled tab, keepMounted and controlled mode. */
+/** Four edge cases: disabled tab, keepMounted, controlled mode and missing defaultValue. */
 const EdgeCases = () => {
   const [controlled, setControlled] = useState('jour');
 
   return (
     <section className="tabs-block">
       <p className="tabs-block-note">
-        Trois comportements à éprouver : un onglet <code>disabled</code>, la persistance
-        d&apos;un panneau via <code>keepMounted</code> et le mode contrôlé (<code>value</code> +{' '}
-        <code>onChange</code>).
+        Quatre comportements à éprouver : un onglet <code>disabled</code>, la persistance
+        d&apos;un panneau via <code>keepMounted</code>, le mode contrôlé (<code>value</code> +{' '}
+        <code>onChange</code>) et l&apos;absence de <code>defaultValue</code>.
       </p>
       <div className="demo-stack">
         <article>
@@ -347,6 +347,36 @@ const EdgeCases = () => {
                 <TabPanel value="jour"><p className="panel-note">Agrégation quotidienne.</p></TabPanel>
                 <TabPanel value="semaine"><p className="panel-note">Agrégation hebdomadaire.</p></TabPanel>
                 <TabPanel value="mois"><p className="panel-note">Agrégation mensuelle.</p></TabPanel>
+              </TabPanels>
+            </Tabs>
+          </div>
+        </article>
+
+        <article>
+          <p className="demo-caption">
+            sans defaultValue — la barre reste atteignable au clavier
+          </p>
+          <div className="demo-card">
+            {/* Éprouve le repli du roving tabindex (TabList) : aucun onglet ne correspond à
+                la valeur active, tous devraient donc porter tabindex="-1" et la barre serait
+                sautée par la tabulation. Le repli en expose un seul à tabindex="0", sans
+                l'activer pour autant (aria-selected reste false, aucun onChange). */}
+            <Tabs variant="pills" accent="warning">
+              <TabList label="Répartition géographique">
+                <Tab value="monde" icon={<GridIcon />}>Monde</Tab>
+                <Tab value="europe">Europe</Tab>
+                <Tab value="france">France</Tab>
+              </TabList>
+              <TabPanels>
+                <TabPanel value="monde">
+                  <p className="panel-note">
+                    Agrégats mondiaux. Aucun panneau n&apos;était affiché à l&apos;arrivée :
+                    c&apos;est attendu, rien n&apos;est actif tant que vous n&apos;avez pas
+                    choisi un onglet.
+                  </p>
+                </TabPanel>
+                <TabPanel value="europe"><p className="panel-note">Agrégats européens.</p></TabPanel>
+                <TabPanel value="france"><p className="panel-note">Agrégats français.</p></TabPanel>
               </TabPanels>
             </Tabs>
           </div>
