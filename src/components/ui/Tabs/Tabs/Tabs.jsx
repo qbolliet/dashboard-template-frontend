@@ -16,7 +16,8 @@ import './Tabs.scss';
  * @param {Object} props - Component props.
  * @param {string} [props.defaultValue] - Initially active tab (uncontrolled mode).
  * @param {string} [props.value] - Active tab, forced by the parent (controlled mode).
- * @param {Function} [props.onChange] - Called with the new value on every change.
+ * @param {Function} [props.onChange] - Called with the new value only when the active tab
+ *   actually changes (not re-invoked when clicking the already-active tab).
  * @param {*} [props.shared] - Arbitrary data shared with every descendant.
  * @param {'underline'|'pills'|'enclosed'} [props.variant='underline'] - Tab strip style.
  * @param {'sm'|'md'|'lg'} [props.size='md'] - Tab size.

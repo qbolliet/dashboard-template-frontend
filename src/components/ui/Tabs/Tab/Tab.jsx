@@ -45,25 +45,37 @@ const Tab = ({
     // focusable/cliquable, contrairement à l'attribut natif `disabled`).
     const handleClick = (event) => {
         if (disabled) return;
-        ctx.setValue(value);
+        // setValue seulement si la sélection change réellement : un clic sur l'onglet
+        // déjà actif ne doit pas ré-émettre onChange (voir Tabs.jsx) à chaque fois.
+        if (!selected) ctx.setValue(value);
+        // onClick reste appelé dans tous les cas : c'est un événement de clic, pas un
+        // événement de changement — l'appelant peut vouloir réagir même sans transition.
         onClick?.(event);
     };
 
+    // {...rest} étalé AU MILIEU, comme dans TabList : les props qui garantissent le
+    // fonctionnement (rôle, ids ARIA, tabIndex roving, activation) restent APRÈS rest,
+    // donc non écrasables — sinon un id ou un tabIndex fourni par l'appelant romprait
+    // silencieusement le lien avec le TabPanel ou le roving tabindex.
+    //
+    // aria-disabled et style font EXCEPTION et passent AVANT rest, par cohérence avec
+    // aria-label dans TabList : ce sont des préférences d'affichage, pas des garanties
+    // structurelles, donc l'appelant doit pouvoir les écraser.
     return (
         <button
+            aria-disabled={disabled || undefined}
+            style={style}
+            {...rest}
             type="button"
             role="tab"
             id={`${ctx.baseId}-tab-${value}`}
             aria-selected={selected}
             aria-controls={`${ctx.baseId}-panel-${value}`}
-            aria-disabled={disabled || undefined}
             // tabIndex rotatif : seul l'onglet actif est atteignable via Tab, les autres
             // le sont via les flèches (motif ARIA « roving tabindex »).
             tabIndex={selected ? 0 : -1}
             className={classes}
-            style={style}
             onClick={handleClick}
-            {...rest}
         >
             {icon != null && <span className="tab-icon">{icon}</span>}
             <span className="tab-label">{children}</span>
