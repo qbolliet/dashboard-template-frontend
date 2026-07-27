@@ -3,7 +3,7 @@
 // =================================================================
 // Structure : <nav.tab-list.tab-list--{variant}[…]> > <button.tab>*
 //
-// Ici : uniquement ce qui style LA PISTE (écart, débordement, fond/bordure de barre,
+// Ici : uniquement ce qui style LA PISTE (écart, débordement, fond et barre de la piste,
 // alignement, étirement des onglets). Le bouton lui-même vit dans ../Tab/Tab.scss.
 //
 // Tokens : ./_tokens.scss. Couleurs : ../_colors.scss.
@@ -23,9 +23,28 @@
 
   // Débordement : autant d'onglets que voulu → défilement horizontal discret
   // (barre masquée, aimantation douce sur le début des onglets).
+  //
+  // ⚠️ Un défileur rogne les DEUX axes : dès qu'un axe vaut `auto`, la valeur `visible` de
+  // l'autre calcule en `auto` (CSS Overflow 3). La piste rognerait donc aussi verticalement —
+  // anneau de focus des onglets coupé en haut, en bas et sur le bord d'attaque du premier
+  // onglet, et le débordement d'1px des variantes underline/enclosed transformé en zone de
+  // défilement vertical invisible (barre masquée par scrollbar-width: none).
+  //
+  // Parade : on réserve la place À L'INTÉRIEUR du scrollport (padding) et on l'annule dans
+  // le flux (margin négatif de même valeur) — la piste occupe donc la même place qu'avant.
+  // `overflow-y: clip` + `overflow-clip-margin` viserait plus juste (aucun décalage de boîte),
+  // mais le support d'overflow-clip-margin reste partiel selon les navigateurs et son
+  // interaction avec scroll-snap-type n'est pas garantie : écarté au moindre doute.
   overflow-x: auto;
+  padding: var(--tab-list-bleed);
+  margin: calc(-1 * var(--tab-list-bleed));
   scrollbar-width: none;
   scroll-snap-type: x proximity;
+
+  // L'aimantation vise le bord du SNAPPORT, pas celui du rembourrage : sans ce report,
+  // une piste qui défile recolle l'onglet aimanté contre le bord de la piste et reprend
+  // aussitôt la place réservée ci-dessus (mesuré : scrollLeft repoussé à 4px).
+  scroll-padding-inline: var(--tab-list-bleed);
 
   &::-webkit-scrollbar {
     height: 0;
@@ -45,17 +64,41 @@
     justify-content: center;
   }
 
+  // ===== BARRE DE LA PISTE (underline + enclosed) =====
+  // Peinte en fond plutôt qu'avec un `border-bottom` : une bordure se dessine SOUS le
+  // padding, donc --tab-list-bleed plus bas que les onglets, et le `margin-bottom: -1px`
+  // des onglets (Tab.scss) ne viendrait plus la mordre — l'onglet actif ne recouvrirait
+  // plus la barre. Le dégradé, lui, se cale sur la boîte de CONTENU (background-origin),
+  // c'est-à-dire exactement le bord bas des onglets, quel que soit le rembourrage.
+  //
+  // Le fond d'un défileur ne défile pas avec son contenu (background-attachment: scroll) :
+  // la barre reste donc collée à la largeur visible, comme le faisait la bordure.
+  &--underline,
+  &--enclosed {
+    background-image: linear-gradient(hsl(var(--color-border)), hsl(var(--color-border)));
+    background-repeat: no-repeat;
+    background-size: 100% 1px;
+    background-origin: content-box;
+    background-position: left bottom;
+  }
+
   // ===== VARIANTE UNDERLINE (défaut) =====
   // Onglets jointifs : l'écartement est porté par le margin-right du bouton.
   &--underline {
     gap: 0;
-    border-bottom: 1px solid hsl(var(--color-border));
   }
 
   // ===== VARIANTE PILLS =====
   &--pills {
     gap: var(--tab-list-gap);
-    padding: var(--spacing-xs);
+    // La capsule a son propre rembourrage, et il TIENT LIEU de marge de débordement : il
+    // couvre déjà l'anneau de focus, et aucun onglet ne déborde de sa boîte en pills. On
+    // réassigne donc le token au lieu de rembourrer deux fois — padding et scroll-padding
+    // du bloc de base suivent, et la capsule visible garde sa taille d'origine.
+    --tab-list-bleed: var(--spacing-xs);
+    // …mais elle, contrairement aux autres pistes, ne doit pas être tirée hors du flux :
+    // c'est une surface visible, pas une réserve transparente.
+    margin: 0;
     background: hsl(var(--tab-track-bg));
     border-radius: var(--border-radius-lg);
 
@@ -77,8 +120,8 @@
   }
 
   // ===== VARIANTE ENCLOSED (onglets « dossier ») =====
+  // La barre est posée plus haut, en commun avec underline.
   &--enclosed {
     gap: var(--tab-list-gap);
-    border-bottom: 1px solid hsl(var(--color-border));
   }
 }

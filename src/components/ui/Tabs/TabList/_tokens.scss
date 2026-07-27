@@ -5,4 +5,10 @@
 :root {
   // ===== PISTE =====
   --tab-list-gap: var(--spacing-xs);         // écart entre onglets (pills/enclosed)
+
+  // Marge de débordement du scrollport (voir TabList.scss) : place réservée à l'intérieur
+  // de la piste pour ce que les onglets peignent HORS de leur boîte. Doit couvrir le plus
+  // grand des deux : l'anneau de focus (outline 2px + outline-offset 1px = 3px) et le
+  // débordement d'1px des variantes underline/enclosed, anneau compris (4px).
+  --tab-list-bleed: var(--spacing-xs);       // 4px
 }

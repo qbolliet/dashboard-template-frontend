@@ -8,7 +8,9 @@
   align-items: center;
   gap: 0.3125rem; // 5px
   padding: 0.125rem 0.4375rem 0.125rem 0.375rem; // 2px 7px 2px 6px
-  border-radius: var(--border-radius-full);
+  // Gélule et non cercle : le badge s'allonge avec son libellé, --border-radius-full (50 %)
+  // en donnerait une ellipse.
+  border-radius: var(--border-radius-pill);
   font-size: 0.6875rem; // 11px
   font-weight: 500;
   font-family: var(--font-sans);
@@ -18,7 +20,9 @@
   content: '';
   width: 0.375rem; // 6px
   height: 0.375rem;
-  border-radius: var(--border-radius-full);
+  // Le point est carré : la gélule y rend le même cercle que 50 %, mais reste juste si la
+  // taille du point venait à se dissocier de sa hauteur.
+  border-radius: var(--border-radius-pill);
 }
 
 .badge--success { background: hsl(var(--badge-success-bg) / 0.10); color: hsl(var(--badge-success-color)); }
