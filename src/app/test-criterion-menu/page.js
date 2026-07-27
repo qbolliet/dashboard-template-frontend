@@ -6,6 +6,7 @@ import CriterionMenu from '@/features/filter/components/CriterionMenu/CriterionM
 import { useVariableMetadata, metadataToVariables } from '@/features/filter/sources/useVariableMetadata';
 import { isNumericSqlType, isDateSqlType } from '@/features/filter/utils/filterTypes';
 import operations from '../../../config/filter/operations.json';
+import { CtrlToggle } from '../_playground';
 import './page.scss';
 
 // États initiaux des critères (pré-remplis pour faciliter les tests). Chaque critère
@@ -16,16 +17,6 @@ const INIT_C = { variable: 'indicator', operation: 'in',      value: [],        
 const INIT_D = { variable: 'libelle',   operation: 'eq',      value: '',                  sql_type: 'text',             is_categorical: false, bracketLeft: false, bracketRight: false };
 const INIT_E = { variable: 'country',   operation: 'in',      value: [],                  sql_type: 'character varying', is_categorical: true,  bracketLeft: false, bracketRight: false };
 const INIT_PAREN = { variable: 'indicator', operation: 'in',  value: [],                  sql_type: 'character varying', is_categorical: true,  bracketLeft: false, bracketRight: false };
-
-// Bouton toggle du panneau de contrôle (classes globales tp-ctrl-btn)
-const CtrlBtn = ({ label, value, onChange }) => (
-  <button
-    type="button"
-    className={value ? 'tp-ctrl-btn tp-ctrl-btn--active' : 'tp-ctrl-btn'}
-    onClick={() => onChange(!value)}>
-    {label}
-  </button>
-);
 
 const TestCriterionMenuPage = () => {
   // ── Métadonnées des variables (métadonnées API mockées) ──
@@ -71,12 +62,12 @@ const TestCriterionMenuPage = () => {
         <section className="tp-section">
           <h2 className="tp-h2">Panneau de contrôle</h2>
           <div className="ctrl-row">
-            <CtrlBtn label="validate"             value={validate}             onChange={setValidate} />
-            <CtrlBtn label="footer"               value={footer}               onChange={setFooter} />
-            <CtrlBtn label="showLabels"           value={showLabels}           onChange={setShowLabels} />
-            <CtrlBtn label="hideOperationWhenSet" value={hideOperationWhenSet} onChange={setHideOperationWhenSet} />
-            <CtrlBtn label="showSlider"           value={showSlider}           onChange={setShowSlider} />
-            <CtrlBtn label="parentheses"          value={parentheses}          onChange={setParentheses} />
+            <CtrlToggle label="validate"             value={validate}             onChange={setValidate} />
+            <CtrlToggle label="footer"               value={footer}               onChange={setFooter} />
+            <CtrlToggle label="showLabels"           value={showLabels}           onChange={setShowLabels} />
+            <CtrlToggle label="hideOperationWhenSet" value={hideOperationWhenSet} onChange={setHideOperationWhenSet} />
+            <CtrlToggle label="showSlider"           value={showSlider}           onChange={setShowSlider} />
+            <CtrlToggle label="parentheses"          value={parentheses}          onChange={setParentheses} />
           </div>
         </section>
 

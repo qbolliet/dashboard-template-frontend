@@ -101,11 +101,6 @@
   flex-direction: column;
   gap: var(--spacing-2xl);
 }
-.tp-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-}
 .tp-h2 {
   font-size: var(--font-size-lg, 1.125rem);
   font-weight: 600;
@@ -120,79 +115,10 @@
   padding-bottom: var(--spacing-sm);
 }
 
-// ── Contrôles (classes partagées avec test-multi-criterion-menu) ──
-.ctrl-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 1rem;
-}
-.ctrl-group {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-.ctrl-label {
-  font-size: 0.75rem;
-  color: hsl(var(--color-text-tertiary));
-  margin-right: 0.25rem;
-  white-space: nowrap;
-}
-.ctrl-hint {
-  margin: var(--spacing-xs) 2px 0;
-  font-size: 11px;
-  line-height: 1.5;
-  color: hsl(var(--color-text-tertiary));
-  max-width: 68ch;
-}
-
-.tp-ctrl-btn {
-  padding: 0.25rem 0.7rem;
-  font-size: 0.75rem;
-  border-radius: var(--border-radius-sm, 4px);
-  border: 1px solid hsl(var(--color-border));
-  background: hsl(var(--color-surface));
-  color: hsl(var(--color-text-secondary));
-  cursor: pointer;
-  transition: background 120ms, border-color 120ms, color 120ms;
-  font-family: inherit;
-  white-space: nowrap;
-
-  &:hover {
-    border-color: hsl(var(--color-text-tertiary));
-    color: hsl(var(--color-text-primary));
-  }
-}
-.tp-ctrl-btn--active {
-  background: hsl(var(--color-primary-500) / 0.12);
-  border-color: hsl(var(--color-primary-500));
-  color: hsl(var(--color-primary-500));
-  font-weight: 500;
-}
-
-.ctrl-select,
-.ctrl-text {
-  padding: 0.2rem 0.4rem;
-  font-size: 0.75rem;
-  border: 1px solid hsl(var(--color-border));
-  border-radius: var(--border-radius-sm, 4px);
-  background: hsl(var(--color-surface));
-  color: hsl(var(--color-text-primary));
-  outline: none;
-  font-family: inherit;
-
-  &:focus { border-color: hsl(var(--color-primary-500)); }
-}
-.ctrl-text { width: 8rem; }
-.ctrl-color {
-  width: 2rem;
-  height: 1.6rem;
-  padding: 0;
-  border: 1px solid hsl(var(--color-border));
-  border-radius: var(--border-radius-sm, 4px);
-  background: hsl(var(--color-surface));
-  cursor: pointer;
-}
+// Le panneau de contrôle (.tp-section, .ctrl-*, .tp-ctrl-btn) est désormais
+// stylé par src/app/_playground/PlaygroundControls.scss, partagé avec les autres
+// pages test-* : ces sélecteurs étant globaux, les redéclarer ici recréerait le
+// conflit « dernière feuille chargée gagne ».
 
 // ── Blocs de démonstration ──
 .charts-demos {

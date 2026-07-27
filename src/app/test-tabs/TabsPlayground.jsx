@@ -18,6 +18,7 @@ import {
   GridIcon, PulseIcon, TableIcon, UsersIcon,
 } from '@/components/icons';
 import { Chart } from '@/features/chart';
+import { CtrlRadio, CtrlSelect, CtrlToggle } from '../_playground';
 
 // ── Données PARTAGÉES entre l'onglet graphique et l'onglet tableau ────────────
 // Reprises À L'IDENTIQUE du prototype (tabs.html). Constante de module : la
@@ -61,47 +62,6 @@ const MANY_TABS = [
   ['s8', 'Méthodologie', DocIcon],
   ['s9', 'Sources', null],
 ];
-
-// ── Composants du panneau de contrôle (classes globales tp-ctrl-btn / ctrl-*) ──
-// Même facture que le playground de /test-chart, pour rester homogène entre pages.
-
-/** Group of exclusive buttons (radio). `options` = [{ value, label }]. */
-const CtrlRadio = ({ label, options, value, onChange }) => (
-  <div className="ctrl-group">
-    <span className="ctrl-label">{label} :</span>
-    {options.map((opt) => (
-      <button
-        key={String(opt.value)}
-        type="button"
-        className={value === opt.value ? 'tp-ctrl-btn tp-ctrl-btn--active' : 'tp-ctrl-btn'}
-        onClick={() => onChange(opt.value)}>
-        {opt.label}
-      </button>
-    ))}
-  </div>
-);
-
-/** Native <select>. `options` = [{ value, label }]. */
-const CtrlSelect = ({ label, options, value, onChange }) => (
-  <div className="ctrl-group">
-    <label className="ctrl-label">{label} :</label>
-    <select className="ctrl-select" value={value} onChange={(e) => onChange(e.target.value)}>
-      {options.map((o) => (
-        <option key={String(o.value)} value={o.value}>{o.label}</option>
-      ))}
-    </select>
-  </div>
-);
-
-/** Boolean toggle rendered as an on/off button. */
-const CtrlToggle = ({ label, value, onChange }) => (
-  <button
-    type="button"
-    className={value ? 'tp-ctrl-btn tp-ctrl-btn--active' : 'tp-ctrl-btn'}
-    onClick={() => onChange(!value)}>
-    {label}
-  </button>
-);
 
 /** Section header of a demonstration block (title + monospace meta). */
 const BlockHead = ({ title, meta }) => (

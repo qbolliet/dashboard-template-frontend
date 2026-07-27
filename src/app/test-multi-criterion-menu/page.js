@@ -6,6 +6,7 @@ import MultiCriterionMenu from '@/features/filter/components/MultiCriterionMenu/
 import { useVariableMetadata, metadataToVariables } from '@/features/filter/sources/useVariableMetadata';
 import { treeToSQL } from '@/features/filter/utils/filterEngine';
 import operations from '../../../config/filter/operations.json';
+import { CtrlRadio, CtrlToggle, CtrlNumber } from '../_playground';
 import './page.scss';
 
 // Sous-ensemble de démonstration : 4 numériques + 2 dates + 3 catégoriels + 2 textes.
@@ -15,45 +16,6 @@ const DEMO_FIELDS = [
   'country', 'sector', 'indicator',
   'libelle', 'source',
 ];
-
-// ── Composants du panneau de contrôle (classes globales tp-ctrl-btn) ──
-
-const CtrlBtn = ({ label, value, onChange }) => (
-  <button
-    type="button"
-    className={value ? 'tp-ctrl-btn tp-ctrl-btn--active' : 'tp-ctrl-btn'}
-    onClick={() => onChange(!value)}>
-    {label}
-  </button>
-);
-
-const CtrlRadio = ({ label, options, value, onChange }) => (
-  <div className="ctrl-group">
-    <span className="ctrl-label">{label} :</span>
-    {options.map((opt) => (
-      <button
-        key={opt}
-        type="button"
-        className={value === opt ? 'tp-ctrl-btn tp-ctrl-btn--active' : 'tp-ctrl-btn'}
-        onClick={() => onChange(opt)}>
-        {opt}
-      </button>
-    ))}
-  </div>
-);
-
-const CtrlNumber = ({ label, value, min, max, onChange }) => (
-  <div className="ctrl-group">
-    <label className="ctrl-label">{label} :</label>
-    <input
-      type="number"
-      className="ctrl-number"
-      value={value}
-      min={min}
-      max={max}
-      onChange={(e) => onChange(Number(e.target.value))} />
-  </div>
-);
 
 const TestMultiCriterionMenuPage = () => {
   // ── Métadonnées des variables (métadonnées API mockées) ──
@@ -100,13 +62,13 @@ const TestMultiCriterionMenuPage = () => {
           <div className="ctrl-row">
             <CtrlRadio label="orientation" options={['horizontal', 'vertical']} value={orientation} onChange={setOrientation} />
             {orientation === 'horizontal' && (
-              <CtrlBtn label="wrap" value={wrap} onChange={setWrap} />
+              <CtrlToggle label="wrap" value={wrap} onChange={setWrap} />
             )}
           </div>
 
           <div className="ctrl-row">
-            <CtrlBtn label="parentheses"    value={parentheses}    onChange={setParentheses} />
-            <CtrlBtn label="showConnectors" value={showConnectors} onChange={setShowConnectors} />
+            <CtrlToggle label="parentheses"    value={parentheses}    onChange={setParentheses} />
+            <CtrlToggle label="showConnectors" value={showConnectors} onChange={setShowConnectors} />
           </div>
 
           <div className="ctrl-row">
@@ -115,16 +77,16 @@ const TestMultiCriterionMenuPage = () => {
           </div>
 
           <div className="ctrl-row">
-            <CtrlBtn label="validate"       value={validate}       onChange={setValidate} />
-            <CtrlBtn label="footer"         value={footer}         onChange={setFooter} />
-            <CtrlBtn label="showLabels"     value={showLabels}     onChange={setShowLabels} />
-            <CtrlBtn label="showOperations" value={showOperations} onChange={setShowOperations} />
-            <CtrlBtn label="showSlider"     value={showSlider}     onChange={setShowSlider} />
+            <CtrlToggle label="validate"       value={validate}       onChange={setValidate} />
+            <CtrlToggle label="footer"         value={footer}         onChange={setFooter} />
+            <CtrlToggle label="showLabels"     value={showLabels}     onChange={setShowLabels} />
+            <CtrlToggle label="showOperations" value={showOperations} onChange={setShowOperations} />
+            <CtrlToggle label="showSlider"     value={showSlider}     onChange={setShowSlider} />
           </div>
 
           <div className="ctrl-row">
-            <CtrlBtn label="showJson" value={showJson} onChange={setShowJson} />
-            <CtrlBtn label="showSql"  value={showSql}  onChange={setShowSql} />
+            <CtrlToggle label="showJson" value={showJson} onChange={setShowJson} />
+            <CtrlToggle label="showSql"  value={showSql}  onChange={setShowSql} />
           </div>
         </section>
 

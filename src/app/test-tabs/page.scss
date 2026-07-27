@@ -2,8 +2,8 @@
 // PAGE /test-tabs — mise en page (partie statique + démos client)
 // =================================================================
 // Tailwind réservé au layout (cf. CLAUDE.md) ; ici SCSS pour rester cohérent avec
-// les autres pages test-* (classes tp-* / ctrl-* redéclarées localement, comme
-// dans test-chart et test-multi-criterion-menu). Reprise de l'entête <style> du
+// les autres pages test-*. Les classes du panneau de contrôle (ctrl-* /
+// tp-ctrl-btn) sont mutualisées dans src/app/_playground/. Reprise de l'entête <style> du
 // prototype (design-system/project/ds/tabs.html) en substituant les variables
 // globales du repo. AUCUN style des onglets ici : ils vivent dans
 // src/components/ui/Tabs/.
@@ -273,78 +273,7 @@
   color: hsl(var(--color-text-primary));
   padding-bottom: var(--spacing-md);
 }
-// ── Panneau de contrôle (classes partagées avec les autres pages test-*) ──
-.tp-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-}
-.ctrl-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 1rem;
-}
-.ctrl-group {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-.ctrl-label {
-  font-size: 0.75rem;
-  color: hsl(var(--color-text-tertiary));
-  margin-right: 0.25rem;
-  white-space: nowrap;
-}
-.ctrl-hint {
-  margin: var(--spacing-xs) 0 0;
-  font-size: var(--font-size-xs);
-  line-height: 1.5;
-  color: hsl(var(--color-text-tertiary));
-  max-width: 68ch;
-
-  code {
-    font-family: var(--font-mono, monospace);
-    color: hsl(var(--color-primary-500));
-  }
-}
-
-.tp-ctrl-btn {
-  padding: 0.25rem 0.7rem;
-  font-size: 0.75rem;
-  border-radius: var(--border-radius-sm);
-  border: 1px solid hsl(var(--color-border));
-  background: hsl(var(--color-surface));
-  color: hsl(var(--color-text-secondary));
-  cursor: pointer;
-  transition: background var(--transition-fast) ease, border-color var(--transition-fast) ease,
-    color var(--transition-fast) ease;
-  font-family: inherit;
-  white-space: nowrap;
-
-  &:hover {
-    border-color: hsl(var(--color-text-tertiary));
-    color: hsl(var(--color-text-primary));
-  }
-}
-.tp-ctrl-btn--active {
-  background: hsl(var(--color-primary-500) / 0.12);
-  border-color: hsl(var(--color-primary-500));
-  color: hsl(var(--color-primary-500));
-  font-weight: 500;
-}
-
-.ctrl-select,
-.ctrl-text {
-  padding: 0.2rem 0.4rem;
-  font-size: 0.75rem;
-  border: 1px solid hsl(var(--color-border));
-  border-radius: var(--border-radius-sm);
-  background: hsl(var(--color-surface));
-  color: hsl(var(--color-text-primary));
-  outline: none;
-  font-family: inherit;
-
-  &:focus { border-color: hsl(var(--color-primary-500)); }
-}
-.ctrl-text { width: 14rem; }
+// Le panneau de contrôle (.tp-section, .ctrl-*, .tp-ctrl-btn) est désormais
+// stylé par src/app/_playground/PlaygroundControls.scss, partagé avec les autres
+// pages test-* : ces sélecteurs étant globaux, les redéclarer ici recréerait le
+// conflit « dernière feuille chargée gagne ».
