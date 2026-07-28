@@ -24,7 +24,8 @@ import './StatCard.scss';
  * @param {string} [props.title] - Header title (small) — the nature of the figure.
  * @param {React.ReactNode} [props.header] - Replaces the whole header content (title slot).
  * @param {React.ReactNode|Object} [props.badge] - Top-right pill: ReactNode, or DeltaSpec
- *   { value, direction, tone, showArrow } (see {@link StatBadge}).
+ *   { value, direction, tone, showArrow } (see {@link StatBadge}). A boolean (e.g. from
+ *   `showDelta && spec`) is treated as absent and renders nothing.
  * @param {React.ReactNode} [props.footer] - Replaces the whole footer content.
  * @param {React.ReactNode} [props.footerTitle] - Main footer line (semi-bold).
  * @param {React.ReactNode} [props.footerNote] - Secondary footer line (gray).
@@ -70,6 +71,10 @@ const StatCard = ({
 
     const clickable = !!(href || onClick);
 
+    // Booléen explicite : un badge={false} (ex. `showDelta && spec`) ne doit ni déclencher le
+    // header ni être passé à StatBadge, qui le boxerait en objet vide.
+    const hasBadge = badge != null && typeof badge !== 'boolean';
+
     // Sémantique de bouton : Entrée et Espace activent la carte, comme un <button> natif.
     // preventDefault() sur Espace pour neutraliser le scroll de page.
     // Fonction simple (pas un hook) : pas de useCallback, le React Compiler s'en charge.
@@ -96,14 +101,14 @@ const StatCard = ({
 
     const inner = (
         <>
-            {/* Header : rendu dès qu'un slot, un titre ou un badge est fourni */}
-            {(header !== undefined || title != null || badge != null) && (
+            {/* Header : rendu dès qu'un slot, un titre ou un badge exploitable est fourni */}
+            {(header !== undefined || title != null || hasBadge) && (
                 <header className="stat-card-header">
                     {/* `header` défini (même à null) ⇒ remplacement intégral du titre */}
                     {header !== undefined
                         ? header
-                        : <h3 className="stat-card-title">{title}</h3>}
-                    {badge != null && <StatBadge spec={badge} />}
+                        : title != null && <h3 className="stat-card-title">{title}</h3>}
+                    {hasBadge && <StatBadge spec={badge} />}
                 </header>
             )}
 
