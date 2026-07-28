@@ -6,8 +6,9 @@
 // Reprend les données et la mise en scène de la démo prototype
 // (design-system/project/ds/stat-card.html) : spotlight, grille pilotable,
 // formats & variantes, mode auto, et un rappel de LinkCardsSection pour vérifier
-// la non-régression de la grille mutualisée CardGrid. Seul l'état des contrôles
-// (perRow, densité, icônes, pilules, accent) est local à ce composant.
+// la non-régression de la grille mutualisée CardGrid. Seuls l'état des contrôles
+// (perRow, densité, icônes, pilules, accent) et le compteur d'activations de la carte
+// bouton sont locaux à ce composant.
 
 // Importation des modules
 import { useState } from 'react';
@@ -77,6 +78,10 @@ const StatCardShowcase = () => {
   const [showIcon, setShowIcon] = useState(true);
   const [showBadge, setShowBadge] = useState(true);
   const [accent, setAccent] = useState(false);
+
+  // Compteur de la carte bouton : le chiffre affiché EST le nombre d'activations, ce qui rend
+  // visible aussi bien le clic souris que l'activation clavier (Entrée / Espace).
+  const [activations, setActivations] = useState(0);
 
   return (
     <>
@@ -152,10 +157,17 @@ const StatCardShowcase = () => {
           <StatCard title="Préfixe + suffixe" value={12.4} format={{ prefix: '~', suffix: ' j', decimals: 1 }}
             icon={<ClockIcon />} iconTone="warning"
             footerTitle="Délai moyen de traitement" footerNote="Objectif : < 10 j" />
-          <StatCard title="Carte cliquable" value={99.98} format={{ style: 'percent', decimals: 2 }}
+          {/* Branche href : rendue en <Link>, focusable nativement */}
+          <StatCard title="Carte-lien (href)" value={99.98} format={{ style: 'percent', decimals: 2 }}
             href="#" icon={<PulseIcon />} iconTone="positive"
             badge={{ value: 'SLA', tone: 'positive', showArrow: false }}
-            footerTitle="Voir le détail →" footerNote="Survolez la carte" />
+            footerTitle="Voir le détail →" footerNote="Survolez, ou Tab pour l'anneau de focus" />
+          {/* Branche onClick : rendue en <article role="button">, activable au clavier */}
+          <StatCard title="Carte bouton (onClick)" value={activations} format={{ unit: 'activations' }}
+            onClick={() => setActivations((n) => n + 1)}
+            icon={<CartIcon />} iconTone="warning"
+            footerTitle="Cliquez, ou Tab puis Entrée / Espace"
+            footerNote="Le chiffre compte les activations" />
         </CardGrid>
       </section>
 
