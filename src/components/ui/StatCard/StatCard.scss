@@ -45,6 +45,20 @@
       border-color: hsl(var(--stat-card-border-hover));
       transform: translateY(-2px);
     }
+
+    // Anneau de focus clavier : vaut pour le <Link> comme pour l'<article role="button">, la
+    // classe étant posée sur les deux branches. :focus-visible et non :focus, pour ne pas
+    // afficher l'anneau au clic souris.
+    &:focus-visible {
+      outline: 2px solid hsl(var(--color-focus));
+      outline-offset: 2px;
+      box-shadow: var(--shadow-md);
+    }
+
+    // Retour au repos à l'enfoncement : annule l'élévation du hover
+    &:active {
+      transform: translateY(0);
+    }
   }
 
   // Accent latéral optionnel : barre colorée sur le bord gauche

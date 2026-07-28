@@ -32,8 +32,13 @@ import './StatCard.scss';
  * @param {boolean} [props.accent=false] - Colored accent bar on the left edge.
  * @param {('primary'|'positive'|'negative'|'warning')} [props.tone='primary'] - Accent bar color.
  * @param {boolean} [props.compact=false] - Reduced density (smaller value and spacings).
- * @param {string} [props.href] - Renders the card as a <Link> (elevated hover).
- * @param {Function} [props.onClick] - Renders the card clickable (elevated hover).
+ * @param {string} [props.href] - Renders the card as a <Link> (elevated hover). Can be combined
+ *   with `onClick`.
+ * @param {Function} [props.onClick] - Renders the card clickable (elevated hover). Combines with
+ *   `href` (navigation + analytics tracking): the handler runs on the <Link> too. Without `href`,
+ *   it gives the card a full button semantic — `role="button"`, `tabIndex={0}` and activation with
+ *   Enter / Space. In that case the accessible name defaults to `title` + the formatted value
+ *   (only when `title` is a string); pass your own `aria-label` to override it.
  * @param {string} [props.className] - Additional CSS classes.
  * @param {Object} [props.style] - Inline style passthrough.
  * @returns {JSX.Element} The rendered stat card.
@@ -64,6 +69,20 @@ const StatCard = ({
     const formatted = formatStatValue(value, format);
 
     const clickable = !!(href || onClick);
+
+    // Sémantique de bouton : Entrée et Espace activent la carte, comme un <button> natif.
+    // preventDefault() sur Espace pour neutraliser le scroll de page.
+    // Fonction simple (pas un hook) : pas de useCallback, le React Compiler s'en charge.
+    const handleKeyDown = (event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        if (event.key === ' ') event.preventDefault();
+        onClick(event);
+    };
+
+    // role="button" rend les enfants présentationnels (titre, pilule, footer aplatis) : sans
+    // libellé, le nom accessible serait vide. {...rest} étant spread en dernier, un aria-label
+    // fourni par le consommateur l'emporte naturellement sur celui-ci.
+    const fallbackLabel = typeof title === 'string' ? `${title} : ${formatted}` : undefined;
 
     // Assemblage des classes : la teinte n'est posée qu'avec l'accent (elle ne pilote que la barre)
     const cls = [
@@ -116,18 +135,31 @@ const StatCard = ({
         </>
     );
 
-    // Carte-lien : <Link> de next/link, mêmes classes et styles
+    // Carte-lien : <Link> de next/link, mêmes classes et styles. onClick y est réattaché (les deux
+    // props se combinent) ; pas de gestion clavier ici, <a href> est focusable et Entrée y déclenche
+    // déjà le click nativement.
     if (href) {
         return (
-            <Link href={href} className={cls} style={style} {...rest}>
+            <Link href={href} className={cls} style={style} onClick={onClick} {...rest}>
                 {inner}
             </Link>
         );
     }
 
-    // Carte simple ; role="button" seulement en présence d'un handler
+    // Carte simple ; sémantique de bouton complète seulement en présence d'un handler. Tous les
+    // attributs interactifs sont conditionnés à onClick : sans lui, aucune fonction n'est posée sur
+    // le DOM, ce qui garde la carte rendable depuis un Server Component (cf. docstring).
     return (
-        <article className={cls} style={style} onClick={onClick} role={onClick ? 'button' : undefined} {...rest}>
+        <article
+            className={cls}
+            style={style}
+            onClick={onClick}
+            onKeyDown={onClick ? handleKeyDown : undefined}
+            role={onClick ? 'button' : undefined}
+            tabIndex={onClick ? 0 : undefined}
+            aria-label={onClick ? fallbackLabel : undefined}
+            {...rest}
+        >
             {inner}
         </article>
     );
