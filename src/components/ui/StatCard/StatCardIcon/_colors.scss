@@ -1,0 +1,17 @@
+// ===== COULEURS DU COMPOSANT STATCARDICON =====
+// Teintes de la pastille d'icône (primary / positive / negative / warning / neutral)
+//
+// Pour les dimensions, voir _tokens.scss dans ce même dossier
+
+@use '@/styles/globals/tokens/semantic-colors' as *;
+
+:root {
+  --stat-icon-primary: var(--color-primary-500);
+  --stat-icon-positive: var(--color-success-500);
+  --stat-icon-negative: var(--color-error-500);
+  --stat-icon-warning: var(--color-warning-500);
+
+  // Teinte neutre : fond plein (pas d'alpha), contrairement aux autres teintes
+  --stat-icon-neutral-bg: var(--color-gray-100);
+  --stat-icon-neutral-text: var(--color-text-secondary);
+}

@@ -1,0 +1,46 @@
+// ===== STAT CARD ICON — pastille d'icône teintée (à gauche du chiffre) =====
+// Structure : <span.stat-card-icon.stat-card-icon--{tone}> {icône fournie par le consommateur}
+//
+// Tokens : ./_tokens.scss. Couleurs : ./_colors.scss.
+
+@use './tokens' as *;
+@use './colors' as *;
+
+.stat-card-icon {
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: var(--stat-icon-size);
+  height: var(--stat-icon-size);
+  border-radius: var(--stat-icon-radius);
+
+  svg {
+    width: var(--stat-icon-svg-size);
+    height: var(--stat-icon-svg-size);
+  }
+
+  &--primary {
+    background: hsl(var(--stat-icon-primary) / 0.10);
+    color: hsl(var(--stat-icon-primary));
+  }
+
+  &--positive {
+    background: hsl(var(--stat-icon-positive) / 0.12);
+    color: hsl(var(--stat-icon-positive));
+  }
+
+  &--negative {
+    background: hsl(var(--stat-icon-negative) / 0.12);
+    color: hsl(var(--stat-icon-negative));
+  }
+
+  &--warning {
+    background: hsl(var(--stat-icon-warning) / 0.14);
+    color: hsl(var(--stat-icon-warning));
+  }
+
+  &--neutral {
+    background: hsl(var(--stat-icon-neutral-bg));
+    color: hsl(var(--stat-icon-neutral-text));
+  }
+}
