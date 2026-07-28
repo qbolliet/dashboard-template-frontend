@@ -1,0 +1,24 @@
+// ===== TOKENS DU COMPOSANT STATCARD =====
+// Dimensions, espacements et typographie de la carte de chiffre
+//
+// Pour les couleurs, voir _colors.scss dans ce même dossier
+
+:root {
+  // ===== ESPACEMENTS =====
+  // Densité normale ; la densité compacte réassigne ces deux tokens (cf. StatCard.scss)
+  --stat-card-padding: var(--spacing-2xl);
+  --stat-card-gap: var(--spacing-2xl);
+  --stat-card-padding-compact: var(--spacing-xl);
+  --stat-card-gap-compact: var(--spacing-lg);
+
+  // Écart entre la pastille d'icône et le chiffre
+  --stat-card-body-gap: var(--spacing-lg);
+
+  // ===== FORME =====
+  --stat-card-radius: var(--border-radius-xl);
+  --stat-card-accent-width: 3px;
+
+  // ===== TYPOGRAPHIE DU CHIFFRE =====
+  --stat-card-value-size: var(--font-size-5xl);
+  --stat-card-value-size-compact: var(--font-size-3xl);
+}
