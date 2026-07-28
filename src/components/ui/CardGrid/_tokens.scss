@@ -1,0 +1,14 @@
+// ===== TOKENS DE LA GRILLE DE CARTES =====
+// Variables de dimensionnement de <CardGrid>. Importées par CardGrid.scss via @use './tokens'.
+// Pas de _colors.scss dans ce dossier : la grille ne peint rien.
+
+:root {
+  // Nombre de cartes par ligne en mode normal. Surchargé en inline par la prop `perRow`.
+  --card-grid-per-row: 3;
+
+  // Largeur minimale d'une carte en mode auto-fill (240px du prototype).
+  --card-grid-min-width: 15rem;
+
+  // Écart entre les cartes, horizontal et vertical.
+  --card-grid-gap: var(--spacing-xl);
+}
