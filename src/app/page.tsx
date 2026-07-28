@@ -1,5 +1,5 @@
 import { Hero } from '../features/home/components';
-import { CardsSection } from '../components/ui';
+import { LinkCardsSection } from '../components/ui';
 import { getHomeConfig } from '../features/home/data/homeConfig';
 
 export default function Home() {
@@ -17,7 +17,7 @@ export default function Home() {
       />
       
       {/* Section des cartes avec grille responsive */}
-      <CardsSection
+      <LinkCardsSection
         cards={cards}
         cardsPerRow={cardsSection.cardsPerRow}
         title={cardsSection.title}

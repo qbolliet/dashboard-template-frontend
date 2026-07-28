@@ -1,33 +1,39 @@
-// ===== CARDS SECTION - SECTION GRILLE DE CARTES =====
+// ===== LINK CARDS SECTION - SECTION GRILLE DE CARTES DE LIEN =====
+// Structure : <section.link-cards-section> > <header> + <ul.card-grid> (voir ../CardGrid/)
+//
+// La grille elle-même vit dans CardGrid ; ce fichier ne pose que ce qui est propre à la
+// section : fond, en-tête, écarts responsive et animation d'apparition.
+//
 // Import des variables du système de design
+@use './colors' as *;
 @use '../../../styles/globals/colors';
 @use '../../../styles/globals/typography';
 @use '../../../styles/utils/breakpoints';
 
 // Container principal de la section
-.cards-section {
+.link-cards-section {
     // Espacement général de la section
     padding: var(--spacing-4xl) 0;
-    
+
     // Espacement interne
     width: 100%;
     //max-width: 1200px;
     margin: 0 auto;
     padding-left: var(--spacing-lg);
     padding-right: var(--spacing-lg);
-    
+
     // Arrière-plan adapté au thème
-    background: hsl(var(--color-cards-section-bg));
+    background: hsl(var(--link-cards-section-bg));
 }
 
 // En-tête de section avec titre et description
-.cards-section__header {
+.link-cards-section__header {
     // Centrage du contenu
     text-align: center;
-    
+
     // Espacement avec la grille
     margin-bottom: var(--spacing-4xl);
-    
+
     // Espacement maximal pour la lisibilité
     max-width: 600px;
     margin-left: auto;
@@ -35,11 +41,11 @@
 }
 
 // Titre de la section
-.cards-section__title {
+.link-cards-section__title {
     // Reset des marges par défaut
     margin: 0;
     margin-bottom: var(--spacing-lg);
-    
+
     // Typographie
     font-size: var(--font-size-3xl);
     font-weight: 700;
@@ -48,103 +54,105 @@
 }
 
 // Description de la section
-.cards-section__description {
+.link-cards-section__description {
     // Reset des marges par défaut
     margin: 0;
-    
+
     // Typographie
     font-size: var(--font-size-lg);
     line-height: var(--line-height-relaxed);
     color: hsl(var(--color-text-secondary));
 }
 
-// Grille responsive des cartes
-.cards-section__grid {
-    // CSS Grid avec nombre de colonnes configurables
-    display: grid;
-    grid-template-columns: repeat(var(--cards-per-row), 1fr);
-    gap: var(--spacing-xl);
-    
-    // Alignement et distribution
+// Adaptations de la grille mutualisée au contexte de la section
+.link-cards-section .card-grid {
+    // Cartes alignées en haut de ligne : chacune garde la hauteur de son contenu
+    // (descriptions de longueurs inégales), contrairement à l'étirement par défaut de
+    // CardGrid attendu par les cartes de statistique.
     align-items: start;
-    justify-items: stretch;
 }
 
 // Responsive : adaptation pour tablettes
 @include breakpoints.breakpoint-down(medium) {
-    .cards-section {
+    .link-cards-section {
         padding-left: var(--spacing-md);
         padding-right: var(--spacing-md);
     }
-    
-    .cards-section__grid {
-        // 2 colonnes sur tablette
-        grid-template-columns: repeat(2, 1fr);
-        gap: var(--spacing-lg);
+
+    .link-cards-section .card-grid {
+        // 2 colonnes sur tablette. Redéclaration de la propriété plutôt que du token
+        // --card-grid-per-row : CardGrid pose ce dernier en style inline, qui l'emporterait
+        // sur cette media query.
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+        // Le gap, lui, n'est pas posé en inline : la surcharge du token suffit.
+        --card-grid-gap: var(--spacing-lg);
     }
-    
-    .cards-section__title {
+
+    .link-cards-section__title {
         font-size: var(--font-size-2xl);
     }
-    
-    .cards-section__description {
+
+    .link-cards-section__description {
         font-size: var(--font-size-base);
     }
 }
 
 // Responsive : adaptation pour mobiles
 @include breakpoints.breakpoint-down(small) {
-    .cards-section {
+    .link-cards-section {
         padding: var(--spacing-3xl) var(--spacing-sm);
     }
-    
-    .cards-section__header {
+
+    .link-cards-section__header {
         margin-bottom: var(--spacing-3xl);
     }
-    
-    .cards-section__grid {
-        // 1 seule colonne sur mobile
+
+    .link-cards-section .card-grid {
+        // Colonne unique redéclarée ici : la règle 2 colonnes du palier tablette ci-dessus
+        // s'applique aussi à cette largeur et, à spécificité supérieure (.link-cards-section
+        // .card-grid), l'emporterait sur la règle mobile de CardGrid.
         grid-template-columns: 1fr;
-        gap: var(--spacing-lg);
+
+        --card-grid-gap: var(--spacing-lg);
     }
-    
-    .cards-section__title {
+
+    .link-cards-section__title {
         font-size: var(--font-size-xl);
     }
-    
-    .cards-section__description {
+
+    .link-cards-section__description {
         font-size: var(--font-size-sm);
     }
 }
 
 // Variante : grille compacte pour plus de cartes
-.cards-section--compact {
-    .cards-section__grid {
-        gap: var(--spacing-md);
-    }
-    
+.link-cards-section--compact .card-grid {
+    --card-grid-gap: var(--spacing-md);
+
     @include breakpoints.breakpoint-down(medium) {
-        .cards-section__grid {
-            gap: var(--spacing-sm);
-        }
+        --card-grid-gap: var(--spacing-sm);
     }
 }
 
 // Animation d'entrée optionnelle pour les cartes
 @media (prefers-reduced-motion: no-preference) {
-    .cards-section__grid .card {
+    .link-cards-section .card-grid .link-card {
         // Animation d'apparition en cascade
         opacity: 0;
         transform: translateY(20px);
         animation: fadeInUp var(--transition-slow) ease-out forwards;
-        
-        // Délai en cascade pour chaque carte
-        &:nth-child(1) { animation-delay: 0.1s; }
-        &:nth-child(2) { animation-delay: 0.2s; }
-        &:nth-child(3) { animation-delay: 0.3s; }
-        &:nth-child(4) { animation-delay: 0.4s; }
-        &:nth-child(5) { animation-delay: 0.5s; }
-        &:nth-child(6) { animation-delay: 0.6s; }
+    }
+
+    // Délai en cascade pour chaque carte. Le rang se lit sur la cellule <li> de la grille,
+    // pas sur la carte : celle-ci est enfant unique de sa cellule et serait toujours 1re.
+    .link-cards-section .card-grid > li {
+        &:nth-child(1) .link-card { animation-delay: 0.1s; }
+        &:nth-child(2) .link-card { animation-delay: 0.2s; }
+        &:nth-child(3) .link-card { animation-delay: 0.3s; }
+        &:nth-child(4) .link-card { animation-delay: 0.4s; }
+        &:nth-child(5) .link-card { animation-delay: 0.5s; }
+        &:nth-child(6) .link-card { animation-delay: 0.6s; }
     }
 }
 

@@ -1,11 +1,11 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import './Card.scss';
+import './LinkCard.scss';
 
 /**
- * Card component for displaying content with image, title and description
- * 
+ * Link card displaying an image, a title and a description, wrapped in a navigation link.
+ *
  * @param {Object} props - Component props
  * @param {string} props.image - Image source URL
  * @param {string} props.title - Card title
@@ -13,34 +13,34 @@ import './Card.scss';
  * @param {string} props.link - Navigation link URL
  * @param {string} [props.className] - Additional CSS classes
  */
-const Card = ({ 
-  image, 
-  title, 
-  description, 
-  link, 
+const LinkCard = ({
+  image,
+  title,
+  description,
+  link,
   className = '',
-  ...props 
+  ...props
 }) => {
   return (
-    <Link href={link} className={`card ${className}`} {...props}>
+    <Link href={link} className={`link-card ${className}`} {...props}>
       {/* Image container avec optimisation Next.js */}
-      <figure className="card__image">
-        <Image 
-          src={image} 
+      <figure className="link-card__image">
+        <Image
+          src={image}
           alt={title}
           width={200}
           height={200}
-          className="card__image-element"
+          className="link-card__image-element"
         />
       </figure>
-      
+
       {/* Contenu textuel */}
-      <article className="card__content">
-        <h3 className="card__title">{title}</h3>
-        <p className="card__description">{description}</p>
+      <article className="link-card__content">
+        <h3 className="link-card__title">{title}</h3>
+        <p className="link-card__description">{description}</p>
       </article>
     </Link>
   );
 };
 
-export default Card;
+export default LinkCard;
