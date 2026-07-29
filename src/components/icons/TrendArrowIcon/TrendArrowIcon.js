@@ -12,12 +12,19 @@ const PATHS = {
  *
  * @param {('up'|'down'|'flat')} direction - Arrow direction (default: 'up').
  * @param {string} className - Additional CSS classes.
+ * @param {number} width - Icon width (default: 16, usually overridden by CSS).
+ * @param {number} height - Icon height (default: 16, usually overridden by CSS).
  * @param {Object} props - Other props forwarded to the SVG.
  * @returns {JSX.Element} The rendered trend arrow icon SVG.
  */
+// Pas de 'use client' ici (contrairement aux icônes sœurs) : cette icône est
+// consommée par StatBadge, un Server Component, et n'a besoin d'aucun hook ni
+// API navigateur — ajouter la directive créerait une frontière client inutile.
 const TrendArrowIcon = ({
     direction = 'up',
     className = '',
+    width = 16,
+    height = 16,
     ...props
 }) => {
     // Repli sur 'up' si une direction inconnue est fournie
@@ -25,6 +32,8 @@ const TrendArrowIcon = ({
 
     return (
         <svg
+            width={width}
+            height={height}
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
