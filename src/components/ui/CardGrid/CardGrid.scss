@@ -14,8 +14,14 @@
 
 // ===== GRILLE =====
 .card-grid {
+    // Indirection volontaire : --card-grid-per-row est posé en style INLINE par le composant
+    // (prop `perRow`) et l'emporterait sur toute règle de feuille de style. On en dérive ici
+    // --card-grid-columns, déclaré en feuille de style, qui est le seul token consommé par
+    // grid-template-columns : media queries et consommateurs surchargent celui-là.
+    --card-grid-columns: var(--card-grid-per-row);
+
     display: grid;
-    grid-template-columns: repeat(var(--card-grid-per-row), minmax(0, 1fr));
+    grid-template-columns: repeat(var(--card-grid-columns), minmax(0, 1fr));
     gap: var(--card-grid-gap);
 
     // Reset de la liste : le <ul> ne sert qu'à la sémantique (role="list" conservé côté JSX
@@ -25,9 +31,13 @@
     padding: 0;
 }
 
-// Mode auto-fill : le nombre de colonnes découle de la largeur disponible
+// Mode auto-fill : le nombre de colonnes découle de la largeur disponible.
+// min(--card-grid-min-width, 100%) et non la variable seule : auto-fill ne fait que réduire
+// le NOMBRE de colonnes, il ne rétrécit jamais leur largeur plancher. Sans ce clamp, un
+// conteneur plus étroit que minWidth garde une colonne à minWidth et déborde
+// horizontalement (barre de défilement au niveau du <body> sur mobile).
 .card-grid--auto {
-    grid-template-columns: repeat(auto-fill, minmax(var(--card-grid-min-width), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--card-grid-min-width), 100%), 1fr));
 }
 
 // ===== CELLULE =====
@@ -38,15 +48,14 @@
 }
 
 // ===== RESPONSIVE =====
-// Une seule carte par ligne sur mobile. La propriété est redéclarée plutôt que le token
-// --card-grid-per-row : ce dernier est posé en style inline par le composant et
-// l'emporterait sur cette media query.
+// Une seule carte par ligne sur mobile, en retargetant --card-grid-columns (cf. l'indirection
+// documentée plus haut). Un consommateur qui veut ses propres paliers surcharge ce même token
+// plutôt que de redéclarer grid-template-columns (cf. LinkCardsSection.scss).
 // Le mode auto est exclu : auto-fill dérive déjà son nombre de colonnes de la largeur
 // disponible et de --card-grid-min-width, et collapse de lui-même à une colonne quand
-// minWidth dépasse le viewport. Forcer 1fr ici écraserait ce calcul et étirerait chaque
-// carte bien au-delà de sa largeur minimale.
+// minWidth dépasse le viewport. Forcer une colonne ici écraserait ce calcul.
 @include breakpoint-down('small') {
     .card-grid:not(.card-grid--auto) {
-        grid-template-columns: 1fr;
+        --card-grid-columns: 1;
     }
 }

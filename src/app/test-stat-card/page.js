@@ -30,8 +30,8 @@ const TestStatCardPage = () => {
       <StatCardShowcase />
 
       {/* ── Section 5 — LinkCardsSection (non-régression) ── */}
-      <section className="stat-card-section">
-        <h2 className="stat-card-section-label">LinkCardsSection (non-régression)</h2>
+      <section className="test-stat-card-section">
+        <h2 className="test-stat-card-section-label">LinkCardsSection (non-régression)</h2>
         <LinkCardsSection
           cards={cards.slice(0, 3)}
           cardsPerRow={3}

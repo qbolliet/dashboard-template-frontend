@@ -89,8 +89,8 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--spacing-md);
-  // Hauteur plancher du prototype (20px) : aligne les corps de cartes sans titre
-  min-height: var(--spacing-xl);
+  // Hauteur plancher du prototype : borne basse quand le header ne porte qu'une pilule
+  min-height: var(--stat-card-header-min-height);
 }
 
 .stat-card-title {
@@ -113,6 +113,14 @@
   display: flex;
   align-items: center;
   gap: var(--stat-card-body-gap);
+
+  // Carte sans header : celui-ci n'est pas rendu du tout (cf. StatCard.jsx), un min-height
+  // posé dessus ne réserverait donc aucune place. C'est le corps, devenu premier enfant, qui
+  // compense la hauteur du header absent — plancher + gap de la carte — pour que les chiffres
+  // d'une même ligne de grille restent alignés avec ceux des cartes titrées.
+  &:first-child {
+    padding-top: calc(var(--stat-card-header-min-height) + var(--stat-card-gap));
+  }
 }
 
 .stat-card-value {
@@ -120,7 +128,7 @@
   min-width: 0;
   font-size: var(--stat-card-value-size);
   font-weight: 700;
-  line-height: 1.05;
+  line-height: var(--stat-card-value-line-height);
   letter-spacing: -0.02em;
   color: hsl(var(--stat-card-value));
   font-variant-numeric: tabular-nums;

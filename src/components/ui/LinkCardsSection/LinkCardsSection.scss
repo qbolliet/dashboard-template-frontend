@@ -80,12 +80,8 @@
     }
 
     .link-cards-section .card-grid {
-        // 2 colonnes sur tablette. Redéclaration de la propriété plutôt que du token
-        // --card-grid-per-row : CardGrid pose ce dernier en style inline, qui l'emporterait
-        // sur cette media query.
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-
-        // Le gap, lui, n'est pas posé en inline : la surcharge du token suffit.
+        // 2 colonnes sur tablette : surcharge du token dérivé exposé par CardGrid.
+        --card-grid-columns: 2;
         --card-grid-gap: var(--spacing-lg);
     }
 
@@ -112,8 +108,7 @@
         // Colonne unique redéclarée ici : la règle 2 colonnes du palier tablette ci-dessus
         // s'applique aussi à cette largeur et, à spécificité supérieure (.link-cards-section
         // .card-grid), l'emporterait sur la règle mobile de CardGrid.
-        grid-template-columns: 1fr;
-
+        --card-grid-columns: 1;
         --card-grid-gap: var(--spacing-lg);
     }
 

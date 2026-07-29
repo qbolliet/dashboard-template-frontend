@@ -16,7 +16,7 @@
   font-size: var(--stat-badge-font-size);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  line-height: 1.4;
+  line-height: var(--stat-badge-line-height);
   white-space: nowrap;
   border: 1px solid hsl(var(--stat-badge-border));
   background: hsl(var(--stat-badge-bg));

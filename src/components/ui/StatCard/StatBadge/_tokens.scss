@@ -11,6 +11,9 @@
 
   // ===== TYPOGRAPHIE =====
   --stat-badge-font-size: var(--font-size-xs);
+  // Interlignage propre à la pilule : l'échelle globale (tight 1.25 / normal 1.5) est trop
+  // large pour un texte de 12px enfermé dans un padding de 2px — il ferait grossir la pilule
+  --stat-badge-line-height: 1.4;
 
   // ===== ICÔNE =====
   --stat-badge-icon-size: 0.75rem;

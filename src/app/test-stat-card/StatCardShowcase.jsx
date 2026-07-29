@@ -71,9 +71,9 @@ const StatCardShowcase = () => {
   return (
     <>
       {/* ── Section 1 — Aperçu ── */}
-      <section className="stat-card-section">
-        <h2 className="stat-card-section-label">Aperçu</h2>
-        <div className="stat-card-spotlight">
+      <section className="test-stat-card-section">
+        <h2 className="test-stat-card-section-label">Aperçu</h2>
+        <div className="test-stat-card-spotlight">
           <StatCard
             title="Total Revenue"
             value={1250}
@@ -85,10 +85,10 @@ const StatCardShowcase = () => {
       </section>
 
       {/* ── Section 2 — Grille pilotable ── */}
-      <section className="stat-card-section">
-        <h2 className="stat-card-section-label">Grille pilotable</h2>
+      <section className="test-stat-card-section">
+        <h2 className="test-stat-card-section-label">Grille pilotable</h2>
 
-        <div className="tp-section stat-card-controls">
+        <div className="tp-section test-stat-card-controls">
           <div className="ctrl-row">
             <CtrlRadio
               label="Cartes / ligne"
@@ -123,8 +123,8 @@ const StatCardShowcase = () => {
       </section>
 
       {/* ── Section 3 — Formats & variantes ── */}
-      <section className="stat-card-section">
-        <h2 className="stat-card-section-label">Formats &amp; variantes</h2>
+      <section className="test-stat-card-section">
+        <h2 className="test-stat-card-section-label">Formats &amp; variantes</h2>
         <CardGrid perRow={3}>
           <StatCard title="Sans icône" value={48210} format={{ compact: true }}
             footerTitle="Le chiffre occupe toute la ligne" footerNote="Aucune icône fournie" />
@@ -157,8 +157,8 @@ const StatCardShowcase = () => {
       </section>
 
       {/* ── Section 4 — Mode auto ── */}
-      <section className="stat-card-section">
-        <h2 className="stat-card-section-label">Mode auto</h2>
+      <section className="test-stat-card-section">
+        <h2 className="test-stat-card-section-label">Mode auto</h2>
         <CardGrid auto minWidth="15rem">
           {KPIS.slice(0, 4).map((k) => (
             <StatCard

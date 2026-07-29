@@ -22,7 +22,9 @@ import './StatCard.scss';
  * @param {('primary'|'positive'|'negative'|'warning'|'neutral')} [props.iconTone='primary'] - Icon chip tint.
  * @param {('primary'|'positive'|'negative')} [props.valueTone] - Tint of the value itself.
  * @param {string} [props.title] - Header title (small) — the nature of the figure.
- * @param {React.ReactNode} [props.header] - Replaces the whole header content (title slot).
+ * @param {React.ReactNode} [props.header] - Replaces the title slot only, `title` included.
+ *   The badge, if any, still renders next to it in the header row — pass your own markup
+ *   through this slot only for the left-hand side.
  * @param {React.ReactNode|Object} [props.badge] - Top-right pill: ReactNode, or DeltaSpec
  *   { value, direction, tone, showArrow } (see {@link StatBadge}). A boolean (e.g. from
  *   `showDelta && spec`) is treated as absent and renders nothing.
@@ -38,8 +40,9 @@ import './StatCard.scss';
  * @param {Function} [props.onClick] - Renders the card clickable (elevated hover). Combines with
  *   `href` (navigation + analytics tracking): the handler runs on the <Link> too. Without `href`,
  *   it gives the card a full button semantic — `role="button"`, `tabIndex={0}` and activation with
- *   Enter / Space. In that case the accessible name defaults to `title` + the formatted value
- *   (only when `title` is a string); pass your own `aria-label` to override it.
+ *   Enter (on key down) / Space (on key up, like a native button). Keys pressed on a focusable
+ *   descendant do not activate the card. In that case the accessible name defaults to `title` +
+ *   the formatted value (only when `title` is a string); pass your own `aria-label` to override it.
  * @param {string} [props.className] - Additional CSS classes.
  * @param {Object} [props.style] - Inline style passthrough.
  * @returns {JSX.Element} The rendered stat card.
@@ -75,12 +78,26 @@ const StatCard = ({
     // header ni être passé à StatBadge, qui le boxerait en objet vide.
     const hasBadge = badge != null && typeof badge !== 'boolean';
 
-    // Sémantique de bouton : Entrée et Espace activent la carte, comme un <button> natif.
-    // preventDefault() sur Espace pour neutraliser le scroll de page.
-    // Fonction simple (pas un hook) : pas de useCallback, le React Compiler s'en charge.
+    // Sémantique de bouton, calquée sur le comportement natif de <button> :
+    //   - Entrée active dès le keydown (et se répète si la touche est maintenue, comme
+    //     nativement) ;
+    //   - Espace n'active qu'au keyup. Activer au keydown ferait répéter onClick au rythme
+    //     de l'auto-répétition du clavier tant que la touche reste enfoncée. Le keydown se
+    //     contente donc du preventDefault() qui neutralise le scroll de page.
+    // La garde target === currentTarget évite d'activer la carte quand la touche vise un
+    // descendant focusable (lien du footer, bouton dans un slot) : l'événement remonte
+    // jusqu'ici mais ne nous concerne pas.
+    // Fonctions simples (pas des hooks) : pas de useCallback, le React Compiler s'en charge.
     const handleKeyDown = (event) => {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
+        if (event.target !== event.currentTarget) return;
+        if (event.key === 'Enter') { onClick(event); return; }
         if (event.key === ' ') event.preventDefault();
+    };
+
+    const handleKeyUp = (event) => {
+        if (event.target !== event.currentTarget) return;
+        if (event.key !== ' ') return;
+        event.preventDefault();
         onClick(event);
     };
 
@@ -161,15 +178,21 @@ const StatCard = ({
     // Carte simple ; sémantique de bouton complète seulement en présence d'un handler. Tous les
     // attributs interactifs sont conditionnés à onClick : sans lui, aucune fonction n'est posée sur
     // le DOM, ce qui garde la carte rendable depuis un Server Component (cf. docstring).
+    // suppressHydrationWarning aussi ici : fallbackLabel réinjecte la valeur formatée dans
+    // aria-label, donc l'écart d'ICU décrit plus haut frapperait cet attribut. Sans lui, React
+    // corrigerait l'attribut côté client alors que le <strong> (suppressed) garderait le texte
+    // du serveur — nom accessible et texte visible finiraient durablement désaccordés.
     return (
         <article
             className={cls}
             style={style}
             onClick={onClick}
             onKeyDown={onClick ? handleKeyDown : undefined}
+            onKeyUp={onClick ? handleKeyUp : undefined}
             role={onClick ? 'button' : undefined}
             tabIndex={onClick ? 0 : undefined}
             aria-label={onClick ? fallbackLabel : undefined}
+            suppressHydrationWarning={onClick ? true : undefined}
             {...rest}
         >
             {inner}

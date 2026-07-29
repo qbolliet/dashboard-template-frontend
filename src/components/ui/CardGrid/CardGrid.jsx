@@ -7,6 +7,8 @@ import './CardGrid.scss';
  *
  * @param {Object} props - Component props
  * @param {number} [props.perRow=3] - Cards per row; each card gets an equal share (1fr).
+ *   Consumers wanting their own breakpoint steps override the `--card-grid-columns`
+ *   custom property rather than this prop.
  * @param {boolean} [props.auto=false] - Ignore perRow: auto-fill with minWidth per card.
  * @param {string} [props.minWidth] - Minimum card width in auto mode (CSS length, e.g. '15rem').
  * @param {string} [props.gap] - Gap override (CSS length or token, e.g. 'var(--spacing-lg)').
@@ -27,11 +29,11 @@ const CardGrid = ({
   // Variables posées en inline : uniquement celles que le mode courant pilote, afin de
   // laisser les autres à la valeur de _tokens.scss (et donc surchargeables en CSS).
   //
-  // ⚠️ Une custom property inline l'emporte sur toute règle de feuille de style, media
-  // query comprise : un consommateur qui veut faire varier le nombre de colonnes selon le
-  // palier doit redéclarer `grid-template-columns` (cf. LinkCardsSection.scss), pas
-  // surcharger --card-grid-per-row. Les tokens NON posés ici (gap en particulier, tant que
-  // la prop `gap` n'est pas fournie) restent, eux, surchargeables normalement.
+  // --card-grid-per-row n'est que l'ENTRÉE du calcul : la feuille de style en dérive
+  // --card-grid-columns, seul token réellement consommé par grid-template-columns. C'est
+  // ce dernier que les media queries et les consommateurs surchargent — un style inline
+  // l'emporterait sur toute règle de feuille de style, l'indirection contourne le problème
+  // (cf. le palier mobile de CardGrid.scss et les paliers de LinkCardsSection.scss).
   const vars = {
     ...(auto
       ? minWidth && { '--card-grid-min-width': minWidth }
@@ -45,11 +47,21 @@ const CardGrid = ({
     .filter(Boolean)
     .join(' ');
 
+  // Children.toArray plutôt que Children.map : ce dernier invoque son callback pour les
+  // enfants null / false, ce qui produirait une cellule <li> vide par carte omise
+  // conditionnellement (`{cond && <Card/>}`) et laisserait un trou dans la grille.
+  // toArray les écarte et assigne une clé à chaque enfant restant.
+  const cells = React.Children.toArray(children);
+
   return (
     <ul className={classNames} role="list" style={vars} {...rest}>
-      {/* Une cellule de grille par enfant : la carte s'étire dans son <li> */}
-      {React.Children.map(children, (child) => (
-        <li>{child}</li>
+      {/* Une cellule de grille par enfant : la carte s'étire dans son <li>.
+          role="listitem" explicite : le <li> est passé en display: grid par la feuille de
+          style, ce qui lui fait perdre son rôle implicite sur certains lecteurs d'écran. */}
+      {cells.map((child, index) => (
+        // child.key est posée par toArray sur les éléments ; repli sur l'index pour les
+        // enfants primitifs (chaîne, nombre), auxquels toArray n'attribue pas de clé.
+        <li key={child.key ?? index} role="listitem">{child}</li>
       ))}
     </ul>
   );

@@ -20,9 +20,11 @@
  * @property {number} [decimals] - Sets both minimumFractionDigits and maximumFractionDigits.
  * @property {number} [minDecimals] - Overrides minimumFractionDigits after `decimals` is applied.
  * @property {number} [maxDecimals] - Overrides maximumFractionDigits after `decimals` is applied.
- *   When both bounds end up defined and the minimum exceeds the maximum (e.g.
- *   `{ decimals: 3, maxDecimals: 1 }`), the minimum is lowered to the maximum: the explicit
- *   upper bound wins, consistently with min/maxDecimals overriding `decimals`.
+ *   When both bounds end up defined and the minimum exceeds the maximum, the explicitly
+ *   provided one wins over the one merely inherited from `decimals`: with
+ *   `{ decimals: 3, maxDecimals: 1 }` the minimum drops to 1, while with
+ *   `{ decimals: 1, minDecimals: 3 }` the maximum rises to 3. When both bounds are explicit
+ *   (`{ minDecimals: 3, maxDecimals: 1 }`), the upper bound wins and the minimum drops.
  * @property {boolean} [compact] - Uses Intl's 'compact' notation (e.g. 1.2M).
  * @property {string} [prefix] - Text prepended to the formatted number (ignored on the
  *   'currency' branch).
@@ -61,12 +63,19 @@ export function formatNumber(value, f) {
 
   // Garde-fou : Intl lève une RangeError si les DEUX bornes sont fournies et que min > max
   // (ex. { decimals: 3, maxDecimals: 1 }). Non rattrapée, elle remonterait hors du render et
-  // ferait tomber la route entière. La borne haute explicite gagne, on abaisse le minimum.
+  // ferait tomber la route entière. On arbitre en faveur de la borne EXPLICITE, c'est-à-dire
+  // celle posée par minDecimals/maxDecimals — une borne héritée de `decimals` n'est qu'un
+  // défaut et doit céder. Si les deux sont explicites, c'est la borne haute qui gagne, par
+  // cohérence avec l'ordre d'application documenté.
   // Quand une seule borne est fournie, ECMA-402 rabat lui-même la borne par défaut : rien à faire.
   if (opts.minimumFractionDigits != null
     && opts.maximumFractionDigits != null
     && opts.minimumFractionDigits > opts.maximumFractionDigits) {
-    opts.minimumFractionDigits = opts.maximumFractionDigits;
+    if (f.maxDecimals != null) {
+      opts.minimumFractionDigits = opts.maximumFractionDigits;
+    } else {
+      opts.maximumFractionDigits = opts.minimumFractionDigits;
+    }
   }
 
   if (f.style === 'currency') {

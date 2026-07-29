@@ -14,6 +14,11 @@
   // Écart entre la pastille d'icône et le chiffre
   --stat-card-body-gap: var(--spacing-lg);
 
+  // Hauteur plancher du header. Sert deux fois : de min-height au header quand il existe, et
+  // de compensation au corps quand il n'y en a pas — c'est ce qui aligne les chiffres de
+  // cartes titrées et non titrées sur une même ligne de grille (cf. StatCard.scss).
+  --stat-card-header-min-height: var(--spacing-xl);
+
   // ===== FORME =====
   --stat-card-radius: var(--border-radius-xl);
   --stat-card-accent-width: 3px;
@@ -21,6 +26,9 @@
   // ===== TYPOGRAPHIE DU CHIFFRE =====
   --stat-card-value-size: var(--font-size-5xl);
   --stat-card-value-size-compact: var(--font-size-3xl);
+  // Interlignage serré propre au chiffre : l'échelle globale démarre à 1.25 (tight), trop
+  // aéré pour un display de 36px dont on veut coller le bloc au titre et au footer
+  --stat-card-value-line-height: 1.05;
 
   // ===== FOOTER =====
   // Écart icône ↔ texte du prototype

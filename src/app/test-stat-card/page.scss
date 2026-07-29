@@ -34,12 +34,15 @@
 }
 
 // ── Sections de démonstration ──
-.stat-card-section {
+// Préfixe `test-stat-card-` et non `stat-card-` : cette feuille est globale (non modulaire)
+// et le second namespace appartient au composant <StatCard> lui-même (StatCard.scss). Même
+// convention que les pages sœurs (.test-chart-*).
+.test-stat-card-section {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-lg);
 }
-.stat-card-section-label {
+.test-stat-card-section-label {
   font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -51,13 +54,13 @@
 }
 
 // Aperçu : carte de référence contrainte en largeur, comme le prototype.
-.stat-card-spotlight {
+.test-stat-card-spotlight {
   max-width: 380px;
 }
 
 // Panneau de contrôle de la grille pilotable : léger encart pour le distinguer
 // visuellement de la grille de cartes qui suit.
-.stat-card-controls {
+.test-stat-card-controls {
   padding: var(--spacing-md) var(--spacing-lg);
   border: 1px solid hsl(var(--color-border));
   border-radius: var(--border-radius-lg);

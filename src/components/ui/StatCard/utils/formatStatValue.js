@@ -6,9 +6,7 @@
 // formatteur fourni sous forme de fonction.
 
 import { formatNumber } from '@/utils/format/formatNumber';
-
-// Tiret cadratin : même placeholder que les cellules vides de la table (formatCell.js).
-const EMPTY_PLACEHOLDER = '—';
+import { EMPTY_PLACEHOLDER } from '@/utils/format/constants';
 
 /**
  * Formats a stat value according to a FormatSpec (Intl.NumberFormat based), or via a
@@ -33,5 +31,3 @@ export const formatStatValue = (value, f) => {
 
     return formatNumber(value, f);
 };
-
-export default formatStatValue;

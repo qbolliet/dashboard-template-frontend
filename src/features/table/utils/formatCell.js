@@ -8,6 +8,7 @@
 // partagé avec <StatCard>, qui ne peut pas importer depuis src/features/.
 
 import { formatNumber } from '@/utils/format/formatNumber';
+import { EMPTY_PLACEHOLDER } from '@/utils/format/constants';
 
 // Ré-export : formatNumber fait partie de la surface publique de la feature
 // (cf. `export * from './utils/formatCell'` dans index.js), les consommateurs
@@ -65,7 +66,7 @@ export function isNumericCol(col) {
  */
 export function formatCell(value, col, row) {
   if (col.render) return col.render(value, row);
-  if (value == null || value === '') return '—';
+  if (value == null || value === '') return EMPTY_PLACEHOLDER;
   const f = col.format;
   if (typeof f === 'function') return f(value, row);
   if (f && typeof f === 'object') return formatNumber(value, f);

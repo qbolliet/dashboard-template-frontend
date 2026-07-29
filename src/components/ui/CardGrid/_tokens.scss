@@ -3,7 +3,9 @@
 // Pas de _colors.scss dans ce dossier : la grille ne peint rien.
 
 :root {
-  // Nombre de cartes par ligne en mode normal. Surchargé en inline par la prop `perRow`.
+  // Nombre de cartes par ligne demandé, en mode normal. Surchargé en inline par la prop
+  // `perRow`. C'est l'entrée du calcul : la grille en dérive --card-grid-columns, le token
+  // à surcharger pour faire varier le nombre de colonnes par palier (cf. CardGrid.scss).
   --card-grid-per-row: 3;
 
   // Largeur minimale d'une carte en mode auto-fill (240px du prototype).
