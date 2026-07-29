@@ -1,0 +1,223 @@
+// =================================================================
+// PAGE /test-globe — mise en page (partie statique + démos)
+// =================================================================
+// Tailwind réservé au layout (cf. CLAUDE.md) ; ici SCSS pour rester cohérent
+// avec les autres pages test-* (pattern test-chart : classes test-globe-*
+// propres à la page ; .api-card-scroll/.api-table repris à l'identique de
+// test-chart/page.scss — même structure, même rendu, pas de fichier partagé).
+
+@use '../../styles/utils/breakpoints' as *;
+
+.test-globe-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2xl);
+}
+
+// ── Entête statique ──
+.test-globe-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+.test-globe-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: hsl(var(--color-text-primary));
+}
+.test-globe-sub {
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-tertiary));
+  line-height: var(--line-height-relaxed);
+  max-width: 68ch;
+
+  code {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85em;
+    background: hsl(var(--color-primary-500) / 0.08);
+    color: hsl(var(--color-primary-500));
+    padding: 1px 5px;
+    border-radius: var(--border-radius-sm, 3px);
+  }
+}
+
+// ── Étiquette de section (uppercase) ──
+.test-globe-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--color-text-tertiary));
+  margin: 0 0 var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid hsl(var(--color-border));
+}
+
+// ── Capacités (grille 2×2, transposée de globe.html .feat-grid/.feat) ──
+.test-globe-features {
+  display: flex;
+  flex-direction: column;
+}
+.test-globe-feat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-md);
+
+  @include breakpoint-down('small') {
+    grid-template-columns: 1fr;
+  }
+}
+.test-globe-feat {
+  border: 1px solid hsl(var(--color-border));
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: hsl(var(--color-surface));
+}
+.test-globe-feat-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--color-text-primary));
+  margin: 0 0 4px;
+}
+.test-globe-feat-ico {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--border-radius-sm);
+  background: hsl(var(--color-primary-500) / 0.10);
+  color: hsl(var(--color-primary-500));
+  flex-shrink: 0;
+
+  svg { width: 13px; height: 13px; }
+}
+.test-globe-feat-desc {
+  margin: 0;
+  font-size: 12.5px;
+  color: hsl(var(--color-text-tertiary));
+  line-height: 1.55;
+
+  code {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.9em;
+    background: hsl(var(--color-primary-500) / 0.08);
+    color: hsl(var(--color-primary-500));
+    padding: 1px 5px;
+    border-radius: var(--border-radius-sm, 3px);
+  }
+}
+
+// ── Démos (transposées de globe.html .gb-block) ──
+.test-globe-showcase {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3xl, 2.5rem);
+}
+.test-globe-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+.test-globe-block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+.test-globe-block-title {
+  font-size: var(--font-size-lg, 1.125rem);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: hsl(var(--color-text-primary));
+}
+.test-globe-block-meta {
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: hsl(var(--color-text-tertiary));
+}
+.test-globe-block-note {
+  font-size: var(--font-size-sm, 0.875rem);
+  color: hsl(var(--color-text-tertiary));
+  line-height: var(--line-height-relaxed);
+  max-width: 72ch;
+  margin-bottom: var(--spacing-xs);
+}
+
+// ── Tableaux d'API — repris à l'identique de test-chart/page.scss ──
+.test-globe-api {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+.test-globe-api-note {
+  font-size: var(--font-size-sm, 0.875rem);
+  color: hsl(var(--color-text-secondary));
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+}
+.api-card-scroll {
+  overflow-x: auto;
+  border: 1px solid hsl(var(--color-border));
+  border-radius: var(--border-radius-lg, 8px);
+  background: hsl(var(--color-surface));
+}
+.api-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-xs, 0.75rem);
+
+  th, td {
+    text-align: left;
+    padding: 7px 10px;
+    border-bottom: 1px solid hsl(var(--color-border));
+    vertical-align: top;
+  }
+  th {
+    font-weight: 500;
+    color: hsl(var(--color-text-tertiary));
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  code {
+    font-family: var(--font-mono, monospace);
+    font-size: 11.5px;
+    color: hsl(var(--color-primary-500));
+    background: hsl(var(--color-primary-500) / 0.08);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  .api-typ {
+    font-family: var(--font-mono, monospace);
+    font-size: 11px;
+    color: hsl(var(--color-text-tertiary));
+    white-space: nowrap;
+  }
+}
+
+// ── Snippet d'usage (transposé de globe.html .snippet) ──
+.test-globe-snippet {
+  background: hsl(var(--color-gray-900));
+  color: hsl(var(--color-gray-100));
+  border-radius: var(--border-radius-md);
+  font-family: var(--font-mono, monospace);
+  font-size: 12px;
+  line-height: 1.65;
+  padding: var(--spacing-lg);
+  overflow-x: auto;
+  margin: 0;
+  white-space: pre;
+
+  [data-theme='dark'] & {
+    background: hsl(var(--color-gray-200));
+    color: hsl(var(--color-gray-800));
+  }
+}
