@@ -5,18 +5,15 @@
 // =================================================================
 // Reprend les données et la mise en scène de la démo prototype
 // (design-system/project/ds/stat-card.html) : spotlight, grille pilotable,
-// formats & variantes, mode auto, et un rappel de LinkCardsSection pour vérifier
-// la non-régression de la grille mutualisée CardGrid. Seuls l'état des contrôles
-// (perRow, densité, icônes, pilules, accent) et le compteur d'activations de la carte
-// bouton sont locaux à ce composant.
+// formats & variantes, mode auto. Seuls l'état des contrôles (perRow, densité,
+// icônes, pilules, accent) et le compteur d'activations de la carte bouton sont
+// locaux à ce composant.
 
 // Importation des modules
 import { useState } from 'react';
-import { StatCard, CardGrid, LinkCardsSection } from '@/components/ui';
-import { TrendArrowIcon } from '@/components/icons';
+import { StatCard, CardGrid } from '@/components/ui';
+import { TrendArrowIcon, UsersIcon, PulseIcon } from '@/components/icons';
 import { CtrlRadio, CtrlToggle } from '../_playground';
-import homeContent from '../../../config/content/home.json';
-import './page.scss';
 
 /* ── Icônes locales de démo — n'appartiennent qu'à cette page ──────────── */
 const EuroIcon = (props) => (
@@ -24,23 +21,11 @@ const EuroIcon = (props) => (
     <path d="M15 6.5A5.5 5.5 0 1 0 15 17.5M5 10h7M5 14h6" />
   </svg>
 );
-const UsersIcon = (props) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <circle cx="9" cy="8" r="3.2" />
-    <path d="M3.5 20a5.5 5.5 0 0 1 11 0" />
-    <path d="M16 5.2a3.2 3.2 0 0 1 0 6M17.5 20a5.5 5.5 0 0 0-3-4.9" />
-  </svg>
-);
 const CartIcon = (props) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <circle cx="9" cy="20" r="1.4" />
     <circle cx="18" cy="20" r="1.4" />
     <path d="M2 3h3l2.3 12.3a1.5 1.5 0 0 0 1.5 1.2h8.4a1.5 1.5 0 0 0 1.5-1.2L21.5 7H6" />
-  </svg>
-);
-const PulseIcon = (props) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M3 12h4l2.5-7 5 14 2.5-7H21" />
   </svg>
 );
 const ClockIcon = (props) => (
@@ -188,16 +173,6 @@ const StatCardShowcase = () => {
               footerNote={k.footerNote} />
           ))}
         </CardGrid>
-      </section>
-
-      {/* ── Section 5 — LinkCardsSection (non-régression) ── */}
-      <section className="stat-card-section">
-        <h2 className="stat-card-section-label">LinkCardsSection (non-régression)</h2>
-        <LinkCardsSection
-          cards={homeContent.cards.slice(0, 3)}
-          cardsPerRow={3}
-          title={homeContent.cardsSection.title}
-          description={homeContent.cardsSection.description} />
       </section>
     </>
   );
