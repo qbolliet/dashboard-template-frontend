@@ -21,4 +21,10 @@
   // ===== TYPOGRAPHIE DU CHIFFRE =====
   --stat-card-value-size: var(--font-size-5xl);
   --stat-card-value-size-compact: var(--font-size-3xl);
+
+  // ===== FOOTER =====
+  // Écart icône ↔ texte du prototype
+  --stat-card-footer-icon-gap: 0.375rem;
+  // Taille d'icône du prototype
+  --stat-card-footer-icon-size: 0.875rem;
 }

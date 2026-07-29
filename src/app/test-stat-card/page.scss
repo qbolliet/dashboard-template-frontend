@@ -40,7 +40,7 @@
   gap: var(--spacing-lg);
 }
 .stat-card-section-label {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;

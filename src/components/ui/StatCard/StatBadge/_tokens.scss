@@ -6,7 +6,8 @@
 :root {
   // ===== FORME =====
   --stat-badge-radius: var(--border-radius-pill);
-  --stat-badge-padding: 2px 8px 2px 7px;
+  // Padding gauche réduit d'1px : compense optiquement la flèche accolée au bord gauche
+  --stat-badge-padding: var(--spacing-2px) var(--spacing-sm) var(--spacing-2px) calc(var(--spacing-sm) - 1px);
 
   // ===== TYPOGRAPHIE =====
   --stat-badge-font-size: var(--font-size-xs);

@@ -90,7 +90,7 @@
   justify-content: space-between;
   gap: var(--spacing-md);
   // Hauteur plancher du prototype (20px) : aligne les corps de cartes sans titre
-  min-height: 1.25rem;
+  min-height: var(--spacing-xl);
 }
 
 .stat-card-title {
@@ -154,7 +154,7 @@
   display: flex;
   align-items: center;
   // Écart icône ↔ texte du prototype (6px)
-  gap: 0.375rem;
+  gap: var(--stat-card-footer-icon-gap);
 
   font-size: var(--font-size-sm);
   font-weight: 600;
@@ -163,8 +163,8 @@
 
   svg {
     // Taille d'icône du prototype (14px)
-    width: 0.875rem;
-    height: 0.875rem;
+    width: var(--stat-card-footer-icon-size);
+    height: var(--stat-card-footer-icon-size);
     flex-shrink: 0;
   }
 
