@@ -1,5 +1,5 @@
 // =================================================================
-// GLOBE MARKERS — pastilles de points (portage lignes 23-62 de globe.css)
+// GLOBE MARKERS — pastilles de points
 // =================================================================
 @use '../../tokens' as *;
 @use '../../colors' as *;
@@ -7,8 +7,7 @@
 @use './colors' as *;
 
 // ── Calque des points, au-dessus du canvas WebGL ─────────────────────────
-// Positionné par le moteur (transform par frame, jamais de setState React —
-// cf. GLOBE_ARCHITECTURE D3, précédent du brush du chart).
+// Positionné par le moteur (transform par frame, jamais de setState React
 .globe-overlay {
   position: absolute;
   inset: 0;

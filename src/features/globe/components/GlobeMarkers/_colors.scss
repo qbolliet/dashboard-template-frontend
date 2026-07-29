@@ -3,11 +3,10 @@
 // par la custom property --c posée par le moteur (markerTemplate.js), inline,
 // indépendante du thème. Ces tokens ne pilotent que le DOSAGE --c/blanc du
 // remplissage et de la bordure, et l'opacité du halo — constants quelle que
-// soit la couleur de donnée, repris à l'identique des valeurs inline du
-// prototype (design-system/project/styles/globe.css, lignes 33-61).
+// soit la couleur de donnée
 //
 // ⚠️ Les ombres portées noires (rgba(0,0,0,…)) restent en dur dans
-// GlobeMarkers.scss : ombres physiques, non thémables (cf. GLOBE_ARCHITECTURE §6).
+// GlobeMarkers.scss : ombres physiques, non thémables.
 
 :root {
   --globe-marker-fill-mix: 88%;   // color-mix(--c, blanc) du remplissage plein

@@ -6,10 +6,7 @@
 // ce ne sont PAS de simples couleurs de chrome CSS. Les modifier recolore le
 // globe (atmosphère, arcs, pastilles de points, repli sans texture) sans
 // toucher au JS ; `setTheme()` relit ces mêmes tokens à chaque bascule de thème.
-//
-// Conversions HSL EXACTES (arrondi 0.1) des RGB float codés en dur dans
-// `palette(dark)` du prototype (design-system/project/scripts/globe/
-// globe-engine.jsx, lignes 166-171) — valeurs identiques ⇒ rendu identique.
+
 
 :root {
   // ---- Variante claire (palette(false) du prototype) ----

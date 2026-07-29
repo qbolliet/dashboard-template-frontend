@@ -1,3 +1,4 @@
+// Importation des modules
 import { Color } from 'three';
 
 /**
