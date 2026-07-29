@@ -1,0 +1,20 @@
+// ===== COULEURS DU COMPOSANT STATBADGE =====
+// Couleurs de la pilule neutre et de ses teintes (positive / negative / warning)
+//
+// Pour les dimensions, voir _tokens.scss dans ce même dossier
+
+@use '@/styles/globals/tokens/semantic-colors' as *;
+
+:root {
+  // ===== PILULE NEUTRE (base) =====
+  --stat-badge-border: var(--color-border);
+  --stat-badge-bg: var(--color-surface);
+  --stat-badge-text: var(--color-text-secondary);
+
+  // ===== TEINTES =====
+  // Seules ces trois teintes ont un style dédié ; une teinte inconnue (ex. 'neutral')
+  // retombe visuellement sur la pilule de base — comportement voulu.
+  --stat-badge-positive: var(--color-success-500);
+  --stat-badge-negative: var(--color-error-500);
+  --stat-badge-warning: var(--color-warning-500);
+}

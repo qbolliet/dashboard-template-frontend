@@ -4,19 +4,22 @@
 // Décide de l'alignement numérique d'une colonne puis formate une valeur brute selon
 // la ColumnDef.format : fonction libre, FormatSpec (Intl.NumberFormat), ou
 // défauts (nombre localisé fr-FR, chaîne brute, tiret pour vide/null).
+// Le formatage numérique lui-même vit dans la couche transverse src/utils/ : il est
+// partagé avec <StatCard>, qui ne peut pas importer depuis src/features/.
+
+import { formatNumber } from '@/utils/format/formatNumber';
+import { EMPTY_PLACEHOLDER } from '@/utils/format/constants';
+
+// Ré-export : formatNumber fait partie de la surface publique de la feature
+// (cf. `export * from './utils/formatCell'` dans index.js), les consommateurs
+// existants continuent donc de l'importer depuis la table.
+export { formatNumber };
 
 /**
- * @typedef {object} FormatSpec
- * @property {'number'|'currency'|'percent'} [style='number']
- * @property {string} [currency] - Code ISO ('EUR', 'USD'…) quand style='currency'.
- * @property {string} [locale='fr-FR']
- * @property {number} [decimals] - Fixe min = max de décimales.
- * @property {number} [minDecimals]
- * @property {number} [maxDecimals]
- * @property {boolean} [compact] - Notation compacte (1,2 k / 3,4 M).
- * @property {string} [prefix]
- * @property {string} [suffix]
- * @property {string} [unit]
+ * Canonical numeric format specification, re-exported so that existing
+ * `import('.../formatCell').FormatSpec` JSDoc references keep resolving.
+ *
+ * @typedef {import('@/utils/format/formatNumber').FormatSpec} FormatSpec
  */
 
 /**
@@ -50,41 +53,6 @@ export function isNumericCol(col) {
 }
 
 /**
- * Formats a numeric value via `Intl.NumberFormat`, driven by a FormatSpec.
- * Accepts tolerant textual input (e.g. "1 234,5", French thousands separator
- * + comma decimal) in addition to plain numbers.
- *
- * @param {number|string} value - Raw cell value.
- * @param {FormatSpec} f - Formatting instructions.
- * @returns {string} Localized, formatted string (or the raw value stringified
- *   when parsing fails).
- */
-export function formatNumber(value, f) {
-  // Parsing tolérant : espace = séparateur de milliers, virgule = décimale.
-  const raw = typeof value === 'number'
-    ? value
-    : parseFloat(String(value).replace(/\s/g, '').replace(',', '.'));
-  if (Number.isNaN(raw)) return String(value);
-
-  const locale = f.locale || 'fr-FR';
-  const opts = {};
-  if (f.decimals != null) { opts.minimumFractionDigits = f.decimals; opts.maximumFractionDigits = f.decimals; }
-  if (f.minDecimals != null) opts.minimumFractionDigits = f.minDecimals;
-  if (f.maxDecimals != null) opts.maximumFractionDigits = f.maxDecimals;
-  if (f.compact) opts.notation = 'compact';
-
-  if (f.style === 'currency') {
-    return new Intl.NumberFormat(locale, { style: 'currency', currency: f.currency || 'EUR', ...opts }).format(raw);
-  }
-  const s = new Intl.NumberFormat(locale, opts).format(raw);
-  const prefix = f.prefix || '';
-  let suffix = f.suffix || '';
-  if (f.style === 'percent' && !suffix) suffix = ' %';
-  if (f.unit && !suffix) suffix = ` ${f.unit}`;
-  return prefix + s + suffix;
-}
-
-/**
  * Resolves the display value of a table cell, in priority order:
  * `col.render` (custom node) > `col.format` function > `col.format` FormatSpec
  * object > column-level defaults (localized number for `type: 'number'`, raw
@@ -98,7 +66,7 @@ export function formatNumber(value, f) {
  */
 export function formatCell(value, col, row) {
   if (col.render) return col.render(value, row);
-  if (value == null || value === '') return '—';
+  if (value == null || value === '') return EMPTY_PLACEHOLDER;
   const f = col.format;
   if (typeof f === 'function') return f(value, row);
   if (f && typeof f === 'object') return formatNumber(value, f);

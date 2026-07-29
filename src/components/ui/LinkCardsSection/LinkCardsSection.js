@@ -1,10 +1,11 @@
 import React from 'react';
-import Card from '../Card/Card';
-import './CardsSection.scss';
+import LinkCard from '../LinkCard/LinkCard';
+import CardGrid from '../CardGrid/CardGrid';
+import './LinkCardsSection.scss';
 
 /**
- * Cards section component that displays multiple cards in a responsive grid layout
- * 
+ * Section displaying multiple link cards in a responsive grid layout.
+ *
  * @param {Object} props - Component props
  * @param {Array} props.cards - Array of card data objects
  * @param {number} [props.cardsPerRow=3] - Number of cards per row on desktop
@@ -12,31 +13,28 @@ import './CardsSection.scss';
  * @param {string} [props.description] - Optional section description
  * @param {string} [props.className] - Additional CSS classes
  */
-const CardsSection = ({ 
-  cards = [], 
-  cardsPerRow = 3, 
+const LinkCardsSection = ({
+  cards = [],
+  cardsPerRow = 3,
   title,
   description,
   className = '',
-  ...props 
+  ...props
 }) => {
   return (
-    <section className={`cards-section ${className}`} {...props}>
+    <section className={`link-cards-section ${className}`} {...props}>
       {/* En-tête de section optionnel */}
       {(title || description) && (
-        <header className="cards-section__header">
-          {title && <h2 className="cards-section__title">{title}</h2>}
-          {description && <p className="cards-section__description">{description}</p>}
+        <header className="link-cards-section__header">
+          {title && <h2 className="link-cards-section__title">{title}</h2>}
+          {description && <p className="link-cards-section__description">{description}</p>}
         </header>
       )}
-      
-      {/* Grille de cartes */}
-      <div 
-        className="cards-section__grid" 
-        style={{ '--cards-per-row': cardsPerRow }}
-      >
+
+      {/* Grille de cartes mutualisée ; le responsive propre à la section est posé en CSS */}
+      <CardGrid perRow={cardsPerRow}>
         {cards.map((card) => (
-          <Card
+          <LinkCard
             key={card.id}
             image={card.image}
             title={card.title}
@@ -44,9 +42,9 @@ const CardsSection = ({
             link={card.link}
           />
         ))}
-      </div>
+      </CardGrid>
     </section>
   );
 };
 
-export default CardsSection;
+export default LinkCardsSection;

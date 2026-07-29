@@ -1,0 +1,196 @@
+// ===== STAT CARD — carte de présentation d'un chiffre (KPI / indicateur) =====
+// Structure : <article|a.stat-card[--compact|--clickable|--accent|--{tone}]>
+//               <header.stat-card-header>  <h3.stat-card-title> + <StatBadge>
+//               <p.stat-card-body>         <StatCardIcon> + <strong.stat-card-value>
+//               <footer.stat-card-footer>  <strong.…-footer-title> + <small.…-footer-note>
+//
+// Tokens : ./_tokens.scss. Couleurs : ./_colors.scss.
+
+@use './tokens' as *;
+@use './colors' as *;
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stat-card-gap);
+  min-width: 0;
+  padding: var(--stat-card-padding);
+  background: hsl(var(--stat-card-bg));
+  border: 1px solid hsl(var(--stat-card-border));
+  border-radius: var(--stat-card-radius);
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow var(--transition-normal) ease,
+    border-color var(--transition-fast) ease,
+    transform var(--transition-normal) ease;
+
+  // Reset de lien : la carte est parfois rendue en <Link> (prop href)
+  text-decoration: none;
+  color: inherit;
+
+  // Densité compacte : réassignation des custom properties (un seul point de vérité par
+  // dimension) plutôt qu'une redéclaration des propriétés CSS elles-mêmes
+  &--compact {
+    --stat-card-padding: var(--stat-card-padding-compact);
+    --stat-card-gap: var(--stat-card-gap-compact);
+    --stat-card-value-size: var(--stat-card-value-size-compact);
+  }
+
+  // Cliquable (href / onClick) : élévation au survol, 100 % CSS
+  &--clickable {
+    cursor: pointer;
+
+    &:hover {
+      box-shadow: var(--shadow-md);
+      border-color: hsl(var(--stat-card-border-hover));
+      transform: translateY(-2px);
+    }
+
+    // Anneau de focus clavier : vaut pour le <Link> comme pour l'<article role="button">, la
+    // classe étant posée sur les deux branches. :focus-visible et non :focus, pour ne pas
+    // afficher l'anneau au clic souris.
+    &:focus-visible {
+      outline: 2px solid hsl(var(--color-focus));
+      outline-offset: 2px;
+      box-shadow: var(--shadow-md);
+    }
+
+    // Retour au repos à l'enfoncement : annule l'élévation du hover
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  // Accent latéral optionnel : barre colorée sur le bord gauche
+  &--accent {
+    border-left-width: var(--stat-card-accent-width);
+
+    &.stat-card--primary {
+      border-left-color: hsl(var(--stat-card-accent-primary));
+    }
+
+    &.stat-card--positive {
+      border-left-color: hsl(var(--stat-card-accent-positive));
+    }
+
+    &.stat-card--negative {
+      border-left-color: hsl(var(--stat-card-accent-negative));
+    }
+
+    &.stat-card--warning {
+      border-left-color: hsl(var(--stat-card-accent-warning));
+    }
+  }
+}
+
+// ===== HEADER =====
+.stat-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  // Hauteur plancher du prototype : borne basse quand le header ne porte qu'une pilule
+  min-height: var(--stat-card-header-min-height);
+}
+
+.stat-card-title {
+  // Reset des marges natives de <h3>
+  margin: 0;
+
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: hsl(var(--stat-card-title));
+  line-height: var(--line-height-tight);
+  letter-spacing: 0.005em;
+  min-width: 0;
+}
+
+// ===== BODY : icône (optionnelle) + chiffre =====
+.stat-card-body {
+  // Reset de la marge native de <p>
+  margin: 0;
+
+  display: flex;
+  align-items: center;
+  gap: var(--stat-card-body-gap);
+
+  // Carte sans header : celui-ci n'est pas rendu du tout (cf. StatCard.jsx), un min-height
+  // posé dessus ne réserverait donc aucune place. C'est le corps, devenu premier enfant, qui
+  // compense la hauteur du header absent — plancher + gap de la carte — pour que les chiffres
+  // d'une même ligne de grille restent alignés avec ceux des cartes titrées.
+  &:first-child {
+    padding-top: calc(var(--stat-card-header-min-height) + var(--stat-card-gap));
+  }
+}
+
+.stat-card-value {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--stat-card-value-size);
+  font-weight: 700;
+  line-height: var(--stat-card-value-line-height);
+  letter-spacing: -0.02em;
+  color: hsl(var(--stat-card-value));
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: break-word;
+
+  // Teintes de chiffre optionnelles (prop valueTone)
+  &--primary {
+    color: hsl(var(--stat-card-accent-primary));
+  }
+
+  &--positive {
+    color: hsl(var(--stat-card-accent-positive));
+  }
+
+  &--negative {
+    color: hsl(var(--stat-card-accent-negative));
+  }
+}
+
+// ===== FOOTER =====
+.stat-card-footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2px);
+  // Ancrage en bas de carte : aligne les footers d'une même ligne de grille
+  margin-top: auto;
+}
+
+.stat-card-footer-title {
+  // <strong> passé en flex pour accueillir une icône de tendance inline
+  display: flex;
+  align-items: center;
+  // Écart icône ↔ texte du prototype (6px)
+  gap: var(--stat-card-footer-icon-gap);
+
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: hsl(var(--stat-card-footer-title));
+  line-height: var(--line-height-tight);
+
+  svg {
+    // Taille d'icône du prototype (14px)
+    width: var(--stat-card-footer-icon-size);
+    height: var(--stat-card-footer-icon-size);
+    flex-shrink: 0;
+  }
+
+  // Teintes de ligne principale optionnelles (prop footerTone)
+  &--positive {
+    color: hsl(var(--stat-card-accent-positive));
+  }
+
+  &--negative {
+    color: hsl(var(--stat-card-accent-negative));
+  }
+}
+
+.stat-card-footer-note {
+  // <small> passé en bloc, taille reposée explicitement pour neutraliser son
+  // rétrécissement natif (smaller)
+  display: block;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--stat-card-footer-note));
+  line-height: var(--line-height-tight);
+}

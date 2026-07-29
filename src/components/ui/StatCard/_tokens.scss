@@ -1,0 +1,38 @@
+// ===== TOKENS DU COMPOSANT STATCARD =====
+// Dimensions, espacements et typographie de la carte de chiffre
+//
+// Pour les couleurs, voir _colors.scss dans ce même dossier
+
+:root {
+  // ===== ESPACEMENTS =====
+  // Densité normale ; la densité compacte réassigne ces deux tokens (cf. StatCard.scss)
+  --stat-card-padding: var(--spacing-2xl);
+  --stat-card-gap: var(--spacing-2xl);
+  --stat-card-padding-compact: var(--spacing-xl);
+  --stat-card-gap-compact: var(--spacing-lg);
+
+  // Écart entre la pastille d'icône et le chiffre
+  --stat-card-body-gap: var(--spacing-lg);
+
+  // Hauteur plancher du header. Sert deux fois : de min-height au header quand il existe, et
+  // de compensation au corps quand il n'y en a pas — c'est ce qui aligne les chiffres de
+  // cartes titrées et non titrées sur une même ligne de grille (cf. StatCard.scss).
+  --stat-card-header-min-height: var(--spacing-xl);
+
+  // ===== FORME =====
+  --stat-card-radius: var(--border-radius-xl);
+  --stat-card-accent-width: 3px;
+
+  // ===== TYPOGRAPHIE DU CHIFFRE =====
+  --stat-card-value-size: var(--font-size-5xl);
+  --stat-card-value-size-compact: var(--font-size-3xl);
+  // Interlignage serré propre au chiffre : l'échelle globale démarre à 1.25 (tight), trop
+  // aéré pour un display de 36px dont on veut coller le bloc au titre et au footer
+  --stat-card-value-line-height: 1.05;
+
+  // ===== FOOTER =====
+  // Écart icône ↔ texte du prototype
+  --stat-card-footer-icon-gap: 0.375rem;
+  // Taille d'icône du prototype
+  --stat-card-footer-icon-size: 0.875rem;
+}

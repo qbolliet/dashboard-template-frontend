@@ -1,0 +1,29 @@
+// ===== COULEURS DU COMPOSANT STATCARD =====
+// Surface, bordures, textes et teintes d'accent de la carte de chiffre
+//
+// Pour les dimensions, voir _tokens.scss dans ce même dossier
+//
+// Aucun bloc [data-theme="dark"] : tous les alias ci-dessous pointent vers des tokens
+// sémantiques déjà théma-conscients (les primitives basculent en mode sombre).
+
+@use '@/styles/globals/tokens/semantic-colors' as *;
+
+:root {
+  // ===== SURFACE ET BORDURES =====
+  --stat-card-bg: var(--color-surface);
+  --stat-card-border: var(--color-border);
+  --stat-card-border-hover: var(--color-border-hover);
+
+  // ===== TEXTES =====
+  --stat-card-title: var(--color-text-tertiary);
+  --stat-card-value: var(--color-text-primary);
+  --stat-card-footer-title: var(--color-text-primary);
+  --stat-card-footer-note: var(--color-text-tertiary);
+
+  // ===== TEINTES D'ACCENT =====
+  // Partagées par la barre latérale, les teintes de chiffre et celles du footer-title
+  --stat-card-accent-primary: var(--color-primary-500);
+  --stat-card-accent-positive: var(--color-success-500);
+  --stat-card-accent-negative: var(--color-error-500);
+  --stat-card-accent-warning: var(--color-warning-500);
+}

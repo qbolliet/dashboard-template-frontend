@@ -1,0 +1,18 @@
+// ===== COULEURS DU COMPOSANT LINKCARDSSECTION =====
+// Couleurs spécifiques à la section de cartes de lien.
+//
+// Ce token vivait dans styles/globals/tokens/semantic-colors.scss sous le nom
+// --color-cards-section-bg alors qu'un seul composant le consomme : il est descendu ici,
+// conformément à la règle « un token utilisé par une seule feature vit dans cette feature ».
+
+// Importation des couleurs
+@use '@/styles/globals/tokens/semantic-colors' as *;
+
+:root {
+  --link-cards-section-bg: 0 0% 98%;  // Gris très clair pour les sections de cartes
+}
+
+// ===== THÈME SOMBRE =====
+[data-theme="dark"] {
+  --link-cards-section-bg: 0 0% 18%;  // Gris sombre pour les sections (plus clair que les cartes)
+}

@@ -1,0 +1,61 @@
+// =================================================================
+// CARD GRID — grille générique de cartes
+// =================================================================
+// Structure : <ul.card-grid[.card-grid--auto]> > <li> > carte
+//
+// Mutualise la logique « N cartes par ligne » entre les cartes de lien
+// (LinkCardsSection) et les cartes de statistique (StatCard). La grille n'impose aucune
+// apparence à ses enfants : elle ne fait que découper les cellules.
+//
+// Tokens : ./_tokens.scss. Pas de couleurs.
+
+@use './tokens' as *;
+@use '../../../styles/utils/breakpoints' as *;
+
+// ===== GRILLE =====
+.card-grid {
+    // Indirection volontaire : --card-grid-per-row est posé en style INLINE par le composant
+    // (prop `perRow`) et l'emporterait sur toute règle de feuille de style. On en dérive ici
+    // --card-grid-columns, déclaré en feuille de style, qui est le seul token consommé par
+    // grid-template-columns : media queries et consommateurs surchargent celui-là.
+    --card-grid-columns: var(--card-grid-per-row);
+
+    display: grid;
+    grid-template-columns: repeat(var(--card-grid-columns), minmax(0, 1fr));
+    gap: var(--card-grid-gap);
+
+    // Reset de la liste : le <ul> ne sert qu'à la sémantique (role="list" conservé côté JSX
+    // car list-style: none retire les semantics de liste sur VoiceOver/Safari).
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+// Mode auto-fill : le nombre de colonnes découle de la largeur disponible.
+// min(--card-grid-min-width, 100%) et non la variable seule : auto-fill ne fait que réduire
+// le NOMBRE de colonnes, il ne rétrécit jamais leur largeur plancher. Sans ce clamp, un
+// conteneur plus étroit que minWidth garde une colonne à minWidth et déborde
+// horizontalement (barre de défilement au niveau du <body> sur mobile).
+.card-grid--auto {
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--card-grid-min-width), 100%), 1fr));
+}
+
+// ===== CELLULE =====
+// Chaque enfant est enveloppé dans un <li> : la carte s'y étire (hauteur et largeur).
+.card-grid > li {
+    display: grid;
+    min-width: 0;
+}
+
+// ===== RESPONSIVE =====
+// Une seule carte par ligne sur mobile, en retargetant --card-grid-columns (cf. l'indirection
+// documentée plus haut). Un consommateur qui veut ses propres paliers surcharge ce même token
+// plutôt que de redéclarer grid-template-columns (cf. LinkCardsSection.scss).
+// Le mode auto est exclu : auto-fill dérive déjà son nombre de colonnes de la largeur
+// disponible et de --card-grid-min-width, et collapse de lui-même à une colonne quand
+// minWidth dépasse le viewport. Forcer une colonne ici écraserait ce calcul.
+@include breakpoint-down('small') {
+    .card-grid:not(.card-grid--auto) {
+        --card-grid-columns: 1;
+    }
+}

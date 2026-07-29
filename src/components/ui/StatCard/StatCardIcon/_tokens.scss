@@ -1,0 +1,11 @@
+// ===== TOKENS DU COMPOSANT STATCARDICON =====
+// Dimensions de la pastille d'icône (chip carré teinté)
+//
+// Pour les couleurs, voir _colors.scss dans ce même dossier
+
+:root {
+  // ===== DIMENSIONS =====
+  --stat-icon-size: 2.75rem;       // 44px
+  --stat-icon-svg-size: 1.375rem;  // 22px
+  --stat-icon-radius: var(--border-radius-lg);
+}

@@ -1,0 +1,20 @@
+// ===== TOKENS DU COMPOSANT STATBADGE =====
+// Dimensions et spacing de la pilule d'évolution
+//
+// Pour les couleurs, voir _colors.scss dans ce même dossier
+
+:root {
+  // ===== FORME =====
+  --stat-badge-radius: var(--border-radius-pill);
+  // Padding gauche réduit d'1px : compense optiquement la flèche accolée au bord gauche
+  --stat-badge-padding: var(--spacing-2px) var(--spacing-sm) var(--spacing-2px) calc(var(--spacing-sm) - 1px);
+
+  // ===== TYPOGRAPHIE =====
+  --stat-badge-font-size: var(--font-size-xs);
+  // Interlignage propre à la pilule : l'échelle globale (tight 1.25 / normal 1.5) est trop
+  // large pour un texte de 12px enfermé dans un padding de 2px — il ferait grossir la pilule
+  --stat-badge-line-height: 1.4;
+
+  // ===== ICÔNE =====
+  --stat-badge-icon-size: 0.75rem;
+}

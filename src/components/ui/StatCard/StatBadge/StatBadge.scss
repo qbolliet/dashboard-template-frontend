@@ -1,0 +1,48 @@
+// ===== STAT BADGE — pilule d'évolution (coin haut-droit de la StatCard) =====
+// Structure : <span.stat-badge[--positive|--negative|--warning]> [svg] {value}
+//
+// Tokens : ./_tokens.scss. Couleurs : ./_colors.scss.
+
+@use './tokens' as *;
+@use './colors' as *;
+
+.stat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-shrink: 0;
+  padding: var(--stat-badge-padding);
+  border-radius: var(--stat-badge-radius);
+  font-size: var(--stat-badge-font-size);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: var(--stat-badge-line-height);
+  white-space: nowrap;
+  border: 1px solid hsl(var(--stat-badge-border));
+  background: hsl(var(--stat-badge-bg));
+  color: hsl(var(--stat-badge-text));
+
+  svg {
+    width: var(--stat-badge-icon-size);
+    height: var(--stat-badge-icon-size);
+    flex-shrink: 0;
+  }
+
+  &--positive {
+    color: hsl(var(--stat-badge-positive));
+    background: hsl(var(--stat-badge-positive) / 0.10);
+    border-color: hsl(var(--stat-badge-positive) / 0.22);
+  }
+
+  &--negative {
+    color: hsl(var(--stat-badge-negative));
+    background: hsl(var(--stat-badge-negative) / 0.10);
+    border-color: hsl(var(--stat-badge-negative) / 0.22);
+  }
+
+  &--warning {
+    color: hsl(var(--stat-badge-warning));
+    background: hsl(var(--stat-badge-warning) / 0.12);
+    border-color: hsl(var(--stat-badge-warning) / 0.26);
+  }
+}
