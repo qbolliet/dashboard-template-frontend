@@ -115,7 +115,14 @@ const StatCard = ({
             {/* Corps : icône optionnelle + chiffre formaté */}
             <p className="stat-card-body">
                 {icon != null && <StatCardIcon tone={iconTone}>{icon}</StatCardIcon>}
-                <strong className={'stat-card-value' + (valueTone ? ' stat-card-value--' + valueTone : '')}>
+                {/* suppressHydrationWarning : Intl.NumberFormat('fr-FR') a changé de séparateur
+                    de milliers à partir d'ICU 72 (U+00A0 → U+202F). Un Node antérieur face à un
+                    navigateur récent (ou l'inverse) produit deux chaînes différentes ; sans cette
+                    tolérance, React jetterait le HTML serveur de tout le sous-arbre. */}
+                <strong
+                    className={'stat-card-value' + (valueTone ? ' stat-card-value--' + valueTone : '')}
+                    suppressHydrationWarning
+                >
                     {formatted}
                 </strong>
             </p>
