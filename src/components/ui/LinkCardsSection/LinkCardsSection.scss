@@ -138,10 +138,11 @@
 // Animation d'entrée optionnelle pour les cartes
 @media (prefers-reduced-motion: no-preference) {
     .link-cards-section .card-grid .link-card {
-        // Animation d'apparition en cascade
-        opacity: 0;
-        transform: translateY(20px);
-        animation: fadeInUp var(--transition-slow) ease-out forwards;
+        // Remplissage "backwards" (et non "forwards") : l'état de départ (from) s'applique
+        // pendant le délai en cascade, mais une fois l'animation terminée plus aucun
+        // remplissage ne verrouille `transform`, ce qui laisse le :hover de LinkCard
+        // reprendre la main sur la propriété.
+        animation: fadeInUp var(--transition-slow) ease-out backwards;
     }
 
     // Délai en cascade pour chaque carte. Le rang se lit sur la cellule <li> de la grille,
@@ -158,6 +159,11 @@
 
 // Animation keyframes pour l'apparition
 @keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
     to {
         opacity: 1;
         transform: translateY(0);
