@@ -1,0 +1,94 @@
+// =================================================================
+// GLOBE TOOLTIP — bulle de survol point/arc (portage lignes 64-106 de globe.css)
+// =================================================================
+@use '../../tokens' as *;
+@use '../../colors' as *;
+@use './tokens' as *;
+@use './colors' as *;
+
+.globe-tooltip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  min-width: var(--globe-tooltip-min-width);
+  max-width: var(--globe-tooltip-max-width);
+  padding: var(--spacing-sm) var(--globe-tooltip-padding-x);
+  background: hsl(var(--globe-tooltip-bg));
+  color: hsl(var(--globe-tooltip-title-color));
+  border: 1px solid hsl(var(--globe-tooltip-border));
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--font-size-xs); // 12px — correspond exactement à l'échelle typography
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+  transition: opacity var(--transition-fast) ease;
+  z-index: var(--globe-tooltip-z);
+}
+// Flèche pointant vers le point/l'arc survolé (même principe que .ca-tooltip du chart).
+.globe-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: hsl(var(--globe-tooltip-bg));
+  filter: drop-shadow(0 1px 0 hsl(var(--globe-tooltip-border)));
+}
+
+// Tooltip de flux : même conteneur que .globe-tooltip, classe supplémentaire
+// posée par le moteur (GlobeEngine) pour distinguer tooltip point / tooltip
+// arc — aucune règle visuelle dédiée dans le prototype, réservé à un futur
+// ajustement ciblé sans impact sur le rendu actuel.
+// .globe-tooltip--arc { }
+
+// ── Contenu par défaut : tooltip point (label + sous-titre + valeur) ─────
+.globe-tt-title {
+  font-weight: 600;
+  font-size: var(--globe-tooltip-title-font-size);
+  color: hsl(var(--globe-tooltip-title-color));
+  letter-spacing: -0.005em;
+}
+.globe-tt-sub {
+  font-family: var(--font-mono);
+  font-size: var(--globe-tooltip-sub-font-size);
+  color: hsl(var(--globe-tooltip-muted-color));
+  margin-top: 2px;
+}
+.globe-tt-val {
+  font-family: var(--font-mono);
+  font-size: var(--globe-tooltip-value-font-size);
+  font-weight: 600;
+  margin-top: 4px;
+  color: hsl(var(--globe-tooltip-title-color));
+}
+
+// ── Contenu par défaut : tooltip flux (arc) — en-tête origine → destination ──
+.globe-tt-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid hsl(var(--globe-tooltip-border));
+  font-weight: 600;
+  font-size: var(--font-size-xs); // 12px — idem base, échelle typography
+  color: hsl(var(--globe-tooltip-title-color));
+}
+.globe-tt-node { white-space: nowrap; }
+.globe-tt-arrow { color: hsl(var(--globe-tooltip-muted-color)); font-weight: 400; }
+.globe-tt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--spacing-md);
+  padding: var(--spacing-px) 0;
+}
+.globe-tt-k { color: hsl(var(--globe-tooltip-muted-color)); font-size: var(--globe-tooltip-key-font-size); }
+.globe-tt-v {
+  color: hsl(var(--globe-tooltip-title-color));
+  font-weight: 500;
+  font-family: var(--font-mono);
+  font-size: var(--globe-tooltip-arc-value-font-size);
+}

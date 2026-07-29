@@ -1,0 +1,22 @@
+// ===== TOKENS DIMENSIONNELS — GLOBE TOOLTIP =====
+// Dimensions propres à la bulle de survol (point ou arc). Conversion px → rem
+// du prototype (design-system/project/styles/globe.css, lignes 64-106) ; les
+// tailles de police qui correspondent EXACTEMENT à un palier de
+// typography.scss (12px → --font-size-xs) sont référencées directement dans
+// GlobeTooltip.scss et n'ont pas de token dédié ici.
+
+:root {
+  // Au-dessus du canvas WebGL et de la toolbar (--z-tooltip global = 1070 ne
+  // correspond pas à la valeur du prototype : token local, cf. DESIGN_SYSTEM §8).
+  --globe-tooltip-z: 5000;
+
+  --globe-tooltip-min-width: 8.25rem; // 132px
+  --globe-tooltip-max-width: 15rem;   // 240px
+  --globe-tooltip-padding-x: 0.625rem; // 10px (padding-y = --spacing-sm, valeur exacte)
+
+  --globe-tooltip-title-font-size: 0.78125rem;     // 12.5px (.globe-tt-title)
+  --globe-tooltip-sub-font-size: 0.65625rem;       // 10.5px (.globe-tt-sub)
+  --globe-tooltip-value-font-size: 0.9375rem;      // 15px   (.globe-tt-val)
+  --globe-tooltip-key-font-size: 0.6875rem;        // 11px   (.globe-tt-k)
+  --globe-tooltip-arc-value-font-size: 0.71875rem; // 11.5px (.globe-tt-v)
+}

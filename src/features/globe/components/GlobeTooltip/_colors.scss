@@ -1,0 +1,14 @@
+// ===== TOKENS DE COULEURS — GLOBE TOOLTIP =====
+// Chrome de la bulle : références aux tokens sémantiques globaux (triplets
+// HSL), consommés en `hsl(var(--…))` dans GlobeTooltip.scss. Le mode sombre
+// est déjà porté par les tokens sémantiques (--color-surface, --color-text-*).
+// Seules deux teintes de texte sont utilisées dans le prototype (primaire /
+// tertiaire) : pas de token distinct par élément (cf. ChartTooltip pour le
+// précédent d'un découpage plus fin, non nécessaire ici).
+
+:root {
+  --globe-tooltip-bg: var(--color-surface);
+  --globe-tooltip-border: var(--color-border);
+  --globe-tooltip-title-color: var(--color-text-primary); // titre, valeur point, en-tête + valeur arc
+  --globe-tooltip-muted-color: var(--color-text-tertiary); // sous-titre, flèche, libellé clé
+}

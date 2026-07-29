@@ -1,0 +1,12 @@
+// ===== TOKENS DIMENSIONNELS — GLOBE MARKERS (pastilles de points) =====
+// Dimensions propres à la pastille de point et à son halo pulsé.
+
+:root {
+  // Diamètre de repli quand l'accesseur sizeFor est absent : le moteur pose
+  // --d sur l'élément marker, ce token n'est utilisé que comme valeur par
+  // défaut de ce var() (cf. GlobeMarkers.scss).
+  --globe-marker-size: 1.375rem; // 22px
+
+  --globe-marker-pulse-duration: 2.6s;
+  --globe-marker-pulse-scale: 2.6;
+}

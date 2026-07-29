@@ -1,0 +1,28 @@
+// ===== TOKENS DE COULEURS — FEATURE GLOBE =====
+// Palette WebGL du globe (atmosphère, arcs, accent des pastilles, repli terre).
+//
+// ⚠️ CES QUATRE TOKENS SONT LUS PAR LE MOTEUR THREE.JS À L'EXÉCUTION
+// (getComputedStyle sur le conteneur, voir engine/palette.js::readGlobePalette) —
+// ce ne sont PAS de simples couleurs de chrome CSS. Les modifier recolore le
+// globe (atmosphère, arcs, pastilles de points, repli sans texture) sans
+// toucher au JS ; `setTheme()` relit ces mêmes tokens à chaque bascule de thème.
+//
+// Conversions HSL EXACTES (arrondi 0.1) des RGB float codés en dur dans
+// `palette(dark)` du prototype (design-system/project/scripts/globe/
+// globe-engine.jsx, lignes 166-171) — valeurs identiques ⇒ rendu identique.
+
+:root {
+  // ---- Variante claire (palette(false) du prototype) ----
+  --globe-atmo: 218.0 100% 70.0%;           // rgb(0.40, 0.62, 1.0)
+  --globe-arc: 216.3 95.6% 55.0%;           // rgb(0.12, 0.46, 0.98)
+  --globe-marker-accent: 213.7 89.4% 40.6%; // #0b5cc4
+  --globe-earth-fallback: 215.0 46.2% 74.0%; // rgb(0.62, 0.72, 0.86)
+}
+
+// ===== THÈME SOMBRE (palette(true) du prototype) =====
+[data-theme="dark"] {
+  --globe-atmo: 226.2 86.7% 62.5%;           // rgb(0.30, 0.45, 0.95)
+  --globe-arc: 211.6 100% 81.0%;             // rgb(0.62, 0.80, 1.0)
+  --globe-marker-accent: 216.3 100% 71.8%;   // #6fa8ff
+  --globe-earth-fallback: 222.0 50.0% 20.0%; // rgb(0.10, 0.16, 0.30)
+}

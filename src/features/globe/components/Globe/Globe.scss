@@ -1,0 +1,39 @@
+// =================================================================
+// GLOBE — cadre (portage de .globe-root/.globe-stage/.globe-canvas du prototype)
+// =================================================================
+@use '../../tokens' as *;
+@use '../../colors' as *;
+@use './tokens' as *;
+@use './colors' as *;
+
+// ── Cadre : fond spatial + bordure, hauteur pilotée en style inline (prop height) ──
+.globe-frame {
+  position: relative;
+  width: 100%;
+  border: 1px solid hsl(var(--color-border));
+  border-radius: var(--globe-frame-radius);
+  overflow: hidden;
+  // Espace — jour : ciel bleuté brumeux, moins d'obscurité visible.
+  background:
+    radial-gradient(130% 130% at 50% 34%, hsl(var(--globe-bg-day-1)) 0%, hsl(var(--globe-bg-day-2)) 62%, hsl(var(--globe-bg-day-3)) 100%);
+}
+[data-theme="dark"] .globe-frame {
+  // Espace — nuit : quasi noir, étoiles plus nombreuses (rendues en WebGL).
+  background:
+    radial-gradient(130% 130% at 50% 30%, hsl(var(--globe-bg-night-1)) 0%, hsl(var(--globe-bg-night-2)) 60%, hsl(var(--globe-bg-night-3)) 100%);
+}
+
+// ── Point de montage du moteur : sous-arbre possédé par Three.js, jamais
+// réconcilié par React (canvas WebGL + overlay de points + tooltip injectés) ──
+.globe-stage { position: absolute; inset: 0; }
+
+.globe-canvas {
+  display: block;
+  // !important : le renderer Three.js pose width/height en style inline sur le
+  // canvas ; on force malgré tout le remplissage du stage (comportement du
+  // prototype, conservé à l'identique).
+  width: 100% !important;
+  height: 100% !important;
+  cursor: grab;
+}
+.globe-canvas:active { cursor: grabbing; }
