@@ -144,10 +144,22 @@ const Globe = ({
    * be built from, so a gesture made during that window is not lost: it is the
    * scene that catches up with the button, never the opposite.
    *
+   * Every state update goes through the FUNCTIONAL form: two gestures landing in
+   * the same tick are merged instead of overwriting each other (see below).
+   *
    * @param {string} key - Tool key emitted by <GlobeToolbar> (one of TOOL_KEYS).
    * @returns {void}
    */
   const handleToolAction = (key) => {
+    // Forme FONCTIONNELLE de setSt (`prev => …`) et non `{ ...st, … }` : `st` est le
+    // snapshot du rendu courant, donc deux gestes commités dans le MÊME tick — deux
+    // champs différents — partiraient tous deux du même objet et le second écraserait
+    // le premier. Le moteur, lui, reçoit les deux (applyOption écrit sans passer par
+    // le rendu) : c'est exactement la divergence état/scène que ce fichier corrige.
+    // Reste hors de portée, faute d'être atteignable autrement qu'en pilotant le DOM :
+    // deux clics sur le MÊME bouton dans un seul tick, où `!st[field]` calculerait
+    // deux fois la même cible — un clic réel étant un événement discret, React rend
+    // entre deux et `st` est toujours frais.
     switch (key) {
       // Action one-shot : recentrage caméra, aucun état miroir à tenir — et rien
       // à mémoriser si le moteur n'existe pas encore, la scène naissant de toute
@@ -163,14 +175,14 @@ const Globe = ({
         const engine = engineRef.current;
         const m = engine ? engine.toggleMode() : (st.mode === 'globe' ? 'plane' : 'globe');
         applyOption('mode', m);
-        setSt({ ...st, mode: m });
+        setSt((prev) => ({ ...prev, mode: m }));
         break;
       }
       // Toutes les autres clés sont des bascules booléennes symétriques.
       default: {
         const { field, setter } = TOGGLES[key];
         const value = !st[field];
-        setSt({ ...st, [field]: value });
+        setSt((prev) => ({ ...prev, [field]: value }));
         applyOption(field, value, setter);
       }
     }
