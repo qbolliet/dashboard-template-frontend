@@ -359,6 +359,13 @@ class GlobeEngine {
   }
 
   _buildMarkers() {
+    // Reconstruction DESTRUCTIVE de l'overlay : une pastille peut etre survolee a cet
+    // instant (bascule de theme sous le curseur). Detacher l'element ne declenche pas de
+    // `mouseleave` fiable ; sans ce _hideTip(), la tooltip resterait figee a opacity 1
+    // (plus aucune pastille vivante ne satisfait `this._tipEl === el` dans _updateMarkers,
+    // donc rien ne la repositionne ni ne la masque) et `this.hovered`, reste non nul,
+    // tuerait le survol des ARCS pour toute la session (_onHoverMove sort immediatement).
+    this._hideTip();
     this.overlay.innerHTML = '';
     this.markers = [];
     const pal = readGlobePalette(this.c);
