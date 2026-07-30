@@ -70,7 +70,8 @@ class GlobeEngine {
    * @param {Array<{from: string, to: string, value?: number}>} [opts.arcs] - Flows
    *   between point ids; `value` ∈ [0,1] drives opacity and comet speed.
    * @param {'globe'|'plane'} [opts.mode='globe'] - Initial projection.
-   * @param {boolean} [opts.autoRotate=true] - Slow permanent rotation.
+   * @param {boolean} [opts.autoRotate=true] - Slow permanent rotation of the globe
+   *   and of the star field (both are ambient motion, driven by this single switch).
    * @param {boolean} [opts.wheelZoom=true] - Wheel zoom enabled.
    * @param {boolean} [opts.showPoints=true] - Point overlay visible.
    * @param {boolean} [opts.showArcs=true] - Flow arcs visible.
@@ -571,7 +572,11 @@ class GlobeEngine {
 
     // etoiles — masquees en mode plan (multipliees par le morph)
     if (this.starMat) this.starMat.opacity = this.starOpacity * this.morph;
-    if (this.stars) this.stars.rotation.y += dt * 0.006;
+    // Derive du champ d'etoiles : meme interrupteur que la rotation permanente.
+    // Les deux sont du mouvement AMBIANT, declenche par aucun geste — « rotation
+    // figee » doit figer la scene entiere, et la degradation « mouvements
+    // reduits » de l'hote n'a ainsi qu'un seul levier a actionner.
+    if (this.stars && this.o.autoRotate) this.stars.rotation.y += dt * 0.006;
 
     // uniforms
     this.earthMat.uniforms.uMorph.value = m;
@@ -645,7 +650,9 @@ class GlobeEngine {
   toggleMode() { this.setMode(this.o.mode === 'globe' ? 'plane' : 'globe'); return this.o.mode; }
 
   /**
-   * Enables or disables the slow permanent rotation.
+   * Enables or disables the slow permanent rotation — of the globe AND of the star
+   * field, the two ambient motions of the scene. Off means nothing drifts on its
+   * own any more, which is what a reduced-motion host expects from this switch.
    *
    * @param {boolean} b - Rotation enabled.
    * @returns {void}

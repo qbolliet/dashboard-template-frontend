@@ -10,10 +10,11 @@
 //     overlay des pastilles, tooltip), qu'il positionne à chaque frame en
 //     impératif — jamais d'état React par frame.
 // La communication est descendante : un geste de toolbar met à jour l'état du
-// bouton PUIS appelle le setter du moteur. Rien ne remonte du moteur vers React.
+// bouton PUIS le pousse vers le moteur via `applyOption`. Rien ne remonte du
+// moteur vers React.
 
 // Importation des modules
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useGlobeEngine, { prefersReducedMotion } from '../../hooks/useGlobeEngine';
 import GlobeToolbar, { TOOL_KEYS } from '../GlobeToolbar/GlobeToolbar';
 import './Globe.scss';
@@ -73,13 +74,16 @@ const TOGGLES = {
  *   TRUSTED HTML: injected as-is, so escape any data interpolated into it.
  *   Default: tooltipTemplates.point (label + sub + value, all escaped).
  * @param {'globe'|'plane'} [props.defaultMode='globe'] - Initial projection.
- * @param {boolean} [props.defaultAutoRotate=true] - Slow permanent rotation at start
- *   (forced off when the user prefers reduced motion).
+ * @param {boolean} [props.defaultAutoRotate=true] - Slow permanent rotation of the
+ *   globe and the star field at start (switched off right after mount when the user
+ *   prefers reduced motion; the toolbar button stays available to restart it).
  * @param {boolean} [props.defaultWheelZoom=true] - Wheel zoom enabled at start.
  * @param {boolean} [props.defaultShowPoints=true] - Points visible at start.
  * @param {boolean} [props.defaultShowArcs=true] - Arcs visible at start.
  * @param {boolean} [props.defaultTooltips=true] - Hover tooltips enabled at start.
- * @param {boolean} [props.defaultArcsDynamic=true] - Animated (comet) arcs at start.
+ * @param {boolean} [props.defaultArcsDynamic=true] - Animated (comet) arcs at start
+ *   (switched off right after mount when the user prefers reduced motion, exactly like
+ *   `defaultAutoRotate`: arcs then keep their static gradient until the button is used).
  * @param {string[]} [props.toolbar=TOOL_KEYS] - Exposed tool keys (order-insensitive:
  *   grouping is fixed). Empty array = no toolbar, no hover zone.
  * @param {number} [props.height=460] - Frame height in px (inline style).
@@ -109,20 +113,14 @@ const Globe = ({
 }) => {
   const stageRef = useRef(null);
 
-  // État unique des interrupteurs, initialisé depuis les props `default*`.
+  // État unique des interrupteurs, initialisé depuis les seules props `default*`.
   // Basse fréquence (un clic de toolbar) : un objet suffit, aucun besoin d'un
-  // state par bascule.
+  // state par bascule. AUCUNE lecture de `window` ici : le serveur rendrait
+  // autre chose que le client et React 19 reprendrait tout le sous-arbre à
+  // l'hydratation (cf. l'effet « mouvements réduits » plus bas).
   const [st, setSt] = useState(() => ({
     mode: defaultMode,
-    // Accessibilité : si l'utilisateur préfère les mouvements réduits, la
-    // rotation permanente démarre à l'arrêt (le bouton reste disponible pour la
-    // relancer). La lecture est faite ICI, dans l'initialiseur paresseux, et non
-    // dans un effet : un setState post-montage est proscrit, et l'état React
-    // doit être cohérent avec l'option envoyée au moteur dès le premier rendu
-    // client. Effet de bord assumé : le HTML serveur rend le défaut (true), donc
-    // l'`aria-pressed` du bouton « rotation » peut diverger à l'hydratation —
-    // écart bénin et strictement local à ce bouton.
-    autoRotate: defaultAutoRotate && !prefersReducedMotion(),
+    autoRotate: defaultAutoRotate,
     wheelZoom: defaultWheelZoom,
     showPoints: defaultShowPoints,
     showArcs: defaultShowArcs,
@@ -130,36 +128,41 @@ const Globe = ({
     arcsDynamic: defaultArcsDynamic,
   }));
 
-  // Options du moteur : `st` est lu tel quel car le hook FIGE cette config au
-  // premier rendu — ce sont donc bien les graines `default*` (dégradation
-  // « reduced motion » comprise) qui partent au moteur, et l'état React comme
-  // la scène démarrent du même point.
-  const engineRef = useGlobeEngine(stageRef, {
+  // Options du moteur : `st` est lu tel quel car le hook capture cette config au
+  // premier rendu. Les noms des champs d'état SONT ceux des options du moteur,
+  // ce qui rend `applyOption` uniforme — c'est ce spread qui l'autorise.
+  const { engineRef, applyOption } = useGlobeEngine(stageRef, {
     points, arcs, iconFor, colorFor, sizeFor, tooltipFor, ...st,
   });
 
   /**
    * Applies a toolbar gesture: mirrors it in the React state (button look and
-   * aria-pressed) then forwards it to the engine.
+   * aria-pressed) then pushes it towards the engine through `applyOption`.
    *
-   * The engine may still be null while its chunk loads: every call is optional,
-   * and `mode` falls back to a local flip so the button never desynchronizes.
+   * The engine may still be null while its chunk loads — several hundred ms on a
+   * cold cache. `applyOption` therefore also rewrites the config the engine will
+   * be built from, so a gesture made during that window is not lost: it is the
+   * scene that catches up with the button, never the opposite.
    *
    * @param {string} key - Tool key emitted by <GlobeToolbar> (one of TOOL_KEYS).
    * @returns {void}
    */
   const handleToolAction = (key) => {
-    const engine = engineRef.current;
-
     switch (key) {
-      // Action one-shot : recentrage caméra, aucun état miroir à tenir.
+      // Action one-shot : recentrage caméra, aucun état miroir à tenir — et rien
+      // à mémoriser si le moteur n'existe pas encore, la scène naissant de toute
+      // façon à la distance caméra par défaut.
       case 'resetZoom':
-        engine?.resetZoom();
+        engineRef.current?.resetZoom();
         break;
-      // Le moteur est la source de vérité du morphing : on recopie le mode
-      // qu'il renvoie plutôt que de le recalculer.
+      // Le moteur reste la source de vérité du morphing QUAND il existe : on
+      // recopie le mode qu'il renvoie. Sinon on calcule la bascule localement et
+      // on la réinjecte dans la graine, pour que la scène naisse dans CE mode-là
+      // (le morph démarre alors directement sur sa cible, sans transition).
       case 'mode': {
-        const m = engine?.toggleMode() ?? (st.mode === 'globe' ? 'plane' : 'globe');
+        const engine = engineRef.current;
+        const m = engine ? engine.toggleMode() : (st.mode === 'globe' ? 'plane' : 'globe');
+        applyOption('mode', m);
         setSt({ ...st, mode: m });
         break;
       }
@@ -168,10 +171,41 @@ const Globe = ({
         const { field, setter } = TOGGLES[key];
         const value = !st[field];
         setSt({ ...st, [field]: value });
-        engine?.[setter](value);
+        applyOption(field, value, setter);
       }
     }
   };
+
+  // ── Accessibilité : dégradation « mouvements réduits », une fois au montage ──
+  // Pourquoi pas au rendu : le serveur ne connaît pas la préférence, et tout état
+  // client qui diverge du HTML serveur est une erreur d'hydratation — React ne
+  // limite pas la reprise à l'attribut divergent, il re-rend le sous-arbre. L'état
+  // initial part donc des graines `default*`, strictement identiques des deux
+  // côtés : plus aucune divergence, donc aucun `suppressHydrationWarning` à poser
+  // (un script inline façon thème n'y changerait rien : il pose un attribut DOM,
+  // l'état React, lui, divergerait toujours).
+  //
+  // Pourquoi un setState dans un effet : la règle de CLAUDE.md vise la SYNCHRO DE
+  // PROPS. Ici, lecture UNIQUE d'une préférence système au montage, sans aucune
+  // dépendance réactive — d'où la suppression assumée de la règle ESLint.
+  //
+  // Timing : cet effet s'exécute forcément AVANT la construction du moteur, dont
+  // le constructeur vit dans le `.then()` d'un `import()` — donc dans une
+  // microtâche postérieure à la purge des effets passifs. La graine est déjà
+  // dégradée quand la scène naît : zéro frame de rotation ou de comète. Les
+  // appels setter couvrent le cas inverse (théorique) d'un moteur déjà prêt.
+  //
+  // Portée : le morph globe ⇄ planisphère n'est PAS dégradé — il ne se déclenche
+  // que sur un clic explicite, c'est un retour d'interaction borné et non du
+  // mouvement ambiant. Un changement de préférence système en cours de session
+  // n'est pas suivi : passé le montage, les boutons appartiennent à l'utilisateur.
+  useEffect(() => {
+    if (!prefersReducedMotion()) return;
+    applyOption('autoRotate', false, 'setAutoRotate');
+    applyOption('arcsDynamic', false, 'setArcsDynamic');
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- ajustement unique au montage sur une préférence système, cf. ci-dessus
+    setSt((prev) => ({ ...prev, autoRotate: false, arcsDynamic: false }));
+  }, [applyOption]);
 
   // Clés inconnues ignorées : la toolbar ne rend que des outils qu'elle sait
   // construire, et un tableau vide supprime barre ET zone de survol.

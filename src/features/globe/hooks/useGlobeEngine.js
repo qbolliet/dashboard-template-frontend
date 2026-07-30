@@ -8,24 +8,31 @@
 //     aucun module React ne doit importer statiquement `engine/GlobeEngine`,
 //     sinon la bibliothèque retombe dans le bundle partagé (et s'exécuterait au
 //     SSR, où `window` n'existe pas).
-//   • CONFIGURATION FIGÉE — points, arcs et accesseurs sont capturés au PREMIER
-//     rendu ; un changement ultérieur de ces props n'est pas répercuté (contrat
-//     assumé : remonter le composant avec `key` pour changer de jeu de données).
-//     Conséquence directe : aucun effet de resynchronisation de props ici.
+//   • CONFIGURATION — les DONNÉES (points, arcs, accesseurs) sont capturées au
+//     PREMIER rendu ; un changement ultérieur de ces props n'est pas répercuté
+//     (contrat assumé : remonter le composant avec `key` pour changer de jeu de
+//     données). Les INTERRUPTEURS, eux, restent une graine vivante que l'hôte
+//     met à jour par `applyOption` : le chunk `three` met plusieurs centaines de
+//     ms à se résoudre sur cache froid, et un geste passé pendant cette fenêtre
+//     doit se retrouver dans la scène qui naît ensuite. Dans les deux cas :
+//     aucun effet de resynchronisation de props ici, la mise à jour est poussée
+//     par l'hôte, jamais tirée du rendu.
 //   • THÈME — le moteur n'observe pas le DOM : il reçoit `initialDark` à la
 //     construction puis des appels `setTheme()` pilotés par le ThemeProvider.
 
 // Importation des modules
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import useTheme from '@/features/theme/hooks/useTheme';
 
 /**
  * Tells whether the user asked the system to reduce motion.
  *
  * Colocated here because it gates both sides of the same decision: the React
- * toolbar state of <Globe> and the engine option it is mirrored into. Safe to
- * call during a lazy state initializer (guards against SSR, where `window` is
- * undefined).
+ * toolbar state of <Globe> and the engine options it is mirrored into. Called
+ * from a MOUNT EFFECT, never during render: the server cannot know the
+ * preference, so reading it while rendering would diverge from the server HTML
+ * (see the degradation effect in <Globe>). The SSR guard is kept nonetheless —
+ * the module is imported by a server-rendered tree.
  *
  * @returns {boolean} True when `prefers-reduced-motion: reduce` matches.
  */
@@ -40,19 +47,22 @@ export const prefersReducedMotion = () => (
  * and disposes it on unmount (StrictMode-safe).
  *
  * @param {React.RefObject<HTMLElement>} stageRef - Engine mount node.
- * @param {object} config - Engine options frozen at first render (points, arcs,
+ * @param {object} config - Engine options captured at first render (points, arcs,
  *   accessors, default* seeds — see GlobeEngine constructor).
- * @returns {React.RefObject<?GlobeEngine>} Live engine handle (null until the
- *   chunk resolves; callers must tolerate null).
+ * @returns {{engineRef: React.RefObject<?GlobeEngine>,
+ *   applyOption: function(string, *, ?string): void}} `engineRef` is the live
+ *   engine handle (null until the chunk resolves; callers must tolerate null),
+ *   `applyOption` the single write path towards the engine.
  */
 const useGlobeEngine = (stageRef, config) => {
   const engineRef = useRef(null);
   const { isDark } = useTheme();
 
-  // ── Configuration figée au premier rendu ──
+  // ── Configuration capturée au premier rendu ──
   // Un ref, pas un state et surtout pas un effet de synchronisation : la scène
   // est construite UNE fois, l'objet `config` reconstruit à chaque rendu par
-  // <Globe> ne doit jamais provoquer de reconstruction.
+  // <Globe> ne doit jamais provoquer de reconstruction. Seul `applyOption`
+  // réécrit ce ref, hors rendu.
   const configRef = useRef(null);
   if (configRef.current === null) configRef.current = config;
 
@@ -105,7 +115,37 @@ const useGlobeEngine = (stageRef, config) => {
     engineRef.current?.setTheme(isDark);
   }, [isDark]);
 
-  return engineRef;
+  // ── Écriture vers le moteur : UNIQUE chemin ──
+  /**
+   * Mirrors a toggle onto the engine — and, either way, onto the config the
+   * engine will be built from.
+   *
+   * The seed is rewritten EVEN when the engine already exists, so it stays a
+   * faithful mirror of the current state; and when the engine does not exist yet
+   * (its chunk is still in flight), it is the only thing that survives — without
+   * it the gesture would be lost and the scene would be born on the original
+   * `default*` values.
+   *
+   * @param {string} field - Engine option name (identical to the matching React
+   *   state field in <Globe>, which spreads its state into the config).
+   * @param {*} value - New value.
+   * @param {?string} [setter] - Engine method to call with `value`. Omitted when
+   *   the caller already drove the engine itself (`mode`, via toggleMode()).
+   * @returns {void}
+   */
+  const applyOption = useCallback((field, value, setter = null) => {
+    // Réécriture de l'objet plutôt que mutation d'un champ : `configRef.current`
+    // est l'objet produit par le rendu de <Globe>, on n'y touche pas en place.
+    configRef.current = { ...configRef.current, [field]: value };
+    if (setter) engineRef.current?.[setter](value);
+    // Dépendances vides : ce n'est pas de la mémoïsation de performance (le React
+    // Compiler s'en charge) mais une identité STABLE fonctionnellement exigée —
+    // <Globe> consomme cette fonction comme dépendance d'un effet de montage, qui
+    // ne doit jamais rejouer. La closure ne capture que des refs, elle reste donc
+    // correcte quelle que soit sa date de création.
+  }, []);
+
+  return { engineRef, applyOption };
 };
 
 export default useGlobeEngine;
