@@ -16,6 +16,14 @@
 // entier laisserait la barre affichée en permanence. Comme dans le prototype, la
 // zone n'est pas `pointer-events: none` — elle capte donc le survol, au prix
 // d'un coin haut-droit qui ne démarre pas de rotation.
+//
+// Depuis que le stage est un contexte d'empilement (`isolation: isolate`, cf.
+// Globe.scss), cette zone passe AU-DESSUS de tout le sous-arbre du moteur : dans
+// ce coin, elle intercepte donc aussi le survol des pastilles et du canvas, ce
+// qui y supprime les tooltips de points comme de flux. C'est le prix à payer
+// pour que la barre reste atteignable — avant, une pastille se peignant sur la
+// zone lui volait le survol et la barre ne s'ouvrait plus du tout. Le drag, lui,
+// traverse toujours le coin : ses écoutes vivent sur `window` (cf. GlobeEngine).
 .globe-tool-zone {
   position: absolute;
   top: 0;

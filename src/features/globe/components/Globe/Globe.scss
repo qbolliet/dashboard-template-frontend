@@ -25,7 +25,25 @@
 
 // ── Point de montage du moteur : sous-arbre possédé par Three.js, jamais
 // réconcilié par React (canvas WebGL + overlay de points + tooltip injectés) ──
-.globe-stage { position: absolute; inset: 0; }
+//
+// `isolation: isolate` — le moteur écrit un z-index PAR FRAME sur chaque
+// pastille, dérivé de sa profondeur écran pour les trier d'avant en arrière.
+// Sans contexte d'empilement local, ces valeurs concourent dans le contexte
+// RACINE de la page : elles y côtoient l'échelle globale de typography.scss
+// (--z-dropdown 1000 … --z-toast 1080), donc une pastille pouvait se peindre
+// par-dessus le header, une modale ou un popover — et, dans le cadre, par-dessus
+// la toolbar (z-index 5) et sa zone de survol (4), qu'elle rendait alors
+// inatteignables. Le stage devient ici un contexte d'empilement : le tri en
+// profondeur des pastilles est préservé À L'INTÉRIEUR, mais tout le sous-arbre
+// du moteur passe désormais sous les frères positifs du cadre.
+//
+// Conséquence assumée : la tooltip, elle aussi injectée dans le stage, passe
+// sous la toolbar. Seul cas où les deux coexistent : la barre maintenue visible
+// au clavier (`.toolbar:focus-within`) pendant qu'une pastille haute est
+// survolée à la souris — la bulle est alors masquée par la barre. Hors de ce
+// cas, la barre n'apparaît qu'au survol du coin haut-droit, où plus aucune
+// tooltip ne peut être déclenchée (cf. GlobeToolbar.scss).
+.globe-stage { position: absolute; inset: 0; isolation: isolate; }
 
 .globe-canvas {
   display: block;

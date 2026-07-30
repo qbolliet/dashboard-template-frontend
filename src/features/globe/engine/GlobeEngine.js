@@ -131,6 +131,19 @@ class GlobeEngine {
     this.raf = null; this.time = 0; this.lastT = performance.now();
     this.markers = []; this.hovered = null;
     this._sunVec = new THREE.Vector3();
+    // Vecteurs de travail REUTILISES, jamais realloues : les deux chemins chauds
+    // (positionnement des pastilles par frame, test de survol des arcs par
+    // mousemove) projetaient chacun ~4 Vector3 neufs par element et par passage.
+    // Deux jeux DISJOINTS, un par chemin : ils ne s'entrelacent pas aujourd'hui
+    // (boucle rAF d'un cote, dispatch d'evenement de l'autre), mais les partager
+    // n'economiserait que trois objets et laisserait un piege durable.
+    this._vSph = new THREE.Vector3();      // INTERNE a _localAt — aucun appelant ne doit le passer en `out`
+    this._vLocal = new THREE.Vector3();    // _updateMarkers : sortie de _localAt
+    this._vWorld = new THREE.Vector3();    // _updateMarkers : position monde, projetee EN PLACE
+    this._vNrm = new THREE.Vector3();      // _updateMarkers : normale tournee (face visible)
+    this._vHitLocal = new THREE.Vector3(); // _onHoverMove : sortie de _localAt
+    this._vHitProj = new THREE.Vector3();  // _onHoverMove : projection ecran
+    this._vHitNrm = new THREE.Vector3();   // _onHoverMove : normale tournee (culling face arriere)
     // Registre des ressources GPU a liberer au dispose() : geometries, materiaux
     // et textures. Un tableau alimente au fil des _build* plutot qu'un
     // scene.traverse() a la destruction, car tout n'est pas atteignable depuis
@@ -357,7 +370,11 @@ class GlobeEngine {
       const elev = Math.sin(PI * t) * height;
       pos[i * 3] = lon; pos[i * 3 + 1] = lat; pos[i * 3 + 2] = elev;
       ts[i] = t;
-      if (i % 4 === 0) pts.push({ lon, lat, elev });   // échantillons pour le survol
+      // Echantillons pour le survol. `u` est le vecteur unitaire du point, deja
+      // calcule par le slerp : le figer ici epargne a _onHoverMove une
+      // allocation et quatre appels trigonometriques par echantillon et par
+      // mousemove (18 echantillons x 13 arcs, a plus de 100 evenements/s).
+      if (i % 4 === 0) pts.push({ lon, lat, elev, u: p.clone() });
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -366,8 +383,14 @@ class GlobeEngine {
   }
 
   // Vecteur unitaire de la sphere pour un couple (lon, lat) en radians.
-  _unit(lon, lat) {
-    return new THREE.Vector3(Math.cos(lat) * Math.sin(lon), Math.sin(lat), Math.cos(lat) * Math.cos(lon));
+  // `out` omis => NOUVEAU vecteur, et ce chemin allouant est PORTEUR, pas un
+  // confort : _arcGeometry garde ses deux extremites v1 et v2 vivantes pendant
+  // toute sa boucle de 72 echantillons et les passe a _slerp. Si cet appel
+  // renvoyait une instance partagee, v1 === v2, l'angle tomberait a 0 et TOUS
+  // les arcs s'effondreraient en un point.
+  _unit(lon, lat, out = null) {
+    return (out ?? new THREE.Vector3())
+      .set(Math.cos(lat) * Math.sin(lon), Math.sin(lat), Math.cos(lat) * Math.cos(lon));
   }
   // Interpolation spherique entre deux directions, angle deja connu.
   _slerp(v1, v2, t, ang) {
@@ -385,12 +408,14 @@ class GlobeEngine {
   // Meme mapping que LINE_VERT pour rester coherent avec les arcs / pastilles :
   // sph = position sur la sphere de rayon 1+elev, p = position plane, et l'on
   // interpole lineairement entre les deux selon m.
-  _localAt(lon, lat, elev, m) {
-    const s = this._unit(lon, lat).multiplyScalar(1 + elev);
+  // `out` omis => nouveau vecteur (cf. _unit). `this._vSph` est le SEUL scratch
+  // interne de cette methode : aucun appelant ne doit le passer en `out`, sinon
+  // la position spherique et la position plane s'ecraseraient mutuellement.
+  _localAt(lon, lat, elev, m, out = null) {
+    const s = this._unit(lon, lat, this._vSph).multiplyScalar(1 + elev);
     // longitude repliee sur la tuile la plus proche du centre -> defilement infini en plan
     const plon = this.centerLon + this._wrapPi(lon - this.centerLon);
-    const p = new THREE.Vector3(plon, lat + elev * 1.7, elev * 0.6);
-    return p.lerp(s, m);
+    return (out ?? new THREE.Vector3()).set(plon, lat + elev * 1.7, elev * 0.6).lerp(s, m);
   }
 
   _buildMarkers() {
@@ -416,11 +441,26 @@ class GlobeEngine {
       // l'API refuse nativement toute evasion d'attribut, et les deux <span>
       // enfants heritent de --c (custom property => heritee par defaut).
       el.style.setProperty('--c', color);
+      // Pastille invisible tant que _updateMarkers ne l'a pas placee. Sans cela,
+      // une reconstruction (setTheme) pendant que le moteur est EN PAUSE (globe
+      // hors ecran) laisserait les 13 pastilles empilees en haut-gauche du cadre
+      // a pleine opacite jusqu'a la reprise de la boucle.
+      el.style.opacity = '0';
       el.innerHTML = markerHtml({ icon });
       el.addEventListener('mouseenter', () => this._showTip(p, el));
       el.addEventListener('mouseleave', () => this._hideTip());
       this.overlay.appendChild(el);
-      this.markers.push({ el, p });
+      const lon = p.lon * DEG, lat = p.lat * DEG;
+      this.markers.push({
+        el, p, lon, lat,
+        // Vecteur unitaire FIGE : lon/lat d'un point ne changent jamais apres le
+        // montage (donnees capturees au premier rendu, cf. useGlobeEngine), donc
+        // le recalculer par frame ne faisait qu'allouer et refaire quatre appels
+        // trigonometriques pour un resultat constant.
+        sph: this._unit(lon, lat),
+        // Derniere valeur ECRITE de chaque style garde-fou (cf. _updateMarkers).
+        last: { o: '', pe: '', z: '' },
+      });
     });
     this._applyPointVisibility();
   }
@@ -452,28 +492,33 @@ class GlobeEngine {
   _onHoverMove(e) {
     if (this._dragging) return;
     if (!this.o.showArcs || !this.o.tooltips || this.hovered) return;
-    const rect = this.canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    // Coordonnees LOCALES au canvas fournies par l'evenement lui-meme : plus de
+    // getBoundingClientRect(), qui forcait un calcul de layout a CHAQUE
+    // mousemove (100+/s). L'ecoute est posee sur le canvas, qui remplit le stage
+    // sans bordure ni padding et reste toujours la cible (les pastilles vivent
+    // dans un overlay FRERE, jamais dans le canvas) : offsetX/Y valent donc
+    // exactement clientX/Y - rect.left/top, dans le repere de this.c.client*
+    // utilise plus bas. Bonus : contrairement au rect, ce repere n'est pas
+    // affecte par un ancetre `transform: scale()`, et rien ne peut le perimer.
+    const mx = e.offsetX, my = e.offsetY;
     const W = this.c.clientWidth, H = this.c.clientHeight, m = this.morph;
     let best = null, bestD = 10;   // seuil px
     for (const hit of this.arcHit) {
-      let hovered = false;
       for (const s of hit.pts) {
-        const local = this._localAt(s.lon, s.lat, s.elev, m);
         // culling face arrière en mode globe
         if (m > 0.5) {
-          const nrm = this._unit(s.lon, s.lat).applyQuaternion(this.group.quaternion);
+          const nrm = this._vHitNrm.copy(s.u).applyQuaternion(this.group.quaternion);
           if (nrm.z < -0.05) continue;
         }
-        const world = local.clone().applyMatrix4(this.group.matrixWorld);
-        const proj = world.project(this.camera);
+        this._localAt(s.lon, s.lat, s.elev, m, this._vHitLocal);
+        const proj = this._vHitProj.copy(this._vHitLocal)
+          .applyMatrix4(this.group.matrixWorld).project(this.camera);
         if (proj.z > 1) continue;
         // coordonnees NDC -> pixels du conteneur
         const sx = (proj.x * 0.5 + 0.5) * W, sy = (-proj.y * 0.5 + 0.5) * H;
         const d = Math.hypot(sx - mx, sy - my);
-        if (d < bestD) { bestD = d; best = hit; hovered = true; }
+        if (d < bestD) { bestD = d; best = hit; }
       }
-      void hovered;
     }
     if (best) this._showArcTip(best, mx, my);
     else this._clearArcHover();
@@ -529,7 +574,42 @@ class GlobeEngine {
 
     this._ro = new ResizeObserver(() => this.resize());
     this._ro.observe(this.c);
+
+    // Mise en pause hors ecran : une page peut monter plusieurs globes (six sur
+    // /test-globe), et chacun rendait en continu une Terre tuilee 180x90 meme
+    // completement hors du viewport. `rootMargin` redemarre la boucle un peu
+    // avant l'entree en vue, pour que la premiere frame visible soit deja a jour.
+    // Onglet cache : inutile d'ecouter `visibilitychange`, le navigateur suspend
+    // deja requestAnimationFrame de lui-meme.
+    this._io = new IntersectionObserver((entries) => {
+      if (entries[entries.length - 1].isIntersecting) this._resume(); else this._pause();
+    }, { rootMargin: '200px 0px' });
+    this._io.observe(this.c);
+
     this._downFns = { down, move, up };
+  }
+
+  // Suspension de la boucle de rendu quand le cadre quitte le viewport (pilote
+  // par l'IntersectionObserver de _bindEvents). `this.raf === null` EST l'etat
+  // « en pause » : pas de second drapeau a tenir synchronise.
+  _pause() {
+    if (this.raf === null) return;
+    cancelAnimationFrame(this.raf);
+    this.raf = null;
+    // Le halo pulse des pastilles est une animation CSS, sur le thread
+    // compositeur : couper la boucle JS ne l'arrete pas (cf. GlobeMarkers.scss).
+    this.overlay.classList.add('is-paused');
+  }
+  _resume() {
+    if (this._disposed || this.raf !== null) return;
+    this.overlay.classList.remove('is-paused');
+    // Recalage de l'horloge. Le clamp `dt <= 0.05` de _loop bornait deja le saut
+    // (2,5 mrad de longitude apres 30 s de pause, invisible), mais on repart
+    // ainsi d'un delta honnete plutot que d'un delta tronque. `this.time`, lui,
+    // n'est PAS recale : les cometes des flux reprennent leur phase la ou elles
+    // s'etaient arretees, ce qui est exactement le comportement voulu.
+    this.lastT = performance.now();
+    this.raf = requestAnimationFrame(this._loop);
   }
 
   _loop() {
@@ -601,24 +681,41 @@ class GlobeEngine {
     const q = this.group.quaternion;
     const cam = this.camera.position;
     for (const mk of this.markers) {
-      const { p, el } = mk;
-      const lon = p.lon * DEG, lat = p.lat * DEG;
-      const sph = new THREE.Vector3(Math.cos(lat) * Math.sin(lon), Math.sin(lat), Math.cos(lat) * Math.cos(lon));
-      const local = this._localAt(lon, lat, 0, m);
-      const world = local.clone().applyMatrix4(this.group.matrixWorld);
-      const proj = world.clone().project(this.camera);
+      const { el, last } = mk;
+      this._localAt(mk.lon, mk.lat, 0, m, this._vLocal);
+      const world = this._vWorld.copy(this._vLocal).applyMatrix4(this.group.matrixWorld);
+      // Distance camera AVANT la projection : `project()` mute le vecteur en
+      // place, et c'est justement ce qui evite d'en cloner un second par frame.
+      const dist = world.distanceTo(cam);
+      const proj = world.project(this.camera);
       const sx = (proj.x * 0.5 + 0.5) * W, sy = (-proj.y * 0.5 + 0.5) * H;
       // visibilité face avant (globe)
-      const nrm = sph.clone().applyQuaternion(q);
+      const nrm = this._vNrm.copy(mk.sph).applyQuaternion(q);
       const front = clamp((nrm.z + 0.25) / 0.4, 0, 1);
       const vis = lerp(1, front, m);
-      const dist = world.distanceTo(cam);
       const scale = clamp(2.6 / dist, 0.55, 1.5);
       const behind = proj.z > 1;
+      // `transform` est ecrit sans garde-fou : il faudrait de toute facon
+      // construire le litteral (3 toFixed) pour pouvoir le comparer, et il
+      // change a presque chaque frame (rotation, lerps de morph et de zoom).
       el.style.transform = `translate(-50%,-50%) translate(${sx.toFixed(1)}px,${sy.toFixed(1)}px) scale(${scale.toFixed(3)})`;
-      el.style.opacity = behind ? 0 : vis.toFixed(2);
-      el.style.pointerEvents = (this.o.tooltips && vis > 0.5 && !behind) ? 'auto' : 'none';
-      el.style.zIndex = String(1000 + Math.round((1 - proj.z) * 1000));
+      // Les trois suivants, eux, sont souvent identiques d'une frame a l'autre :
+      // on ne les reecrit qu'au changement. Une ecriture identique n'est pas
+      // gratuite (le moteur CSS parse la valeur avant de comparer le resultat).
+      // Toutes les valeurs comparees sont des CHAINES, y compris le '0' de la
+      // branche `behind` — sinon la comparaison ne matcherait jamais.
+      const o = behind ? '0' : vis.toFixed(2);
+      if (o !== last.o) { el.style.opacity = o; last.o = o; }
+      const pe = (this.o.tooltips && vis > 0.5 && !behind) ? 'auto' : 'none';
+      if (pe !== last.pe) { el.style.pointerEvents = pe; last.pe = pe; }
+      // Tri en profondeur d'avant en arriere, CONFINE au contexte d'empilement
+      // du stage (`isolation: isolate`, cf. Globe.scss) : plus besoin de l'offset
+      // de 1000 qui faisait concourir les pastilles avec l'echelle --z-* de la
+      // page. Borne a 0 pour qu'une pastille `behind` (proj.z > 1, donc valeur
+      // negative) ne bascule pas SOUS le canvas — invisible de toute facon, mais
+      // piegeux a relire.
+      const z = String(Math.max(0, Math.round((1 - proj.z) * 1000)));
+      if (z !== last.z) { el.style.zIndex = z; last.z = z; }
       if (this._tipEl === el) {
         this.tooltip.style.transform = `translate(-50%,-100%) translate(${sx.toFixed(1)}px,${(sy - 22).toFixed(1)}px)`;
       }
@@ -734,6 +831,11 @@ class GlobeEngine {
   resize() {
     const w = this.c.clientWidth, h = this.c.clientHeight;
     if (!w || !h) return;
+    // Aucun rendu force ici : setSize() vide le buffer de dessin, donc un moteur
+    // EN PAUSE affiche un canvas blanc jusqu'a sa reprise — invisible, puisqu'il
+    // faut etre a plus de 200 px hors du viewport pour etre en pause, et
+    // _resume() programme une frame. Dessiner ici couterait au contraire une
+    // scene complete a chaque tick du ResizeObserver pendant un redimensionnement.
     this.renderer.setSize(w, h); this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
   }
 
@@ -768,8 +870,13 @@ class GlobeEngine {
     // ressources deja detruites et re-perdrait un contexte deja rendu.
     if (this._disposed) return;
     this._disposed = true;
-    cancelAnimationFrame(this.raf);
+    // `this.raf === null` = moteur deja en pause (cf. _pause) : rien a annuler.
+    if (this.raf !== null) cancelAnimationFrame(this.raf);
+    this.raf = null;
     if (this._ro) this._ro.disconnect();
+    // disconnect() jette aussi les enregistrements deja en file : aucune reprise
+    // ne peut etre livree apres coup (et _resume() garde `_disposed` de toute facon).
+    if (this._io) this._io.disconnect();
     // Ecoutes globales du drag (posees sur window pour suivre la souris hors canvas).
     window.removeEventListener('mousemove', this._downFns.move);
     window.removeEventListener('mouseup', this._downFns.up);

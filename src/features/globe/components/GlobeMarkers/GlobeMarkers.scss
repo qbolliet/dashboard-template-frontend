@@ -19,8 +19,23 @@
   position: absolute;
   top: 0;
   left: 0;
+  // `will-change` assumé et permanent : le moteur réécrit transform ET opacity
+  // DEPUIS JS à chaque frame, ce qui ne déclenche aucune promotion automatique
+  // (contrairement à une animation CSS, que le compositeur sait détecter). Sans
+  // couche dédiée, chaque frame rerasterise la région correspondante de la
+  // couche englobante — 13 pastilles en mouvement sur toute la hauteur du cadre.
+  // Coût : une couche de ~30×30 px par pastille, négligeable au regard du gain.
+  // NB : on ne le retire PAS quand le moteur se met en pause (cf. _pause() dans
+  // GlobeEngine) — Chrome ne rasterise déjà pas les couches hors écran, alors que
+  // détruire puis reconstruire les couches ferait churner le compositeur à chaque
+  // aller-retour de scroll, et la rerasterisation tomberait dans les premières
+  // frames après reprise, exactement sous les yeux de l'utilisateur.
   will-change: transform, opacity;
-  transition: opacity var(--transition-fast) linear;
+  // Pas de `transition` sur opacity : le moteur l'écrit à chaque frame, donc
+  // chaque écriture reciblerait une transition en cours (~4 700 reciblages/s
+  // pour 6 globes). Et ce serait un défaut visuel : `vis` est déjà une rampe
+  // continue calculée par frame, la transition ne ferait qu'y ajouter du retard
+  // sur le fondu du limbe. Le survol garde la sienne, sur .globe-marker-dot.
 }
 
 // ── Pastille plate — diamètre pilotable via --d (posé par le moteur depuis
@@ -74,6 +89,12 @@
 @media (prefers-reduced-motion: reduce) {
   .globe-marker-pulse { animation: none; }
 }
+// Globe hors écran : le moteur pose `is-paused` sur l'overlay en suspendant sa
+// boucle de rendu (cf. GlobeEngine._pause). L'animation du halo, elle, vit sur le
+// thread compositeur et continuerait de ticker sans que rien ne la regarde.
+// `animation-play-state` plutôt que `animation: none` : la phase est GELÉE, donc
+// aucun saut visuel au retour en vue — et la couche survit, pas de churn.
+.globe-overlay.is-paused .globe-marker-pulse { animation-play-state: paused; }
 
 // ── Survol (classe posée par le moteur, cf. GlobeEngine) ──────────────────
 .globe-marker.is-hover .globe-marker-dot {

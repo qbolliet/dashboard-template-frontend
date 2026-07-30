@@ -2,9 +2,14 @@
 // Dimensions propres à la bulle de survol (point ou arc).
 
 :root {
-  // Au-dessus du canvas WebGL et de la toolbar (--z-tooltip global = 1070 ne
-  // correspond pas à la valeur du prototype : token local, cf. DESIGN_SYSTEM §8).
-  --globe-tooltip-z: 5000;
+  // Empilement LOCAL au stage, qui est un contexte d'empilement à part entière
+  // (`isolation: isolate`, cf. Globe.scss) : cette valeur n'a donc qu'un seul
+  // concurrent, le z-index par frame des pastilles (0…~180, dérivé de leur
+  // profondeur écran). Elle ne dit RIEN de l'empilement vis-à-vis du cadre : la
+  // tooltip suit le stage, donc passe sous la toolbar. Token local plutôt que
+  // le --z-tooltip global (1070), qui est une échelle de PAGE et sortirait la
+  // bulle du contexte de son cadre — même raisonnement que --globe-toolbar-zone-z.
+  --globe-tooltip-z: 1000;
 
   --globe-tooltip-min-width: 8.25rem; // 132px
   --globe-tooltip-max-width: 15rem;   // 240px
