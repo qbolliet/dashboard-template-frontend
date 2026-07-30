@@ -11,15 +11,19 @@
 // §8, avec son intertitre + meta + note (pattern gb-block du prototype).
 
 // Importation des modules
-import { Globe } from '@/features/globe';
+import { Globe, escapeHtml } from '@/features/globe';
 import { GLOBE_POINTS, GLOBE_ARCS, demoPointIcon, pointColor, pointSize } from './globeDemoData';
 
 // Tooltip point personnalisée de la démo 1 — reprise à l'identique de
 // globe.html ligne 160 (mêmes classes que le gabarit par défaut du moteur).
+// MODÈLE À REPRENDRE pour tout tooltipFor personnalisé : le retour est injecté
+// tel quel par le moteur (HTML de confiance), donc chaque champ de donnée passe
+// par escapeHtml — sans quoi un `label` porteur de balisage s'exécuterait au
+// survol de la pastille. Seul le balisage écrit ici est du HTML.
 const networkTooltipFor = (p) => (
-  `<div class="globe-tt-title">${p.label}</div>`
-  + `<div class="globe-tt-sub">source · ${p.sub}</div>`
-  + `<div class="globe-tt-val">${p.value}</div>`
+  `<div class="globe-tt-title">${escapeHtml(p.label)}</div>`
+  + `<div class="globe-tt-sub">source · ${escapeHtml(p.sub)}</div>`
+  + `<div class="globe-tt-val">${escapeHtml(p.value)}</div>`
 );
 
 // Métadonnées des blocs (titre, meta, note) — un par démo du tableau §8.

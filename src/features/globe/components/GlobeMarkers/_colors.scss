@@ -1,6 +1,7 @@
 // ===== TOKENS DE COULEURS — GLOBE MARKERS (pastilles de points) =====
 // La couleur de DONNÉE (sortie de colorFor) n'est pas un token : elle transite
-// par la custom property --c posée par le moteur (markerTemplate.js), inline,
+// par la custom property --c posée par le moteur (GlobeEngine._buildMarkers, via
+// le CSSOM) sur l'élément .globe-marker, dont les calques héritent — inline,
 // indépendante du thème. Ces tokens ne pilotent que le DOSAGE --c/blanc du
 // remplissage et de la bordure, et l'opacité du halo — constants quelle que
 // soit la couleur de donnée

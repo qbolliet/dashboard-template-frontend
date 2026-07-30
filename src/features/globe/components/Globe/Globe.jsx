@@ -43,19 +43,35 @@ const TOGGLES = {
  * globe ⇄ flat-map morph that preserves center and zoom. A hover toolbar
  * (top-right zone) toggles every behaviour.
  *
+ * ### HTML trust boundary
+ * The tooltip and the point badges are injected with `innerHTML` by the engine,
+ * so the split is explicit and uniform:
+ * - **Data** — everything read off the `points` / `arcs` objects (`label`, `sub`,
+ *   `value`) is HTML-escaped by the feature's default templates. Untrusted input
+ *   (a database row served through the GraphQL API) is safe as-is.
+ * - **Accessors** — `iconFor` and `tooltipFor` return TRUSTED HTML, injected
+ *   verbatim. They are host code, not data: `iconFor` returns inline SVG and could
+ *   not be escaped anyway. An accessor that interpolates data must escape it
+ *   itself with `escapeHtml`, re-exported by this feature
+ *   (`import { escapeHtml } from '@/features/globe'`).
+ *
  * @param {object} props
  * @param {Array<{id: string, label: string, lat: number, lon: number,
  *   value?: number, sub?: string}>} [props.points] - Points to place (fixed at mount).
+ *   `label`/`sub`/`value` are escaped by the default tooltip template.
  * @param {Array<{from: string, to: string, value?: number}>} [props.arcs] - Flows;
  *   from/to = point ids, value ∈ [0,1] drives thickness/opacity/speed.
  * @param {?function(Object): string} [props.iconFor] - Returns an inline SVG string
- *   centered in the point badge — conditional on any point value.
+ *   centered in the point badge — conditional on any point value. TRUSTED HTML:
+ *   injected as-is (see the trust boundary above).
  * @param {?function(Object): string} [props.colorFor] - Returns the badge CSS color.
- *   Default: the --globe-marker-accent token.
+ *   Applied through `element.style.setProperty('--c', …)` on the marker element,
+ *   never interpolated into markup. Default: the --globe-marker-accent token.
  * @param {?function(Object): number} [props.sizeFor] - Returns the badge diameter in px
  *   (default: --globe-marker-size token, 22px).
  * @param {?function(Object): string} [props.tooltipFor] - Tooltip HTML for a point.
- *   Default: tooltipTemplates.point (label + sub + value).
+ *   TRUSTED HTML: injected as-is, so escape any data interpolated into it.
+ *   Default: tooltipTemplates.point (label + sub + value, all escaped).
  * @param {'globe'|'plane'} [props.defaultMode='globe'] - Initial projection.
  * @param {boolean} [props.defaultAutoRotate=true] - Slow permanent rotation at start
  *   (forced off when the user prefers reduced motion).

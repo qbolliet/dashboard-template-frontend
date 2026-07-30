@@ -370,7 +370,11 @@ class GlobeEngine {
       const icon = this.o.iconFor ? this.o.iconFor(p) : null;
       const size = this.o.sizeFor ? this.o.sizeFor(p) : 22;
       el.style.setProperty('--d', size + 'px');
-      el.innerHTML = markerHtml({ color, icon });
+      // Couleur posee par le CSSOM et non interpolee dans un attribut style :
+      // l'API refuse nativement toute evasion d'attribut, et les deux <span>
+      // enfants heritent de --c (custom property => heritee par defaut).
+      el.style.setProperty('--c', color);
+      el.innerHTML = markerHtml({ icon });
       el.addEventListener('mouseenter', () => this._showTip(p, el));
       el.addEventListener('mouseleave', () => this._hideTip());
       this.overlay.appendChild(el);
