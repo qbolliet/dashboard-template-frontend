@@ -93,6 +93,17 @@ class GlobeEngine {
     // sortie). Depuis r152 la gestion des couleurs est active par défaut ;
     // la laisser assombrirait visiblement la Terre par rapport au prototype.
     THREE.ColorManagement.enabled = false;
+    // Cache de chargement partage entre toutes les instances. Ce que le cache
+    // mutualise, c'est l'HTMLImageElement stocke par ImageLoader (cle
+    // `image:<url>`), PAS l'objet Texture : TextureLoader.load() cree une
+    // Texture neuve a chaque appel et se contente d'y brancher l'image. Chaque
+    // globe garde donc SA Texture — texture.dispose() ne touche jamais celle
+    // d'un autre globe de la page. Compromis assume : le cache economise le
+    // telechargement et le decodage des 3 images (~1,5 Mo) pour les instances
+    // suivantes, mais pas l'upload GPU, qui reste par instance et par contexte
+    // WebGL (une texture GL ne se partage pas entre contextes). L'image decodee
+    // reste en memoire JS jusqu'a la fin de la session : cout borne a 3 entrees.
+    THREE.Cache.enabled = true;
 
     this.c = container;
     this.o = Object.assign({
@@ -119,6 +130,13 @@ class GlobeEngine {
     this.raf = null; this.time = 0; this.lastT = performance.now();
     this.markers = []; this.hovered = null;
     this._sunVec = new THREE.Vector3();
+    // Registre des ressources GPU a liberer au dispose() : geometries, materiaux
+    // et textures. Un tableau alimente au fil des _build* plutot qu'un
+    // scene.traverse() a la destruction, car tout n'est pas atteignable depuis
+    // le graphe de scene (les textures ne vivent que dans les uniforms, et la
+    // geometrie source de la Terre est deja liberee a la construction).
+    this._disposables = [];
+    this._disposed = false;
     this._initScene();
     this._buildStars();
     this._buildLights();
@@ -190,6 +208,7 @@ class GlobeEngine {
       blending: THREE.AdditiveBlending,
     });
     this.stars = new THREE.Points(g, this.starMat);
+    this._disposables.push(g, this.starMat);
     this.scene.add(this.stars);
   }
 
@@ -248,6 +267,7 @@ class GlobeEngine {
       },
       vertexShader: EARTH_VERT, fragmentShader: EARTH_FRAG, side: THREE.DoubleSide,
     });
+    this._disposables.push(geo, this.earthMat);
     this.earth = new THREE.Mesh(geo, this.earthMat);
     this.earth.frustumCulled = false;   // positions calculees dans le shader (tuilage) -> pas de culling
     this.group.add(this.earth);
@@ -259,6 +279,7 @@ class GlobeEngine {
       vertexShader: ATMO_VERT, fragmentShader: ATMO_FRAG,
       side: THREE.BackSide, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false,
     });
+    this._disposables.push(atmoGeo, this.atmoMat);
     this.atmo = new THREE.Mesh(atmoGeo, this.atmoMat);
     this.scene.add(this.atmo);   // hors group : reste centrée, glow d'ambiance
 
@@ -266,10 +287,22 @@ class GlobeEngine {
     // shader (uHasTex) conservé si un chargement échoue.
     const loader = new THREE.TextureLoader();
     let loaded = 0;
+    // Branchement d'une texture sur le materiau de la Terre. Le chargement etant
+    // asynchrone, il peut aboutir APRES dispose() : dans ce cas on libere la
+    // texture sur place et on n'y touche plus, sinon elle re-epinglerait en
+    // memoire un materiau (et son contexte) qu'on vient de detruire.
+    // Enregistrement dans _disposables ICI : c'est le seul instant ou la
+    // texture existe et ou le moteur est encore vivant.
+    const attach = (name, t) => {
+      if (this._disposed) { t.dispose(); return false; }
+      this._disposables.push(t);
+      this.earthMat.uniforms[name].value = t;
+      return true;
+    };
     const done = () => { if (++loaded >= 2) this.earthMat.uniforms.uHasTex.value = 1; };
-    loader.load(this.tex.day, (t) => { this.earthMat.uniforms.uDay.value = t; done(); }, undefined, () => {});
-    loader.load(this.tex.night, (t) => { this.earthMat.uniforms.uNight.value = t; done(); }, undefined, () => {});
-    loader.load(this.tex.spec, (t) => { this.earthMat.uniforms.uSpec.value = t; }, undefined, () => {});
+    loader.load(this.tex.day, (t) => { if (attach('uDay', t)) done(); }, undefined, () => {});
+    loader.load(this.tex.night, (t) => { if (attach('uNight', t)) done(); }, undefined, () => {});
+    loader.load(this.tex.spec, (t) => { attach('uSpec', t); }, undefined, () => {});
   }
 
   _buildArcs() {
@@ -295,6 +328,7 @@ class GlobeEngine {
         transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
       });
       this.arcMats.push(mat);
+      this._disposables.push(geo, mat);
       const line = new THREE.Line(geo, mat);
       line.frustumCulled = false;   // decale dans le shader (uShift) -> pas de culling
       this.arcGroup.add(line);
@@ -713,11 +747,20 @@ class GlobeEngine {
 
   /**
    * Releases everything the engine created or subscribed to: render loop,
-   * ResizeObserver, window and canvas listeners, WebGL context and injected DOM.
+   * ResizeObserver, window and canvas listeners, every GPU resource (geometries,
+   * materials, textures), the WebGL context itself and the injected DOM.
+   *
+   * Idempotent: safe to call twice (React StrictMode double-mounts in dev), and
+   * texture loads still in flight resolve into a no-op once it has run.
    *
    * @returns {void}
    */
   dispose() {
+    // Idempotence : useGlobeEngine appelle dispose() depuis un nettoyage
+    // d'effet, double en StrictMode. Un second passage re-libererait des
+    // ressources deja detruites et re-perdrait un contexte deja rendu.
+    if (this._disposed) return;
+    this._disposed = true;
     cancelAnimationFrame(this.raf);
     if (this._ro) this._ro.disconnect();
     // Ecoutes globales du drag (posees sur window pour suivre la souris hors canvas).
@@ -731,7 +774,17 @@ class GlobeEngine {
     this.canvas.removeEventListener('mousemove', this._hoverMove);
     this.canvas.removeEventListener('mouseleave', this._hoverLeave);
     this.canvas.removeEventListener('wheel', this._wheel);
+    // Ressources GPU : sans ce passage, renderer.dispose() seul laisse les
+    // geometries (~82k sommets pour la Terre tuilee), les ShaderMaterial et les
+    // textures alloues, et le contexte WebGL vivant. Au bout de quelques
+    // navigations, Chrome atteint son plafond (~16 contextes) et perd
+    // d'autorite les plus anciens : les globes encore montes deviennent noirs.
+    this._disposables.forEach(r => r.dispose());
+    this._disposables.length = 0;
     this.renderer.dispose();
+    // forceContextLoss() rend le contexte au navigateur IMMEDIATEMENT, sans
+    // attendre le ramassage du canvas par le GC.
+    this.renderer.forceContextLoss();
     // DOM injecte : canvas WebGL, overlay des pastilles, tooltip.
     if (this.c.contains(this.canvas)) this.c.removeChild(this.canvas);
     if (this.c.contains(this.overlay)) this.c.removeChild(this.overlay);

@@ -88,7 +88,10 @@ const useGlobeEngine = (stageRef, config) => {
     return () => {
       cancelled = true;
       // `dispose()` libère la boucle rAF, le ResizeObserver, les écoutes window
-      // et canvas, le contexte WebGL et le DOM injecté dans le stage.
+      // et canvas, les ressources GPU (géométries, matériaux, textures), le
+      // contexte WebGL — rendu au navigateur via forceContextLoss(), sans quoi
+      // quelques allers-retours suffisent à saturer son quota de contextes — et
+      // le DOM injecté dans le stage. L'appel est idempotent.
       engine?.dispose();
       engineRef.current = null;
     };
