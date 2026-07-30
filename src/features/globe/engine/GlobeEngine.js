@@ -330,7 +330,7 @@ class GlobeEngine {
     (this.o.arcs || []).forEach((arc, i) => {
       const a = byId[arc.from], b = byId[arc.to];
       if (!a || !b) return;
-      const { geo, pts } = this._arcGeometry(a, b, arc.value);
+      const { geo, pts, midLon } = this._arcGeometry(a, b, arc.value);
       const mat = new THREE.ShaderMaterial({
         uniforms: {
           uMorph: { value: this.morph }, uColor: { value: pal.arc.clone() },
@@ -346,7 +346,14 @@ class GlobeEngine {
       const line = new THREE.Line(geo, mat);
       line.frustumCulled = false;   // decale dans le shader (uShift) -> pas de culling
       this.arcGroup.add(line);
-      this.arcHit.push({ mat, arc, a, b, pts, midLon: ((a.lon + b.lon) / 2) * DEG });
+      // midLon vient de la geometrie DEROULEE, jamais de la moyenne des
+      // longitudes brutes : pour Tokyo (139.69) -> San Francisco (-122.42) cette
+      // moyenne donnerait 8.6 deg (quelque part en Europe) au lieu de -171 deg,
+      // et _loop replierait l'arc sur une tuile ou ne sont pas ses extremites.
+      // `shift` : miroir JS du uniform uShift, reecrit a chaque frame par _loop et
+      // relu par _onHoverMove. Initialise a 0 (et non undefined) : le survol peut
+      // etre interroge avant la premiere frame rendue.
+      this.arcHit.push({ mat, arc, a, b, pts, midLon, shift: 0 });
     });
     this.arcGroup.visible = this.o.showArcs;
   }
@@ -362,11 +369,23 @@ class GlobeEngine {
     const height = 0.14 + 0.30 * clamp(ang / PI, 0, 1) + 0.10 * (value ?? 0.5);
     const pos = new Float32Array(S * 3), ts = new Float32Array(S);
     const pts = [];
+    // Longitude DEROULEE (unwrapped), accumulee d'un echantillon au suivant, et
+    // longitude de l'echantillon median qui servira de reference de tuile.
+    let lon = 0, midLon = 0;
+    const mid = S >> 1;
     for (let i = 0; i < S; i++) {
       const t = i / (S - 1);
       const p = this._slerp(v1, v2, t, ang);
       const lat = Math.asin(clamp(p.y, -1, 1));
-      const lon = Math.atan2(p.x, p.z);
+      // atan2 replie dans ]-PI, PI] : un arc franchissant l'antimeridien (Tokyo
+      // -> San Francisco) y saute de +3.14 a -3.14 entre deux echantillons
+      // voisins. On n'accumule donc que l'ECART LE PLUS COURT (_wrapPi) pour
+      // obtenir une suite continue, quitte a sortir de ]-PI, PI] : LINE_VERT
+      // consomme cette valeur telle quelle (lon + uShift) et une marche de 2PI
+      // y ferait balayer toute la largeur de l'ecran a un segment.
+      const raw = Math.atan2(p.x, p.z);
+      lon = i === 0 ? raw : lon + this._wrapPi(raw - lon);
+      if (i === mid) midLon = lon;
       const elev = Math.sin(PI * t) * height;
       pos[i * 3] = lon; pos[i * 3 + 1] = lat; pos[i * 3 + 2] = elev;
       ts[i] = t;
@@ -374,12 +393,19 @@ class GlobeEngine {
       // calcule par le slerp : le figer ici epargne a _onHoverMove une
       // allocation et quatre appels trigonometriques par echantillon et par
       // mousemove (18 echantillons x 13 arcs, a plus de 100 evenements/s).
+      // La longitude poussee est la DEROULEE, la meme que celle des sommets :
+      // avec la brute, le survol se replierait sur une autre tuile que le rendu.
       if (i % 4 === 0) pts.push({ lon, lat, elev, u: p.clone() });
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     g.setAttribute('aT', new THREE.BufferAttribute(ts, 1));
-    return { geo: g, pts };
+    // midLon reste DEROULEE (non repliee dans ]-PI, PI]) : _loop en deduit
+    // uShift par `2PI * round((centerLon - midLon) / 2PI)`, et le shader rend
+    // l'arc en `lon + uShift`. Replier midLon de 2PI*k decalerait uShift du
+    // meme 2PI*k sans toucher aux sommets -> l'arc partirait une tuile plus
+    // loin. Le `round` accepte n'importe quelle amplitude, aucun repli requis.
+    return { geo: g, pts, midLon };
   }
 
   // Vecteur unitaire de la sphere pour un couple (lon, lat) en radians.
@@ -411,10 +437,16 @@ class GlobeEngine {
   // `out` omis => nouveau vecteur (cf. _unit). `this._vSph` est le SEUL scratch
   // interne de cette methode : aucun appelant ne doit le passer en `out`, sinon
   // la position spherique et la position plane s'ecraseraient mutuellement.
-  _localAt(lon, lat, elev, m, out = null) {
+  // `shift` : decalage de tuile IMPOSE, en radians. Un point isole (pastille) se
+  // replie tout seul sur la tuile la plus proche du centre, mais un ARC est un
+  // corps rigide que le shader translate d'un uShift unique calcule sur son
+  // milieu. Les echantillons de survol doivent donc recevoir CE decalage-la,
+  // sinon ceux qui debordent d'une demi-tuile se replieraient chacun de leur
+  // cote et la zone sensible se detacherait du trait affiche.
+  _localAt(lon, lat, elev, m, out = null, shift = null) {
     const s = this._unit(lon, lat, this._vSph).multiplyScalar(1 + elev);
     // longitude repliee sur la tuile la plus proche du centre -> defilement infini en plan
-    const plon = this.centerLon + this._wrapPi(lon - this.centerLon);
+    const plon = shift === null ? this.centerLon + this._wrapPi(lon - this.centerLon) : lon + shift;
     return (out ?? new THREE.Vector3()).set(plon, lat + elev * 1.7, elev * 0.6).lerp(s, m);
   }
 
@@ -510,7 +542,7 @@ class GlobeEngine {
           const nrm = this._vHitNrm.copy(s.u).applyQuaternion(this.group.quaternion);
           if (nrm.z < -0.05) continue;
         }
-        this._localAt(s.lon, s.lat, s.elev, m, this._vHitLocal);
+        this._localAt(s.lon, s.lat, s.elev, m, this._vHitLocal, hit.shift);
         const proj = this._vHitProj.copy(this._vHitLocal)
           .applyMatrix4(this.group.matrixWorld).project(this.camera);
         if (proj.z > 1) continue;
@@ -664,7 +696,12 @@ class GlobeEngine {
     this.arcMats.forEach(mt => { mt.uniforms.uMorph.value = m; mt.uniforms.uTime.value = this.time; });
     // arcs : chaque flux replie sur la tuile la plus proche du centre (defilement infini)
     this.arcHit.forEach(hit => {
-      hit.mat.uniforms.uShift.value = 2 * PI * Math.round((this.centerLon - hit.midLon) / (2 * PI));
+      // midLon est DEROULEE et peut sortir de ]-PI, PI] : `round` s'en accommode
+      // sans repli prealable, et c'est justement ce qu'il faut — le shader rend
+      // `lon + uShift`, donc uShift doit compenser la longitude REELLE des
+      // sommets, pas sa version repliee.
+      hit.shift = 2 * PI * Math.round((this.centerLon - hit.midLon) / (2 * PI));
+      hit.mat.uniforms.uShift.value = hit.shift;
     });
 
     this.group.updateMatrixWorld(true);
