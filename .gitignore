@@ -46,9 +46,8 @@ DESIGN_SYSTEM.md
 .claude/*
 skills-lock.json
 
-GLOBE_ARCHITECTURE.md
-GLOBE_PROMPTS.md
-GLOBE_FIXES_PROMPTS.md
+TEMPLATIZATION_ARCHITECTURE.md
+TEMPLATIZATION_PROMPTS.md
 
 # old repository
 design-system/*
