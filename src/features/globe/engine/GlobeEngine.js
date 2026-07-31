@@ -467,8 +467,12 @@ class GlobeEngine {
       el.className = 'globe-marker globe-marker--flat';
       const color = this.o.colorFor ? this.o.colorFor(p) : pal.accent;
       const icon = this.o.iconFor ? this.o.iconFor(p) : null;
-      const size = this.o.sizeFor ? this.o.sizeFor(p) : 22;
-      el.style.setProperty('--d', size + 'px');
+      // `--d` n'est posé QUE si l'hôte fournit sizeFor : à défaut, le repli CSS
+      // `var(--d, var(--globe-marker-size))` (GlobeMarkers.scss) doit rester
+      // libre de jouer son rôle. Poser systématiquement une valeur inline ici
+      // — même recopiée du token — rendrait --globe-marker-size invisible du
+      // navigateur : une déclaration inline gagne toujours sur un var() de repli.
+      if (this.o.sizeFor) el.style.setProperty('--d', this.o.sizeFor(p) + 'px');
       // Couleur posee par le CSSOM et non interpolee dans un attribut style :
       // l'API refuse nativement toute evasion d'attribut, et les deux <span>
       // enfants heritent de --c (custom property => heritee par defaut).
@@ -580,12 +584,12 @@ class GlobeEngine {
     const el = this.canvas;
     // Drag : deplacement du centre geographique, sensibilite proportionnelle au
     // zoom (plus on est pres, plus le geste est fin).
-    let dragging = false, px = 0, py = 0, moved = 0;
-    const down = (e) => { dragging = true; this._dragging = true; moved = 0; px = e.clientX ?? e.touches[0].clientX; py = e.clientY ?? e.touches[0].clientY; };
+    let dragging = false, px = 0, py = 0;
+    const down = (e) => { dragging = true; this._dragging = true; px = e.clientX ?? e.touches[0].clientX; py = e.clientY ?? e.touches[0].clientY; };
     const move = (e) => {
       if (!dragging) return;
       const x = e.clientX ?? e.touches[0].clientX, y = e.clientY ?? e.touches[0].clientY;
-      const dx = x - px, dy = y - py; px = x; py = y; moved += Math.abs(dx) + Math.abs(dy);
+      const dx = x - px, dy = y - py; px = x; py = y;
       const k = 0.005 * (this.camZ / CAM_Z_DEFAULT);
       this.centerLon -= dx * k;
       this.centerLat = clamp(this.centerLat + dy * k, -GLOBE_LAT_LIMIT, GLOBE_LAT_LIMIT);

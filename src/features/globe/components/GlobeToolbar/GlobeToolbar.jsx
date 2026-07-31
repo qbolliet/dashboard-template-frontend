@@ -103,20 +103,31 @@ const buildTool = (key, state, onAction) => {
         active: state.wheelZoom,
         onClick,
       };
-    // Même dépendance que les flux dynamiques : sans pastille survolable, la
-    // tooltip n'a rien à afficher.
-    case 'tooltips':
-    default:
+    // Dépendance réelle : le moteur affiche une tooltip de POINT si showPoints
+    // (cf. _showTip) et une tooltip d'ARC si showArcs (cf. _onHoverMove), les deux
+    // gardes étant indépendantes l'une de l'autre. Le bouton ne doit donc se griser
+    // que quand il n'y a plus RIEN à survoler — points ET flux masqués — pas dès
+    // que les points seuls disparaissent : les arcs restent survolables sans eux.
+    case 'tooltips': {
+      const nothingToHover = !state.showPoints && !state.showArcs;
       return {
         id: 'tooltips',
         icon: GlobeToolIcon.tip,
-        label: state.showPoints
-          ? (state.tooltips ? 'Tooltips activées' : 'Tooltips désactivées')
-          : 'Affichez les points pour activer les tooltips',
-        active: state.tooltips && state.showPoints,
-        disabled: !state.showPoints,
+        label: nothingToHover
+          ? 'Affichez les points ou les flux pour activer les tooltips'
+          : (state.tooltips ? 'Tooltips activées' : 'Tooltips désactivées'),
+        active: state.tooltips && !nothingToHover,
+        disabled: nothingToHover,
         onClick,
       };
+    }
+    // Filet de sécurité : TOOL_KEYS et GROUPS sont maintenus à la main à côté de
+    // ce switch. Une clé ajoutée aux deux sans son `case` dédié tomberait ici — on
+    // renvoie `null` plutôt que d'aliaser un outil existant (le duplicata produit
+    // par un ancien `default` partagé avec 'tooltips' cassait React : deux enfants
+    // de même clé). GlobeToolbar filtre les `null` avant de les passer à HoverToolbar.
+    default:
+      return null;
   }
 };
 
@@ -134,12 +145,16 @@ const buildTool = (key, state, onAction) => {
  * @returns {JSX.Element}
  */
 const GlobeToolbar = ({ tools, state, onAction }) => {
-  // Chaque famille est réduite aux outils demandés ; les familles vidées sont
-  // retirées pour ne pas laisser de séparateur orphelin.
+  // Chaque famille est réduite aux outils demandés, puis aux ToolSpecs non nulles
+  // (cf. la branche `default` de buildTool) ; les familles vidées par l'une ou
+  // l'autre étape sont retirées pour ne pas laisser de séparateur orphelin —
+  // HoverToolbar ne tolère pas les entrées nulles dans un groupe.
   const groups = GROUPS
-    .map((group) => group.filter((key) => tools.includes(key)))
-    .filter((group) => group.length > 0)
-    .map((group) => group.map((key) => buildTool(key, state, onAction)));
+    .map((group) => group
+      .filter((key) => tools.includes(key))
+      .map((key) => buildTool(key, state, onAction))
+      .filter(Boolean))
+    .filter((group) => group.length > 0);
 
   return (
     <>
