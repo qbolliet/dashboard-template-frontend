@@ -1,5 +1,5 @@
 // Importation des modules
-import { Color } from 'three';
+import { Color, SRGBColorSpace } from 'three';
 
 /**
  * Colour plumbing between the CSS token layer and the WebGL scene.
@@ -28,15 +28,20 @@ export function cssColor(str) {
     ctx.fillStyle = '#000';
     ctx.fillStyle = str;              // navigateur normalise (gère oklch)
     const norm = ctx.fillStyle;       // -> "#rrggbb" ou "rgb(...)"
+    // Les deux branches convertissent sRGB -> espace de travail lineaire, comme
+    // le decodage materiel des textures : les uniforms de couleur et les texels
+    // arrivent ainsi dans le MEME espace, et les shaders reencodent une seule
+    // fois en sortie. `set()` fait la conversion tout seul ; `setRGB()` ne la
+    // fait que si on lui nomme l'espace source, d'ou le 3e argument.
     const c = new Color();
     if (norm[0] === '#') c.set(norm);
     else {
       const m = norm.match(/[\d.]+/g);
-      if (m) c.setRGB(+m[0] / 255, +m[1] / 255, +m[2] / 255);
+      if (m) c.setRGB(+m[0] / 255, +m[1] / 255, +m[2] / 255, SRGBColorSpace);
     }
     return c;
   } catch {
-    return new Color(0.4, 0.6, 1);
+    return new Color().setRGB(0.4, 0.6, 1, SRGBColorSpace);
   }
 }
 
@@ -44,6 +49,8 @@ export function cssColor(str) {
 // Utilisé uniquement si un token --globe-* est absent (feuille de styles de la
 // feature pas encore chargée) : le thème par défaut du moteur étant clair, le
 // repli reprend la branche claire du prototype pour un rendu identique.
+// Triplets exprimés en sRGB, comme les tokens CSS qu'ils remplacent — ils
+// passent donc par la même conversion (cf. colorOf).
 const FALLBACK_PALETTE = {
   atmo: [0.40, 0.62, 1.0],
   arc: [0.12, 0.46, 0.98],
@@ -68,7 +75,7 @@ export function readGlobePalette(container) {
   const token = (name) => cs.getPropertyValue(name).trim();
   const colorOf = (name, fallbackRgb) => {
     const raw = token(name);
-    return raw ? cssColor(`hsl(${raw})`) : new Color(...fallbackRgb);
+    return raw ? cssColor(`hsl(${raw})`) : new Color().setRGB(...fallbackRgb, SRGBColorSpace);
   };
 
   const accentRaw = token('--globe-marker-accent');

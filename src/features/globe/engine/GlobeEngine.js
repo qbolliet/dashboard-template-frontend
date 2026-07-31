@@ -50,6 +50,10 @@ const INITIAL_CENTER_LAT = 30 * DEG;
 // Latitude maximale atteignable en mode globe (évite de basculer sur les pôles).
 const GLOBE_LAT_LIMIT = 84 * DEG;
 
+// Couleur de travail REUTILISEE par _buildStars pour convertir sRGB -> lineaire :
+// 1400 etoiles, une seule instance plutot que 1400 jetables.
+const _starColor = new THREE.Color();
+
 /* ---- Textures Terre auto-hébergées (jour, lumières nocturnes, spéculaire) ---- */
 const TEX = {
   day: '/globe/earth-day.jpg',
@@ -89,11 +93,6 @@ class GlobeEngine {
    *   is built and the render loop started.
    */
   constructor(container, opts = {}) {
-    // Fidélité couleur : le prototype tourne sur three r128, dont le pipeline est
-    // entièrement linéaire (ni décodage sRGB des textures, ni conversion de
-    // sortie). Depuis r152 la gestion des couleurs est active par défaut ;
-    // la laisser assombrirait visiblement la Terre par rapport au prototype.
-    THREE.ColorManagement.enabled = false;
     // Cache de chargement partage entre toutes les instances. Ce que le cache
     // mutualise, c'est l'HTMLImageElement stocke par ImageLoader (cle
     // `image:<url>`), PAS l'objet Texture : TextureLoader.load() cree une
@@ -167,9 +166,10 @@ class GlobeEngine {
   _initScene() {
     const c = this.c;
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    // Pendant de ColorManagement.enabled = false : sortie linéaire, sans
-    // conversion sRGB — le pipeline couleur reste celui du prototype (r128).
-    this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+    // `outputColorSpace` reste à son défaut (SRGBColorSpace) : le mélange se fait
+    // en espace linéaire et la sortie est réencodée en sRGB par
+    // `<colorspace_fragment>`, inclus explicitement en fin de chacun de nos trois
+    // fragment shaders (three ne l'injecte pas dans un ShaderMaterial custom).
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(c.clientWidth, c.clientHeight);
     this.canvas = this.renderer.domElement;
@@ -209,9 +209,16 @@ class GlobeEngine {
       // teinte légèrement variable (blanc bleuté -> blanc chaud)
       const t = Math.random();
       const b = 0.65 + 0.35 * Math.random();
-      col[i * 3] = b * (0.85 + 0.15 * t);
-      col[i * 3 + 1] = b * 0.95;
-      col[i * 3 + 2] = b * (0.95 + 0.05 * (1 - t));
+      // Ces teintes ont ete choisies a l'oeil comme des valeurs sRGB. Or
+      // PointsMaterial est un materiau NATIF : son shader contient deja
+      // `<colorspace_fragment>` et considere l'attribut `color` comme etant dans
+      // l'espace de travail (lineaire). Les deposer brutes ferait donc un champ
+      // d'etoiles nettement plus lumineux — on les convertit une fois ici, a la
+      // construction, avec la fonction de transfert de three elle-meme.
+      _starColor.setRGB(b * (0.85 + 0.15 * t), b * 0.95, b * (0.95 + 0.05 * (1 - t)), THREE.SRGBColorSpace);
+      col[i * 3] = _starColor.r;
+      col[i * 3 + 1] = _starColor.g;
+      col[i * 3 + 2] = _starColor.b;
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -307,16 +314,25 @@ class GlobeEngine {
     // memoire un materiau (et son contexte) qu'on vient de detruire.
     // Enregistrement dans _disposables ICI : c'est le seul instant ou la
     // texture existe et ou le moteur est encore vivant.
-    const attach = (name, t) => {
+    // `srgb` : la texture porte-t-elle une COULEUR (donc encodee en sRGB) ou une
+    // DONNEE ? Poser colorSpace = SRGBColorSpace fait choisir a three le format
+    // interne SRGB8_ALPHA8, et le decodage sRGB -> lineaire devient materiel : il
+    // s'applique donc aussi a nos texture2D() de shader custom, que three ne
+    // decore d'aucun chunk de decodage.
+    const attach = (name, t, srgb) => {
       if (this._disposed) { t.dispose(); return false; }
+      if (srgb) t.colorSpace = THREE.SRGBColorSpace;
       this._disposables.push(t);
       this.earthMat.uniforms[name].value = t;
       return true;
     };
     const done = () => { if (++loaded >= 2) this.earthMat.uniforms.uHasTex.value = 1; };
-    loader.load(this.tex.day, (t) => { if (attach('uDay', t)) done(); }, undefined, () => {});
-    loader.load(this.tex.night, (t) => { if (attach('uNight', t)) done(); }, undefined, () => {});
-    loader.load(this.tex.spec, (t) => { attach('uSpec', t); }, undefined, () => {});
+    loader.load(this.tex.day, (t) => { if (attach('uDay', t, true)) done(); }, undefined, () => {});
+    loader.load(this.tex.night, (t) => { if (attach('uNight', t, true)) done(); }, undefined, () => {});
+    // La carte speculaire est un MASQUE (on n'en lit que le canal .r comme
+    // proportion d'ocean), pas une couleur : la decoder en sRGB fausserait la
+    // ponderation du reflet. Elle reste donc en espace lineaire.
+    loader.load(this.tex.spec, (t) => { attach('uSpec', t, false); }, undefined, () => {});
   }
 
   _buildArcs() {
