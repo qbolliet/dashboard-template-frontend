@@ -40,14 +40,14 @@
     font-size: 0.85em;
     background: hsl(var(--color-primary-500) / 0.08);
     color: hsl(var(--color-primary-500));
-    padding: 1px 5px;
-    border-radius: var(--border-radius-sm, 3px);
+    padding: var(--spacing-px) var(--spacing-xs);
+    border-radius: var(--border-radius-sm);
   }
 }
 
 // ── Étiquette de section (uppercase) ──
 .test-globe-section-label {
-  font-size: 11px;
+  font-size: var(--font-size-xs); // arrondi depuis 11px (cran le plus proche de l'échelle)
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -84,23 +84,25 @@
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: hsl(var(--color-text-primary));
-  margin: 0 0 4px;
+  margin: 0 0 var(--spacing-xs);
 }
 .test-globe-feat-ico {
   display: inline-grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  // Même diamètre par défaut qu'une pastille de marker (cf. GlobeMarkers/_tokens.scss),
+  // pour illustrer visuellement le composant plutôt qu'une taille d'icône arbitraire.
+  width: var(--globe-marker-size);
+  height: var(--globe-marker-size);
   border-radius: var(--border-radius-sm);
   background: hsl(var(--color-primary-500) / 0.10);
   color: hsl(var(--color-primary-500));
   flex-shrink: 0;
 
-  svg { width: 13px; height: 13px; }
+  svg { width: 59%; height: 59%; } // ratio du prototype (13px / 22px)
 }
 .test-globe-feat-desc {
   margin: 0;
-  font-size: 12.5px;
+  font-size: var(--font-size-xs); // arrondi depuis 12.5px (cran le plus proche)
   color: hsl(var(--color-text-tertiary));
   line-height: 1.55;
 
@@ -109,8 +111,8 @@
     font-size: 0.9em;
     background: hsl(var(--color-primary-500) / 0.08);
     color: hsl(var(--color-primary-500));
-    padding: 1px 5px;
-    border-radius: var(--border-radius-sm, 3px);
+    padding: var(--spacing-px) var(--spacing-xs);
+    border-radius: var(--border-radius-sm);
   }
 }
 
@@ -139,7 +141,7 @@
 }
 .test-globe-block-meta {
   font-family: var(--font-mono, monospace);
-  font-size: 11px;
+  font-size: var(--font-size-xs); // arrondi depuis 11px (cran le plus proche)
   color: hsl(var(--color-text-tertiary));
 }
 .test-globe-block-note {
@@ -165,7 +167,7 @@
 .api-card-scroll {
   overflow-x: auto;
   border: 1px solid hsl(var(--color-border));
-  border-radius: var(--border-radius-lg, 8px);
+  border-radius: var(--border-radius-lg);
   background: hsl(var(--color-surface));
 }
 .api-table {
@@ -175,29 +177,32 @@
 
   th, td {
     text-align: left;
-    padding: 7px 10px;
+    // Asymétrie du prototype (7px vertical / 10px horizontal) préservée en
+    // arrondissant chaque axe vers son cran le plus proche plutôt qu'en
+    // uniformisant les deux à la même valeur.
+    padding: var(--spacing-sm) var(--spacing-md);
     border-bottom: 1px solid hsl(var(--color-border));
     vertical-align: top;
   }
   th {
     font-weight: 500;
     color: hsl(var(--color-text-tertiary));
-    font-size: 10.5px;
+    font-size: var(--font-size-xs); // arrondi depuis 10.5px — voir compte rendu
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
   tbody tr:last-child td { border-bottom: none; }
   code {
     font-family: var(--font-mono, monospace);
-    font-size: 11.5px;
+    font-size: var(--font-size-xs); // arrondi depuis 11.5px (cran le plus proche)
     color: hsl(var(--color-primary-500));
     background: hsl(var(--color-primary-500) / 0.08);
-    padding: 1px 5px;
-    border-radius: 3px;
+    padding: var(--spacing-px) var(--spacing-xs);
+    border-radius: var(--border-radius-sm);
   }
   .api-typ {
     font-family: var(--font-mono, monospace);
-    font-size: 11px;
+    font-size: var(--font-size-xs); // arrondi depuis 11px (cran le plus proche)
     color: hsl(var(--color-text-tertiary));
     white-space: nowrap;
   }
@@ -209,7 +214,7 @@
   color: hsl(var(--color-gray-100));
   border-radius: var(--border-radius-md);
   font-family: var(--font-mono, monospace);
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   line-height: 1.65;
   padding: var(--spacing-lg);
   overflow-x: auto;

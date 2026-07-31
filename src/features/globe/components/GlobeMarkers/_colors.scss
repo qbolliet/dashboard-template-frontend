@@ -6,8 +6,11 @@
 // remplissage et de la bordure, et l'opacité du halo — constants quelle que
 // soit la couleur de donnée
 //
-// ⚠️ Les ombres portées noires (rgba(0,0,0,…)) restent en dur dans
-// GlobeMarkers.scss : ombres physiques, non thémables.
+// ⚠️ Les ombres portées noires (hsl(var(--color-black) / …) dans
+// GlobeMarkers.scss) référencent la primitive neutre --color-black plutôt
+// qu'un rgba en dur, mais restent volontairement hors des tokens sémantiques
+// de theming : ombres physiques, non thémables (noir constant quel que soit
+// le thème clair/sombre).
 
 :root {
   --globe-marker-fill-mix: 88%;   // color-mix(--c, blanc) du remplissage plein

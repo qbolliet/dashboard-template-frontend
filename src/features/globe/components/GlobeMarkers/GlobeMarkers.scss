@@ -48,11 +48,11 @@
   border-radius: var(--border-radius-full);
   background: color-mix(in srgb, var(--c) var(--globe-marker-fill-mix), white);
   color: hsl(var(--color-white));
-  border: 1.5px solid color-mix(in srgb, var(--c) var(--globe-marker-border-mix), white);
+  border: var(--globe-marker-border-width) solid color-mix(in srgb, var(--c) var(--globe-marker-border-mix), white);
   // Halo coloré + ombre portée noire (physique, non thémable — cf. _colors.scss).
   box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--c) var(--globe-marker-ring-opacity), transparent),
-    0 2px 6px rgba(0, 0, 0, .28);
+    0 0 0 var(--globe-marker-ring-width) color-mix(in srgb, var(--c) var(--globe-marker-ring-opacity), transparent),
+    0 2px 6px hsl(var(--color-black) / .28);
   transition: transform var(--transition-fast) ease, box-shadow var(--transition-fast) ease;
 }
 .globe-marker-dot svg {
@@ -100,6 +100,6 @@
 .globe-marker.is-hover .globe-marker-dot {
   transform: scale(1.14);
   box-shadow:
-    0 0 0 5px color-mix(in srgb, var(--c) var(--globe-marker-ring-opacity-hover), transparent),
-    0 3px 10px rgba(0, 0, 0, .34);
+    0 0 0 var(--globe-marker-ring-width-hover) color-mix(in srgb, var(--c) var(--globe-marker-ring-opacity-hover), transparent),
+    0 3px 10px hsl(var(--color-black) / .34);
 }

@@ -32,7 +32,7 @@
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
-  border: 6px solid transparent;
+  border: var(--globe-tooltip-arrow-size) solid transparent;
   border-top-color: hsl(var(--globe-tooltip-bg));
   filter: drop-shadow(0 1px 0 hsl(var(--globe-tooltip-border)));
 }
@@ -54,13 +54,13 @@
   font-family: var(--font-mono);
   font-size: var(--globe-tooltip-sub-font-size);
   color: hsl(var(--globe-tooltip-muted-color));
-  margin-top: 2px;
+  margin-top: var(--spacing-2px);
 }
 .globe-tt-val {
   font-family: var(--font-mono);
   font-size: var(--globe-tooltip-value-font-size);
   font-weight: 600;
-  margin-top: 4px;
+  margin-top: var(--spacing-xs);
   color: hsl(var(--globe-tooltip-title-color));
 }
 
@@ -68,9 +68,12 @@
 .globe-tt-head {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding-bottom: 6px;
-  margin-bottom: 6px;
+  // Arrondi depuis 6px (équidistant entre --spacing-xs et --spacing-sm) : on
+  // choisit --spacing-sm, déjà utilisé comme rythme standard de la bulle
+  // (padding-y du conteneur), plutôt que d'introduire un troisième palier.
+  gap: var(--spacing-sm);
+  padding-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
   border-bottom: 1px solid hsl(var(--globe-tooltip-border));
   font-weight: 600;
   font-size: var(--font-size-xs); // 12px — idem base, échelle typography

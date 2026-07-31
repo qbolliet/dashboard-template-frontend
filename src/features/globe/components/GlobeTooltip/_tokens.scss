@@ -20,4 +20,9 @@
   --globe-tooltip-value-font-size: 0.9375rem;      // 15px   (.globe-tt-val)
   --globe-tooltip-key-font-size: 0.6875rem;        // 11px   (.globe-tt-k)
   --globe-tooltip-arc-value-font-size: 0.71875rem; // 11.5px (.globe-tt-v)
+
+  // Épaisseur de la flèche (forme géométrique en bordures, pas un espacement) :
+  // token dimensionnel local plutôt que --spacing-*, cf. CLAUDE.md « minimiser
+  // le nombre de variables ».
+  --globe-tooltip-arrow-size: 0.375rem; // 6px
 }
