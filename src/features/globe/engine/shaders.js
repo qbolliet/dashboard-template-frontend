@@ -165,21 +165,33 @@ export const ATMO_FRAG = `
   }`;
 
 /* ---- Shaders : arcs (position = lon,lat,elev) ---- */
-// Sommet : même mapping globe/plan que la Terre, uShift repliant chaque flux
-// sur la tuile la plus proche du centre courant.
+// Sommet : même mapping globe/plan que la Terre. Deux décalages de tuile s'y
+// ajoutent, et ils ne jouent pas le même rôle :
+//   - uShift (uniforme, par arc) replie le flux ENTIER sur la tuile la plus
+//     proche du centre courant, à partir de sa longitude médiane ;
+//   - aShift (attribut, par sommet) est le tuilage proprement dit, exactement
+//     comme aShift sur la Terre (cf. _buildEarth) : trois copies de la
+//     polyligne à -2PI, 0 et +2PI.
+// Sans la seconde, un arc restait un corps rigide confiné à UNE tuile alors que
+// les pastilles, elles, se replient chacune sur la tuile la plus proche : dès
+// qu'une extrémité dépassait une demi-tuile du centre, le trait et la pastille
+// de sa destination s'affichaient à une tuile complète l'un de l'autre.
 export const LINE_VERT = `
   uniform float uMorph;
   uniform float uShift;
   attribute float aT;
+  attribute float aShift;
   varying float vT;
+  varying float vShift;
   const float PI = 3.141592653589793;
   void main(){
     vT = aT;
+    vShift = aShift;
     float lon = position.x;
     float lat = position.y;
     float elev = position.z;
     vec3 sph = vec3(cos(lat)*sin(lon), sin(lat), cos(lat)*cos(lon)) * (1.0 + elev);
-    vec3 pla = vec3(lon + uShift, lat + elev * 1.7, elev * 0.6);
+    vec3 pla = vec3(lon + uShift + aShift, lat + elev * 1.7, elev * 0.6);
     vec3 pos = mix(pla, sph, uMorph);
     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
   }`;
@@ -194,8 +206,17 @@ export const LINE_FRAG = `
   uniform float uSpeed;
   uniform float uPhase;
   uniform float uHover;
+  uniform float uMorph;
   varying float vT;
+  varying float vShift;
   void main(){
+    // Copies tuilees (vShift != 0) : visibles seulement en mode plan, sinon on
+    // jette — meme regle et meme seuil que EARTH_FRAG. Obligatoire, et pas
+    // seulement par economie : en mode globe la position spherique IGNORE le
+    // decalage de tuile, donc les trois copies se superposent exactement sur le
+    // meme grand cercle. En rendu ADDITIF (cf. le materiau), les laisser passer
+    // rendrait chaque arc trois fois plus lumineux qu'en mode plan.
+    if (abs(vShift) > 0.5 && uMorph > 0.12) discard;
     float base = 0.34 + 0.55 * vT;          // dégradé origine -> destination (plus visible)
     float head = fract(vT - uTime * uSpeed + uPhase);
     float comet = smoothstep(0.0, 0.16, head) * (1.0 - smoothstep(0.16, 0.34, head));

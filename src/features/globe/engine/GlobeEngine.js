@@ -120,6 +120,15 @@ class GlobeEngine {
       tooltips: true, arcsDynamic: true, iconFor: null, colorFor: null, sizeFor: null, tooltipFor: null,
       initialDark: false, textures: null,
     }, opts);
+    // Les deux jeux de donnees viennent d'une base via l'API GraphQL : une
+    // reponse peut resoudre `points: null` la ou le defaut ci-dessus n'agit que
+    // sur `undefined` (Object.assign ne substitue rien d'autre). Le constructeur
+    // s'execute dans un `.then()` cote hote (useGlobeEngine) : un TypeError ici
+    // ne remonterait pas a une frontiere d'erreur React mais en rejet non gere,
+    // scene vide et definitive. On normalise donc UNE fois, plutot que de
+    // parsemer les points d'appel de gardes `|| []` inegalement respectees.
+    if (!Array.isArray(this.o.points)) this.o.points = [];
+    if (!Array.isArray(this.o.arcs)) this.o.arcs = [];
     // Chemins de textures : défauts auto-hébergés, surchargeables par option.
     this.tex = Object.assign({}, TEX, this.o.textures || {});
 
@@ -390,7 +399,8 @@ class GlobeEngine {
     // lon/lat `undefined` et produit un buffer de 72 sommets entierement NaN.
     const byId = new Map(this.o.points.map(p => [p.id, p]));
 
-    (this.o.arcs || []).forEach((arc, i) => {
+    // `points` et `arcs` sont garantis tableaux par le constructeur.
+    this.o.arcs.forEach((arc, i) => {
       const a = byId.get(arc.from), b = byId.get(arc.to);
       if (!a || !b) return;
       const { geo, pts, midLon } = this._arcGeometry(a, b, arc.value);
@@ -406,17 +416,19 @@ class GlobeEngine {
       });
       this.arcMats.push(mat);
       this._disposables.push(geo, mat);
-      const line = new THREE.Line(geo, mat);
-      line.frustumCulled = false;   // decale dans le shader (uShift) -> pas de culling
+      // LineSegments : la geometrie est tuilee et indexee par paires (cf.
+      // _arcGeometry), une polyligne continue relierait les copies entre elles.
+      const line = new THREE.LineSegments(geo, mat);
+      line.frustumCulled = false;   // decale dans le shader (uShift/aShift) -> pas de culling
       this.arcGroup.add(line);
       // midLon vient de la geometrie DEROULEE, jamais de la moyenne des
       // longitudes brutes : pour Tokyo (139.69) -> San Francisco (-122.42) cette
       // moyenne donnerait 8.6 deg (quelque part en Europe) au lieu de -171 deg,
       // et _loop replierait l'arc sur une tuile ou ne sont pas ses extremites.
-      // `shift` : miroir JS du uniform uShift, reecrit a chaque frame par _loop et
-      // relu par _onHoverMove. Initialise a 0 (et non undefined) : le survol peut
-      // etre interroge avant la premiere frame rendue.
-      this.arcHit.push({ mat, arc, a, b, pts, midLon, shift: 0 });
+      // Aucun miroir JS de uShift n'est conserve ici : depuis le tuilage des
+      // arcs, _onHoverMove replie chaque echantillon sur la tuile la plus proche
+      // du centre, comme une pastille, sans rien savoir du decalage du trait.
+      this.arcHit.push({ mat, arc, a, b, pts, midLon });
     });
     this.arcGroup.visible = this.o.showArcs;
   }
@@ -444,8 +456,8 @@ class GlobeEngine {
       // -> San Francisco) y saute de +3.14 a -3.14 entre deux echantillons
       // voisins. On n'accumule donc que l'ECART LE PLUS COURT (_wrapPi) pour
       // obtenir une suite continue, quitte a sortir de ]-PI, PI] : LINE_VERT
-      // consomme cette valeur telle quelle (lon + uShift) et une marche de 2PI
-      // y ferait balayer toute la largeur de l'ecran a un segment.
+      // consomme cette valeur telle quelle (lon + uShift + aShift) et une marche
+      // de 2PI y ferait balayer toute la largeur de l'ecran a un segment.
       const raw = Math.atan2(p.x, p.z);
       lon = i === 0 ? raw : lon + this._wrapPi(raw - lon);
       if (i === mid) midLon = lon;
@@ -465,9 +477,45 @@ class GlobeEngine {
       // celle que l'on vise pour lire « ou va ce flux ».
       if (i % 4 === 0 || i === S - 1) pts.push({ lon, lat, elev, u: p.clone() });
     }
+    // Tuilage horizontal de la polyligne, meme principe que la Terre
+    // (_buildEarth) : la meme suite de sommets est recopiee dans les tuiles
+    // voisines, chaque copie portant un aShift multiple de 2PI que LINE_VERT
+    // ajoute a la longitude et dont LINE_FRAG se sert pour jeter les copies
+    // laterales des que l'on repasse en globe.
+    // POURQUOI exactement une tuile de part et d'autre, ni plus ni moins : le
+    // survol et les pastilles replient chaque point isole sur la tuile la plus
+    // proche du centre, soit lon + 2PI*k avec k = round((centerLon - lon)/2PI),
+    // tandis que uShift vaut 2PI*round((centerLon - midLon)/2PI). Un sommet
+    // s'ecarte de midLon d'au plus une demi-tuile (l'arc suit le grand cercle le
+    // plus court, donc son amplitude en longitude est <= PI), et deux `round`
+    // dont les arguments different de moins de 1 ne peuvent differer que de 1 au
+    // plus : k - uShift/2PI est donc TOUJOURS dans {-1, 0, +1}. La tuile que
+    // vise une pastille est ainsi toujours dessinee, et jamais une de plus.
+    const TILES = [-1, 0, 1];
+    const N = S * TILES.length;
+    const posT = new Float32Array(N * 3), tsT = new Float32Array(N), shT = new Float32Array(N);
+    // LineSegments (indices par PAIRES) et non Line : sur une polyligne unique,
+    // three relierait le dernier sommet d'une copie au premier de la suivante
+    // par un segment parasite long d'une tuile entiere, balayant tout l'ecran.
+    // 216 sommets au plus par arc -> les indices tiennent dans du 16 bits.
+    const idx = new Uint16Array(TILES.length * (S - 1) * 2);
+    TILES.forEach((kc, ci) => {
+      const voff = ci * S, ioff = ci * (S - 1) * 2;
+      posT.set(pos, voff * 3);
+      tsT.set(ts, voff);
+      shT.fill(kc * 2 * PI, voff, voff + S);
+      for (let i = 0; i < S - 1; i++) {
+        idx[ioff + i * 2] = voff + i;
+        idx[ioff + i * 2 + 1] = voff + i + 1;
+      }
+    });
     const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    g.setAttribute('aT', new THREE.BufferAttribute(ts, 1));
+    g.setAttribute('position', new THREE.BufferAttribute(posT, 3));
+    g.setAttribute('aT', new THREE.BufferAttribute(tsT, 1));
+    g.setAttribute('aShift', new THREE.BufferAttribute(shT, 1));
+    // BufferAttribute explicite, comme pour la Terre : setIndex n'auto-construit
+    // l'attribut que depuis un Array JS ordinaire.
+    g.setIndex(new THREE.BufferAttribute(idx, 1));
     // midLon reste DEROULEE (non repliee dans ]-PI, PI]) : _loop en deduit
     // uShift par `2PI * round((centerLon - midLon) / 2PI)`, et le shader rend
     // l'arc en `lon + uShift`. Replier midLon de 2PI*k decalerait uShift du
@@ -505,16 +553,17 @@ class GlobeEngine {
   // `out` omis => nouveau vecteur (cf. _unit). `this._vSph` est le SEUL scratch
   // interne de cette methode : aucun appelant ne doit le passer en `out`, sinon
   // la position spherique et la position plane s'ecraseraient mutuellement.
-  // `shift` : decalage de tuile IMPOSE, en radians. Un point isole (pastille) se
-  // replie tout seul sur la tuile la plus proche du centre, mais un ARC est un
-  // corps rigide que le shader translate d'un uShift unique calcule sur son
-  // milieu. Les echantillons de survol doivent donc recevoir CE decalage-la,
-  // sinon ceux qui debordent d'une demi-tuile se replieraient chacun de leur
-  // cote et la zone sensible se detacherait du trait affiche.
-  _localAt(lon, lat, elev, m, out = null, shift = null) {
+  // Regle de tuile UNIQUE pour tous les points isoles — pastilles comme
+  // echantillons de survol des arcs : chacun se replie sur la tuile la plus
+  // proche du centre. Elle ne vaut que parce que les arcs sont eux-memes tuiles
+  // (aShift, cf. _arcGeometry) : la tuile ainsi visee est toujours dessinee. Sur
+  // un arc confine a une seule tuile il fallait au contraire imposer aux
+  // echantillons le decalage rigide du trait, sans quoi la zone sensible s'en
+  // detachait — c'est precisement cette exception qui a disparu.
+  _localAt(lon, lat, elev, m, out = null) {
     const s = this._unit(lon, lat, this._vSph).multiplyScalar(1 + elev);
     // longitude repliee sur la tuile la plus proche du centre -> defilement infini en plan
-    const plon = shift === null ? this.centerLon + this._wrapPi(lon - this.centerLon) : lon + shift;
+    const plon = this.centerLon + this._wrapPi(lon - this.centerLon);
     return (out ?? new THREE.Vector3()).set(plon, lat + elev * 1.7, elev * 0.6).lerp(s, m);
   }
 
@@ -617,7 +666,7 @@ class GlobeEngine {
           const nrm = this._vHitNrm.copy(s.u).applyQuaternion(this.group.quaternion);
           if (nrm.z < -0.05) continue;
         }
-        this._localAt(s.lon, s.lat, s.elev, m, this._vHitLocal, hit.shift);
+        this._localAt(s.lon, s.lat, s.elev, m, this._vHitLocal);
         const proj = this._vHitProj.copy(this._vHitLocal)
           .applyMatrix4(this.group.matrixWorld).project(this.camera);
         if (proj.z > 1) continue;
@@ -784,14 +833,16 @@ class GlobeEngine {
     this.earthMat.uniforms.uMorph.value = m;
     this.atmoMat.uniforms.uMorph.value = m;
     this.arcMats.forEach(mt => { mt.uniforms.uMorph.value = m; mt.uniforms.uTime.value = this.time; });
-    // arcs : chaque flux replie sur la tuile la plus proche du centre (defilement infini)
+    // arcs : chaque flux replie sur la tuile la plus proche du centre (defilement
+    // infini). Ce repli grossier positionne la copie CENTRALE ; les deux copies
+    // laterales de la geometrie (aShift, cf. _arcGeometry) couvrent ensuite les
+    // extremites qui debordent d'une demi-tuile.
     this.arcHit.forEach(hit => {
       // midLon est DEROULEE et peut sortir de ]-PI, PI] : `round` s'en accommode
       // sans repli prealable, et c'est justement ce qu'il faut — le shader rend
       // `lon + uShift`, donc uShift doit compenser la longitude REELLE des
       // sommets, pas sa version repliee.
-      hit.shift = 2 * PI * Math.round((this.centerLon - hit.midLon) / (2 * PI));
-      hit.mat.uniforms.uShift.value = hit.shift;
+      hit.mat.uniforms.uShift.value = 2 * PI * Math.round((this.centerLon - hit.midLon) / (2 * PI));
     });
 
     this.group.updateMatrixWorld(true);
@@ -847,7 +898,18 @@ class GlobeEngine {
       const z = String(Math.max(0, Math.round((1 - proj.z) * 1000)));
       if (z !== last.z) { el.style.zIndex = z; last.z = z; }
       if (this._tipEl === el) {
-        this.tooltip.style.transform = `translate(-50%,-100%) translate(${sx.toFixed(1)}px,${(sy - 22).toFixed(1)}px)`;
+        // Meme condition que `pe` ci-dessus : des que la pastille cesse d'etre
+        // survolable, sa tooltip doit tomber. On ne peut PAS compter sur le
+        // `mouseleave` de la pastille — le navigateur ne le dispatche qu'au
+        // prochain mouvement du curseur, or c'est ici le MONDE qui bouge sous un
+        // curseur immobile (rotation permanente, morph, zoom). Sans cette garde,
+        // une pastille qui part a l'arriere du globe laissait la tooltip a
+        // opacity 1 suivant des coordonnees ecran devenues absurdes (proj.z > 1),
+        // et `this.hovered` reste non nul tuait le survol des ARCS pour toute la
+        // session (_onHoverMove sort immediatement) — le meme scenario que celui
+        // dont _buildMarkers se protege deja lors d'une bascule de theme.
+        if (behind || vis <= 0.5) this._hideTip();
+        else this.tooltip.style.transform = `translate(-50%,-100%) translate(${sx.toFixed(1)}px,${(sy - 22).toFixed(1)}px)`;
       }
     }
   }
