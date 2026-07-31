@@ -13,8 +13,11 @@
  * Clamps a value into the `[lo, hi]` interval.
  *
  * When `lo > hi` (an inconsistent interval, which callers should not produce)
- * the upper bound wins — the same behaviour the three call sites this replaces
- * already had, since they all applied the lower bound first.
+ * the upper bound wins. The three copies this replaces did not agree on that
+ * degenerate case — the globe engine and `useResizable` applied the lower bound
+ * first, so `hi` won, while `ConstraintField` applied it last, so `lo` won. The
+ * bound order is unobservable on any well-formed interval; it is documented
+ * here only so the divergence is not rediscovered as a behaviour change.
  *
  * @param {number} value - Value to bound.
  * @param {number} lo - Lower bound, inclusive.

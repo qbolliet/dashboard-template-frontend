@@ -167,7 +167,10 @@ const ConstraintField = ({
   // ── Utilitaires axe ─────────────────────────────────────────────────────
   // `clamp` vient de la couche transverse src/utils/math (cf. son en-tête) :
   // même signature (valeur, borne basse, borne haute) que la copie locale qu'il
-  // remplace, et même résultat sur tout intervalle bien formé.
+  // remplace, et même résultat sur tout intervalle bien formé. Seul écart, sur
+  // un intervalle INCOHÉRENT (minN > maxN, métadonnées de variable aberrantes) :
+  // la copie locale renvoyait minN, la version partagée renvoie maxN. Aucun des
+  // deux n'a de sens ici — l'axe est de toute façon indessinable.
   const pct = (v) => clamp(((v - minN) / (maxN - minN)) * 100, 0, 100);
   const snap = (raw) => clamp(Math.round(raw / stepN) * stepN, minN, maxN);
 
