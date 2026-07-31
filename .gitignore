@@ -46,9 +46,9 @@ DESIGN_SYSTEM.md
 .claude/*
 skills-lock.json
 
-STAT_CARD_ARCHITECTURE.md
-STAT_CARD_PROMPTS.md
-STAT_CARD_REVIEW_FIXES.md
+GLOBE_ARCHITECTURE.md
+GLOBE_PROMPTS.md
+GLOBE_FIXES_PROMPTS.md
 
 # old repository
 design-system/*

@@ -6,6 +6,27 @@ import React, { createContext, useState, useContext, useEffect, useEffectEvent, 
 const ThemeContext = createContext();
 
 /**
+ * Writes the `data-theme` attribute on `<html>`.
+ *
+ * Called twice on purpose, and the order matters. React flushes passive effects
+ * CHILD-FIRST, so a descendant that reads a themed CSS token with
+ * `getComputedStyle` inside its own effect would still see the PREVIOUS theme if
+ * the attribute were only written by the provider's `[theme]` effect (that was
+ * the globe's one-theme-behind WebGL palette bug). The gesture path therefore
+ * writes the attribute SYNCHRONOUSLY, before the state update that triggers the
+ * re-render; the `[theme]` effect rewrites the same value idempotently and stays
+ * the source of truth for mount/restore and persistence.
+ *
+ * @param {string} nextTheme - Theme to apply ('light' or 'dark').
+ * @returns {void}
+ */
+const applyThemeAttribute = (nextTheme) => {
+    // Sur <html> (documentElement), au même niveau que les déclarations `:root { … }` —
+    // cf. le commentaire détaillé de l'effet [theme] plus bas.
+    document.documentElement.setAttribute('data-theme', nextTheme);
+};
+
+/**
  * Provider pour la gestion des thèmes de l'application
  * Gère le changement entre thème clair et sombre avec persistance dans le localStorage
  * 
@@ -46,16 +67,25 @@ export const ThemeProvider = ({ children }) => {
     const themeChangeTimeoutsRef = useRef(new Set());
     const endTransitionTimeoutRef = useRef(null);
 
+    // Miroir hors rendu du dernier thème DEMANDÉ (et non du dernier thème commité).
+    // Remplace l'updater fonctionnel `setTheme(prev => …)` utilisé auparavant : la cible
+    // doit être connue AVANT le rendu pour pouvoir poser `data-theme` de façon synchrone
+    // (cf. applyThemeAttribute), et un updater doit rester pur — il est double-invoqué en
+    // StrictMode, donc on ne peut pas y toucher au DOM. Le ref est mis à jour au moment du
+    // GESTE : deux clics rapprochés calculent bien light → dark puis dark → light, même si
+    // le premier setTheme n'est pas encore commité.
+    const pendingThemeRef = useRef(theme);
+
     /**
-     * Applies the transition class on <body>, runs `applyTheme` after a short delay
-     * (lets the animation start) then removes the class once the transition ends.
-     * Only the end-of-transition timer is cancelled/rescheduled on a new gesture;
-     * the theme-change timers are cumulative so rapid successive toggles each still
-     * flip the theme (see param doc).
+     * Applies the transition class on <body>, switches to `nextTheme` after a short
+     * delay (lets the animation start) then removes the class once the transition
+     * ends. Only the end-of-transition timer is cancelled/rescheduled on a new
+     * gesture; the theme-change timers are cumulative so rapid successive toggles
+     * each still flip the theme (see below).
      *
-     * @param {Function} applyTheme - Callback that sets the new theme (setTheme).
+     * @param {string} nextTheme - Theme to switch to ('light' or 'dark').
      */
-    const runThemeTransition = (applyTheme) => {
+    const runThemeTransition = (nextTheme) => {
         if (typeof window === 'undefined') return;
 
         // Seule la minuterie de FIN de transition (retrait de la classe CSS) est
@@ -73,7 +103,12 @@ export const ThemeProvider = ({ children }) => {
         // Délai court pour activer l'animation avant le changement de thème.
         const changeTimeout = setTimeout(() => {
             themeChangeTimeoutsRef.current.delete(changeTimeout);
-            applyTheme();
+            // ORDRE CRITIQUE : l'attribut DOM d'abord, l'état React ensuite. Le rendu (et
+            // la purge des effets enfants, qui relisent les tokens CSS) n'a lieu qu'après
+            // ce callback : le DOM est donc déjà à jour quand un descendant appelle
+            // getComputedStyle depuis son propre effet.
+            applyThemeAttribute(nextTheme);
+            setTheme(nextTheme);
         }, 50);
         themeChangeTimeoutsRef.current.add(changeTimeout);
 
@@ -87,9 +122,11 @@ export const ThemeProvider = ({ children }) => {
      * Toggles between light and dark themes.
      */
     const toggleTheme = () => {
-        runThemeTransition(() => {
-            setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
-        });
+        // Cible calculée sur le ref, pas sur le state : un second clic pendant qu'un
+        // basculement est en vol doit repartir du thème DEMANDÉ, pas du thème encore affiché.
+        const nextTheme = pendingThemeRef.current === 'light' ? 'dark' : 'light';
+        pendingThemeRef.current = nextTheme;
+        runThemeTransition(nextTheme);
     };
 
     /**
@@ -102,8 +139,11 @@ export const ThemeProvider = ({ children }) => {
             return;
         }
 
-        if (newTheme !== theme) {
-            runThemeTransition(() => setTheme(newTheme));
+        // Comparaison au thème DEMANDÉ (ref) et non au thème commité (state) : sinon un appel
+        // pendant qu'un basculement est en vol relancerait une transition vers un thème déjà ciblé.
+        if (newTheme !== pendingThemeRef.current) {
+            pendingThemeRef.current = newTheme;
+            runThemeTransition(newTheme);
         }
     };
 
@@ -149,7 +189,13 @@ export const ThemeProvider = ({ children }) => {
         // déclarés (:root) puis hérités figés ; si l'override [data-theme="dark"]
         // était posé sur <body> (un descendant), ces indirections resteraient gelées
         // en light. Sur <html>, override et déclarations coïncident → réévaluation OK.
-        document.documentElement.setAttribute('data-theme', theme);
+        //
+        // Sur le chemin d'un GESTE utilisateur, runThemeTransition a déjà posé cette même
+        // valeur avant le rendu (obligatoire : les effets enfants lisent les tokens avant
+        // que celui du parent ne tourne). Cette réécriture est donc idempotente ; l'effet
+        // reste le chemin de restauration au montage et le filet de sécurité pour tout
+        // changement d'état qui ne passerait pas par runThemeTransition.
+        applyThemeAttribute(theme);
         
         // Sauvegarder le thème dans localStorage
         localStorage.setItem('theme', theme);

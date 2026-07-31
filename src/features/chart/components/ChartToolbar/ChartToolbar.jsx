@@ -9,6 +9,7 @@
 
 // Importation des modules
 import HoverToolbar from '@/components/toolbar/HoverToolbar/HoverToolbar';
+import { resetZoomTool } from '@/components/toolbar/tools';
 import ToolIcon from './ToolIcon/ToolIcon';
 
 /**
@@ -45,7 +46,9 @@ const ChartToolbar = ({
       { id: 'tooltips', icon: ToolIcon.Tooltip, label: 'Tooltip sur points', active: tooltips, onClick: onTooltips },
       // Sans zoom actif le bouton reste d'apparence normale mais inerte (pas
       // `disabled` : la réinitialisation n'est pas une capacité indisponible).
-      { id: 'reset', icon: ToolIcon.Reset, label: 'Réinitialiser le zoom', onClick: canReset ? onReset : undefined },
+      // Factory partagée avec le globe ; `icon` conserve le pictogramme du
+      // graphique (le défaut <ResetIcon/> a un tracé légèrement différent).
+      resetZoomTool({ onClick: canReset ? onReset : undefined, icon: ToolIcon.Reset }),
     ],
     [
       { id: 'svg', icon: ToolIcon.Svg, label: 'Exporter en SVG', onClick: onExportSvg },

@@ -1,0 +1,16 @@
+// ===== TOKENS DIMENSIONNELS — GLOBE TOOLBAR =====
+// Dimensions propres à la ZONE DE SURVOL qui révèle la barre d'outils.
+// La barre elle-même n'a aucun token ici : le globe adopte
+// l'apparence par défaut de la toolbar mutualisée (cf. GlobeToolbar.scss).
+
+:root {
+  // Fenêtre de survol du coin haut-droit : assez large pour être trouvée sans
+  // viser, assez basse pour ne pas amputer la zone de manipulation du globe.
+  --globe-toolbar-zone-width: 21.25rem;    // 340px
+  --globe-toolbar-zone-max-width: 70%;     // garde-fou sur cadre étroit
+  --globe-toolbar-zone-height: 3.625rem;   // 58px
+
+  // Empilement LOCAL au cadre, juste SOUS la barre (--toolbar z-index: 5) : la
+  // zone couvre le canvas mais ne doit jamais intercepter les clics d'outils.
+  --globe-toolbar-zone-z: 4;
+}

@@ -1,0 +1,48 @@
+// =================================================================
+// GLOBE TOOLBAR — zone de survol + règle de révélation (D5)
+// =================================================================
+// .globe-tool-zone et règle de révélation 
+// La barre elle-même est <HoverToolbar> et garde
+// l'apparence PAR DÉFAUT de la toolbar mutualisée : aucun override de token
+// --toolbar-* n'est posé ici, pour que graphique, tableau et globe rendent
+// exactement la même barre.
+@use '../../tokens' as *;
+@use '../../colors' as *;
+@use './tokens' as *;
+
+// ── Zone invisible haut-droite : le seul déclencheur de la barre ────────────
+// Le cadre du globe ne porte PAS la classe `hover-toolbar-host` : sur un
+// composant manipulé à la souris en continu (drag, molette), le survol du cadre
+// entier laisserait la barre affichée en permanence. Comme dans le prototype, la
+// zone n'est pas `pointer-events: none` — elle capte donc le survol, au prix
+// d'un coin haut-droit qui ne démarre pas de rotation.
+//
+// Depuis que le stage est un contexte d'empilement (`isolation: isolate`, cf.
+// Globe.scss), cette zone passe AU-DESSUS de tout le sous-arbre du moteur : dans
+// ce coin, elle intercepte donc aussi le survol des pastilles et du canvas, ce
+// qui y supprime les tooltips de points comme de flux. C'est le prix à payer
+// pour que la barre reste atteignable — avant, une pastille se peignant sur la
+// zone lui volait le survol et la barre ne s'ouvrait plus du tout. Le drag, lui,
+// traverse toujours le coin : ses écoutes vivent sur `window` (cf. GlobeEngine).
+.globe-tool-zone {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--globe-toolbar-zone-width);
+  max-width: var(--globe-toolbar-zone-max-width);
+  height: var(--globe-toolbar-zone-height);
+  z-index: var(--globe-toolbar-zone-z);
+}
+
+// ── Révélation : zone survolée (sœur précédente de la barre), barre survolée,
+// ou focus clavier dans la barre. Mêmes propriétés que celles animées par
+// HoverToolbar.scss (opacity + transform + pointer-events), et sélecteurs à deux
+// classes minimum : la règle l'emporte sur `.toolbar` quel que soit l'ordre
+// d'import des feuilles.
+.globe-tool-zone:hover ~ .toolbar,
+.globe-frame .toolbar:hover,
+.globe-frame .toolbar:focus-within {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}

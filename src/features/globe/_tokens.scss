@@ -1,0 +1,15 @@
+// ===== TOKENS DIMENSIONNELS — FEATURE GLOBE =====
+// Valeurs MUTUALISÉES entre tous les composants de la feature globe. Chaque
+// composant définit ses propres tokens préfixés (--globe-frame-*, --globe-
+// marker-*, --globe-tooltip-*, …) dans son propre _tokens.scss.
+//
+// ⚠️ RÈGLE : une dimension propre à UN seul composant vit dans le _tokens.scss
+// de ce composant, pas ici (cf. features/chart/_tokens.scss pour le précédent).
+// Les valeurs px du prototype (design-system/project/styles/globe.css) sont
+// converties en rem ; quand un token de typography.scss correspond exactement,
+// on le référence plutôt que de dupliquer la valeur.
+//
+// ℹ️ Aucune dimension mutualisée à ce jour : le cadre (Globe/), les pastilles
+// (GlobeMarkers/) et la tooltip (GlobeTooltip/) n'ont pas de paramètre commun.
+// Ce fichier reste le point d'entrée `@use '…/tokens'` des scss de la feature
+// et accueillera les prochaines dimensions partagées.

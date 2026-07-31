@@ -8,6 +8,8 @@
 // globales du repo. AUCUN style des onglets ici : ils vivent dans
 // src/components/ui/Tabs/.
 
+@use '../../styles/pages/api-table';
+
 .test-tabs-page {
   max-width: 1100px;
   margin: 0 auto;
@@ -91,49 +93,7 @@
 // Note placée SOUS le tableau (mention du hook useTabsShared).
 .api-card-note--after { margin-top: var(--spacing-xs); }
 
-.api-card-scroll {
-  overflow-x: auto;
-  border: 1px solid hsl(var(--color-border));
-  border-radius: var(--border-radius-lg);
-  background: hsl(var(--color-surface));
-}
-.api-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--font-size-xs);
-  // Couleur explicite : le <body> n'en déclare aucune, l'héritage donnerait du
-  // noir sur fond sombre en thème dark.
-  color: hsl(var(--color-text-primary));
-
-  th, td {
-    text-align: left;
-    padding: 0.4375rem 0.625rem;
-    border-bottom: 1px solid hsl(var(--color-border));
-    vertical-align: top;
-  }
-  th {
-    font-weight: 500;
-    color: hsl(var(--color-text-tertiary));
-    font-size: 0.65625rem;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-  }
-  tbody tr:last-child td { border-bottom: none; }
-  code {
-    font-family: var(--font-mono, monospace);
-    font-size: 0.71875rem;
-    color: hsl(var(--color-primary-500));
-    background: hsl(var(--color-primary-500) / 0.08);
-    padding: 0.0625rem 0.3125rem;
-    border-radius: var(--border-radius-sm);
-  }
-  .api-typ {
-    font-family: var(--font-mono, monospace);
-    font-size: 0.6875rem;
-    color: hsl(var(--color-text-tertiary));
-    white-space: nowrap;
-  }
-}
+// Tableau d'API : cf. styles/pages/_api-table.scss (partagé test-*).
 
 // ── Démonstrations ──
 .tabs-playground {

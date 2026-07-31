@@ -1,0 +1,6 @@
+// ===== TOKENS DIMENSIONNELS — GLOBE (cadre) =====
+// Dimensions propres au cadre du globe (bordure, radius).
+
+:root {
+  --globe-frame-radius: var(--border-radius-xl);
+}

@@ -1,0 +1,64 @@
+// =================================================================
+// GLOBE — cadre
+// =================================================================
+@use '../../tokens' as *;
+@use '../../colors' as *;
+@use './tokens' as *;
+@use './colors' as *;
+
+// ── Cadre : fond spatial + bordure, hauteur pilotée en style inline (prop height) ──
+.globe-frame {
+  position: relative;
+  width: 100%;
+  border: 1px solid hsl(var(--color-border));
+  border-radius: var(--globe-frame-radius);
+  overflow: hidden;
+  // Espace — jour : ciel bleuté brumeux, moins d'obscurité visible.
+  background:
+    radial-gradient(130% 130% at 50% 34%, hsl(var(--globe-bg-day-1)) 0%, hsl(var(--globe-bg-day-2)) 62%, hsl(var(--globe-bg-day-3)) 100%);
+}
+[data-theme="dark"] .globe-frame {
+  // Espace — nuit : quasi noir, étoiles plus nombreuses (rendues en WebGL).
+  background:
+    radial-gradient(130% 130% at 50% 30%, hsl(var(--globe-bg-night-1)) 0%, hsl(var(--globe-bg-night-2)) 60%, hsl(var(--globe-bg-night-3)) 100%);
+}
+
+// ── Point de montage du moteur : sous-arbre possédé par Three.js, jamais
+// réconcilié par React (canvas WebGL + overlay de points + tooltip injectés) ──
+//
+// `isolation: isolate` — le moteur écrit un z-index PAR FRAME sur chaque
+// pastille, dérivé de sa profondeur écran pour les trier d'avant en arrière.
+// Sans contexte d'empilement local, ces valeurs concourent dans le contexte
+// RACINE de la page : elles y côtoient l'échelle globale de typography.scss
+// (--z-dropdown 1000 … --z-toast 1080), donc une pastille pouvait se peindre
+// par-dessus le header, une modale ou un popover — et, dans le cadre, par-dessus
+// la toolbar (z-index 5) et sa zone de survol (4), qu'elle rendait alors
+// inatteignables. Le stage devient ici un contexte d'empilement : le tri en
+// profondeur des pastilles est préservé À L'INTÉRIEUR, mais tout le sous-arbre
+// du moteur passe désormais sous les frères positifs du cadre.
+//
+// Conséquence assumée : la tooltip, elle aussi injectée dans le stage, passe
+// sous la toolbar. Seul cas où les deux coexistent : la barre maintenue visible
+// au clavier (`.toolbar:focus-within`) pendant qu'une pastille haute est
+// survolée à la souris — la bulle est alors masquée par la barre. Hors de ce
+// cas, la barre n'apparaît qu'au survol du coin haut-droit, où plus aucune
+// tooltip ne peut être déclenchée (cf. GlobeToolbar.scss).
+.globe-stage { position: absolute; inset: 0; isolation: isolate; }
+
+.globe-canvas {
+  display: block;
+  // !important : le renderer Three.js pose width/height en style inline sur le
+  // canvas ; on force malgré tout le remplissage du stage (comportement du
+  // prototype, conservé à l'identique).
+  width: 100% !important;
+  height: 100% !important;
+  cursor: grab;
+  // Le canvas capte INTEGRALEMENT le geste tactile : le moteur écoute
+  // `touchmove` en `{ passive: true }` (pour ne pas pénaliser le défilement
+  // ailleurs) et ne peut donc pas appeler preventDefault(). Sans cette
+  // déclaration, un glissement sur le globe le faisait pivoter ET défiler la
+  // page en même temps — le globe quittait le viewport en cours de geste, et
+  // l'IntersectionObserver mettait la boucle de rendu en pause sous le doigt.
+  touch-action: none;
+}
+.globe-canvas:active { cursor: grabbing; }

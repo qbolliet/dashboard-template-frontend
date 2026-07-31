@@ -1,0 +1,21 @@
+// ===== TOKENS DE COULEURS — GLOBE MARKERS (pastilles de points) =====
+// La couleur de DONNÉE (sortie de colorFor) n'est pas un token : elle transite
+// par la custom property --c posée par le moteur (GlobeEngine._buildMarkers, via
+// le CSSOM) sur l'élément .globe-marker, dont les calques héritent — inline,
+// indépendante du thème. Ces tokens ne pilotent que le DOSAGE --c/blanc du
+// remplissage et de la bordure, et l'opacité du halo — constants quelle que
+// soit la couleur de donnée
+//
+// ⚠️ Les ombres portées noires (hsl(var(--color-black) / …) dans
+// GlobeMarkers.scss) référencent la primitive neutre --color-black plutôt
+// qu'un rgba en dur, mais restent volontairement hors des tokens sémantiques
+// de theming : ombres physiques, non thémables (noir constant quel que soit
+// le thème clair/sombre).
+
+:root {
+  --globe-marker-fill-mix: 88%;   // color-mix(--c, blanc) du remplissage plein
+  --globe-marker-border-mix: 60%; // color-mix(--c, blanc) de la bordure
+
+  --globe-marker-ring-opacity: 22%;       // halo au repos
+  --globe-marker-ring-opacity-hover: 26%; // halo en survol (.is-hover)
+}

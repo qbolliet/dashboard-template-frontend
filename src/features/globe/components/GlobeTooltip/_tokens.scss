@@ -1,0 +1,28 @@
+// ===== TOKENS DIMENSIONNELS — GLOBE TOOLTIP =====
+// Dimensions propres à la bulle de survol (point ou arc).
+
+:root {
+  // Empilement LOCAL au stage, qui est un contexte d'empilement à part entière
+  // (`isolation: isolate`, cf. Globe.scss) : cette valeur n'a donc qu'un seul
+  // concurrent, le z-index par frame des pastilles (0…~180, dérivé de leur
+  // profondeur écran). Elle ne dit RIEN de l'empilement vis-à-vis du cadre : la
+  // tooltip suit le stage, donc passe sous la toolbar. Token local plutôt que
+  // le --z-tooltip global (1070), qui est une échelle de PAGE et sortirait la
+  // bulle du contexte de son cadre — même raisonnement que --globe-toolbar-zone-z.
+  --globe-tooltip-z: 1000;
+
+  --globe-tooltip-min-width: 8.25rem; // 132px
+  --globe-tooltip-max-width: 15rem;   // 240px
+  --globe-tooltip-padding-x: 0.625rem; // 10px (padding-y = --spacing-sm, valeur exacte)
+
+  --globe-tooltip-title-font-size: 0.78125rem;     // 12.5px (.globe-tt-title)
+  --globe-tooltip-sub-font-size: 0.65625rem;       // 10.5px (.globe-tt-sub)
+  --globe-tooltip-value-font-size: 0.9375rem;      // 15px   (.globe-tt-val)
+  --globe-tooltip-key-font-size: 0.6875rem;        // 11px   (.globe-tt-k)
+  --globe-tooltip-arc-value-font-size: 0.71875rem; // 11.5px (.globe-tt-v)
+
+  // Épaisseur de la flèche (forme géométrique en bordures, pas un espacement) :
+  // token dimensionnel local plutôt que --spacing-*, cf. CLAUDE.md « minimiser
+  // le nombre de variables ».
+  --globe-tooltip-arrow-size: 0.375rem; // 6px
+}

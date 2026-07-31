@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import TypeAwareInput from '../TypeAwareInput/TypeAwareInput';
 import { DATE_RANGE_SEP, formatDate, parseDate } from '../utils/dateParse';
 import { useRangeBounds } from './useRangeBounds';
+import { clamp } from '@/utils/math/clamp';
 import './ConstraintField.scss';
 
 /**
@@ -164,7 +165,12 @@ const ConstraintField = ({
   };
 
   // ── Utilitaires axe ─────────────────────────────────────────────────────
-  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  // `clamp` vient de la couche transverse src/utils/math (cf. son en-tête) :
+  // même signature (valeur, borne basse, borne haute) que la copie locale qu'il
+  // remplace, et même résultat sur tout intervalle bien formé. Seul écart, sur
+  // un intervalle INCOHÉRENT (minN > maxN, métadonnées de variable aberrantes) :
+  // la copie locale renvoyait minN, la version partagée renvoie maxN. Aucun des
+  // deux n'a de sens ici — l'axe est de toute façon indessinable.
   const pct = (v) => clamp(((v - minN) / (maxN - minN)) * 100, 0, 100);
   const snap = (raw) => clamp(Math.round(raw / stepN) * stepN, minN, maxN);
 
