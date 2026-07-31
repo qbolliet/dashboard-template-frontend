@@ -46,9 +46,13 @@
   width: var(--d, var(--globe-marker-size));
   height: var(--d, var(--globe-marker-size));
   border-radius: var(--border-radius-full);
-  background: color-mix(in srgb, var(--c) var(--globe-marker-fill-mix), white);
+  // Le blanc de mélange passe par le token, comme la couleur de l'icône juste
+  // en dessous : avec le mot-clé `white` en dur, les deux moitiés de la même
+  // pastille (fond/bordure d'un côté, glyphe de l'autre) auraient divergé au
+  // moindre repointage de --color-white, que la couche de thème redéfinit déjà.
+  background: color-mix(in srgb, var(--c) var(--globe-marker-fill-mix), hsl(var(--color-white)));
   color: hsl(var(--color-white));
-  border: var(--globe-marker-border-width) solid color-mix(in srgb, var(--c) var(--globe-marker-border-mix), white);
+  border: var(--globe-marker-border-width) solid color-mix(in srgb, var(--c) var(--globe-marker-border-mix), hsl(var(--color-white)));
   // Halo coloré + ombre portée noire (physique, non thémable — cf. _colors.scss).
   box-shadow:
     0 0 0 var(--globe-marker-ring-width) color-mix(in srgb, var(--c) var(--globe-marker-ring-opacity), transparent),

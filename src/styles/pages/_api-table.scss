@@ -1,0 +1,76 @@
+// =================================================================
+// TABLEAU D'API — habillage partagé des pages de démonstration test-*
+// =================================================================
+// Bloc `.api-card-scroll` + `.api-table` utilisé par /test-chart, /test-tabs et
+// /test-globe pour documenter les props d'une feature. Il vivait recopié dans
+// les trois page.scss, et les trois copies avaient DÉJÀ divergé : px en dur côté
+// test-chart, rem calculés côté test-tabs, tokens côté test-globe, et une règle
+// `color` présente dans une seule des trois. C'est exactement le défaut que la
+// duplication promettait — d'où l'extraction.
+//
+// Version retenue : celle par tokens (la seule conforme à la règle « jamais de
+// px ni de rem en dur » de CLAUDE.md), augmentée du `color` explicite que
+// test-tabs avait ajouté pour le thème sombre. Les pages qui portaient les deux
+// autres variantes voient donc leurs espacements et tailles de police alignés
+// sur le cran de token le plus proche : écart volontaire, et invisible à l'œil.
+//
+// Sélecteurs GLOBAUX (pas de module CSS) : les trois pages consommatrices sont
+// déjà écrites ainsi. Une seule définition existe désormais, donc plus de
+// collision « dernier chargé gagne » entre des copies aux valeurs différentes.
+
+// Conteneur défilant : c'est LUI qui porte le débordement horizontal, pour que
+// le tableau puisse être plus large que la page sans jamais la faire défiler.
+.api-card-scroll {
+  overflow-x: auto;
+  border: 1px solid hsl(var(--color-border));
+  border-radius: var(--border-radius-lg);
+  background: hsl(var(--color-surface));
+}
+
+.api-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-xs);
+  // Couleur explicite : le <body> n'en déclare aucune, et l'héritage donnerait
+  // du texte noir sur fond sombre en thème dark.
+  color: hsl(var(--color-text-primary));
+
+  th, td {
+    text-align: left;
+    // Asymétrie d'origine (7px vertical / 10px horizontal) préservée en
+    // arrondissant chaque axe vers son cran de token le plus proche, plutôt
+    // qu'en uniformisant les deux à la même valeur.
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid hsl(var(--color-border));
+    vertical-align: top;
+  }
+
+  th {
+    font-weight: 500;
+    color: hsl(var(--color-text-tertiary));
+    font-size: var(--font-size-xs); // arrondi depuis 10.5px
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  // Dernière ligne sans filet : le bord du conteneur fait déjà la fermeture.
+  tbody tr:last-child td { border-bottom: none; }
+
+  code {
+    font-family: var(--font-mono, monospace);
+    font-size: var(--font-size-xs); // arrondi depuis 11.5px
+    color: hsl(var(--color-primary-500));
+    background: hsl(var(--color-primary-500) / 0.08);
+    padding: var(--spacing-px) var(--spacing-xs);
+    border-radius: var(--border-radius-sm);
+  }
+
+  // Colonne « type » : jamais coupée, quitte à déclencher le défilement du
+  // conteneur — une signature repliée sur deux lignes se relit très mal.
+  .api-typ {
+    font-family: var(--font-mono, monospace);
+    font-size: var(--font-size-xs); // arrondi depuis 11px
+    color: hsl(var(--color-text-tertiary));
+    white-space: nowrap;
+  }
+}

@@ -39,7 +39,8 @@ const GROUPS = [
  * depend on another one being ON and are greyed out with an explanatory label.
  *
  * @param {string} key - Tool key (one of TOOL_KEYS).
- * @param {object} state - Current globe state (see GlobeToolbar props).
+ * @param {object} state - Current globe state, augmented with the `hasPoints` /
+ *   `hasArcs` content flags (see GlobeToolbar props).
  * @param {function(string): void} onAction - Receives the tool key on click.
  * @returns {import('@/components/toolbar/HoverToolbar/HoverToolbar').ToolSpec}
  */
@@ -74,19 +75,28 @@ const buildTool = (key, state, onAction) => {
         active: state.showArcs,
         onClick,
       };
-    // Animer des flux masqués n'a pas de sens : outil grisé tant que `showArcs`
-    // est faux, et l'état actif reste subordonné à l'affichage des flux.
-    case 'arcsDynamic':
+    // Animer des flux masqués n'a pas de sens — pas plus qu'animer des flux
+    // inexistants : même règle que pour `tooltips`, la condition porte sur ce
+    // qui est RÉELLEMENT à l'écran (`showArcs` ET `hasArcs`), et pas sur le seul
+    // interrupteur. Un globe instancié sans `arcs` garde `showArcs` à true par
+    // défaut, ce qui suffisait à laisser ce bouton actionnable et annoncé
+    // « Flux dynamiques » alors qu'il n'y avait aucun flux à animer.
+    case 'arcsDynamic': {
+      const arcsOnScreen = state.showArcs && state.hasArcs;
       return {
         id: 'arcsDynamic',
         icon: GlobeToolIcon.flow,
-        label: state.showArcs
+        // Deux causes de grisage, deux libellés : soit les flux existent et il
+        // suffit de les réafficher, soit le globe n'en a reçu aucun et aucune
+        // manipulation de la barre n'y changera rien.
+        label: arcsOnScreen
           ? (state.arcsDynamic ? 'Flux dynamiques' : 'Flux figés')
-          : 'Affichez les flux pour les animer',
-        active: state.arcsDynamic && state.showArcs,
-        disabled: !state.showArcs,
+          : (state.hasArcs ? 'Affichez les flux pour les animer' : 'Aucun flux à animer'),
+        active: state.arcsDynamic && arcsOnScreen,
+        disabled: !arcsOnScreen,
         onClick,
       };
+    }
     case 'rotate':
       return {
         id: 'rotate',
@@ -106,15 +116,28 @@ const buildTool = (key, state, onAction) => {
     // Dépendance réelle : le moteur affiche une tooltip de POINT si showPoints
     // (cf. _showTip) et une tooltip d'ARC si showArcs (cf. _onHoverMove), les deux
     // gardes étant indépendantes l'une de l'autre. Le bouton ne doit donc se griser
-    // que quand il n'y a plus RIEN à survoler — points ET flux masqués — pas dès
-    // que les points seuls disparaissent : les arcs restent survolables sans eux.
+    // que quand il n'y a plus RIEN à survoler — pas dès que les points seuls
+    // disparaissent : les arcs restent survolables sans eux.
+    // La condition porte sur le CONTENU, pas sur les seuls interrupteurs :
+    // `hasPoints`/`hasArcs` disent si la donnée existe. Un globe instancié sans
+    // `arcs` a bien `showArcs` à true par défaut, ce qui suffisait à garder le
+    // bouton actif alors qu'il n'y avait littéralement plus rien sous le curseur
+    // une fois les points masqués (cas de la démo 3 de /test-globe).
     case 'tooltips': {
-      const nothingToHover = !state.showPoints && !state.showArcs;
+      const hoverablePoints = state.showPoints && state.hasPoints;
+      const hoverableArcs = state.showArcs && state.hasArcs;
+      const nothingToHover = !hoverablePoints && !hoverableArcs;
       return {
         id: 'tooltips',
         icon: GlobeToolIcon.tip,
+        // Deux causes distinctes de grisage, donc deux libellés : soit la donnée
+        // existe et il suffit de la réafficher, soit le globe n'a reçu ni points
+        // ni flux et aucune manipulation de la barre n'y changera quoi que ce
+        // soit — inviter à « afficher les points » serait alors une impasse.
         label: nothingToHover
-          ? 'Affichez les points ou les flux pour activer les tooltips'
+          ? (state.hasPoints || state.hasArcs
+            ? 'Affichez les points ou les flux pour activer les tooltips'
+            : 'Aucune donnée à survoler')
           : (state.tooltips ? 'Tooltips activées' : 'Tooltips désactivées'),
         active: state.tooltips && !nothingToHover,
         disabled: nothingToHover,
@@ -139,7 +162,10 @@ const buildTool = (key, state, onAction) => {
  * @param {object} props
  * @param {string[]} props.tools - Visible tool keys (already filtered/validated).
  * @param {{mode: string, autoRotate: boolean, wheelZoom: boolean, showPoints: boolean,
- *   showArcs: boolean, tooltips: boolean, arcsDynamic: boolean}} props.state
+ *   showArcs: boolean, tooltips: boolean, arcsDynamic: boolean, hasPoints: boolean,
+ *   hasArcs: boolean}} props.state - Toggle state of the globe, plus the two
+ *   content flags telling whether any point / arc exists at all: a toggle left
+ *   ON over empty data must not make a tool look actionable.
  * @param {function(string): void} props.onAction - Receives the tool key; the root
  *   component owns all state transitions and engine calls.
  * @returns {JSX.Element}

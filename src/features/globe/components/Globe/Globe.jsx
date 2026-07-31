@@ -231,7 +231,16 @@ const Globe = ({
           invisible des technologies d'assistance. */}
       <div className="globe-stage" ref={stageRef} role="img" aria-label={ariaLabel} />
       {visibleTools.length > 0 && (
-        <GlobeToolbar tools={visibleTools} state={st} onAction={handleToolAction} />
+        // `hasPoints`/`hasArcs` sont dérivés au rendu et NON rangés dans `st` :
+        // `st` est le miroir des options du moteur (il est spread tel quel dans
+        // sa config plus haut), alors que ces deux drapeaux décrivent la donnée
+        // reçue en props, qui ne bouge pas. Ils n'existent que pour la barre,
+        // qui doit griser un outil quand il n'y a rien à manipuler — un
+        // interrupteur resté ON sur une collection vide ne rend rien actionnable.
+        <GlobeToolbar
+          tools={visibleTools}
+          state={{ ...st, hasPoints: points.length > 0, hasArcs: arcs.length > 0 }}
+          onAction={handleToolAction} />
       )}
     </figure>
   );

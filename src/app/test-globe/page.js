@@ -92,11 +92,11 @@ const GLOBE_TOOLBAR_KEYS = [
   ['mode', 'Bascule globe ⇄ planisphère (animé). Icône = cible.', '—'],
   ['points', 'Affiche / masque les points.', '—'],
   ['arcs', 'Affiche / masque les flux.', '—'],
-  ['arcsDynamic', 'Flux dynamiques ⇄ figés.', 'Grisé si flux masqués'],
+  ['arcsDynamic', 'Flux dynamiques ⇄ figés.', "Grisé si aucun flux à l'écran"],
   ['rotate', 'Rotation automatique on / off.', '—'],
   ['wheelZoom', 'Zoom molette on / off.', '—'],
   ['resetZoom', 'Réinitialise le zoom (action ponctuelle).', '—'],
-  ['tooltips', 'Tooltips au survol on / off.', 'Grisé si points masqués'],
+  ['tooltips', 'Tooltips au survol on / off.', 'Grisé si plus rien à survoler'],
 ];
 
 const TestGlobePage = () => (

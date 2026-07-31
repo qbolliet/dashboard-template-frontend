@@ -2,6 +2,7 @@
 
 // Importation des modules
 import { useEffect, useRef } from 'react';
+import { clamp } from '@/utils/math/clamp';
 
 /**
  * Hook providing drag-to-resize behaviour for a navigation drawer edge (rail).
@@ -44,13 +45,16 @@ export default function useResizable({
     // évite tout re-rendu pendant le glissement.
     const dragRef = useRef(null);
 
-    // Borne la largeur entre min et max (si fournis).
-    const clamp = (width) => {
-        let value = width;
-        if (typeof min === 'number') value = Math.max(min, value);
-        if (typeof max === 'number') value = Math.min(max, value);
-        return value;
-    };
+    // Borne la largeur entre min et max (si fournis). Les deux bornes étant
+    // OPTIONNELLES, une borne absente devient l'infini correspondant : le clamp
+    // partagé (src/utils/math) reçoit ainsi toujours un intervalle, et la borne
+    // manquante n'a plus d'effet — exactement ce que faisaient les deux `if`
+    // successifs qu'il remplace.
+    const clampWidth = (width) => clamp(
+        width,
+        typeof min === 'number' ? min : -Infinity,
+        typeof max === 'number' ? max : Infinity,
+    );
 
     // Début du geste au pointeur (bouton principal uniquement).
     // `onPointerDown` est un handler d'événement React, donc re-lié à chaque rendu : il
@@ -73,7 +77,7 @@ export default function useResizable({
         const handleMove = (moveEvent) => {
             const delta = moveEvent.clientX - startX;
             const signed = direction === 'left' ? -delta : delta;
-            latestWidth = clamp(startWidth + signed);
+            latestWidth = clampWidth(startWidth + signed);
 
             if (useImperativeDom) {
                 // Haute fréquence (un événement par pixel de déplacement) : on écrit la
@@ -122,7 +126,7 @@ export default function useResizable({
         const step = event.shiftKey ? 32 : 16;
         const towardsLarger = event.key === 'ArrowRight' ? 1 : -1;
         const signed = direction === 'left' ? -towardsLarger : towardsLarger;
-        onResize(clamp(current + signed * step));
+        onResize(clampWidth(current + signed * step));
     };
 
     // Nettoyage si le composant est démonté en plein drag : on rejoue l'arrêt du geste

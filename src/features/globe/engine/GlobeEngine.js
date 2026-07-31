@@ -14,6 +14,8 @@ import {
 import { readGlobePalette } from './palette';
 import { markerHtml } from '../components/GlobeMarkers/markerTemplate';
 import { arcTooltipHtml, pointTooltipHtml } from '../components/GlobeTooltip/tooltipTemplates';
+import { clamp } from '@/utils/math/clamp';
+import { lerp } from '@/utils/math/lerp';
 
 // ===== Globe — moteur Three.js =====
 // Rendu réaliste jour/nuit, morphing globe ↔ planisphère, arcs, points overlay.
@@ -21,16 +23,22 @@ import { arcTooltipHtml, pointTooltipHtml } from '../components/GlobeTooltip/too
 
 const PI = Math.PI;
 const DEG = PI / 180;
-const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-const lerp = (a, b, t) => a + (b - a) * t;
 
 /* ---- Constantes de cadrage caméra ---- */
 // Distance caméra par défaut (celle que restaure resetZoom) et bornes de zoom.
 const CAM_Z_DEFAULT = 3.4;
 const CAM_Z_MIN = 2.1;
 const CAM_Z_MAX = 6.6;
-// Pas de zoom molette : facteur appliqué au deltaY de l'événement.
+// Pas de zoom molette : facteur appliqué au deltaY de l'événement, une fois
+// celui-ci ramené en PIXELS (cf. _wheelPixels).
 const WHEEL_ZOOM_STEP = 0.0016;
+// Conversion des unités de `deltaY` selon `deltaMode`. Chrome livre des pixels
+// (~100 par cran), mais Firefox livre des LIGNES (~3 par cran) et le mode PAGE
+// existe aussi : sans conversion, le même cran vaudrait 0.0048 ici au lieu de
+// 0.16, et il faudrait ~940 crans pour traverser la plage de zoom.
+// 16 px = hauteur de ligne conventionnelle des implémentations navigateur ; le
+// mode PAGE se ramène, lui, à la hauteur du cadre.
+const WHEEL_LINE_PX = 16;
 // Demi-angle vertical de champ (vFOV 42° / 2) — sert à borner la latitude en
 // mode plan pour ne jamais dépasser les pôles.
 const CAM_HALF_FOV = 21 * DEG;
@@ -151,11 +159,16 @@ class GlobeEngine {
     this._disposables = [];
     this._disposed = false;
     this._initScene();
+    // Palette lue UNE fois pour toute la construction. _buildEarth, _buildArcs et
+    // _buildMarkers la réclamaient chacun de leur côté : trois getComputedStyle
+    // et douze normalisations canvas pour un résultat identique — par globe, et
+    // /test-globe en monte six. setTheme montrait déjà le bon modèle (une lecture
+    // distribuée à ses trois cibles), on s'aligne dessus.
+    const pal = readGlobePalette(this.c);
     this._buildStars();
-    this._buildLights();
-    this._buildEarth();
-    this._buildArcs();
-    this._buildMarkers();
+    this._buildEarth(pal);
+    this._buildArcs(pal);
+    this._buildMarkers(pal);
     this._bindEvents();
     this._loop = this._loop.bind(this);
     this.raf = requestAnimationFrame(this._loop);
@@ -165,19 +178,27 @@ class GlobeEngine {
   // Renderer, caméra, group porteur et couches DOM (overlay de points, tooltip).
   _initScene() {
     const c = this.c;
+    // Dimensions du cadre MEMORISEES ici et reecrites par resize(). Les deux
+    // chemins chauds (_updateMarkers par frame, _onHoverMove a 100+/s) les
+    // relisaient sur le DOM via clientWidth/clientHeight : or _updateMarkers
+    // vient d'ecrire zIndex et pointerEvents sur jusqu'a 13 pastilles, ce qui
+    // invalide le layout — la lecture suivante forçait donc un recalcul complet.
+    // Abandonner getBoundingClientRect() ne suffisait pas : clientWidth force
+    // le layout tout autant. Seul le cache le supprime vraiment.
+    this._w = c.clientWidth; this._h = c.clientHeight;
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     // `outputColorSpace` reste à son défaut (SRGBColorSpace) : le mélange se fait
     // en espace linéaire et la sortie est réencodée en sRGB par
     // `<colorspace_fragment>`, inclus explicitement en fin de chacun de nos trois
     // fragment shaders (three ne l'injecte pas dans un ShaderMaterial custom).
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.setSize(c.clientWidth, c.clientHeight);
+    this.renderer.setPixelRatio(this._pixelRatio());
+    this.renderer.setSize(this._w, this._h);
     this.canvas = this.renderer.domElement;
     this.canvas.className = 'globe-canvas';
     c.appendChild(this.canvas);
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(42, c.clientWidth / c.clientHeight, 0.1, 100);
+    this.camera = new THREE.PerspectiveCamera(42, this._w / this._h, 0.1, 100);
     this.camera.position.set(0, 0, this.camZ);
 
     this.group = new THREE.Group();       // porte Terre + arcs
@@ -193,6 +214,13 @@ class GlobeEngine {
     this.tooltip.style.opacity = '0';
     c.appendChild(this.tooltip);
   }
+
+  // Densité de pixels du tampon de dessin, plafonnée à 2 (au-delà, le coût en
+  // fragments double sans gain visible). Relue à CHAQUE resize et pas seulement
+  // à la construction : `devicePixelRatio` change quand la fenêtre passe d'un
+  // écran 1x à un écran 2x, et quand l'utilisateur zoome dans le navigateur.
+  // Figée une fois pour toutes, elle laissait le globe flou sur le second écran.
+  _pixelRatio() { return Math.min(window.devicePixelRatio, 2); }
 
   // Champ d'étoiles — sphère lointaine, plus dense/lumineuse en mode nuit.
   _buildStars() {
@@ -233,50 +261,64 @@ class GlobeEngine {
     this.scene.add(this.stars);
   }
 
-  // Lumières temps réel.
-  // `dir` suit le soleil ; `fill` reste côté caméra pour toujours révéler le volume.
-  _buildLights() {
-    this.ambient = new THREE.AmbientLight(0xffffff, 0.5);
-    this.dir = new THREE.DirectionalLight(0xffffff, 0.6);
-    this.fill = new THREE.DirectionalLight(0xffffff, 0.7);
-    this.fill.position.set(0.4, 0.7, 1.2);
-    this.scene.add(this.ambient, this.dir, this.fill);
-  }
+  // AUCUNE lumière temps réel dans cette scène, et c'est délibéré : les quatre
+  // matériaux qu'elle contient sont hors de portée du pipeline d'éclairage de
+  // three. earthMat, atmoMat et les matériaux d'arcs sont des ShaderMaterial
+  // bruts (`lights` vaut false par défaut, et aucun des trois fragment shaders
+  // ne déclare d'uniform d'éclairage ni n'inclut de chunk `lights_*`) ; starMat
+  // est un PointsMaterial, qui ignore les lumières par construction. Le
+  // terminateur jour/nuit est entièrement piloté par l'uniform `uSun`.
+  // Une AmbientLight et deux DirectionalLight vivaient ici : inertes au rendu,
+  // elles coûtaient une traversée du graphe et une passe WebGLLights par frame
+  // et par globe (six sur /test-globe), et laissaient croire à la lecture que la
+  // Terre était éclairée pour de vrai.
 
-  _buildEarth() {
-    const pal = readGlobePalette(this.c);
+  _buildEarth(pal) {
     // Terre tuilee horizontalement (5 copies) -> defilement est/ouest infini en mode plan.
     // Une seule grille source (PlaneGeometry) est recopiee 5 fois dans un meme
     // buffer : chaque copie porte un attribut aShift (multiple de 2*PI) que le
     // vertex shader ajoute a la longitude, et que le fragment shader utilise
     // pour jeter les copies laterales des que l'on repasse en globe.
     const base = new THREE.PlaneGeometry(1, 1, 180, 90);
-    const bPos = base.attributes.position.array, bUv = base.attributes.uv.array;
+    const bUv = base.attributes.uv.array;
     const bIdx = base.index.array, nv = base.attributes.position.count;
     const copies = [-2, -1, 0, 1, 2];
-    const pos = new Float32Array(nv * copies.length * 3);
     const uv = new Float32Array(nv * copies.length * 2);
     const sh = new Float32Array(nv * copies.length);
-    const idx = [];
+    // Index PREALLOUE en Uint32Array (82 355 sommets > 65 535, donc pas de
+    // 16 bits possible). Un tableau JS rempli par 486 000 push() faisait boxer
+    // chaque entree avant que setIndex ne la recopie dans le typed array final :
+    // deux fois le travail, et un pic memoire pour rien.
+    const idx = new Uint32Array(bIdx.length * copies.length);
     copies.forEach((kc, ci) => {
       // voff : decalage de la copie courante dans le buffer de sommets ; les
       // indices de la grille source sont recopies tels quels, decales de voff.
-      const voff = ci * nv;
+      const voff = ci * nv, ioff = ci * bIdx.length;
       for (let i = 0; i < nv; i++) {
-        pos[(voff + i) * 3] = bPos[i * 3];
-        pos[(voff + i) * 3 + 1] = bPos[i * 3 + 1];
-        pos[(voff + i) * 3 + 2] = bPos[i * 3 + 2];
         uv[(voff + i) * 2] = bUv[i * 2];
         uv[(voff + i) * 2 + 1] = bUv[i * 2 + 1];
         sh[voff + i] = kc * 2 * PI;
       }
-      for (let j = 0; j < bIdx.length; j++) idx.push(bIdx[j] + voff);
+      for (let j = 0; j < bIdx.length; j++) idx[ioff + j] = bIdx[j] + voff;
     });
     const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    // AUCUN attribut `position` : EARTH_VERT n'en lit pas un seul composant, il
+    // derive (lon, lat) de `uv` et le tuilage de `aShift`. three injecte bien la
+    // declaration `attribute vec3 position` dans le prefixe de tout
+    // ShaderMaterial non-raw, mais le compilateur GLSL l'elimine puisqu'elle est
+    // inutilisee : elle n'apparait donc pas dans les attributs ACTIFS du
+    // programme, et WebGLBindingStates ne la reclame jamais a la geometrie.
+    // Le fournir quand meme coutait ~1 Mo de VRAM par globe (82 355 x 3 floats,
+    // six globes sur /test-globe) sans qu'aucun shader ne l'echantillonne, car
+    // WebGLObjects.update() televerse TOUS les attributs, utilises ou non.
+    // Rendu indexe + frustumCulled = false : le renderer ne lit `position` sur
+    // aucun autre chemin (ni compte de sommets, ni sphere englobante).
     geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
     geo.setAttribute('aShift', new THREE.BufferAttribute(sh, 1));
-    geo.setIndex(idx);
+    // BufferAttribute explicite : setIndex ne construit l'attribut lui-meme que
+    // pour un Array JS ordinaire ; un typed array nu serait affecte tel quel a
+    // geometry.index, sans le .count dont depend renderBufferDirect.
+    geo.setIndex(new THREE.BufferAttribute(idx, 1));
     base.dispose();
     this._sunVec.copy(SUN_DAY).lerp(SUN_NIGHT, this.sunMix).normalize();
     this.earthMat = new THREE.ShaderMaterial({
@@ -335,16 +377,21 @@ class GlobeEngine {
     loader.load(this.tex.spec, (t) => { attach('uSpec', t, false); }, undefined, () => {});
   }
 
-  _buildArcs() {
-    const pal = readGlobePalette(this.c);
+  _buildArcs(pal) {
     this.arcGroup = new THREE.Group();
     this.group.add(this.arcGroup);
     this.arcMats = [];
     this.arcHit = [];
-    const byId = {}; this.o.points.forEach(p => byId[p.id] = p);
+    // Map et non objet litteral : les identifiants de points viennent d'une base
+    // via l'API GraphQL (cf. la docstring de frontiere de confiance de Globe.jsx),
+    // donc `arc.from` peut valoir 'constructor', 'toString', 'valueOf'... Sur un
+    // `{}`, ces cles resolvent le membre HERITE de Object.prototype : la garde
+    // `if (!a || !b)` laisse alors passer une fonction, _arcGeometry lit des
+    // lon/lat `undefined` et produit un buffer de 72 sommets entierement NaN.
+    const byId = new Map(this.o.points.map(p => [p.id, p]));
 
     (this.o.arcs || []).forEach((arc, i) => {
-      const a = byId[arc.from], b = byId[arc.to];
+      const a = byId.get(arc.from), b = byId.get(arc.to);
       if (!a || !b) return;
       const { geo, pts, midLon } = this._arcGeometry(a, b, arc.value);
       const mat = new THREE.ShaderMaterial({
@@ -411,7 +458,12 @@ class GlobeEngine {
       // mousemove (18 echantillons x 13 arcs, a plus de 100 evenements/s).
       // La longitude poussee est la DEROULEE, la meme que celle des sommets :
       // avec la brute, le survol se replierait sur une autre tuile que le rendu.
-      if (i % 4 === 0) pts.push({ lon, lat, elev, u: p.clone() });
+      // Le DERNIER echantillon est force : 72 n'est pas multiple de 4 a partir
+      // de 0 (i = 0, 4, ... 68), donc les indices 69 a 71 tombaient. L'origine
+      // de l'arc (i = 0) etait echantillonnee mais pas sa DESTINATION — soit
+      // precisement l'extremite la plus epaisse et la plus lumineuse du degrade,
+      // celle que l'on vise pour lire « ou va ce flux ».
+      if (i % 4 === 0 || i === S - 1) pts.push({ lon, lat, elev, u: p.clone() });
     }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -466,7 +518,9 @@ class GlobeEngine {
     return (out ?? new THREE.Vector3()).set(plon, lat + elev * 1.7, elev * 0.6).lerp(s, m);
   }
 
-  _buildMarkers() {
+  // `pal` est TOUJOURS fourni par l'appelant (constructeur ou setTheme), qui
+  // vient de la lire : la relire ici en referait un getComputedStyle de plus.
+  _buildMarkers(pal) {
     // Reconstruction DESTRUCTIVE de l'overlay : une pastille peut etre survolee a cet
     // instant (bascule de theme sous le curseur). Detacher l'element ne declenche pas de
     // `mouseleave` fiable ; sans ce _hideTip(), la tooltip resterait figee a opacity 1
@@ -476,7 +530,6 @@ class GlobeEngine {
     this._hideTip();
     this.overlay.innerHTML = '';
     this.markers = [];
-    const pal = readGlobePalette(this.c);
     // Pastilles plates, entierement pilotables : colorFor / iconFor / sizeFor.
     this.o.points.forEach((p) => {
       const el = document.createElement('div');
@@ -553,7 +606,9 @@ class GlobeEngine {
     // utilise plus bas. Bonus : contrairement au rect, ce repere n'est pas
     // affecte par un ancetre `transform: scale()`, et rien ne peut le perimer.
     const mx = e.offsetX, my = e.offsetY;
-    const W = this.c.clientWidth, H = this.c.clientHeight, m = this.morph;
+    // Memes dimensions en cache que _updateMarkers : a 100+ mousemove par
+    // seconde, clientWidth/clientHeight forçaient ici aussi un calcul de layout.
+    const W = this._w, H = this._h, m = this.morph;
     let best = null, bestD = 10;   // seuil px
     for (const hit of this.arcHit) {
       for (const s of hit.pts) {
@@ -620,7 +675,13 @@ class GlobeEngine {
     this._wheel = (e) => {
       if (!this.o.wheelZoom) return;
       e.preventDefault();
-      this.camZ = clamp(this.camZ + e.deltaY * WHEEL_ZOOM_STEP, CAM_Z_MIN, CAM_Z_MAX);
+      // `deltaY` NORMALISE en pixels avant application du pas : son unite depend
+      // de `deltaMode`, que Chrome laisse a PIXEL (0) mais que Firefox met a
+      // LINE (1). Applique brut, un cran Firefox (~3) valait 3/100e d'un cran
+      // Chrome (~100) et le zoom molette etait de fait inutilisable ; en mode
+      // PAGE (2), un seul cran envoyait au contraire la camera sur une borne.
+      const unit = e.deltaMode === 1 ? WHEEL_LINE_PX : (e.deltaMode === 2 ? this._h : 1);
+      this.camZ = clamp(this.camZ + e.deltaY * unit * WHEEL_ZOOM_STEP, CAM_Z_MIN, CAM_Z_MAX);
     };
     el.addEventListener('wheel', this._wheel, { passive: false });
 
@@ -696,11 +757,20 @@ class GlobeEngine {
     this.group.position.y = -this.centerLat * (1 - m);
 
     this.camera.position.z = this.camZ;
+    // Matrice de la camera rafraichie ICI, juste apres avoir bouge la camera.
+    // three ne la recalcule de lui-meme qu'a l'interieur de renderer.render(),
+    // appele en toute fin de frame — or _updateMarkers projette AVANT (via
+    // Vector3.project, qui lit camera.matrixWorldInverse). Sans cet appel, les
+    // pastilles etaient placees avec la camera de la frame PRECEDENTE, donc en
+    // retard d'une frame sur la sphere a chaque zoom ou resetZoom ; et a la
+    // toute premiere frame matrixWorldInverse valait encore l'identite, ce qui
+    // revenait a projeter depuis le centre du globe (positions et tri en
+    // profondeur aberrants). Pendant du group.updateMatrixWorld(true) plus bas.
+    this.camera.updateMatrixWorld();
 
-    // direction du soleil (thème) -> earth + lumière temps réel
+    // direction du soleil (thème) -> uniform de la Terre
     this._sunVec.copy(SUN_DAY).lerp(SUN_NIGHT, this.sunMix).normalize();
     this.earthMat.uniforms.uSun.value.copy(this._sunVec);
-    if (this.dir) this.dir.position.copy(this._sunVec).multiplyScalar(6);
 
     // etoiles — masquees en mode plan (multipliees par le morph)
     if (this.starMat) this.starMat.opacity = this.starOpacity * this.morph;
@@ -734,7 +804,10 @@ class GlobeEngine {
   // la face visible en globe, echelle selon la distance camera.
   _updateMarkers(m) {
     if (!this.o.showPoints) return;
-    const W = this.c.clientWidth, H = this.c.clientHeight;
+    // Dimensions LUES DU CACHE (cf. _initScene / resize) : les relire sur le DOM
+    // ici forçait un recalcul de layout par frame, juste apres que la frame
+    // precedente ait ecrit zIndex et pointerEvents sur les pastilles.
+    const W = this._w, H = this._h;
     const q = this.group.quaternion;
     const cam = this.camera.position;
     for (const mk of this.markers) {
@@ -876,7 +949,7 @@ class GlobeEngine {
     this.atmoMat.uniforms.uColor.value.copy(pal.atmo);
     this.earthMat.uniforms.uFallback.value.copy(pal.fallback);
     this.arcMats.forEach(m => m.uniforms.uColor.value.copy(pal.arc));
-    this._buildMarkers();
+    this._buildMarkers(pal);
   }
 
   /**
@@ -888,6 +961,16 @@ class GlobeEngine {
   resize() {
     const w = this.c.clientWidth, h = this.c.clientHeight;
     if (!w || !h) return;
+    // Seul endroit du moteur qui lit encore les dimensions sur le DOM : les
+    // chemins chauds consomment ce cache (cf. _initScene).
+    this._w = w; this._h = h;
+    // Densite de pixels REAPPLIQUEE, pas seulement la taille : `devicePixelRatio`
+    // change quand la fenetre passe d'un ecran 1x a un ecran 2x, ou quand
+    // l'utilisateur zoome dans le navigateur — deux gestes qui declenchent
+    // justement ce ResizeObserver. Figee a la construction, elle laissait le
+    // tampon de dessin a l'ancienne densite : globe flou sur l'ecran le plus
+    // fin, ou quatre fois trop de fragments sur le plus grossier.
+    this.renderer.setPixelRatio(this._pixelRatio());
     // Aucun rendu force ici : setSize() vide le buffer de dessin, donc un moteur
     // EN PAUSE affiche un canvas blanc jusqu'a sa reprise — invisible, puisqu'il
     // faut etre a plus de 200 px hors du viewport pour etre en pause, et
