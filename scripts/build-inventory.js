@@ -172,6 +172,10 @@ const UNIT_DEFINITIONS = [
   { name: 'utils-format', type: 'lib', roots: ['src/utils/format'] },
   { name: 'utils-html', type: 'lib', roots: ['src/utils/html'] },
   { name: 'utils-math', type: 'lib', roots: ['src/utils/math'] },
+
+  // Client API : transport unique de toutes les sources de données (documents
+  // GraphQL, transports API/fixtures). Consommé par les `sources/` des features.
+  { name: 'api-client', type: 'lib', roots: ['src/lib/api'] },
 ];
 
 // Racines balayées pour constituer l'inventaire. src/app/ en est exclu : c'est
@@ -182,6 +186,7 @@ const SCANNED_ROOTS = [
   'src/features',
   'src/hooks',
   'src/utils',
+  'src/lib',
   'src/styles',
 ];
 

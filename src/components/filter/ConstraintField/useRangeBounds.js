@@ -1,12 +1,20 @@
 // Importation des modules
 import useSWR from 'swr';
 
-// ── Bornes mock par défaut ──
-// Repli local exerçant le même cycle loading→données que l'API GraphQL réelle.
+// =================================================================
+// SOURCE — BORNES DE CHAMP (locales)
+// =================================================================
+// Seule source du projet qui ne passe PAS par lib/api/client : l'API n'expose
+// aucune opération de bornes par champ. Les seules bornes réelles disponibles
+// sont les `metadata.extents` de getFactTableWithMetadata — les brancher
+// supposerait une requête par champ et une dérivation du `step` côté client,
+// hors périmètre tant que le besoin n'est pas tranché. Le hook garde donc un
+// résolveur local, asynchrone pour exercer le même cycle loading→données.
+
+// ── Bornes par défaut ──
 const MOCK_BOUNDS = { min: 0, max: 100, step: 1 };
 
-// ── Bornes mock par champ ──
-// Imite getFieldBounds(fieldName) (dérivé des `extents` du dataset côté API).
+// ── Bornes par champ ──
 // Numériques : {min,max,step} chiffrés. Dates : bornes en JJ/MM/AAAA + step en ms
 // (ConstraintField sait projeter des dates sur son axe numérique). Repli : MOCK_BOUNDS.
 const MS_PER_DAY = 86_400_000;
@@ -23,59 +31,22 @@ const MOCK_BOUNDS_BY_FIELD = {
   date_maj:   { min: '01/01/2000', max: '31/12/2025', step: MS_PER_DAY },
 };
 
-// --- Fallback mock : résolu en asynchrone pour exercer le même cycle
-//     loading→données que l'API GraphQL réelle. Bornes indexées par champ. ---
-function fetchRangeBounds([, fieldName, catalog]) {
-  const promise = Promise.resolve(MOCK_BOUNDS_BY_FIELD[fieldName] ?? MOCK_BOUNDS);
-
-  // ====================================================================
-  // INTÉGRATION GRAPHQL RÉELLE — à décommenter pour brancher l'API
-  // ====================================================================
-  // Prérequis : un client GraphQL (ex: @apollo/client ou graphql-request),
-  // non installé à ce jour. Définir la fonction de requête ci-dessous (idéalement
-  // dans `src/components/filter/ConstraintField/sources/`), puis REMPLACER le
-  // `const promise = ...` du fallback mock ci-dessus par :
-  //
-  //   const promise = getFieldBounds({ fieldName, catalog });
-  //
-  // Exemple d'implémentation (graphql-request) :
-  //
-  //   import { request, gql } from 'graphql-request';
-  //   const ENDPOINT = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
-  //
-  //   const FIELD_BOUNDS = gql`
-  //     query GetFieldBounds($fieldName: String!, $catalog: String) {
-  //       getFieldBounds(fieldName: $fieldName, catalog: $catalog) {
-  //         min max step
-  //       }
-  //     }`;
-  //   export async function getFieldBounds({ fieldName, catalog }) {
-  //     // Catalogue routé via l'en-tête X-Catalog-Id (ou l'argument `catalog`).
-  //     const headers = catalog ? { 'X-Catalog-Id': catalog } : {};
-  //     const data = await request(ENDPOINT, FIELD_BOUNDS, { fieldName, catalog }, headers);
-  //     return data.getFieldBounds; // -> { min, max, step }
-  //   }
-  //
-  // Le cycle { loading, error } est déjà câblé : `loading` vient de `isLoading`
-  // (SWR), `error` est renseigné par un rejet de la promesse ci-dessus.
-  // ====================================================================
-
-  return promise;
+async function fetchRangeBounds([, fieldName]) {
+  return MOCK_BOUNDS_BY_FIELD[fieldName] ?? MOCK_BOUNDS;
 }
 
 /**
  * Fetches the numeric/date bounds (min, max, step) that drive ConstraintField's slider.
  *
  * Backed by SWR: caches and deduplicates requests sharing the same
- * `['rangeBounds', fieldName, catalog]` key across component instances. By
- * default the resolver returns local mocks; swap it for the GraphQL call
- * `getFieldBounds` inside {@link fetchRangeBounds} (see the commented block).
- * The component lets explicit `min`/`max` props take precedence over the
- * returned values.
+ * `['rangeBounds', fieldName, catalog]` key across component instances. Bounds
+ * are resolved locally — the API exposes no per-field bounds operation (see the
+ * header note). The component lets explicit `min`/`max` props take precedence
+ * over the returned values.
  *
  * @param {Object}  params
- * @param {string}  params.fieldName - API field name. Ignored by the mock resolver.
- * @param {string}  [params.catalog] - API catalog (mock: ignored).
+ * @param {string}  params.fieldName - API field name, indexes the local bounds.
+ * @param {string}  [params.catalog] - API catalog (part of the key only).
  * @param {boolean} [params.enabled] - Fetch activé (défaut true). À `false` quand le
  *   parent ne fournit pas de `fieldName` (bornes `min`/`max` statiques passées en props) :
  *   la clé SWR devient `null`, aucun appel n'est déclenché ; les bornes retournées

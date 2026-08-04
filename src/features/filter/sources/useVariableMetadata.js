@@ -1,50 +1,24 @@
 // Importation des modules
 import useSWR from 'swr';
+import { request } from '@/lib/api/client';
+import { GET_CATALOG_SCHEMA } from '@/lib/api/documents';
 
 // =================================================================
 // SOURCE — VARIABLE METADATA (métadonnées de champs)
 // =================================================================
-// Imite `getVariableMetadata(catalog, schema)` de l'API GraphQL, qui renvoie la liste
-// des champs avec leurs métadonnées { name, label, python_type, sql_type,
-// is_categorical, is_primary_key } depuis la `metadata_table`. Ces métadonnées
-// pilotent DIRECTEMENT le CriterionMenu (type de champ, opérations, widget) sans type
-// intermédiaire. `catalog` / `schema` restent les coordonnées ducklake d'accès.
+// `getCatalogSchema(catalog, schema)` renvoie la liste des champs avec leurs
+// métadonnées { name, label, python_type, sql_type, is_categorical,
+// is_primary_key } depuis la `metadata_table`. Ces métadonnées pilotent
+// DIRECTEMENT le CriterionMenu (type de champ, opérations, widget) sans type
+// intermédiaire. C'est la même opération que celle dont <Table> tire ses
+// `columnsMetadata` : un seul point d'introspection de schéma côté API.
 //
-// Même cycle mock→API que SelectMenu/useSelectOptions.js : le dico ci-dessous sert
-// de repli tant que le client GraphQL n'est pas branché (bloc réel commenté).
+// `catalog` / `schema` restent les coordonnées ducklake d'accès.
 
-// ── Métadonnées mock (jeu de démonstration) ──
-// sql_type = type PostgreSQL renvoyé par l'API ; is_categorical distingue les
-// dimensions (SelectMenu + options) des mesures continues.
-export const MOCK_METADATA = [
-  // Mesures continues (double precision)
-  { name: 'gdp',        label: 'Croissance du PIB (%)',        python_type: 'float', sql_type: 'double precision', is_categorical: false, is_primary_key: false },
-  { name: 'inflation',  label: "Taux d'inflation (%)",         python_type: 'float', sql_type: 'double precision', is_categorical: false, is_primary_key: false },
-  { name: 'chomage',    label: 'Taux de chômage (%)',          python_type: 'float', sql_type: 'double precision', is_categorical: false, is_primary_key: false },
-  { name: 'dette_pib',  label: 'Dette publique / PIB (%)',     python_type: 'float', sql_type: 'double precision', is_categorical: false, is_primary_key: false },
-  { name: 'prod_indus', label: 'Production industrielle (idx)', python_type: 'float', sql_type: 'double precision', is_categorical: false, is_primary_key: false },
-  { name: 'taux_dir',   label: 'Taux directeur (%)',           python_type: 'float', sql_type: 'double precision', is_categorical: false, is_primary_key: false },
-
-  // Dates
-  { name: 'date_obs', label: "Date d'observation",   python_type: 'date', sql_type: 'date', is_categorical: false, is_primary_key: false },
-  { name: 'date_pub', label: 'Date de publication',  python_type: 'date', sql_type: 'date', is_categorical: false, is_primary_key: false },
-  { name: 'date_rev', label: 'Date de révision',     python_type: 'date', sql_type: 'date', is_categorical: false, is_primary_key: false },
-  { name: 'date_maj', label: 'Date de mise à jour',  python_type: 'date', sql_type: 'date', is_categorical: false, is_primary_key: false },
-
-  // Dimensions catégorielles (character varying, is_categorical)
-  { name: 'indicator', label: 'Indicateur',         python_type: 'str', sql_type: 'character varying', is_categorical: true, is_primary_key: false },
-  { name: 'sector',    label: "Secteur d'activité", python_type: 'str', sql_type: 'character varying', is_categorical: true, is_primary_key: false },
-  { name: 'region',    label: 'Région',             python_type: 'str', sql_type: 'character varying', is_categorical: true, is_primary_key: false },
-  { name: 'type_orga', label: "Type d'organisme",   python_type: 'str', sql_type: 'character varying', is_categorical: true, is_primary_key: false },
-  { name: 'frequence', label: 'Fréquence',          python_type: 'str', sql_type: 'character varying', is_categorical: true, is_primary_key: false },
-  { name: 'country',   label: 'Pays',               python_type: 'str', sql_type: 'character varying', is_categorical: true, is_primary_key: false },
-
-  // Champs texte libre (non catégoriels)
-  { name: 'libelle',    label: 'Libellé',    python_type: 'str', sql_type: 'text', is_categorical: false, is_primary_key: false },
-  { name: 'commentaire', label: 'Commentaire', python_type: 'str', sql_type: 'text', is_categorical: false, is_primary_key: false },
-  { name: 'source',     label: 'Source',     python_type: 'str', sql_type: 'text', is_categorical: false, is_primary_key: false },
-  { name: 'note',       label: 'Note libre', python_type: 'str', sql_type: 'text', is_categorical: false, is_primary_key: false },
-];
+function fetchVariableMetadata([, catalog, schema]) {
+  return request(GET_CATALOG_SCHEMA, { catalog, schema }, { catalog, schema })
+    .then((data) => data.getCatalogSchema);
+}
 
 /**
  * Maps API field metadata to the `variables` shape consumed by CriterionMenu /
@@ -62,67 +36,25 @@ export function metadataToVariables(fields = []) {
   }));
 }
 
-// --- Fallback mock : résolu en asynchrone pour exercer le même cycle
-//     loading→données que l'API GraphQL réelle. ---
-function fetchVariableMetadata([, catalog, schema]) {
-  const promise = Promise.resolve(MOCK_METADATA);
-
-  // ====================================================================
-  // INTÉGRATION GRAPHQL RÉELLE — à décommenter pour brancher l'API
-  // ====================================================================
-  // Prérequis : un client GraphQL (ex: @apollo/client ou graphql-request),
-  // non installé à ce jour. Définir la fonction de requête ci-dessous (idéalement
-  // dans `src/features/filter/sources/`), puis REMPLACER le `const promise = ...`
-  // du fallback mock ci-dessus par :
-  //
-  //   const promise = getVariableMetadata({ catalog, schema });
-  //
-  // Exemple d'implémentation (graphql-request) :
-  //
-  //   import { request, gql } from 'graphql-request';
-  //   const ENDPOINT = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/graphql';
-  //
-  //   const VARIABLE_METADATA = gql`
-  //     query GetVariableMetadata($catalog: String, $schema: String) {
-  //       getVariableMetadata(catalog: $catalog, schema: $schema) {
-  //         name label python_type sql_type is_categorical is_primary_key
-  //       }
-  //     }`;
-  //   export async function getVariableMetadata({ catalog, schema }) {
-  //     const headers = catalog ? { 'X-Catalog-Id': catalog } : {};
-  //     const data = await request(ENDPOINT, VARIABLE_METADATA, { catalog, schema }, headers);
-  //     return data.getVariableMetadata; // -> [{ name, label, python_type, sql_type, is_categorical, is_primary_key }]
-  //   }
-  //
-  // Le cycle { loading, error } est déjà câblé : `loading` vient de `isLoading`
-  // (SWR), `error` est renseigné par un rejet de la promesse ci-dessus.
-  // ====================================================================
-
-  return promise;
-}
-
 /**
  * Fetches the field metadata of a catalog/schema (rows of the `metadata_table`).
  *
  * Backed by SWR: caches and deduplicates requests sharing the same
- * `['variableMetadata', catalog, schema]` key across component instances. By
- * default returns the local mock; swap it for the GraphQL call
- * `getVariableMetadata` inside {@link fetchVariableMetadata} (see the commented block).
+ * `['catalogSchema', catalog, schema]` key across component instances.
  *
  * @param {Object}  [params]
- * @param {string}  [params.catalog] - Ducklake catalog (mock: ignored).
- * @param {string}  [params.schema]  - Ducklake schema (mock: ignored).
+ * @param {string}  [params.catalog] - Ducklake catalog.
+ * @param {string}  [params.schema]  - Ducklake schema.
  * @returns {{ fields: Array, loading: boolean, error: (Error|null) }}
  */
 export function useVariableMetadata({ catalog, schema } = {}) {
-  const { data, error, isLoading } = useSWR(['variableMetadata', catalog, schema], fetchVariableMetadata);
+  const { data, error, isLoading } = useSWR(['catalogSchema', catalog, schema], fetchVariableMetadata);
 
-  // En cas d'échec du fetch, on renvoie un état vide + `error` : le mock est un
-  // repli "client GraphQL pas encore branché", PAS un repli sur erreur (afficher
-  // le jeu mock complet masquerait la panne au consommateur).
+  // En cas d'échec du fetch, on renvoie un état vide + `error` : masquer la panne
+  // derrière des données de démonstration tromperait le consommateur.
   if (error) {
     return { fields: [], loading: isLoading, error };
   }
 
-  return { fields: data ?? MOCK_METADATA, loading: isLoading, error: null };
+  return { fields: data ?? [], loading: isLoading, error: null };
 }

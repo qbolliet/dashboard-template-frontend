@@ -1,8 +1,8 @@
 {
   "$comment": "Généré par scripts/build-inventory.js — ne pas éditer à la main.",
-  "generatedAt": "2026-08-04T21:11:10.368Z",
-  "unitCount": 48,
-  "fileCount": 386,
+  "generatedAt": "2026-08-04T21:37:52.503Z",
+  "unitCount": 49,
+  "fileCount": 395,
   "fanoutThreshold": 3,
   "units": {
     "accessible-icon": {
@@ -39,6 +39,78 @@
         "tokens-global",
         "visually-hidden"
       ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "api-client": {
+      "type": "lib",
+      "distributable": true,
+      "roots": [
+        "src/lib/api"
+      ],
+      "clientBoundary": false,
+      "fileCount": 12,
+      "files": [
+        {
+          "path": "src/lib/api/client.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/lib/api/documents/catalogSchema.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/lib/api/documents/factTable.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/lib/api/documents/gql.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/lib/api/documents/index.js",
+          "kind": "barrel"
+        },
+        {
+          "path": "src/lib/api/documents/selectOptions.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/lib/api/fixtures/catalogSchema.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/lib/api/fixtures/chartFactTable.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/lib/api/fixtures/factTable.json",
+          "kind": "fixture"
+        },
+        {
+          "path": "src/lib/api/fixtures/selectOptions.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/lib/api/transports/graphql.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/lib/api/transports/mock.js",
+          "kind": "fixture"
+        }
+      ],
+      "npm": [
+        "graphql-request"
+      ],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [],
+      "internalCode": [],
+      "internalTokens": [],
+      "internalResolved": [],
       "styleGlobals": [],
       "assets": [],
       "externalConfig": [],
@@ -569,6 +641,7 @@
         "src/features/chart/utils/kde.js"
       ],
       "internal": [
+        "api-client",
         "chart-tokens",
         "hooks-layout-effect",
         "hover-toolbar",
@@ -577,6 +650,7 @@
         "toolbar-tools"
       ],
       "internalCode": [
+        "api-client",
         "hooks-layout-effect",
         "hover-toolbar",
         "icons",
@@ -587,6 +661,7 @@
         "tokens-global"
       ],
       "internalResolved": [
+        "api-client",
         "chart-tokens",
         "hooks-layout-effect",
         "hover-toolbar",
@@ -898,6 +973,7 @@
       "npmAsyncOnly": [],
       "asyncOnlyFiles": [],
       "internal": [
+        "api-client",
         "constraint-field",
         "date-parse",
         "filter-feature-tokens",
@@ -909,6 +985,7 @@
         "type-aware-input"
       ],
       "internalCode": [
+        "api-client",
         "constraint-field",
         "date-parse",
         "hooks-debounce",
@@ -922,6 +999,7 @@
         "tokens-global"
       ],
       "internalResolved": [
+        "api-client",
         "calendar-month",
         "constraint-field",
         "date-parse",
@@ -2129,7 +2207,7 @@
         "src/components/filter/SelectMenu"
       ],
       "clientBoundary": true,
-      "fileCount": 6,
+      "fileCount": 5,
       "files": [
         {
           "path": "src/components/filter/SelectMenu/_colors.scss",
@@ -2138,10 +2216,6 @@
         {
           "path": "src/components/filter/SelectMenu/_tokens.scss",
           "kind": "tokens"
-        },
-        {
-          "path": "src/components/filter/SelectMenu/mockData.js",
-          "kind": "fixture"
         },
         {
           "path": "src/components/filter/SelectMenu/SelectMenu.jsx",
@@ -2162,6 +2236,7 @@
       "npmAsyncOnly": [],
       "asyncOnlyFiles": [],
       "internal": [
+        "api-client",
         "filter-tokens",
         "hooks-debounce",
         "hooks-floating",
@@ -2170,6 +2245,7 @@
         "visually-hidden"
       ],
       "internalCode": [
+        "api-client",
         "hooks-debounce",
         "hooks-floating",
         "icons",
@@ -2180,6 +2256,7 @@
         "tokens-global"
       ],
       "internalResolved": [
+        "api-client",
         "filter-tokens",
         "hooks-debounce",
         "hooks-floating",
@@ -2384,7 +2461,7 @@
         "src/features/table"
       ],
       "clientBoundary": true,
-      "fileCount": 29,
+      "fileCount": 27,
       "files": [
         {
           "path": "src/features/table/components/_colors.scss",
@@ -2475,14 +2552,6 @@
           "kind": "barrel"
         },
         {
-          "path": "src/features/table/sources/factTableQuery.js",
-          "kind": "source"
-        },
-        {
-          "path": "src/features/table/sources/mockFactTable.json",
-          "kind": "fixture"
-        },
-        {
           "path": "src/features/table/sources/useFactTableWithMetadata.js",
           "kind": "hook"
         },
@@ -2509,6 +2578,7 @@
       "npmAsyncOnly": [],
       "asyncOnlyFiles": [],
       "internal": [
+        "api-client",
         "filter",
         "hover-toolbar",
         "icons",
@@ -2517,6 +2587,7 @@
         "utils-format"
       ],
       "internalCode": [
+        "api-client",
         "filter",
         "hover-toolbar",
         "icons",
@@ -2527,6 +2598,7 @@
         "tokens-global"
       ],
       "internalResolved": [
+        "api-client",
         "calendar-month",
         "constraint-field",
         "date-parse",
@@ -3248,8 +3320,9 @@
     "highFanout": [
       {
         "unit": "filter",
-        "count": 7,
+        "count": 8,
         "dependencies": [
+          "api-client",
           "constraint-field",
           "date-parse",
           "hooks-debounce",
@@ -3297,6 +3370,17 @@
         ]
       },
       {
+        "unit": "chart",
+        "count": 5,
+        "dependencies": [
+          "api-client",
+          "hooks-layout-effect",
+          "hover-toolbar",
+          "icons",
+          "toolbar-tools"
+        ]
+      },
+      {
         "unit": "header",
         "count": 5,
         "dependencies": [
@@ -3308,19 +3392,10 @@
         ]
       },
       {
-        "unit": "chart",
-        "count": 4,
-        "dependencies": [
-          "hooks-layout-effect",
-          "hover-toolbar",
-          "icons",
-          "toolbar-tools"
-        ]
-      },
-      {
         "unit": "select-menu",
-        "count": 4,
+        "count": 5,
         "dependencies": [
+          "api-client",
           "hooks-debounce",
           "hooks-floating",
           "icons",
@@ -3329,8 +3404,9 @@
       },
       {
         "unit": "table",
-        "count": 4,
+        "count": 5,
         "dependencies": [
+          "api-client",
           "filter",
           "hover-toolbar",
           "icons",
@@ -3367,20 +3443,21 @@
     ],
     "orphanDependencies": [
       "@visx/clip-path",
-      "@visx/group"
+      "@visx/group",
+      "graphql"
     ],
     "fixtures": [
-      {
-        "unit": "select-menu",
-        "path": "src/components/filter/SelectMenu/mockData.js"
-      },
       {
         "unit": "chart",
         "path": "src/features/chart/sources/demoData.js"
       },
       {
-        "unit": "table",
-        "path": "src/features/table/sources/mockFactTable.json"
+        "unit": "api-client",
+        "path": "src/lib/api/fixtures/factTable.json"
+      },
+      {
+        "unit": "api-client",
+        "path": "src/lib/api/transports/mock.js"
       }
     ],
     "externalConfig": [

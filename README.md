@@ -48,9 +48,14 @@ Open [http://localhost:3000](http://localhost:3000) to see the result.
 
 ### Connecting to your data
 
-By default the template runs against local mock data. To connect it to a
-real GraphQL API, copy `.env.example` to `.env.local` and set
+By default the template serves the local fixtures in `src/lib/api/fixtures/`.
+To query a real GraphQL API, copy `.env.example` to `.env.local` and set
 `NEXT_PUBLIC_API_URL` to your endpoint — see `.env.example` for details.
+
+That variable is the single switch: `src/lib/api/client.js` picks the GraphQL
+or the fixture transport from it, and the `sources/` hooks are identical in
+both modes. Adding an operation means adding a document in
+`src/lib/api/documents/` and a resolver in `src/lib/api/transports/mock.js`.
 
 ### Configuring the navigation
 
@@ -66,6 +71,7 @@ src/
 ├── components/  # Atomic, stateless UI primitives (buttons, inputs, icons…)
 ├── hooks/       # Generic, feature-agnostic React hooks
 ├── utils/       # Generic, feature-agnostic pure functions
+├── lib/         # Infrastructure: the API client, its transports and documents
 ├── features/    # Self-contained features (navigation, filter, chart, table…)
 └── app/         # Next.js App Router pages and layouts
 ```

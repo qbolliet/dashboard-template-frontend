@@ -18,11 +18,13 @@
 // dès qu'un Server Component importe le barrel. TableShowcase.jsx (client)
 // peut en revanche importer le barrel sans problème.
 import Table from '@/features/table/components/Table';
-import mockFactTable from '@/features/table/sources/mockFactTable.json';
+import factTableFixture from '@/lib/api/fixtures/factTable.json';
 import { CatalogueTable, CustomToolsTable, McmLiveTable } from './TableShowcase';
 import './page.scss';
 
-const { data: MOCK_ROWS, columnsMetadata: MOCK_COLUMNS_METADATA } = mockFactTable;
+// Lecture directe de la fixture (Server Component) : la page montre <Table> à
+// partir de props figées, elle n'exerce pas le cycle de chargement du hook.
+const { data: MOCK_ROWS, columnsMetadata: MOCK_COLUMNS_METADATA } = factTableFixture;
 
 // Paramètres de snippets GraphQL communs aux six démonstrations.
 const QUERY_HINT = { operation: 'getFactTableWithMetadata', limit: MOCK_ROWS.length };

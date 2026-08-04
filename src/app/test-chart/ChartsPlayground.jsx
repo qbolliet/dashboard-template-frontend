@@ -21,6 +21,7 @@ import {
   makeHeatmapData, makeDensityData, makeViolinData,
   makeComboMonthly, makeComboQuarterly, makeAreaSeries,
 } from '@/features/chart/sources/demoData';
+import { TRANSPORT_NAME } from '@/lib/api/client';
 import { CtrlRadio, CtrlSelect, CtrlToggle, CtrlText, CtrlColor } from '@/app/_playground';
 
 // ── Jeux de démonstration construits une fois (générateurs à graine fixe) ────
@@ -329,7 +330,7 @@ const ApiDemo = ({ tickDensity, overlap, apiRows, apiMeta, apiLoading, apiError 
           format={{ x: '%Y-%m', y: '.1f' }}
           tickDensity={tickDensity} overlap={overlap}
           labels={{ x: "Date d'observation", y: 'PIB (indice)', color: 'Pays' }}
-          title="PIB par pays — getFactTableWithMetadata (mock)"
+          title={`PIB par pays — getFactTableWithMetadata (${TRANSPORT_NAME})`}
           toolbar={UNIVERSAL_TOOLBAR}
           height={420} />
         {apiMeta && (

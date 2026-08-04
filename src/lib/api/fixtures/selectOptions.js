@@ -1,11 +1,9 @@
 // =================================================================
-// MOCK DATA — SelectMenu
+// FIXTURE — getSelectOptions / getGroupedSelectOptions
 // =================================================================
-// Données fictives en attendant le branchement sur l'API GraphQL.
-// Forme cible des appels réels (signatures conservées pour faciliter la
-// migration) :
-//   getSelectOptions({ fieldName, searchTerm, limit, catalog })
-//   getGroupedSelectOptions({ groupField, optionsField, limit })
+// Jeu local servi par transports/mock.js. Forme identique à celle des opérations
+// correspondantes de l'API : le hook useSelectOptions ne voit aucune différence
+// entre les deux transports.
 
 // Mock plat : liste simple d'options { value, label }.
 // Sert de repli par défaut quand `fieldName` n'a pas d'entrée dédiée ci-dessous.
@@ -68,9 +66,8 @@ export const MOCK_OPTIONS_BY_FIELD = {
   ],
 };
 
-// Mock groupé : structure UI { group, options } prête à l'affichage.
-// NB : l'API réelle renvoie les groupes et les options sous forme de tableaux
-// parallèles — une transformation sera nécessaire au branchement effectif.
+// Mock groupé : structure { group, options } prête à l'affichage, calquée sur la
+// sélection `group { value label } options { value label }` du document.
 export const MOCK_GROUPED_OPTIONS = [
   {
     group: { value: "west", label: "Europe de l'Ouest" },
