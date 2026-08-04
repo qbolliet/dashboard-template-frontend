@@ -77,8 +77,8 @@ export default function TestHeaderPage() {
             <style jsx>{`
                 .test-page {
                     min-height: 100vh;
-                    background-color: var(--bg-color, #ffffff);
-                    color: var(--text-color, #333333);
+                    background-color: var(--color-background, #ffffff);
+                    color: var(--color-text-primary, #333333);
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
                 }
                 
@@ -93,7 +93,7 @@ export default function TestHeaderPage() {
                 }
                 
                 h1 {
-                    color: var(--heading-color, #1a1a1a);
+                    color: var(--color-text-primary, #1a1a1a);
                     margin-bottom: 1rem;
                 }
                 
@@ -104,14 +104,14 @@ export default function TestHeaderPage() {
                 }
                 
                 .test-section {
-                    background: var(--card-bg, #f8f9fa);
+                    background: var(--color-surface, #f8f9fa);
                     padding: 1.5rem;
                     border-radius: 8px;
-                    border: 1px solid var(--border-color, #e5e5e5);
+                    border: 1px solid var(--color-border, #e5e5e5);
                 }
                 
                 .test-section h2 {
-                    color: var(--heading-color, #1a1a1a);
+                    color: var(--color-text-primary, #1a1a1a);
                     margin-bottom: 1rem;
                     font-size: 1.25rem;
                 }
@@ -127,23 +127,23 @@ export default function TestHeaderPage() {
                 }
                 
                 .code-block {
-                    background: var(--code-bg, #f1f3f4);
+                    background: var(--color-gray-100, #f1f3f4);
                     padding: 1rem;
                     border-radius: 4px;
                     overflow-x: auto;
                     font-size: 0.875rem;
-                    border: 1px solid var(--border-color, #e5e5e5);
+                    border: 1px solid var(--color-border, #e5e5e5);
                 }
                 
                 code {
-                    background: var(--code-bg, #f1f3f4);
+                    background: var(--color-gray-100, #f1f3f4);
                     padding: 0.2rem 0.4rem;
                     border-radius: 3px;
                     font-size: 0.875rem;
                 }
                 
                 /* Les variables CSS sont maintenant gérées par le système global de couleurs
-                   Voir src/styles/globals/tokens/semantic-colors.scss pour --bg-color, --text-color, etc. */
+                   Voir src/styles/globals/tokens/semantic-colors.scss */
                 
                 @media (max-width: 768px) {
                     .container {

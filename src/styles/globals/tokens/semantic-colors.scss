@@ -27,15 +27,6 @@
   // ===== COULEURS D'INTERACTION =====
   --color-focus: var(--color-primary-500);
   --color-focus-shadow: var(--color-primary-200);
-
-  // ===== VARIABLES GLOBALES POUR LES PAGES =====
-  // /!\ Variables utilisées dans les pages et tests (legacy - à migrer progressivement)
-  --bg-color: var(--color-background);
-  --text-color: var(--color-text-primary);
-  --heading-color: var(--color-gray-900);
-  --card-bg: var(--color-gray-100);
-  --border-color: var(--color-border);
-  --code-bg: var(--color-gray-100);
 }
 
 // ===== THÈME SOMBRE =====
@@ -54,12 +45,4 @@
   --color-text-secondary: var(--color-gray-500);
   --color-text-tertiary: var(--color-gray-400);
   --color-text-disabled: var(--color-gray-300);
-
-  // ===== VARIABLES GLOBALES (MODE SOMBRE) ===== /!\
-  --bg-color: var(--color-background);
-  --text-color: var(--color-text-primary);
-  --heading-color: var(--color-white);
-  --card-bg: var(--color-gray-200);
-  --border-color: var(--color-border);
-  --code-bg: var(--color-gray-100);
 }
