@@ -1,0 +1,3395 @@
+{
+  "$comment": "Généré par scripts/build-inventory.js — ne pas éditer à la main.",
+  "generatedAt": "2026-08-04T21:11:10.368Z",
+  "unitCount": 48,
+  "fileCount": 386,
+  "fanoutThreshold": 3,
+  "units": {
+    "accessible-icon": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/common/AccessibleIcon"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/components/common/AccessibleIcon/AccessibleIcon.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/common/AccessibleIcon/index.js",
+          "kind": "barrel"
+        }
+      ],
+      "npm": [
+        "prop-types"
+      ],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "visually-hidden"
+      ],
+      "internalCode": [
+        "visually-hidden"
+      ],
+      "internalTokens": [],
+      "internalResolved": [
+        "tokens-global",
+        "visually-hidden"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "badge": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/ui/Badge"
+      ],
+      "clientBoundary": false,
+      "fileCount": 3,
+      "files": [
+        {
+          "path": "src/components/ui/Badge/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/ui/Badge/Badge.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/ui/Badge/Badge.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "calendar-month": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/filter/CalendarMonth"
+      ],
+      "clientBoundary": true,
+      "fileCount": 4,
+      "files": [
+        {
+          "path": "src/components/filter/CalendarMonth/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/filter/CalendarMonth/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/filter/CalendarMonth/CalendarMonth.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/filter/CalendarMonth/CalendarMonth.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "filter-tokens",
+        "icons",
+        "tokens-global",
+        "visually-hidden"
+      ],
+      "internalCode": [
+        "icons",
+        "visually-hidden"
+      ],
+      "internalTokens": [
+        "filter-tokens",
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "filter-tokens",
+        "icons",
+        "tokens-global",
+        "visually-hidden"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "card-grid": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/ui/CardGrid"
+      ],
+      "clientBoundary": false,
+      "fileCount": 3,
+      "files": [
+        {
+          "path": "src/components/ui/CardGrid/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/ui/CardGrid/CardGrid.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/ui/CardGrid/CardGrid.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [
+        "src/styles/utils/breakpoints.scss"
+      ],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "chart": {
+      "type": "feature",
+      "distributable": true,
+      "roots": [
+        "src/features/chart"
+      ],
+      "clientBoundary": true,
+      "fileCount": 86,
+      "files": [
+        {
+          "path": "src/features/chart/components/Chart/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/chart/components/Chart/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/chart/components/Chart/Chart.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/Chart/Chart.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/ChartAxis/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/chart/components/ChartAxis/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/chart/components/ChartAxis/ChartAxisBottom/ChartAxisBottom.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/ChartAxis/ChartAxisBottom/ChartAxisBottom.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/ChartAxis/ChartAxisLeft/ChartAxisLeft.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/ChartAxis/ChartAxisLeft/ChartAxisLeft.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/ChartAxis/tickHelpers.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/features/chart/components/ChartLegend/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/chart/components/ChartLegend/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/chart/components/ChartLegend/ChannelLegend/ChannelLegend.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/ChartLegend/ChannelLegend/ChannelLegend.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/ChartLegend/LegendGlyph/LegendGlyph.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/ChartLegend/SequentialLegend/SequentialLegend.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/ChartLegend/SequentialLegend/SequentialLegend.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/ChartMinimap/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/chart/components/ChartMinimap/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/chart/components/ChartMinimap/BrushMinimap/BrushMinimap.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/ChartMinimap/BrushMinimap/BrushMinimap.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/ChartMinimap/MinimapToggle/MinimapToggle.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/ChartMinimap/MinimapToggle/MinimapToggle.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/ChartMinimap/MiniProjection/MiniProjection.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/ChartToolbar/ChartToolbar.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/ChartToolbar/ToolIcon/ToolIcon.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/ChartTooltip/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/chart/components/ChartTooltip/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/chart/components/ChartTooltip/ChartTooltip.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/ChartTooltip/ChartTooltip.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/marks/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/chart/components/marks/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/chart/components/marks/BarMarks/BarMarks.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/marks/BarMarks/BarMarks.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/marks/DensityMarks/DensityMarks.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/marks/DensityMarks/DensityMarks.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/marks/HeatmapMarks/HeatmapMarks.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/marks/HeatmapMarks/HeatmapMarks.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/marks/LineMarks/LineMarks.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/marks/LineMarks/LineMarks.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/marks/shared/HatchPatterns.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/marks/shared/SeriesMarker.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/marks/ViolinMarks/ViolinMarks.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/marks/ViolinMarks/ViolinMarks.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/MultiChart/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/chart/components/MultiChart/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/chart/components/MultiChart/MultiChart.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/MultiChart/MultiChart.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/MultiChart/MultiLegend/MultiLegend.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/MultiChart/MultiLegend/MultiLegend.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/overlays/BeforeAfterOverlay/BeforeAfterOverlay.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/overlays/BeforeAfterOverlay/BeforeAfterOverlay.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/overlays/ConfidenceOverlay/ConfidenceOverlay.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/overlays/ConfidenceOverlay/ConfidenceOverlay.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/overlays/DragBar/DragBar.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/overlays/DragBar/DragBar.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/overlays/HoverOverlays/HoverOverlays.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/overlays/NormalizeOverlay/NormalizeOverlay.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/overlays/NormalizeOverlay/NormalizeOverlay.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/overlays/overlayData.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/features/chart/hooks/useBrushZoom.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/features/chart/hooks/useChartGeometry.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/features/chart/hooks/useFeatureState.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/features/chart/hooks/useMinimapState.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/features/chart/hooks/useSeriesHover.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/features/chart/index.js",
+          "kind": "barrel"
+        },
+        {
+          "path": "src/features/chart/sources/demoData.js",
+          "kind": "fixture"
+        },
+        {
+          "path": "src/features/chart/sources/useFactTable.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/features/chart/toolbar-features/beforeAfter.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/features/chart/toolbar-features/channelAssign.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/features/chart/toolbar-features/confidenceInterval.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/features/chart/toolbar-features/index.js",
+          "kind": "barrel"
+        },
+        {
+          "path": "src/features/chart/toolbar-features/minimaps.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/features/chart/toolbar-features/normalize.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/features/chart/toolbar-features/zoom.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/features/chart/utils/datasetList.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/chart/utils/encoding.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/chart/utils/exportImage.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/chart/utils/formatters.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/chart/utils/kde.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/chart/utils/measureText.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/chart/utils/minimapGeometry.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/chart/utils/scales.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/chart/utils/stacking.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/chart/utils/typeDetection.js",
+          "kind": "util"
+        }
+      ],
+      "npm": [
+        "@visx/axis",
+        "@visx/brush",
+        "@visx/curve",
+        "@visx/glyph",
+        "@visx/grid",
+        "@visx/pattern",
+        "@visx/responsive",
+        "@visx/scale",
+        "@visx/shape",
+        "@visx/voronoi",
+        "d3-array",
+        "d3-color",
+        "d3-contour",
+        "d3-format",
+        "d3-geo",
+        "d3-interpolate",
+        "d3-shape",
+        "d3-time-format",
+        "swr"
+      ],
+      "npmAsyncOnly": [
+        "d3-contour",
+        "d3-geo"
+      ],
+      "asyncOnlyFiles": [
+        "src/features/chart/components/marks/DensityMarks/DensityMarks.jsx",
+        "src/features/chart/components/marks/DensityMarks/DensityMarks.scss",
+        "src/features/chart/components/marks/HeatmapMarks/HeatmapMarks.jsx",
+        "src/features/chart/components/marks/HeatmapMarks/HeatmapMarks.scss",
+        "src/features/chart/components/marks/ViolinMarks/ViolinMarks.jsx",
+        "src/features/chart/components/marks/ViolinMarks/ViolinMarks.scss",
+        "src/features/chart/utils/kde.js"
+      ],
+      "internal": [
+        "chart-tokens",
+        "hooks-layout-effect",
+        "hover-toolbar",
+        "icons",
+        "tokens-global",
+        "toolbar-tools"
+      ],
+      "internalCode": [
+        "hooks-layout-effect",
+        "hover-toolbar",
+        "icons",
+        "toolbar-tools"
+      ],
+      "internalTokens": [
+        "chart-tokens",
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "chart-tokens",
+        "hooks-layout-effect",
+        "hover-toolbar",
+        "icons",
+        "tokens-global",
+        "toolbar-button",
+        "toolbar-tokens",
+        "toolbar-tools"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "chart-tokens": {
+      "type": "tokens",
+      "distributable": true,
+      "roots": [
+        "src/features/chart/_tokens.scss",
+        "src/features/chart/_colors.scss"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/features/chart/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/chart/_tokens.scss",
+          "kind": "tokens"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "common": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/common/index.js"
+      ],
+      "clientBoundary": false,
+      "fileCount": 1,
+      "files": [
+        {
+          "path": "src/components/common/index.js",
+          "kind": "barrel"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "accessible-icon",
+        "skip-link",
+        "visually-hidden"
+      ],
+      "internalCode": [
+        "accessible-icon",
+        "skip-link",
+        "visually-hidden"
+      ],
+      "internalTokens": [],
+      "internalResolved": [
+        "accessible-icon",
+        "skip-link",
+        "tokens-global",
+        "visually-hidden"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "components-index": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/index.js"
+      ],
+      "clientBoundary": false,
+      "fileCount": 1,
+      "files": [
+        {
+          "path": "src/components/index.js",
+          "kind": "barrel"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "icons"
+      ],
+      "internalCode": [
+        "icons"
+      ],
+      "internalTokens": [],
+      "internalResolved": [
+        "icons",
+        "tokens-global"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": [
+        "Import non résolu : './navigation'"
+      ]
+    },
+    "constraint-field": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/filter/ConstraintField"
+      ],
+      "clientBoundary": true,
+      "fileCount": 5,
+      "files": [
+        {
+          "path": "src/components/filter/ConstraintField/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/filter/ConstraintField/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/filter/ConstraintField/ConstraintField.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/filter/ConstraintField/ConstraintField.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/filter/ConstraintField/useRangeBounds.js",
+          "kind": "hook"
+        }
+      ],
+      "npm": [
+        "swr"
+      ],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "date-parse",
+        "filter-tokens",
+        "tokens-global",
+        "type-aware-input",
+        "utils-math"
+      ],
+      "internalCode": [
+        "date-parse",
+        "type-aware-input",
+        "utils-math"
+      ],
+      "internalTokens": [
+        "filter-tokens",
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "calendar-month",
+        "date-parse",
+        "filter-tokens",
+        "hooks-accessibility",
+        "icons",
+        "tokens-global",
+        "type-aware-input",
+        "utils-accessibility",
+        "utils-math",
+        "visually-hidden"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "date-parse": {
+      "type": "lib",
+      "distributable": true,
+      "roots": [
+        "src/components/filter/utils"
+      ],
+      "clientBoundary": false,
+      "fileCount": 1,
+      "files": [
+        {
+          "path": "src/components/filter/utils/dateParse.js",
+          "kind": "util"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [],
+      "internalCode": [],
+      "internalTokens": [],
+      "internalResolved": [],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "filter": {
+      "type": "feature",
+      "distributable": true,
+      "roots": [
+        "src/features/filter"
+      ],
+      "clientBoundary": true,
+      "fileCount": 19,
+      "files": [
+        {
+          "path": "src/features/filter/components/CriterionMenu/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/filter/components/CriterionMenu/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/filter/components/CriterionMenu/CriterionCard/CriterionCard.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/filter/components/CriterionMenu/CriterionCard/CriterionCard.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/filter/components/CriterionMenu/CriterionMenu.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/filter/components/CriterionMenu/CriterionRow/CriterionRow.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/filter/components/CriterionMenu/CriterionRow/CriterionRow.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/filter/components/CriterionMenu/ValueField/ValueField.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/filter/components/CriterionMenu/ValueField/ValueField.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/filter/components/MultiCriterionMenu/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/filter/components/MultiCriterionMenu/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/filter/components/MultiCriterionMenu/Connector/Connector.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/filter/components/MultiCriterionMenu/Connector/Connector.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/filter/components/MultiCriterionMenu/MultiCriterionMenu.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/filter/components/MultiCriterionMenu/MultiCriterionMenu.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/filter/index.js",
+          "kind": "barrel"
+        },
+        {
+          "path": "src/features/filter/sources/useVariableMetadata.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/features/filter/utils/filterEngine.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/filter/utils/filterTypes.js",
+          "kind": "util"
+        }
+      ],
+      "npm": [
+        "swr"
+      ],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "constraint-field",
+        "date-parse",
+        "filter-feature-tokens",
+        "hooks-debounce",
+        "icons",
+        "select-menu",
+        "tokens-global",
+        "tooltip",
+        "type-aware-input"
+      ],
+      "internalCode": [
+        "constraint-field",
+        "date-parse",
+        "hooks-debounce",
+        "icons",
+        "select-menu",
+        "tooltip",
+        "type-aware-input"
+      ],
+      "internalTokens": [
+        "filter-feature-tokens",
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "calendar-month",
+        "constraint-field",
+        "date-parse",
+        "filter-feature-tokens",
+        "filter-tokens",
+        "hooks-accessibility",
+        "hooks-debounce",
+        "hooks-floating",
+        "hooks-layout-effect",
+        "icons",
+        "select-menu",
+        "tokens-global",
+        "tooltip",
+        "type-aware-input",
+        "utils-accessibility",
+        "utils-math",
+        "visually-hidden"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "filter-feature-tokens": {
+      "type": "tokens",
+      "distributable": true,
+      "roots": [
+        "src/features/filter/_tokens.scss",
+        "src/features/filter/_colors.scss"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/features/filter/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/filter/_tokens.scss",
+          "kind": "tokens"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "filter-tokens": {
+      "type": "tokens",
+      "distributable": true,
+      "roots": [
+        "src/components/filter/_tokens.scss",
+        "src/components/filter/_colors.scss"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/components/filter/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/filter/_tokens.scss",
+          "kind": "tokens"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "footer": {
+      "type": "feature",
+      "distributable": true,
+      "roots": [
+        "src/features/footer"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/features/footer/components/Footer/Footer.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/footer/components/Footer/Footer.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [
+        "src/styles/globals/tokens/semantic-colors.scss",
+        "src/styles/globals/typography.scss",
+        "src/styles/utils/breakpoints.scss"
+      ],
+      "assets": [
+        "/logo.svg"
+      ],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "globe": {
+      "type": "feature",
+      "distributable": true,
+      "roots": [
+        "src/features/globe"
+      ],
+      "clientBoundary": true,
+      "fileCount": 21,
+      "files": [
+        {
+          "path": "src/features/globe/components/Globe/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/globe/components/Globe/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/globe/components/Globe/Globe.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/globe/components/Globe/Globe.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/globe/components/GlobeMarkers/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/globe/components/GlobeMarkers/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/globe/components/GlobeMarkers/GlobeMarkers.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/globe/components/GlobeMarkers/markerTemplate.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/features/globe/components/GlobeToolbar/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/globe/components/GlobeToolbar/GlobeToolbar.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/globe/components/GlobeToolbar/GlobeToolbar.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/globe/components/GlobeToolbar/GlobeToolIcon/GlobeToolIcon.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/globe/components/GlobeTooltip/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/globe/components/GlobeTooltip/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/globe/components/GlobeTooltip/GlobeTooltip.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/globe/components/GlobeTooltip/tooltipTemplates.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/features/globe/engine/GlobeEngine.js",
+          "kind": "engine"
+        },
+        {
+          "path": "src/features/globe/engine/palette.js",
+          "kind": "engine"
+        },
+        {
+          "path": "src/features/globe/engine/shaders.js",
+          "kind": "engine"
+        },
+        {
+          "path": "src/features/globe/hooks/useGlobeEngine.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/features/globe/index.js",
+          "kind": "barrel"
+        }
+      ],
+      "npm": [
+        "three"
+      ],
+      "npmAsyncOnly": [
+        "three"
+      ],
+      "asyncOnlyFiles": [
+        "src/features/globe/components/GlobeMarkers/markerTemplate.js",
+        "src/features/globe/components/GlobeTooltip/tooltipTemplates.js",
+        "src/features/globe/engine/GlobeEngine.js",
+        "src/features/globe/engine/palette.js",
+        "src/features/globe/engine/shaders.js"
+      ],
+      "internal": [
+        "globe-tokens",
+        "hover-toolbar",
+        "theme",
+        "tokens-global",
+        "toolbar-tools",
+        "utils-accessibility",
+        "utils-html",
+        "utils-math"
+      ],
+      "internalCode": [
+        "hover-toolbar",
+        "theme",
+        "toolbar-tools",
+        "utils-accessibility",
+        "utils-html",
+        "utils-math"
+      ],
+      "internalTokens": [
+        "globe-tokens",
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "globe-tokens",
+        "hover-toolbar",
+        "icons",
+        "theme",
+        "tokens-global",
+        "toolbar-button",
+        "toolbar-tokens",
+        "toolbar-tools",
+        "utils-accessibility",
+        "utils-html",
+        "utils-math"
+      ],
+      "styleGlobals": [],
+      "assets": [
+        "/globe/earth-day.jpg",
+        "/globe/earth-night.png",
+        "/globe/earth-specular.jpg"
+      ],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "globe-tokens": {
+      "type": "tokens",
+      "distributable": true,
+      "roots": [
+        "src/features/globe/_tokens.scss",
+        "src/features/globe/_colors.scss"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/features/globe/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/globe/_tokens.scss",
+          "kind": "tokens"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "header": {
+      "type": "feature",
+      "distributable": true,
+      "roots": [
+        "src/features/header"
+      ],
+      "clientBoundary": true,
+      "fileCount": 54,
+      "files": [
+        {
+          "path": "src/features/header/components/Header/Header.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/Header/Header.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/index.js",
+          "kind": "barrel"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/NavigationSideBar/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/NavigationSideBar/NavigationSideBar.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/NavigationSideBar/NavigationSideBar.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarGroup/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarGroup/SidebarGroup.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarGroup/SidebarGroup.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarItem/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarItem/SidebarItem.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarItem/SidebarItem.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarMenu/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarMenu/SidebarMenu.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarMenu/SidebarMenu.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarNode/SidebarNode.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarSwitcher/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarSwitcher/SidebarSwitcher.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarSwitcher/SidebarSwitcher.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/index.js",
+          "kind": "barrel"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarContainer/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarContainer/TopbarContainer.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarContainer/TopbarContainer.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarGroup/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarGroup/TopbarGroup.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarGroup/TopbarGroup.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarGroupItem/TopbarGroupItem.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarGroupSection/TopbarGroupSection.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarItem/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarItem/TopbarItem.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarItem/TopbarItem.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarMenu/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarMenu/TopbarMenu.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarMenu/TopbarMenu.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarNode/TopbarNode.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarOverlay/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarOverlay/TopbarOverlay.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarOverlay/TopbarOverlay.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarToggleButton/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarToggleButton/TopbarToggleButton.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarToggleButton/TopbarToggleButton.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/header/components/NavTrigger/index.js",
+          "kind": "barrel"
+        },
+        {
+          "path": "src/features/header/components/NavTrigger/NavTrigger.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/SearchBar/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/components/SearchBar/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/components/SearchBar/SearchBar.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/header/components/SearchBar/SearchBar.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/header/hooks/useNavigation.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/features/header/hooks/useResizable.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/features/header/providers/NavigationProvider.jsx",
+          "kind": "provider"
+        },
+        {
+          "path": "src/features/header/utils/hasIconsInNavigationData.js",
+          "kind": "util"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "common",
+        "header-tokens",
+        "hooks-accessibility",
+        "icons",
+        "theme",
+        "tokens-global",
+        "utils-math"
+      ],
+      "internalCode": [
+        "common",
+        "hooks-accessibility",
+        "icons",
+        "theme",
+        "utils-math"
+      ],
+      "internalTokens": [
+        "header-tokens",
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "accessible-icon",
+        "common",
+        "header-tokens",
+        "hooks-accessibility",
+        "icons",
+        "skip-link",
+        "theme",
+        "tokens-global",
+        "utils-accessibility",
+        "utils-math",
+        "visually-hidden"
+      ],
+      "styleGlobals": [
+        "src/styles/globals/tokens/semantic-colors.scss",
+        "src/styles/globals/typography.scss",
+        "src/styles/utils/breakpoints.scss"
+      ],
+      "assets": [
+        "/logo.svg"
+      ],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "header-tokens": {
+      "type": "tokens",
+      "distributable": true,
+      "roots": [
+        "src/features/header/_tokens.scss",
+        "src/features/header/_colors.scss",
+        "src/features/header/_nav-mixins.scss",
+        "src/features/header/nav-base.scss"
+      ],
+      "clientBoundary": false,
+      "fileCount": 4,
+      "files": [
+        {
+          "path": "src/features/header/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/_nav-mixins.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/header/nav-base.scss",
+          "kind": "tokens"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [
+        "src/styles/utils/breakpoints.scss"
+      ],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "home": {
+      "type": "feature",
+      "distributable": true,
+      "roots": [
+        "src/features/home"
+      ],
+      "clientBoundary": false,
+      "fileCount": 4,
+      "files": [
+        {
+          "path": "src/features/home/components/Hero/Hero.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/home/components/Hero/Hero.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/home/components/index.js",
+          "kind": "barrel"
+        },
+        {
+          "path": "src/features/home/data/homeConfig.js",
+          "kind": "lib"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "large-button",
+        "tokens-global"
+      ],
+      "internalCode": [
+        "large-button"
+      ],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "large-button",
+        "tokens-global"
+      ],
+      "styleGlobals": [
+        "src/styles/globals/tokens/semantic-colors.scss",
+        "src/styles/globals/typography.scss",
+        "src/styles/utils/breakpoints.scss"
+      ],
+      "assets": [],
+      "externalConfig": [
+        "config/content/home.json"
+      ],
+      "warnings": []
+    },
+    "hooks-accessibility": {
+      "type": "lib",
+      "distributable": true,
+      "roots": [
+        "src/hooks/accessibility"
+      ],
+      "clientBoundary": false,
+      "fileCount": 6,
+      "files": [
+        {
+          "path": "src/hooks/accessibility/index.js",
+          "kind": "barrel"
+        },
+        {
+          "path": "src/hooks/accessibility/useAriaAnnounce.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/hooks/accessibility/useFocusReturn.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/hooks/accessibility/useFocusTrap.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/hooks/accessibility/useKeyboardNavigation.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/hooks/accessibility/useReducedMotion.js",
+          "kind": "hook"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "utils-accessibility"
+      ],
+      "internalCode": [
+        "utils-accessibility"
+      ],
+      "internalTokens": [],
+      "internalResolved": [
+        "utils-accessibility"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "hooks-debounce": {
+      "type": "lib",
+      "distributable": true,
+      "roots": [
+        "src/hooks/debounce"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/hooks/debounce/useDebouncedCallback.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/hooks/debounce/useDebouncedValue.js",
+          "kind": "hook"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [],
+      "internalCode": [],
+      "internalTokens": [],
+      "internalResolved": [],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "hooks-floating": {
+      "type": "lib",
+      "distributable": true,
+      "roots": [
+        "src/hooks/floating"
+      ],
+      "clientBoundary": false,
+      "fileCount": 1,
+      "files": [
+        {
+          "path": "src/hooks/floating/useFloatingPosition.js",
+          "kind": "hook"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "hooks-layout-effect"
+      ],
+      "internalCode": [
+        "hooks-layout-effect"
+      ],
+      "internalTokens": [],
+      "internalResolved": [
+        "hooks-layout-effect"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "hooks-layout-effect": {
+      "type": "lib",
+      "distributable": true,
+      "roots": [
+        "src/hooks/layoutEffect"
+      ],
+      "clientBoundary": false,
+      "fileCount": 1,
+      "files": [
+        {
+          "path": "src/hooks/layoutEffect/useIsomorphicLayoutEffect.js",
+          "kind": "hook"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [],
+      "internalCode": [],
+      "internalTokens": [],
+      "internalResolved": [],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "hover-toolbar": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/toolbar/HoverToolbar"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/components/toolbar/HoverToolbar/HoverToolbar.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/toolbar/HoverToolbar/HoverToolbar.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global",
+        "toolbar-button",
+        "toolbar-tokens"
+      ],
+      "internalCode": [
+        "toolbar-button"
+      ],
+      "internalTokens": [
+        "tokens-global",
+        "toolbar-tokens"
+      ],
+      "internalResolved": [
+        "tokens-global",
+        "toolbar-button",
+        "toolbar-tokens"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "icons": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/icons"
+      ],
+      "clientBoundary": true,
+      "fileCount": 38,
+      "files": [
+        {
+          "path": "src/components/icons/BellIcon/BellIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/BracketLeftIcon/BracketLeftIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/BracketRightIcon/BracketRightIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/CalendarIcon/CalendarIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/ChartIcon/ChartIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/CheckIcon/CheckIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/ChevronDownIcon/ChevronDownIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/ChevronDownIcon/ChevronDownIcon.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/icons/ChevronIcon/ChevronIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/ClearIcon/ClearIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/ClearIcon/ClearIcon.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/icons/CloseIcon/CloseIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/CloseIcon/CloseIcon.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/icons/CogIcon/CogIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/CopyIcon/CopyIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/CrossIcon/CrossIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/DocIcon/DocIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/DownloadIcon/DownloadIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/FilterIcon/FilterIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/GridIcon/GridIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/HamburgerIcon/HamburgerIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/HamburgerIcon/HamburgerIcon.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/icons/index.js",
+          "kind": "barrel"
+        },
+        {
+          "path": "src/components/icons/InfoIcon/InfoIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/LayersIcon/LayersIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/PlusIcon/PlusIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/PulseIcon/PulseIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/ResetIcon/ResetIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/SearchIcon/SearchIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/SearchIcon/SearchIcon.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/icons/SortAscIcon/SortAscIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/SortDescIcon/SortDescIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/SortNoneIcon/SortNoneIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/SunMoonIcon/SunMoonIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/SunMoonIcon/SunMoonIcon.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/icons/TableIcon/TableIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/TrendArrowIcon/TrendArrowIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/UsersIcon/UsersIcon.js",
+          "kind": "component"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [
+        "src/styles/globals/tokens/semantic-colors.scss",
+        "src/styles/globals/typography.scss"
+      ],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "large-button": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/ui/LargeButton"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/components/ui/LargeButton/LargeButton.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/ui/LargeButton/LargeButton.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [
+        "src/styles/globals/tokens/semantic-colors.scss",
+        "src/styles/globals/typography.scss",
+        "src/styles/utils/breakpoints.scss"
+      ],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "link-card": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/ui/LinkCard"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/components/ui/LinkCard/LinkCard.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/ui/LinkCard/LinkCard.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [
+        "src/styles/globals/tokens/semantic-colors.scss",
+        "src/styles/globals/typography.scss",
+        "src/styles/utils/breakpoints.scss"
+      ],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "link-cards-section": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/ui/LinkCardsSection"
+      ],
+      "clientBoundary": false,
+      "fileCount": 3,
+      "files": [
+        {
+          "path": "src/components/ui/LinkCardsSection/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/ui/LinkCardsSection/LinkCardsSection.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/ui/LinkCardsSection/LinkCardsSection.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "card-grid",
+        "link-card",
+        "tokens-global"
+      ],
+      "internalCode": [
+        "card-grid",
+        "link-card"
+      ],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "card-grid",
+        "link-card",
+        "tokens-global"
+      ],
+      "styleGlobals": [
+        "src/styles/globals/tokens/semantic-colors.scss",
+        "src/styles/globals/typography.scss",
+        "src/styles/utils/breakpoints.scss"
+      ],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "select-menu": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/filter/SelectMenu"
+      ],
+      "clientBoundary": true,
+      "fileCount": 6,
+      "files": [
+        {
+          "path": "src/components/filter/SelectMenu/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/filter/SelectMenu/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/filter/SelectMenu/mockData.js",
+          "kind": "fixture"
+        },
+        {
+          "path": "src/components/filter/SelectMenu/SelectMenu.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/filter/SelectMenu/SelectMenu.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/filter/SelectMenu/useSelectOptions.js",
+          "kind": "hook"
+        }
+      ],
+      "npm": [
+        "swr"
+      ],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "filter-tokens",
+        "hooks-debounce",
+        "hooks-floating",
+        "icons",
+        "tokens-global",
+        "visually-hidden"
+      ],
+      "internalCode": [
+        "hooks-debounce",
+        "hooks-floating",
+        "icons",
+        "visually-hidden"
+      ],
+      "internalTokens": [
+        "filter-tokens",
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "filter-tokens",
+        "hooks-debounce",
+        "hooks-floating",
+        "hooks-layout-effect",
+        "icons",
+        "tokens-global",
+        "visually-hidden"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "skip-link": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/common/SkipLink"
+      ],
+      "clientBoundary": true,
+      "fileCount": 3,
+      "files": [
+        {
+          "path": "src/components/common/SkipLink/index.js",
+          "kind": "barrel"
+        },
+        {
+          "path": "src/components/common/SkipLink/SkipLink.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/common/SkipLink/SkipLink.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [
+        "prop-types"
+      ],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [
+        "src/styles/globals/typography.scss"
+      ],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "stat-card": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/ui/StatCard"
+      ],
+      "clientBoundary": false,
+      "fileCount": 13,
+      "files": [
+        {
+          "path": "src/components/ui/StatCard/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/ui/StatCard/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatBadge/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatBadge/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatBadge/StatBadge.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatBadge/StatBadge.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatCard.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatCard.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatCardIcon/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatCardIcon/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatCardIcon/StatCardIcon.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatCardIcon/StatCardIcon.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/ui/StatCard/utils/formatStatValue.js",
+          "kind": "util"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "icons",
+        "tokens-global",
+        "utils-format"
+      ],
+      "internalCode": [
+        "icons",
+        "utils-format"
+      ],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "icons",
+        "tokens-global",
+        "utils-format"
+      ],
+      "styleGlobals": [
+        "src/styles/globals/tokens/semantic-colors.scss"
+      ],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "styles-app": {
+      "type": "tokens",
+      "distributable": false,
+      "roots": [
+        "src/styles/globals/resets.scss",
+        "src/styles/globals/custom-properties.scss",
+        "src/styles/globals/accessibility.scss",
+        "src/styles/pages"
+      ],
+      "clientBoundary": false,
+      "fileCount": 4,
+      "files": [
+        {
+          "path": "src/styles/globals/accessibility.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/styles/globals/custom-properties.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/styles/globals/resets.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/styles/pages/_api-table.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [
+        "src/styles/globals/primitives/colors.scss",
+        "src/styles/globals/tokens/semantic-colors.scss",
+        "src/styles/globals/typography.scss"
+      ],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "table": {
+      "type": "feature",
+      "distributable": true,
+      "roots": [
+        "src/features/table"
+      ],
+      "clientBoundary": true,
+      "fileCount": 29,
+      "files": [
+        {
+          "path": "src/features/table/components/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/table/components/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/table/components/Table.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/table/components/Table.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/table/components/TableChipRow/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/table/components/TableChipRow/TableChipRow.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/table/components/TableChipRow/TableChipRow.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/table/components/TableFilterPopover/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/table/components/TableFilterPopover/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/table/components/TableFilterPopover/TableFilterPopover.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/table/components/TableFilterPopover/TableFilterPopover.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/table/components/TableFooter/TableFooter.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/table/components/TableFooter/TableFooter.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/table/components/TableHeaderCell/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/table/components/TableHeaderCell/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/table/components/TableHeaderCell/TableHeaderCell.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/table/components/TableHeaderCell/TableHeaderCell.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/table/components/TableSnippetReveal/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/table/components/TableSnippetReveal/TableSnippetReveal.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/table/components/TableSnippetReveal/TableSnippetReveal.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/table/hooks/useDataTableState.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/features/table/index.js",
+          "kind": "barrel"
+        },
+        {
+          "path": "src/features/table/sources/factTableQuery.js",
+          "kind": "source"
+        },
+        {
+          "path": "src/features/table/sources/mockFactTable.json",
+          "kind": "fixture"
+        },
+        {
+          "path": "src/features/table/sources/useFactTableWithMetadata.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/features/table/utils/defaultFilterEngine.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/table/utils/exporters.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/table/utils/formatCell.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/table/utils/querySnippets.js",
+          "kind": "util"
+        }
+      ],
+      "npm": [
+        "swr"
+      ],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "filter",
+        "hover-toolbar",
+        "icons",
+        "table-tokens",
+        "tokens-global",
+        "utils-format"
+      ],
+      "internalCode": [
+        "filter",
+        "hover-toolbar",
+        "icons",
+        "utils-format"
+      ],
+      "internalTokens": [
+        "table-tokens",
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "calendar-month",
+        "constraint-field",
+        "date-parse",
+        "filter",
+        "filter-feature-tokens",
+        "filter-tokens",
+        "hooks-accessibility",
+        "hooks-debounce",
+        "hooks-floating",
+        "hooks-layout-effect",
+        "hover-toolbar",
+        "icons",
+        "select-menu",
+        "table-tokens",
+        "tokens-global",
+        "toolbar-button",
+        "toolbar-tokens",
+        "tooltip",
+        "type-aware-input",
+        "utils-accessibility",
+        "utils-format",
+        "utils-math",
+        "visually-hidden"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "table-tokens": {
+      "type": "tokens",
+      "distributable": true,
+      "roots": [
+        "src/features/table/_tokens.scss",
+        "src/features/table/_colors.scss"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/features/table/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/table/_tokens.scss",
+          "kind": "tokens"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "tabs": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/ui/Tabs"
+      ],
+      "clientBoundary": true,
+      "fileCount": 18,
+      "files": [
+        {
+          "path": "src/components/ui/Tabs/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/ui/Tabs/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/ui/Tabs/index.js",
+          "kind": "barrel"
+        },
+        {
+          "path": "src/components/ui/Tabs/Tab/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/ui/Tabs/Tab/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/ui/Tabs/Tab/Tab.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/ui/Tabs/Tab/Tab.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabList/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabList/TabList.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabList/TabList.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabPanel/TabPanel.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabPanel/TabPanel.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabPanels/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabPanels/TabPanels.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabPanels/TabPanels.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/ui/Tabs/Tabs/Tabs.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/ui/Tabs/Tabs/Tabs.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabsContext.jsx",
+          "kind": "component"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "hooks-layout-effect",
+        "tokens-global",
+        "visually-hidden"
+      ],
+      "internalCode": [
+        "hooks-layout-effect",
+        "visually-hidden"
+      ],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "hooks-layout-effect",
+        "tokens-global",
+        "visually-hidden"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "theme": {
+      "type": "feature",
+      "distributable": true,
+      "roots": [
+        "src/features/theme"
+      ],
+      "clientBoundary": true,
+      "fileCount": 6,
+      "files": [
+        {
+          "path": "src/features/theme/components/ThemeToggleButton/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/theme/components/ThemeToggleButton/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/theme/components/ThemeToggleButton/ThemeToggleButton.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/theme/components/ThemeToggleButton/ThemeToggleButton.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/theme/hooks/useTheme.js",
+          "kind": "hook"
+        },
+        {
+          "path": "src/features/theme/providers/ThemeProvider.js",
+          "kind": "provider"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "icons",
+        "tokens-global"
+      ],
+      "internalCode": [
+        "icons"
+      ],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "icons",
+        "tokens-global"
+      ],
+      "styleGlobals": [
+        "src/styles/utils/breakpoints.scss"
+      ],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "tokens-global": {
+      "type": "tokens",
+      "distributable": true,
+      "roots": [
+        "src/styles/globals/primitives",
+        "src/styles/globals/tokens",
+        "src/styles/globals/typography.scss",
+        "src/styles/utils/breakpoints.scss",
+        "src/styles/utils/functions.scss"
+      ],
+      "clientBoundary": false,
+      "fileCount": 5,
+      "files": [
+        {
+          "path": "src/styles/globals/primitives/colors.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/styles/globals/tokens/semantic-colors.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/styles/globals/typography.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/styles/utils/breakpoints.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/styles/utils/functions.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [],
+      "internalCode": [],
+      "internalTokens": [],
+      "internalResolved": [],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "toolbar-button": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/toolbar/ToolbarButton"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/components/toolbar/ToolbarButton/ToolbarButton.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/toolbar/ToolbarButton/ToolbarButton.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global",
+        "toolbar-tokens"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global",
+        "toolbar-tokens"
+      ],
+      "internalResolved": [
+        "tokens-global",
+        "toolbar-tokens"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "toolbar-tokens": {
+      "type": "tokens",
+      "distributable": true,
+      "roots": [
+        "src/components/toolbar/_tokens.scss",
+        "src/components/toolbar/_colors.scss"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/components/toolbar/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/toolbar/_tokens.scss",
+          "kind": "tokens"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "toolbar-tools": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/toolbar/tools.js"
+      ],
+      "clientBoundary": false,
+      "fileCount": 1,
+      "files": [
+        {
+          "path": "src/components/toolbar/tools.js",
+          "kind": "lib"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "icons"
+      ],
+      "internalCode": [
+        "icons"
+      ],
+      "internalTokens": [],
+      "internalResolved": [
+        "icons",
+        "tokens-global"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "tooltip": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/filter/Tooltip"
+      ],
+      "clientBoundary": true,
+      "fileCount": 4,
+      "files": [
+        {
+          "path": "src/components/filter/Tooltip/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/filter/Tooltip/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/filter/Tooltip/Tooltip.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/filter/Tooltip/Tooltip.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "type-aware-input": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/filter/TypeAwareInput"
+      ],
+      "clientBoundary": true,
+      "fileCount": 4,
+      "files": [
+        {
+          "path": "src/components/filter/TypeAwareInput/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/filter/TypeAwareInput/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/filter/TypeAwareInput/TypeAwareInput.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/filter/TypeAwareInput/TypeAwareInput.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "calendar-month",
+        "date-parse",
+        "filter-tokens",
+        "hooks-accessibility",
+        "icons",
+        "tokens-global",
+        "utils-accessibility",
+        "visually-hidden"
+      ],
+      "internalCode": [
+        "calendar-month",
+        "date-parse",
+        "hooks-accessibility",
+        "icons",
+        "utils-accessibility",
+        "visually-hidden"
+      ],
+      "internalTokens": [
+        "filter-tokens",
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "calendar-month",
+        "date-parse",
+        "filter-tokens",
+        "hooks-accessibility",
+        "icons",
+        "tokens-global",
+        "utils-accessibility",
+        "visually-hidden"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "ui": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/ui/index.js"
+      ],
+      "clientBoundary": false,
+      "fileCount": 1,
+      "files": [
+        {
+          "path": "src/components/ui/index.js",
+          "kind": "barrel"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "badge",
+        "card-grid",
+        "large-button",
+        "link-card",
+        "link-cards-section",
+        "stat-card",
+        "tabs"
+      ],
+      "internalCode": [
+        "badge",
+        "card-grid",
+        "large-button",
+        "link-card",
+        "link-cards-section",
+        "stat-card",
+        "tabs"
+      ],
+      "internalTokens": [],
+      "internalResolved": [
+        "badge",
+        "card-grid",
+        "hooks-layout-effect",
+        "icons",
+        "large-button",
+        "link-card",
+        "link-cards-section",
+        "stat-card",
+        "tabs",
+        "tokens-global",
+        "utils-format",
+        "visually-hidden"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "utils-accessibility": {
+      "type": "lib",
+      "distributable": true,
+      "roots": [
+        "src/utils/accessibility"
+      ],
+      "clientBoundary": false,
+      "fileCount": 3,
+      "files": [
+        {
+          "path": "src/utils/accessibility/a11y.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/accessibility/AriaAnnouncer.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/accessibility/focusManagement.js",
+          "kind": "util"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [],
+      "internalCode": [],
+      "internalTokens": [],
+      "internalResolved": [],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "utils-format": {
+      "type": "lib",
+      "distributable": true,
+      "roots": [
+        "src/utils/format"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/utils/format/constants.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/format/formatNumber.js",
+          "kind": "util"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [],
+      "internalCode": [],
+      "internalTokens": [],
+      "internalResolved": [],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "utils-html": {
+      "type": "lib",
+      "distributable": true,
+      "roots": [
+        "src/utils/html"
+      ],
+      "clientBoundary": false,
+      "fileCount": 1,
+      "files": [
+        {
+          "path": "src/utils/html/escapeHtml.js",
+          "kind": "util"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [],
+      "internalCode": [],
+      "internalTokens": [],
+      "internalResolved": [],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "utils-math": {
+      "type": "lib",
+      "distributable": true,
+      "roots": [
+        "src/utils/math"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/utils/math/clamp.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/math/lerp.js",
+          "kind": "util"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [
+        "src/utils/math/lerp.js"
+      ],
+      "internal": [],
+      "internalCode": [],
+      "internalTokens": [],
+      "internalResolved": [],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "visually-hidden": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/common/VisuallyHidden"
+      ],
+      "clientBoundary": false,
+      "fileCount": 3,
+      "files": [
+        {
+          "path": "src/components/common/VisuallyHidden/index.js",
+          "kind": "barrel"
+        },
+        {
+          "path": "src/components/common/VisuallyHidden/VisuallyHidden.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/common/VisuallyHidden/VisuallyHidden.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [
+        "prop-types"
+      ],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    }
+  },
+  "graph": {
+    "cycles": [],
+    "highFanout": [
+      {
+        "unit": "filter",
+        "count": 7,
+        "dependencies": [
+          "constraint-field",
+          "date-parse",
+          "hooks-debounce",
+          "icons",
+          "select-menu",
+          "tooltip",
+          "type-aware-input"
+        ]
+      },
+      {
+        "unit": "ui",
+        "count": 7,
+        "dependencies": [
+          "badge",
+          "card-grid",
+          "large-button",
+          "link-card",
+          "link-cards-section",
+          "stat-card",
+          "tabs"
+        ]
+      },
+      {
+        "unit": "globe",
+        "count": 6,
+        "dependencies": [
+          "hover-toolbar",
+          "theme",
+          "toolbar-tools",
+          "utils-accessibility",
+          "utils-html",
+          "utils-math"
+        ]
+      },
+      {
+        "unit": "type-aware-input",
+        "count": 6,
+        "dependencies": [
+          "calendar-month",
+          "date-parse",
+          "hooks-accessibility",
+          "icons",
+          "utils-accessibility",
+          "visually-hidden"
+        ]
+      },
+      {
+        "unit": "header",
+        "count": 5,
+        "dependencies": [
+          "common",
+          "hooks-accessibility",
+          "icons",
+          "theme",
+          "utils-math"
+        ]
+      },
+      {
+        "unit": "chart",
+        "count": 4,
+        "dependencies": [
+          "hooks-layout-effect",
+          "hover-toolbar",
+          "icons",
+          "toolbar-tools"
+        ]
+      },
+      {
+        "unit": "select-menu",
+        "count": 4,
+        "dependencies": [
+          "hooks-debounce",
+          "hooks-floating",
+          "icons",
+          "visually-hidden"
+        ]
+      },
+      {
+        "unit": "table",
+        "count": 4,
+        "dependencies": [
+          "filter",
+          "hover-toolbar",
+          "icons",
+          "utils-format"
+        ]
+      }
+    ]
+  },
+  "diagnostics": {
+    "layerViolations": [],
+    "unresolvedImports": [
+      {
+        "unit": "components-index",
+        "file": "src/components/index.js",
+        "specifier": "./navigation"
+      }
+    ],
+    "brokenBarrels": [
+      {
+        "unit": "components-index",
+        "file": "src/components/index.js",
+        "specifier": "./navigation"
+      }
+    ],
+    "phantomDependencies": [
+      {
+        "package": "prop-types",
+        "units": [
+          "accessible-icon",
+          "skip-link",
+          "visually-hidden"
+        ]
+      }
+    ],
+    "orphanDependencies": [
+      "@visx/clip-path",
+      "@visx/group"
+    ],
+    "fixtures": [
+      {
+        "unit": "select-menu",
+        "path": "src/components/filter/SelectMenu/mockData.js"
+      },
+      {
+        "unit": "chart",
+        "path": "src/features/chart/sources/demoData.js"
+      },
+      {
+        "unit": "table",
+        "path": "src/features/table/sources/mockFactTable.json"
+      }
+    ],
+    "externalConfig": [
+      {
+        "unit": "home",
+        "file": "src/features/home/data/homeConfig.js",
+        "target": "config/content/home.json"
+      }
+    ],
+    "unownedFiles": []
+  }
+}
