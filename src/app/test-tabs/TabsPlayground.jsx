@@ -18,7 +18,7 @@ import {
   GridIcon, PulseIcon, TableIcon, UsersIcon,
 } from '@/components/icons';
 import { Chart } from '@/features/chart';
-import { CtrlRadio, CtrlSelect, CtrlToggle } from '../_playground';
+import { CtrlRadio, CtrlSelect, CtrlToggle } from '@/app/_playground';
 
 // ── Données PARTAGÉES entre l'onglet graphique et l'onglet tableau ────────────
 // Reprises À L'IDENTIQUE du prototype (tabs.html). Constante de module : la

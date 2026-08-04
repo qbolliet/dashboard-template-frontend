@@ -10,7 +10,7 @@
 // Tokens : ./_tokens.scss. Pas de couleurs.
 
 @use './tokens' as *;
-@use '../../../styles/utils/breakpoints' as *;
+@use '@/styles/utils/breakpoints' as *;
 
 // ===== GRILLE =====
 .card-grid {

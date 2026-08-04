@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigationUI } from '../../../providers/NavigationProvider';
-import useResizable from '../../../hooks/useResizable';
-import { NavTrigger } from '../../NavTrigger';
+import { useNavigationUI } from '@/features/header/providers/NavigationProvider';
+import useResizable from '@/features/header/hooks/useResizable';
+import { NavTrigger } from '@/features/header/components/NavTrigger';
 import TopbarMenu from '../TopbarMenu/TopbarMenu';
 import TopbarOverlay from '../TopbarOverlay/TopbarOverlay';
 import './TopbarContainer.scss';

@@ -13,10 +13,10 @@
 import HoverToolbar from '@/components/toolbar/HoverToolbar/HoverToolbar';
 import { ResetIcon, DownloadIcon, CopyIcon } from '@/components/icons';
 import { isNumericSqlType } from '@/features/filter/utils/filterTypes';
-import useDataTableState from '../hooks/useDataTableState';
-import { formatCell, isNumericCol } from '../utils/formatCell';
-import { toCsv, downloadBlob, copyToClipboard } from '../utils/exporters';
-import { buildQueryVariables, snippetFetch, snippetPython, snippetCurl } from '../utils/querySnippets';
+import useDataTableState from '@/features/table/hooks/useDataTableState';
+import { formatCell, isNumericCol } from '@/features/table/utils/formatCell';
+import { toCsv, downloadBlob, copyToClipboard } from '@/features/table/utils/exporters';
+import { buildQueryVariables, snippetFetch, snippetPython, snippetCurl } from '@/features/table/utils/querySnippets';
 import TableHeaderCell from './TableHeaderCell/TableHeaderCell';
 import TableChipRow from './TableChipRow/TableChipRow';
 import TableFooter from './TableFooter/TableFooter';

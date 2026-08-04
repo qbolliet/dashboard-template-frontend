@@ -4,8 +4,8 @@
 // Le th est sticky et fait donc lui-même office de contexte de positionnement
 // pour la croix de suppression ; l'inner (position: relative) sert d'ancre au
 // popover de filtre, rendu comme un descendant DOM direct (non portalé).
-@use '../../tokens' as *;
-@use '../../colors' as *;
+@use '@/features/table/tokens' as *;
+@use '@/features/table/colors' as *;
 @use './tokens' as *;
 @use './colors' as *;
 

@@ -5,8 +5,8 @@
 // @visx/axis ne rend ici que la ligne d'axe (.visx-axis-line) — cf. ChartAxisLeft.jsx
 // (hideTicks). Couleurs et opacités reprises de ChartAxis/_colors.scss (partagées
 // avec ChartAxisBottom).
-@use '../../../tokens' as *;
-@use '../../../colors' as *;
+@use '@/features/chart/tokens' as *;
+@use '@/features/chart/colors' as *;
 @use '../tokens' as *;
 @use '../colors' as *;
 

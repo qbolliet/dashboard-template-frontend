@@ -2,8 +2,8 @@
 import { useId } from 'react';
 import { geoPath } from 'd3-geo';
 import { interpolateRgbBasis } from 'd3-interpolate';
-import { groupSeries, seriesKey, SEQUENTIAL } from '../../../utils/encoding';
-import { densityContourGenerator } from '../../../utils/kde';
+import { groupSeries, seriesKey, SEQUENTIAL } from '@/features/chart/utils/encoding';
+import { densityContourGenerator } from '@/features/chart/utils/kde';
 import HatchPatterns from '../shared/HatchPatterns';
 import SeriesMarker from '../shared/SeriesMarker';
 import './DensityMarks.scss';

@@ -9,7 +9,7 @@
 // multi.jsx) ; seul le glyphe de fill est propre au mode multi-jeux.
 
 // Importation des modules
-import LegendGlyph from '../../ChartLegend/LegendGlyph/LegendGlyph';
+import LegendGlyph from '@/features/chart/components/ChartLegend/LegendGlyph/LegendGlyph';
 import './MultiLegend.scss';
 
 /**

@@ -8,8 +8,8 @@
 // Resets + séparateurs mobiles : mixins (features/header/_nav-mixins.scss).
 // Tokens : ../_tokens.scss, features/header/_tokens.scss. Couleurs : ../_colors.scss.
 
-@use '../../../../../styles/utils/breakpoints' as *;
-@use '../../../nav-mixins' as *;
+@use '@/styles/utils/breakpoints' as *;
+@use '@/features/header/nav-mixins' as *;
 @use '../tokens' as *;   // Tokens partagés sidebar (--sidebar-list-gap, etc.) — émet leur :root
 @use '../colors' as *;
 

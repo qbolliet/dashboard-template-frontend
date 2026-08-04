@@ -2,8 +2,8 @@
 import { useId, useMemo } from 'react';
 import { scaleBand } from '@visx/scale';
 import { mean } from 'd3-array';
-import { groupSeries, seriesKey, PALETTE } from '../../../utils/encoding';
-import { epanechnikovKDE } from '../../../utils/kde';
+import { groupSeries, seriesKey, PALETTE } from '@/features/chart/utils/encoding';
+import { epanechnikovKDE } from '@/features/chart/utils/kde';
 import HatchPatterns from '../shared/HatchPatterns';
 import SeriesMarker from '../shared/SeriesMarker';
 import './ViolinMarks.scss';

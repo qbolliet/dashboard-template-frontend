@@ -6,8 +6,8 @@
 // propres à la page). Le bloc .api-card-scroll/.api-table, lui, est désormais
 // partagé par les trois pages test-* — cf. styles/pages/_api-table.scss.
 
-@use '../../styles/utils/breakpoints' as *;
-@use '../../styles/pages/api-table';
+@use '@/styles/utils/breakpoints' as *;
+@use '@/styles/pages/api-table';
 
 .test-globe-page {
   max-width: 1100px;

@@ -28,8 +28,8 @@
 // Pour les couleurs, voir ../../../_colors.scss
 
 // ----- Importation des modules -----
-@use '../../../../../styles/utils/breakpoints' as *;
-@use '../../../../../styles/globals/typography';
+@use '@/styles/utils/breakpoints' as *;
+@use '@/styles/globals/typography';
 @use '../tokens' as *;        // Tokens partagés NavigationTopBar
 @use './tokens' as *;          // Tokens spécifiques TopbarContainer
 

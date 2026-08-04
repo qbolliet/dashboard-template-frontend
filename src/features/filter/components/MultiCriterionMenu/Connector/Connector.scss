@@ -1,8 +1,8 @@
 // =================================================================
 // CONNECTOR — connecteur logique entre deux cartes (traits + select/libellé)
 // =================================================================
-@use '../../../tokens' as *;
-@use '../../../colors' as *;
+@use '@/features/filter/tokens' as *;
+@use '@/features/filter/colors' as *;
 @use '../tokens' as *;
 @use '../colors' as *;
 

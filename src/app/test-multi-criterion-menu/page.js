@@ -5,8 +5,8 @@ import ThemeProvider from '@/features/theme/providers/ThemeProvider';
 import MultiCriterionMenu from '@/features/filter/components/MultiCriterionMenu/MultiCriterionMenu';
 import { useVariableMetadata, metadataToVariables } from '@/features/filter/sources/useVariableMetadata';
 import { treeToSQL } from '@/features/filter/utils/filterEngine';
-import operations from '../../../config/filter/operations.json';
-import { CtrlRadio, CtrlToggle, CtrlNumber } from '../_playground';
+import operations from '@config/filter/operations.json';
+import { CtrlRadio, CtrlToggle, CtrlNumber } from '@/app/_playground';
 import './page.scss';
 
 // Sous-ensemble de démonstration : 4 numériques + 2 dates + 3 catégoriels + 2 textes.

@@ -8,8 +8,8 @@
 //
 // Pour les tokens, voir ./_tokens.scss et features/header/_tokens.scss.
 
-@use '../../../../../styles/utils/breakpoints' as *;
-@use '../../../nav-mixins' as *;
+@use '@/styles/utils/breakpoints' as *;
+@use '@/features/header/nav-mixins' as *;
 @use './tokens' as *;
 
 .topbar-list {

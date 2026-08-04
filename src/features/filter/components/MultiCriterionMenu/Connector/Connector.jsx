@@ -1,5 +1,5 @@
 import SelectMenu from '@/components/filter/SelectMenu/SelectMenu';
-import { toSelectValue } from '../../../utils/filterTypes';
+import { toSelectValue } from '@/features/filter/utils/filterTypes';
 import './Connector.scss';
 
 /**

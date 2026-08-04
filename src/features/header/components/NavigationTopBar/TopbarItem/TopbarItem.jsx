@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useNavigationRoute } from '../../../providers/NavigationProvider';
+import { useNavigationRoute } from '@/features/header/providers/NavigationProvider';
 import './TopbarItem.scss';
 
 /**

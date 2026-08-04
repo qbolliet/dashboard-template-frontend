@@ -2,7 +2,7 @@
 import ConstraintField from '@/components/filter/ConstraintField/ConstraintField';
 import SelectMenu from '@/components/filter/SelectMenu/SelectMenu';
 import TypeAwareInput from '@/components/filter/TypeAwareInput/TypeAwareInput';
-import { isIntegerSqlType, isNumericSqlType, isDateSqlType } from '../../../utils/filterTypes';
+import { isIntegerSqlType, isNumericSqlType, isDateSqlType } from '@/features/filter/utils/filterTypes';
 import './ValueField.scss';
 
 /**

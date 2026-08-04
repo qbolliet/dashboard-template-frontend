@@ -1,8 +1,8 @@
 // =================================================================
 // TABLE SNIPPET REVEAL — panneau de code après copie d'un snippet
 // =================================================================
-@use '../../tokens' as *;
-@use '../../colors' as *;
+@use '@/features/table/tokens' as *;
+@use '@/features/table/colors' as *;
 @use './colors' as *;
 
 .data-table-snippet {

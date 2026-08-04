@@ -6,8 +6,8 @@
 // On tokenise ici les seules valeurs constantes par MODE (épaisseur et opacité
 // de trait) ; la couleur de cellule (data-driven, échelle séquentielle) reste
 // portée par le JSX. Apparence rendue strictement identique.
-@use '../../../tokens' as *;
-@use '../../../colors' as *;
+@use '@/features/chart/tokens' as *;
+@use '@/features/chart/colors' as *;
 @use '../tokens' as *;
 @use '../colors' as *;
 

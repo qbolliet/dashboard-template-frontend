@@ -6,8 +6,8 @@
 // l'apparence PAR DÉFAUT de la toolbar mutualisée : aucun override de token
 // --toolbar-* n'est posé ici, pour que graphique, tableau et globe rendent
 // exactement la même barre.
-@use '../../tokens' as *;
-@use '../../colors' as *;
+@use '@/features/globe/tokens' as *;
+@use '@/features/globe/colors' as *;
 @use './tokens' as *;
 
 // ── Zone invisible haut-droite : le seul déclencheur de la barre ────────────

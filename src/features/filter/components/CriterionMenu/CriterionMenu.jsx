@@ -2,7 +2,7 @@
 
 import { useId, useState } from 'react';
 import SelectMenu from '@/components/filter/SelectMenu/SelectMenu';
-import { defaultValue, isComplete, resolveOperations, toSelectValue } from '../../utils/filterTypes';
+import { defaultValue, isComplete, resolveOperations, toSelectValue } from '@/features/filter/utils/filterTypes';
 import CriterionCard from './CriterionCard/CriterionCard';
 import CriterionRow from './CriterionRow/CriterionRow';
 import ValueField from './ValueField/ValueField';

@@ -1,6 +1,6 @@
 'use client';
 
-import { useTheme as useThemeContext } from '../providers/ThemeProvider';
+import { useTheme as useThemeContext } from '@/features/theme/providers/ThemeProvider';
 
 /**
  * Hook personnalisé pour accéder au contexte de thème

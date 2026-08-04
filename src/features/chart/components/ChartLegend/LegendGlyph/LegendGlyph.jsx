@@ -1,5 +1,5 @@
 // Importation des modules
-import { markerPath } from '../../../utils/encoding';
+import { markerPath } from '@/features/chart/utils/encoding';
 
 // Ce fichier code en dur des coordonnées SVG (viewBox,
 // x1/y1/x2/y2, rayons, largeurs de trait...), ce qui déroge en apparence à la

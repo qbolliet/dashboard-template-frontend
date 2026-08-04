@@ -21,7 +21,7 @@ import {
   makeHeatmapData, makeDensityData, makeViolinData,
   makeComboMonthly, makeComboQuarterly, makeAreaSeries,
 } from '@/features/chart/sources/demoData';
-import { CtrlRadio, CtrlSelect, CtrlToggle, CtrlText, CtrlColor } from '../_playground';
+import { CtrlRadio, CtrlSelect, CtrlToggle, CtrlText, CtrlColor } from '@/app/_playground';
 
 // ── Jeux de démonstration construits une fois (générateurs à graine fixe) ────
 // Références stables au niveau module : les données ne dépendent d'aucun état du

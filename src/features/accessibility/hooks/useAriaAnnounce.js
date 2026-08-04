@@ -1,4 +1,4 @@
-import { ariaAnnouncer } from '../services/AriaAnnouncer';
+import { ariaAnnouncer } from '@/features/accessibility/services/AriaAnnouncer';
 
 /**
  * useAriaAnnounce Hook

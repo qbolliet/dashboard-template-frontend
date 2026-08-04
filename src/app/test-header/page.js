@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import Header from '../../features/header/components/Header/Header';
-import ThemeProvider from '../../features/theme/providers/ThemeProvider';
-import navigationData from '../../../config/navigation_new.json';
+import Header from '@/features/header/components/Header/Header';
+import ThemeProvider from '@/features/theme/providers/ThemeProvider';
+import navigationData from '@config/navigation_new.json';
 
 /**
  * Test page for the header component.

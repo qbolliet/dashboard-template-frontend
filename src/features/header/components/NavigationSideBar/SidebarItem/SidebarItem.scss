@@ -11,7 +11,7 @@
 //
 // Tokens : ./_tokens.scss, ../_tokens.scss. Couleurs : ../_colors.scss.
 
-@use '../../../../../styles/utils/breakpoints' as *;
+@use '@/styles/utils/breakpoints' as *;
 @use '../tokens' as *;   // Tokens partagés sidebar (--sidebar-toggle-size, paddings…) — émet leur :root
 @use './tokens' as *;    // Tokens propres à l'item (--sidebar-external-indicator-size)
 @use '../colors' as *;

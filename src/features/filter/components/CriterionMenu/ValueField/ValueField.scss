@@ -3,8 +3,8 @@
 // =================================================================
 // Le rendu délègue aux primitives (SelectMenu / ConstraintField / TypeAwareInput) ;
 // seul le placeholder « aucune variable » est propre à ce composant.
-@use '../../../tokens' as *;
-@use '../../../colors' as *;
+@use '@/features/filter/tokens' as *;
+@use '@/features/filter/colors' as *;
 
 // ── Placeholder « aucune variable choisie » ──────────────────────
 .criterion-placeholder {

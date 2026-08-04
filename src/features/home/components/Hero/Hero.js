@@ -1,5 +1,5 @@
 import React from 'react';
-import LargeButton from '../../../../components/ui/LargeButton/LargeButton';
+import LargeButton from '@/components/ui/LargeButton/LargeButton';
 import './Hero.scss';
 
 /**

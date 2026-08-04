@@ -1,5 +1,5 @@
 // Configuration data loader for home page
-import homeData from'../../../../config/content/home.json';
+import homeData from '@config/content/home.json';
 
 /**
  * Get home page configuration data

@@ -5,8 +5,8 @@
 // charts/marks.jsx, LineMarks) en classes tokenisées : estompage au survol
 // (opacité + transition), épaisseur de trait et opacité d'aire. Les tailles de
 // marqueur et les couleurs (data-driven) restent portées par le JSX.
-@use '../../../tokens' as *;
-@use '../../../colors' as *;
+@use '@/features/chart/tokens' as *;
+@use '@/features/chart/colors' as *;
 @use '../tokens' as *;
 @use '../colors' as *;
 

@@ -10,7 +10,7 @@
 //
 // Pour les tokens, voir ../_tokens.scss.
 
-@use '../../../../../styles/utils/breakpoints' as *;
+@use '@/styles/utils/breakpoints' as *;
 
 // ----- Base de feuille topbar (padding alimentant la facette .nav-link--leaf) -----
 // Couleur / graisse par défaut = celles de la classe de rôle .nav-link (lien racine).

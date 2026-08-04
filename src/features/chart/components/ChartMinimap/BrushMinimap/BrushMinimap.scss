@@ -5,8 +5,8 @@
 // charts.css). Les couleurs sont posées via CSS (et non via `selectedBoxStyle`)
 // afin de surcharger les attributs de présentation par défaut de @visx/brush et
 // de suivre le thème (les règles CSS l'emportent sur les attributs SVG `fill`…).
-@use '../../../tokens' as *;
-@use '../../../colors' as *;
+@use '@/features/chart/tokens' as *;
+@use '@/features/chart/colors' as *;
 @use '../tokens' as *;
 @use '../colors' as *;
 

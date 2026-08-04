@@ -11,7 +11,7 @@
 import { useEffect, useId, useRef } from 'react';
 import { Brush } from '@visx/brush';
 import { scaleLinear } from '@visx/scale';
-import { HANDLE_SIZE } from '../../../utils/minimapGeometry';
+import { HANDLE_SIZE } from '@/features/chart/utils/minimapGeometry';
 import './BrushMinimap.scss';
 
 /**

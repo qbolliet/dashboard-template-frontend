@@ -1,5 +1,5 @@
 // Importation des modules
-import { highlight } from '../../utils/querySnippets';
+import { highlight } from '@/features/table/utils/querySnippets';
 import './TableSnippetReveal.scss';
 
 /**

@@ -5,8 +5,8 @@
 // de trait CONSTANTES (courbe de niveau, bordure de définition). Les opacités 
 // de trait / remplissage variant avec le seuil (t) et les couleurs (data-driven) 
 // restent dans le JSX.
-@use '../../../tokens' as *;
-@use '../../../colors' as *;
+@use '@/features/chart/tokens' as *;
+@use '@/features/chart/colors' as *;
 @use '../tokens' as *;
 @use '../colors' as *;
 

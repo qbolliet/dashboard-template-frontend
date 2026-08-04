@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.scss";
-import Header from '../features/header/components/Header/Header';
-import ThemeProvider from '../features/theme/providers/ThemeProvider';
-import navigationData from '../../config/navigation_new.json';
-import Footer from '../features/footer/components/Footer/Footer';
+import Header from '@/features/header/components/Header/Header';
+import ThemeProvider from '@/features/theme/providers/ThemeProvider';
+import navigationData from '@config/navigation_new.json';
+import Footer from '@/features/footer/components/Footer/Footer';
 import SWRProvider from './providers';
 
 const geistSans = Geist({

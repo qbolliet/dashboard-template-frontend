@@ -4,8 +4,8 @@
 // Stylise les classNames posés par visx (.visx-axis-bottom, .visx-axis-line,
 // .visx-axis-tick) + notre className sur GridColumns (.chart-axis-grid). Couleurs
 // et opacités reprises de ChartAxis/_colors.scss (partagées avec ChartAxisLeft).
-@use '../../../tokens' as *;
-@use '../../../colors' as *;
+@use '@/features/chart/tokens' as *;
+@use '@/features/chart/colors' as *;
 @use '../tokens' as *;
 @use '../colors' as *;
 

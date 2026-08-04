@@ -1,8 +1,8 @@
 // Importation des modules
 import { AxisBottom as VisxAxisBottom } from '@visx/axis';
 import { GridColumns } from '@visx/grid';
-import { resolveFormatter } from '../../../utils/formatters';
-import { measureText, tickCountFor } from '../../../utils/measureText';
+import { resolveFormatter } from '@/features/chart/utils/formatters';
+import { measureText, tickCountFor } from '@/features/chart/utils/measureText';
 import { ellipsize, wrapLines, ticksFor, TICK_FONT_SIZE } from '../tickHelpers';
 import './ChartAxisBottom.scss';
 

@@ -2,7 +2,7 @@
 import { useId } from 'react';
 import { LinePath, Area } from '@visx/shape';
 import { curveCatmullRom } from '@visx/curve';
-import { groupSeries, seriesKey, subsample, xKeyOf } from '../../../utils/encoding';
+import { groupSeries, seriesKey, subsample, xKeyOf } from '@/features/chart/utils/encoding';
 import HatchPatterns from '../shared/HatchPatterns';
 import SeriesMarker from '../shared/SeriesMarker';
 import './LineMarks.scss';

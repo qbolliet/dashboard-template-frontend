@@ -4,7 +4,7 @@
 // Tailwind réservé au layout (cf. CLAUDE.md) ; ici SCSS pour rester cohérent avec
 // les autres pages test-* (classes tp-* partagées avec test-multi-criterion-menu).
 
-@use '../../styles/pages/api-table';
+@use '@/styles/pages/api-table';
 
 .test-chart-page {
   max-width: 1100px;

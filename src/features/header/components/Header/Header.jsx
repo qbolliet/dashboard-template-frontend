@@ -11,7 +11,7 @@ import TopbarContainer from '../NavigationTopBar/TopbarContainer/TopbarContainer
 import { NavigationSideBar } from '../NavigationSideBar';
 import { NavTrigger } from '../NavTrigger';
 import SearchBar from '../SearchBar/SearchBar';
-import ThemeToggleButton from '../../../theme/components/ThemeToggleButton/ThemeToggleButton';
+import ThemeToggleButton from '@/features/theme/components/ThemeToggleButton/ThemeToggleButton';
 import { SkipLink } from '@/features/accessibility';
 import NavigationProvider from '../../providers/NavigationProvider';
 import { hasIconsInNavigationData } from '../../utils/hasIconsInNavigationData';

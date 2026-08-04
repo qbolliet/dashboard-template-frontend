@@ -4,7 +4,7 @@ import { scaleBand } from '@visx/scale';
 import { Bar } from '@visx/shape';
 import { mean } from 'd3-array';
 import { color as d3color } from 'd3-color';
-import { groupSeries, seriesKey, xKeyOf } from '../../../utils/encoding';
+import { groupSeries, seriesKey, xKeyOf } from '@/features/chart/utils/encoding';
 import HatchPatterns from '../shared/HatchPatterns';
 import SeriesMarker from '../shared/SeriesMarker';
 import './BarMarks.scss';

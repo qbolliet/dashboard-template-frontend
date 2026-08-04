@@ -13,7 +13,7 @@
 import { useState } from 'react';
 import { StatCard, CardGrid } from '@/components/ui';
 import { TrendArrowIcon, UsersIcon, PulseIcon } from '@/components/icons';
-import { CtrlRadio, CtrlToggle } from '../_playground';
+import { CtrlRadio, CtrlToggle } from '@/app/_playground';
 
 /* ── Icônes locales de démo — n'appartiennent qu'à cette page ──────────── */
 const EuroIcon = (props) => (

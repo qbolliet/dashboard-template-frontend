@@ -1,8 +1,8 @@
 // Importation des modules
 @use './colors' as *;
 @use './tokens' as *;
-@use '../../../../styles/globals/typography' as *;
-@use '../../../../styles/utils/breakpoints' as *;
+@use '@/styles/globals/typography' as *;
+@use '@/styles/utils/breakpoints' as *;
 
 // ===== CONTENEUR PRINCIPAL =====
 .search-container {

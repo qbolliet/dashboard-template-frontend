@@ -1,6 +1,6 @@
-import { Hero } from '../features/home/components';
-import { LinkCardsSection } from '../components/ui';
-import { getHomeConfig } from '../features/home/data/homeConfig';
+import { Hero } from '@/features/home/components';
+import { LinkCardsSection } from '@/components/ui';
+import { getHomeConfig } from '@/features/home/data/homeConfig';
 
 export default function Home() {
   // Récupération des données de configuration

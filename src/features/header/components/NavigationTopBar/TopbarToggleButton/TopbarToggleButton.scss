@@ -5,7 +5,7 @@
 // état ouvert et adaptation tactile. Les chevrons de GROUPE (dans le dropdown) sont
 // surchargés dans TopbarGroup.scss.
 
-@use '../../../../../styles/utils/breakpoints' as *;
+@use '@/styles/utils/breakpoints' as *;
 @use './tokens' as *;
 
 .topbar-toggle {

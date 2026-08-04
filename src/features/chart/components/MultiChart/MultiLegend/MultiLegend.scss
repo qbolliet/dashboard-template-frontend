@@ -5,8 +5,8 @@
 // charts.css). Les items de canaux réutilisent les classes .chart-legend-* de
 // ChannelLegend (glyphe, texte, item, faded) — seule la structure de section
 // (titre + glyphe de fill + groupes) est propre au mode multi-jeux.
-@use '../../../tokens' as *;
-@use '../../../colors' as *;
+@use '@/features/chart/tokens' as *;
+@use '@/features/chart/colors' as *;
 @use '../tokens' as *;
 @use '../colors' as *;
 

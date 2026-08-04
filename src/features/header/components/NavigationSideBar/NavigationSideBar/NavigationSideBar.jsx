@@ -2,12 +2,12 @@
 
 import { useState, createContext, useContext, useEffect, useId, useRef } from 'react';
 import Image from 'next/image';
-import { useNavigationRoute, useNavigationUI } from '../../../providers/NavigationProvider';
-import useResizable from '../../../hooks/useResizable';
+import { useNavigationRoute, useNavigationUI } from '@/features/header/providers/NavigationProvider';
+import useResizable from '@/features/header/hooks/useResizable';
 import SidebarSwitcher from '../SidebarSwitcher/SidebarSwitcher';
 import SidebarMenu from '../SidebarMenu/SidebarMenu';
 import { useFocusTrap, useAriaAnnounce } from '@/features/accessibility';
-import { hasIconsInNavigationData } from '../../../utils/hasIconsInNavigationData';
+import { hasIconsInNavigationData } from '@/features/header/utils/hasIconsInNavigationData';
 import './NavigationSideBar.scss';
 
 // Context pour gérer l'état de la sidebar

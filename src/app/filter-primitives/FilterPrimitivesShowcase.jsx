@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import SelectMenu from '../../components/filter/SelectMenu/SelectMenu'
-import TypeAwareInput from '../../components/filter/TypeAwareInput/TypeAwareInput'
-import ConstraintField from '../../components/filter/ConstraintField/ConstraintField'
-import Tooltip from '../../components/filter/Tooltip/Tooltip'
+import SelectMenu from '@/components/filter/SelectMenu/SelectMenu'
+import TypeAwareInput from '@/components/filter/TypeAwareInput/TypeAwareInput'
+import ConstraintField from '@/components/filter/ConstraintField/ConstraintField'
+import Tooltip from '@/components/filter/Tooltip/Tooltip'
 import styles from './FilterPrimitivesShowcase.module.scss'
 
 // ── Sous-composants de mise en page ──────────────────────────────

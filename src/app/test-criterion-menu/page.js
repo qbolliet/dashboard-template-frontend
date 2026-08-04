@@ -5,8 +5,8 @@ import ThemeProvider from '@/features/theme/providers/ThemeProvider';
 import CriterionMenu from '@/features/filter/components/CriterionMenu/CriterionMenu';
 import { useVariableMetadata, metadataToVariables } from '@/features/filter/sources/useVariableMetadata';
 import { isNumericSqlType, isDateSqlType } from '@/features/filter/utils/filterTypes';
-import operations from '../../../config/filter/operations.json';
-import { CtrlToggle } from '../_playground';
+import operations from '@config/filter/operations.json';
+import { CtrlToggle } from '@/app/_playground';
 import './page.scss';
 
 // États initiaux des critères (pré-remplis pour faciliter les tests). Chaque critère

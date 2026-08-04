@@ -7,7 +7,7 @@
 // change que le CONTENU (marks superposés, MultiLegend). Ce fichier n'ajoute donc
 // aucune règle de cadre ; il ne sert qu'à émettre les tokens co-localisés du mode
 // multi-jeux (_tokens.scss / _colors.scss) dans le bundle de la feature.
-@use '../../tokens' as *;
-@use '../../colors' as *;
+@use '@/features/chart/tokens' as *;
+@use '@/features/chart/colors' as *;
 @use './tokens' as *;
 @use './colors' as *;

@@ -5,8 +5,8 @@
 // charts/marks.jsx, BarMarks) en classes tokenisées : estompage au survol
 // (opacité + transition) et épaisseur de contour (plein vs évidé, normal vs
 // mini). Couleurs de barre/contour (data-driven, .darker) restent dans le JSX.
-@use '../../../tokens' as *;
-@use '../../../colors' as *;
+@use '@/features/chart/tokens' as *;
+@use '@/features/chart/colors' as *;
 @use '../tokens' as *;
 @use '../colors' as *;
 

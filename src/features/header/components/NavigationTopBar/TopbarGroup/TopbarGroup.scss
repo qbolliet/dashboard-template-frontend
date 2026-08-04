@@ -20,10 +20,10 @@
 //
 // Tokens : ./_tokens.scss et ../_tokens.scss. Couleurs : ../../../_colors.scss.
 
-@use '../../../nav-mixins' as *;
+@use '@/features/header/nav-mixins' as *;
 @use '../tokens' as *;
 @use './tokens' as *;
-@use '../../../../../styles/utils/breakpoints' as *;
+@use '@/styles/utils/breakpoints' as *;
 
 
 // =================================================================

@@ -32,33 +32,33 @@ import { scaleTime, scaleLinear, scaleBand, scaleOrdinal } from '@visx/scale';
 import { extent, mean } from 'd3-array';
 import { color as d3color } from 'd3-color';
 
-import { resolveDatasets, channelsFor } from '../../utils/datasetList';
-import { detectType, coerce } from '../../utils/typeDetection';
+import { resolveDatasets, channelsFor } from '@/features/chart/utils/datasetList';
+import { detectType, coerce } from '@/features/chart/utils/typeDetection';
 import {
   PALETTE, LINE_STYLES, HATCH_TYPES, MARKER_TYPES,
   distinctVals, groupSeries, seriesKey, xKeyOf,
-} from '../../utils/encoding';
-import { buildStacks } from '../../utils/stacking';
-import { resolveFormatter } from '../../utils/formatters';
-import { measureText, tickCountFor } from '../../utils/measureText';
-import { exportSvg, exportPng } from '../../utils/exportImage';
-import { xMinimapLayout } from '../../utils/minimapGeometry';
-import { restrictScale, axisZoomFactors, zoomTransformOf } from '../../hooks/useBrushZoom';
-import { useMinimapState, resolveMinimapsVisible } from '../../hooks/useMinimapState';
-import { TICK_FONT_SIZE } from '../ChartAxis/tickHelpers';
+} from '@/features/chart/utils/encoding';
+import { buildStacks } from '@/features/chart/utils/stacking';
+import { resolveFormatter } from '@/features/chart/utils/formatters';
+import { measureText, tickCountFor } from '@/features/chart/utils/measureText';
+import { exportSvg, exportPng } from '@/features/chart/utils/exportImage';
+import { xMinimapLayout } from '@/features/chart/utils/minimapGeometry';
+import { restrictScale, axisZoomFactors, zoomTransformOf } from '@/features/chart/hooks/useBrushZoom';
+import { useMinimapState, resolveMinimapsVisible } from '@/features/chart/hooks/useMinimapState';
+import { TICK_FONT_SIZE } from '@/features/chart/components/ChartAxis/tickHelpers';
 
-import ChartAxisBottom from '../ChartAxis/ChartAxisBottom/ChartAxisBottom';
-import ChartAxisLeft from '../ChartAxis/ChartAxisLeft/ChartAxisLeft';
-import LineMarks from '../marks/LineMarks/LineMarks';
-import HatchPatterns from '../marks/shared/HatchPatterns';
-import SeriesMarker from '../marks/shared/SeriesMarker';
-import { VoronoiOverlay, DirectHoverOverlay, ActiveMark } from '../overlays/HoverOverlays/HoverOverlays';
-import ChartTooltip from '../ChartTooltip/ChartTooltip';
-import ChartToolbar from '../ChartToolbar/ChartToolbar';
-import BrushMinimap from '../ChartMinimap/BrushMinimap/BrushMinimap';
-import MinimapToggle from '../ChartMinimap/MinimapToggle/MinimapToggle';
+import ChartAxisBottom from '@/features/chart/components/ChartAxis/ChartAxisBottom/ChartAxisBottom';
+import ChartAxisLeft from '@/features/chart/components/ChartAxis/ChartAxisLeft/ChartAxisLeft';
+import LineMarks from '@/features/chart/components/marks/LineMarks/LineMarks';
+import HatchPatterns from '@/features/chart/components/marks/shared/HatchPatterns';
+import SeriesMarker from '@/features/chart/components/marks/shared/SeriesMarker';
+import { VoronoiOverlay, DirectHoverOverlay, ActiveMark } from '@/features/chart/components/overlays/HoverOverlays/HoverOverlays';
+import ChartTooltip from '@/features/chart/components/ChartTooltip/ChartTooltip';
+import ChartToolbar from '@/features/chart/components/ChartToolbar/ChartToolbar';
+import BrushMinimap from '@/features/chart/components/ChartMinimap/BrushMinimap/BrushMinimap';
+import MinimapToggle from '@/features/chart/components/ChartMinimap/MinimapToggle/MinimapToggle';
 import MultiLegend from './MultiLegend/MultiLegend';
-import '../Chart/Chart.scss';
+import '@/features/chart/components/Chart/Chart.scss';
 import './MultiChart.scss';
 
 // Séparateur synthétique des clés d'échelle de canal (colonne · valeur) : le

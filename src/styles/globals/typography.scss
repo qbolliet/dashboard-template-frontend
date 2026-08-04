@@ -2,7 +2,7 @@
 // Base: 1rem = 16px
 
 @use 'sass:map';
-@use '../utils/breakpoints' as bp;
+@use '@/styles/utils/breakpoints' as bp;
 
 :root {
   // Seuils de largeur d'écran (px), miroir des mixins `breakpoint`/`breakpoint-down`

@@ -10,8 +10,8 @@
 // Le connecteur logique (.mcm-connector*) a ses styles propres dans Connector/Connector.scss.
 //
 // Tokens partagés feature (../../tokens, ../../colors) + tokens composant (./tokens, ./colors).
-@use '../../tokens' as *;
-@use '../../colors' as *;
+@use '@/features/filter/tokens' as *;
+@use '@/features/filter/colors' as *;
 @use './tokens' as *;
 @use './colors' as *;
 

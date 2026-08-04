@@ -1,6 +1,6 @@
 import React from 'react';
-import LinkCard from '../LinkCard/LinkCard';
-import CardGrid from '../CardGrid/CardGrid';
+import LinkCard from '@/components/ui/LinkCard/LinkCard';
+import CardGrid from '@/components/ui/CardGrid/CardGrid';
 import './LinkCardsSection.scss';
 
 /**

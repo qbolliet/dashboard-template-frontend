@@ -4,8 +4,8 @@
 // Ancré sous le <th> hôte (position: relative posée par
 // TableHeaderCell.scss sur .data-table-th-inner) ; `side` choisit le bord
 // d'alignement pour rester dans le cadre du tableau sur la dernière colonne.
-@use '../../tokens' as *;
-@use '../../colors' as *;
+@use '@/features/table/tokens' as *;
+@use '@/features/table/colors' as *;
 @use './tokens' as *;
 @use './colors' as *;
 

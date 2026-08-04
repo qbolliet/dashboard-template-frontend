@@ -1,8 +1,8 @@
 // =================================================================
 // TABLE FOOTER — indice SQL + compteurs lignes/colonnes
 // =================================================================
-@use '../../tokens' as *;
-@use '../../colors' as *;
+@use '@/features/table/tokens' as *;
+@use '@/features/table/colors' as *;
 
 .data-table-footer {
   display: flex;

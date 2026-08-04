@@ -18,7 +18,7 @@ import { Table } from '@/features/table';
 import { Badge } from '@/components/ui';
 import { LayersIcon } from '@/components/icons';
 import MultiCriterionMenu from '@/features/filter/components/MultiCriterionMenu/MultiCriterionMenu';
-import operations from '../../../config/filter/operations.json';
+import operations from '@config/filter/operations.json';
 
 // Mapping des statuts (identique au prototype design-system/project/ds/tables.html).
 const STATUS_LABEL = { actif: 'Actif', wip: 'En cours', obsolete: 'Obsolète' };

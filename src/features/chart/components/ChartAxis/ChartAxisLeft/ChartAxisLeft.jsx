@@ -1,8 +1,8 @@
 // Importation des modules
 import { AxisLeft as VisxAxisLeft } from '@visx/axis';
 import { GridRows } from '@visx/grid';
-import { resolveFormatter } from '../../../utils/formatters';
-import { tickCountFor } from '../../../utils/measureText';
+import { resolveFormatter } from '@/features/chart/utils/formatters';
+import { tickCountFor } from '@/features/chart/utils/measureText';
 import { ellipsize, wrapLines, ticksFor } from '../tickHelpers';
 import './ChartAxisLeft.scss';
 

@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { useTheme } from '../../hooks/useTheme';
-import SunMoonIcon from '../../../../components/icons/SunMoonIcon/SunMoonIcon';
+import { useTheme } from '@/features/theme/hooks/useTheme';
+import SunMoonIcon from '@/components/icons/SunMoonIcon/SunMoonIcon';
 import './ThemeToggleButton.scss';
 
 // Abonnement vide : l'état d'hydratation ne change qu'une fois (au montage client).

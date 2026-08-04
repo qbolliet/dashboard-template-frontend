@@ -5,7 +5,7 @@
 // ⚠️ RÈGLE : Si un token n'est utilisé que dans UNE feature, le mettre dans features/[feature]/_colors.scss
 
 // Importation des couleurs primitives
-@use '../primitives/colors' as *;
+@use '@/styles/globals/primitives/colors' as *;
 
 :root {
   // ===== COULEURS DE BASE DE L'INTERFACE =====

@@ -1,5 +1,5 @@
-@use '../../styles/globals/typography' as *;
-@use '../../styles/utils/breakpoints' as *;
+@use '@/styles/globals/typography' as *;
+@use '@/styles/utils/breakpoints' as *;
 
 .page {
   max-width: 900px;
