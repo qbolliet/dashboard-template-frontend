@@ -1,7 +1,7 @@
 // ===== IMPORTS =====
-@use '../../../../../styles/utils/breakpoints' as *;
-@use '../../../../../styles/globals/colors';
-@use '../../../../../styles/globals/typography';
+@use '@/styles/utils/breakpoints' as *;
+@use '@/styles/globals/tokens/semantic-colors';
+@use '@/styles/globals/typography';
 @use '../../../nav-mixins' as *;
 @use './tokens' as *;
 

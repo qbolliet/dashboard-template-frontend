@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// Vérifie que les teintes déclarées dans src/styles/globals/colors.scss et celles
+// Vérifie que les teintes déclarées dans src/styles/globals/primitives/colors.scss et celles
 // dupliquées en littéraux HSL dans src/features/chart/utils/encoding.js (PALETTE,
 // SEQUENTIAL) restent numériquement identiques. Les deux fichiers ne peuvent pas
 // partager une source unique à l'exécution : encoding.js a besoin de chaînes HSL
@@ -11,7 +11,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const COLORS_SCSS = path.join(__dirname, '../src/styles/globals/colors.scss');
+const COLORS_SCSS = path.join(__dirname, '../src/styles/globals/primitives/colors.scss');
 const ENCODING_JS = path.join(__dirname, '../src/features/chart/utils/encoding.js');
 const EPSILON = 1e-6;
 
@@ -20,7 +20,7 @@ const EPSILON = 1e-6;
  * (i.e. before the first `[data-theme` override block), since PALETTE/SEQUENTIAL
  * only mirror theme-invariant tokens.
  *
- * @param {string} scss - Full contents of colors.scss.
+ * @param {string} scss - Full contents of primitives/colors.scss.
  * @returns {Map<string, {h: number, s: number, l: number}>} Token name -> HSL triple.
  */
 function parseScssTokens(scss) {
@@ -65,7 +65,7 @@ function main() {
   for (const entry of jsEntries) {
     const token = scssTokens.get(entry.name);
     if (!token) {
-      errors.push(`--color-${entry.name} référencé dans encoding.js mais absent de colors.scss.`);
+      errors.push(`--color-${entry.name} référencé dans encoding.js mais absent de primitives/colors.scss.`);
       continue;
     }
     const drifted =
@@ -74,20 +74,20 @@ function main() {
       Math.abs(token.l - entry.l) > EPSILON;
     if (drifted) {
       errors.push(
-        `--color-${entry.name} désynchronisé : colors.scss = ${token.h} ${token.s}% ${token.l}%, ` +
+        `--color-${entry.name} désynchronisé : primitives/colors.scss = ${token.h} ${token.s}% ${token.l}%, ` +
         `encoding.js = ${entry.h} ${entry.s}% ${entry.l}%.`
       );
     }
   }
 
   if (errors.length > 0) {
-    console.error('check-palette-sync: colors.scss et encoding.js ont divergé :\n');
+    console.error('check-palette-sync: primitives/colors.scss et encoding.js ont divergé :\n');
     for (const err of errors) console.error(`  - ${err}`);
     console.error('\nRéaligne les valeurs HSL dans les deux fichiers (voir le commentaire en tête de encoding.js).');
     process.exit(1);
   }
 
-  console.log(`check-palette-sync: ${jsEntries.length} teintes synchronisées entre colors.scss et encoding.js.`);
+  console.log(`check-palette-sync: ${jsEntries.length} teintes synchronisées entre primitives/colors.scss et encoding.js.`);
 }
 
 main();

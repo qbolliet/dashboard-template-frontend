@@ -143,7 +143,7 @@ export default function TestHeaderPage() {
                 }
                 
                 /* Les variables CSS sont maintenant gérées par le système global de couleurs
-                   Voir src/styles/globals/colors.scss pour --bg-color, --text-color, etc. */
+                   Voir src/styles/globals/tokens/semantic-colors.scss pour --bg-color, --text-color, etc. */
                 
                 @media (max-width: 768px) {
                     .container {

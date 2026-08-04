@@ -1,7 +1,7 @@
 // Imports des utilitaires et styles globaux
-@use '../../../../styles/utils/breakpoints';
-@use '../../../../styles/globals/colors';
-@use '../../../../styles//globals/typography';
+@use '@/styles/utils/breakpoints';
+@use '@/styles/globals/tokens/semantic-colors';
+@use '@/styles/globals/typography';
 
 .footer {
   // Disposition en grille avec deux colonnes égales

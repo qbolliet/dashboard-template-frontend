@@ -56,8 +56,10 @@
   --color-text-disabled: var(--color-gray-300);
 
   // ===== VARIABLES GLOBALES (MODE SOMBRE) ===== /!\
+  --bg-color: var(--color-background);
   --text-color: var(--color-text-primary);
   --heading-color: var(--color-white);
   --card-bg: var(--color-gray-200);
+  --border-color: var(--color-border);
   --code-bg: var(--color-gray-100);
 }

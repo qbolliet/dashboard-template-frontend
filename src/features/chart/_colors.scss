@@ -11,7 +11,7 @@
 // des chaînes directement, indépendamment du thème courant, pour que la
 // correspondance valeur → couleur soit stable et calculable hors DOM (export,
 // SSR). Ces constantes sont numériquement alignées sur les primitives HSL
-// nommées de src/styles/globals/colors.scss (--color-navy, --color-brick, …) —
+// nommées de src/styles/globals/primitives/colors.scss (--color-navy, --color-brick, …) —
 // seule source de vérité pour les teintes de palette, cf. le commentaire en
 // tête de utils/encoding.js.
 //
@@ -23,5 +23,5 @@
   // --chart-bar : couleur par défaut d'une barre de drag générique (DragBar).
   --chart-bar: var(--color-text-secondary);
   --chart-bar-projection: var(--color-primary-500);
-  --chart-bar-normalize: var(--color-violet); // redéfinie en mode sombre dans colors.scss
+  --chart-bar-normalize: var(--color-violet); // redéfinie en mode sombre dans primitives/colors.scss
 }

@@ -1,4 +1,6 @@
 // Import des systèmes de couleurs et de typographie globaux
+// Les couleurs suivent la cascade documentée dans CLAUDE.md :
+// primitives (valeurs HSL brutes) puis tokens sémantiques (alias de rôle).
 @use './typography';
-@use './colors';
-
+@use './primitives/colors';
+@use './tokens/semantic-colors';

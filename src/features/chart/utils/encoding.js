@@ -10,14 +10,14 @@
 // uniquement sur `interpolateRgbBasis` de d3-interpolate.
 //
 // Exception documentée aux deux conventions couleur du repo (HSL + déclaration
-// dans styles/globals/colors.scss) : PALETTE/SEQUENTIAL restent des CONSTANTES
+// dans styles/globals/primitives/colors.scss) : PALETTE/SEQUENTIAL restent des CONSTANTES
 // JS littérales (pas des `var(--…)`), car les échelles d3/visx doivent produire
 // une couleur concrète, calculable sans accès au DOM ni à la cascade CSS — en
 // particulier lors de l'export (rastérisation canvas, cf. exportImage.js) où
 // une valeur `var()` non résolue casserait le rendu. Elles restent toutefois
 // exprimées en HSL (et non en hex) pour respecter la convention de couleur du
 // repo, et sont numériquement identiques aux tokens CSS homonymes déclarés une
-// fois dans src/styles/globals/colors.scss (--color-navy, --color-brick, …).
+// fois dans src/styles/globals/primitives/colors.scss (--color-navy, --color-brick, …).
 // Toute modification d'une teinte doit donc être répercutée aux DEUX endroits
 // (le nom du token CSS correspondant est rappelé en commentaire ci-dessous).
 
@@ -31,7 +31,7 @@ import { interpolateRgbBasis } from 'd3-interpolate';
 // Palette catégorielle à 12 teintes. ≥10 teintes distinctes pour encoder une
 // variable à nombreuses modalités (exigence : au moins 10 couleurs). Au-delà,
 // scaleOrdinal recycle le range. Chaque teinte correspond à un token nommé de
-// styles/globals/colors.scss.
+// styles/globals/primitives/colors.scss.
 // Syntaxe `hsl(h, s%, l%)` à VIRGULES (legacy) et non `hsl(h s% l%)` (CSS Color
 // 4, espaces) : d3-color — utilisé par interpolateRgbBasis dans sequentialScale
 // ci-dessous — ne sait parser que la syntaxe legacy ; la syntaxe moderne y est

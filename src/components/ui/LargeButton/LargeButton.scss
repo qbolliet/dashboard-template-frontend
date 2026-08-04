@@ -1,8 +1,8 @@
 // ===== LARGE BUTTON - BOUTON CIRCULAIRE =====
 // Import des variables du système de design
-@use '../../../styles/globals/colors';
-@use '../../../styles/globals/typography';
-@use '../../../styles/utils/breakpoints' as bp;
+@use '@/styles/globals/tokens/semantic-colors';
+@use '@/styles/globals/typography';
+@use '@/styles/utils/breakpoints' as bp;
 
 // Grand bouton rond avec effet de halo
 .large-button {

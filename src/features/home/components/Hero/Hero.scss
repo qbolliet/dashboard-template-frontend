@@ -1,8 +1,8 @@
 // ===== HERO SECTION - SECTION HÉRO =====
 // Import des variables du système de design
-@use '../../../../styles/globals/colors';
-@use '../../../../styles/globals/typography';
-@use '../../../../styles/utils/breakpoints';
+@use '@/styles/globals/tokens/semantic-colors';
+@use '@/styles/globals/typography';
+@use '@/styles/utils/breakpoints';
 
 // Container principal du héro
 .hero {
