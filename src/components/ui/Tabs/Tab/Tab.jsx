@@ -1,7 +1,7 @@
 'use client';
 
 // Importation des modules
-import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden/VisuallyHidden';
+import VisuallyHidden from '@/components/common/VisuallyHidden';
 import { useTabsContext } from '../TabsContext';
 import './Tab.scss';
 

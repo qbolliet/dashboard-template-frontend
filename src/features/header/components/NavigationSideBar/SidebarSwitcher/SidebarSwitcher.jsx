@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useId } from 'react';
 import Image from 'next/image';
 import { useSidebar } from '../NavigationSideBar/NavigationSideBar';
-import { useKeyboardNavigation, useAriaAnnounce } from '@/features/accessibility';
+import { useKeyboardNavigation, useAriaAnnounce } from '@/hooks/accessibility';
 import './SidebarSwitcher.scss';
 
 /**

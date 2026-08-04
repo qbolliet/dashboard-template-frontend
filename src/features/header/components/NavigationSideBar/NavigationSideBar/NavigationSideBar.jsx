@@ -6,7 +6,7 @@ import { useNavigationRoute, useNavigationUI } from '@/features/header/providers
 import useResizable from '@/features/header/hooks/useResizable';
 import SidebarSwitcher from '../SidebarSwitcher/SidebarSwitcher';
 import SidebarMenu from '../SidebarMenu/SidebarMenu';
-import { useFocusTrap, useAriaAnnounce } from '@/features/accessibility';
+import { useFocusTrap, useAriaAnnounce } from '@/hooks/accessibility';
 import { hasIconsInNavigationData } from '@/features/header/utils/hasIconsInNavigationData';
 import './NavigationSideBar.scss';
 

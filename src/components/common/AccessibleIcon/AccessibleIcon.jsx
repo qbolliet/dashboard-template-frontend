@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden';
+import VisuallyHidden from '../VisuallyHidden';
 
 /**
  * AccessibleIcon Component

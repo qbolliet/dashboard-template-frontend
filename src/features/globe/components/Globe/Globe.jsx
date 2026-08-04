@@ -15,7 +15,8 @@
 
 // Importation des modules
 import { useEffect, useRef, useState } from 'react';
-import useGlobeEngine, { prefersReducedMotion } from '../../hooks/useGlobeEngine';
+import useGlobeEngine from '../../hooks/useGlobeEngine';
+import { prefersReducedMotion } from '@/utils/accessibility/a11y';
 import GlobeToolbar, { TOOL_KEYS } from '../GlobeToolbar/GlobeToolbar';
 import './Globe.scss';
 // Styles du DOM injecté par le moteur : les pastilles et la tooltip ne sont
@@ -196,6 +197,11 @@ const Globe = ({
   // côtés : plus aucune divergence, donc aucun `suppressHydrationWarning` à poser
   // (un script inline façon thème n'y changerait rien : il pose un attribut DOM,
   // l'état React, lui, divergerait toujours).
+  //
+  // Pourquoi la FONCTION `prefersReducedMotion` et non le hook `useReducedMotion`
+  // (@/hooks/accessibility) : le hook lit la media query dans l'initialiseur de
+  // son `useState`, donc PENDANT LE RENDU — exactement la divergence décrite
+  // ci-dessus. Ici la lecture est confinée à l'effet de montage.
   //
   // Pourquoi un setState dans un effet : la règle de CLAUDE.md vise la SYNCHRO DE
   // PROPS. Ici, lecture UNIQUE d'une préférence système au montage, sans aucune

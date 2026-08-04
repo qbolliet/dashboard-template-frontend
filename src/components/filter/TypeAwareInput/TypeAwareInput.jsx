@@ -2,9 +2,9 @@
 
 // Importation des modules
 import { useEffect, useId, useRef, useState } from 'react';
-import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden/VisuallyHidden';
-import useFocusTrap from '@/features/accessibility/hooks/useFocusTrap';
-import { ariaAnnouncer } from '@/features/accessibility/services/AriaAnnouncer';
+import VisuallyHidden from '@/components/common/VisuallyHidden';
+import { useFocusTrap } from '@/hooks/accessibility';
+import { ariaAnnouncer } from '@/utils/accessibility/AriaAnnouncer';
 import { CalendarIcon, CheckIcon, InfoIcon } from '@/components/icons';
 import CalendarMonth from '../CalendarMonth/CalendarMonth';
 import { DATE_SINGLE_RE, DATE_RANGE_RE, formatDate, parseDate } from '../utils/dateParse';

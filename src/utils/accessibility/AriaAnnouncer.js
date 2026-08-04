@@ -9,7 +9,7 @@
  * - Une "assertive" pour les annonces importantes qui interrompent
  *
  * @example
- * import { ariaAnnouncer } from '@/features/accessibility/services/AriaAnnouncer';
+ * import { ariaAnnouncer } from '@/utils/accessibility/AriaAnnouncer';
  *
  * ariaAnnouncer.announce('Sidebar opened', 'polite');
  * ariaAnnouncer.announce('Error occurred', 'assertive');

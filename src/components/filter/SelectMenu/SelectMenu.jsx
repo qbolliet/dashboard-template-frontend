@@ -3,7 +3,7 @@
 // Importation des modules
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden/VisuallyHidden';
+import VisuallyHidden from '@/components/common/VisuallyHidden';
 import { CheckIcon, CrossIcon, ChevronIcon } from '@/components/icons';
 import { useSelectOptions } from './useSelectOptions';
 import { useDebouncedValue } from '@/hooks/debounce/useDebouncedValue';

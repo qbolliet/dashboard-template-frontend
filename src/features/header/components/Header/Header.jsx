@@ -12,7 +12,7 @@ import { NavigationSideBar } from '../NavigationSideBar';
 import { NavTrigger } from '../NavTrigger';
 import SearchBar from '../SearchBar/SearchBar';
 import ThemeToggleButton from '@/features/theme/components/ThemeToggleButton/ThemeToggleButton';
-import { SkipLink } from '@/features/accessibility';
+import { SkipLink } from '@/components/common';
 import NavigationProvider from '../../providers/NavigationProvider';
 import { hasIconsInNavigationData } from '../../utils/hasIconsInNavigationData';
 import './Header.scss';

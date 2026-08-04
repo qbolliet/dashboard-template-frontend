@@ -25,23 +25,6 @@ import { useCallback, useEffect, useRef } from 'react';
 import useTheme from '@/features/theme/hooks/useTheme';
 
 /**
- * Tells whether the user asked the system to reduce motion.
- *
- * Colocated here because it gates both sides of the same decision: the React
- * toolbar state of <Globe> and the engine options it is mirrored into. Called
- * from a MOUNT EFFECT, never during render: the server cannot know the
- * preference, so reading it while rendering would diverge from the server HTML
- * (see the degradation effect in <Globe>). The SSR guard is kept nonetheless —
- * the module is imported by a server-rendered tree.
- *
- * @returns {boolean} True when `prefers-reduced-motion: reduce` matches.
- */
-export const prefersReducedMotion = () => (
-  typeof window !== 'undefined'
-  && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-);
-
-/**
  * Owns the GlobeEngine lifecycle: lazily imports the Three.js engine chunk,
  * instantiates it on the stage element, keeps it in sync with the app theme,
  * and disposes it on unmount (StrictMode-safe).

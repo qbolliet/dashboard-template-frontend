@@ -4,7 +4,7 @@ import React, { useState, useId } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSidebar } from '../NavigationSideBar/NavigationSideBar';
-import { AccessibleIcon } from '@/features/accessibility';
+import { AccessibleIcon } from '@/components/common';
 import { ChevronIcon } from '@/components/icons';
 import SidebarNode from '../SidebarNode/SidebarNode';
 import './SidebarGroup.scss';

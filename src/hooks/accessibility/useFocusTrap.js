@@ -1,46 +1,5 @@
 import { useRef, useEffect } from 'react';
-
-/**
- * Sélecteur pour tous les éléments potentiellement focusables
- * @constant
- */
-const FOCUSABLE_ELEMENTS_SELECTOR = `
-  a[href],
-  area[href],
-  input:not([disabled]),
-  select:not([disabled]),
-  textarea:not([disabled]),
-  button:not([disabled]),
-  iframe,
-  object,
-  embed,
-  [tabindex]:not([tabindex="-1"]),
-  [contenteditable]
-`;
-
-/**
- * Trouve tous les éléments focusables dans un conteneur
- *
- * @param {HTMLElement} container - Le conteneur à analyser
- * @returns {HTMLElement[]} Liste des éléments focusables
- */
-const getFocusableElements = (container) => {
-  if (!container) return [];
-
-  const elements = Array.from(
-    container.querySelectorAll(FOCUSABLE_ELEMENTS_SELECTOR)
-  );
-
-  // Filtre les éléments qui ne sont pas visibles ou disabled
-  return elements.filter((element) => {
-    const style = window.getComputedStyle(element);
-    return (
-      style.display !== 'none' &&
-      style.visibility !== 'hidden' &&
-      !element.hasAttribute('disabled')
-    );
-  });
-};
+import { getFocusableElements } from '@/utils/accessibility/focusManagement';
 
 /**
  * useFocusTrap Hook

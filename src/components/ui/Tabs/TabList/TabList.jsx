@@ -79,7 +79,7 @@ const TabList = ({ label, children, className, style, ...rest }) => {
     // Navigation clavier parmi les onglets NON désactivés. Fonction simple : elle est
     // passée à onKeyDown (événement React), aucune identité stable n'est requise.
     //
-    // Volontairement inline plutôt que délégué à useKeyboardNavigation (features/accessibility) :
+    // Volontairement inline plutôt que délégué à useKeyboardNavigation (@/hooks/accessibility) :
     // ce hook expose un index en state React et ne déplace jamais le focus DOM — il est taillé
     // pour un listbox `aria-activedescendant` piloté par un tableau d'items. Le motif ARIA
     // « tabs » exige l'inverse : un roving tabindex sur le focus DOM réel, au-dessus d'enfants

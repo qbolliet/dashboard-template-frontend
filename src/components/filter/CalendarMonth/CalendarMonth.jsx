@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import VisuallyHidden from '@/features/accessibility/components/VisuallyHidden/VisuallyHidden';
+import VisuallyHidden from '@/components/common/VisuallyHidden';
 import { ChevronIcon } from '@/components/icons';
 import './CalendarMonth.scss';
 
