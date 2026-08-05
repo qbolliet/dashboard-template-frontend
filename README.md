@@ -78,11 +78,20 @@ To query your own API instead, copy `.env.example` to `.env.local` and set
 `NEXT_PUBLIC_API_URL` — see `.env.example` for details — then run
 `npm run dev`.
 
-### Configuring the navigation
+### Configuring the site
 
-Edit `config/navigation.json` to describe your site's page tree (`path`,
-`name`, `type`, and nested `children`). The header picks the top bar or
-sidebar layout automatically based on the resulting tree depth.
+`config/site.config.json` is the single manifest describing the site: its
+title, description and locale under `site`, and its page tree under
+`navigation`. Each node carries a `path` (a segment **relative to its parent**,
+concatenated down the tree), a `name`, a `type`, optional `children`, and the
+optional `description` and `searchable` fields that feed the search. Set
+`navigation.type` to `topbar` or `sidebar` to pick the header layout.
+
+The manifest declares its own JSON Schema (`config/schema/site.schema.json`),
+so an editor that understands `$schema` — VS Code does out of the box — gives
+you autocompletion and documents every property on hover as you type. Run
+`npm run validate:config` to check the file from the command line; it is part
+of `npm run verify`.
 
 ## Project structure
 

@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.scss";
 import Header from '@/features/header/components/Header/Header';
 import ThemeProvider from '@/features/theme/providers/ThemeProvider';
-import navigationData from '@config/navigation_new.json';
+import siteConfig from '@config/site.config.json';
 import Footer from '@/features/footer/components/Footer/Footer';
 import SWRProvider from './providers';
 
@@ -18,10 +18,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Métadonnées dérivées du manifeste : le titre et la description du site s'éditent dans
+// config/site.config.json, pas ici.
 export const metadata: Metadata = {
-  title: "Dashboard Template",
-  description:
-    "Template de tableau de bord pour visualiser des modèles statistiques et de prédiction.",
+  title: siteConfig.site.title,
+  description: siteConfig.site.description,
 };
 
 // Script anti-FOUC (pattern no-flash de next-themes) : exécuté de façon synchrone dans le
@@ -38,7 +39,7 @@ export default function RootLayout({
   // suppressHydrationWarning : le script anti-FOUC pose data-theme sur <html> avant
   // l'hydratation ; React doit ignorer cette divergence d'attribut sur cet élément.
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={siteConfig.site.locale} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
@@ -47,11 +48,12 @@ export default function RootLayout({
       >
         <SWRProvider>
           <ThemeProvider>
-            {/* Header avec les données de navigation_new.json (JSON sérialisable passé au client) */}
+            {/* Header piloté par config/site.config.json : disposition, sélecteur et arbre
+                de navigation viennent tous du manifeste (JSON sérialisable passé au client) */}
             <Header
-                navigationData={navigationData.main_menu}
-                navigationType='sidebar' //'sidebar'//'topbar'
-                useSwitcher={false} //false //true
+                navigationData={siteConfig.navigation.tree}
+                navigationType={siteConfig.navigation.type}
+                useSwitcher={siteConfig.navigation.useSwitcher}
             />
             {children}
             <Footer copyrightText="© 2025 Dashboard Template" />

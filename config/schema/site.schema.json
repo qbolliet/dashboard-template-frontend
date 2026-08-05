@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dashboard-template-frontend/config/schema/site.schema.json",
+  "title": "Site manifest",
+  "description": "Manifeste unique du site : identité, navigation et arborescence des pages. Ce fichier est la seule source de configuration du template — le header le lit pour construire sa navigation, et il alimentera la génération des routes et l'index de recherche. Validé par `npm run validate:config`.",
+  "type": "object",
+  "required": ["site", "navigation"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "description": "Chemin vers ce schéma, relatif au manifeste (`./schema/site.schema.json`). Purement facultatif à l'exécution, mais c'est lui qui déclenche l'autocomplétion et les infobulles dans l'éditeur — le garder est fortement recommandé.",
+      "type": "string",
+      "format": "uri-reference"
+    },
+    "site": {
+      "$ref": "#/$defs/site"
+    },
+    "navigation": {
+      "$ref": "#/$defs/navigation"
+    }
+  },
+  "$defs": {
+    "site": {
+      "title": "Identité du site",
+      "description": "Métadonnées globales du site. Consommées par `src/app/layout.tsx` pour l'objet `metadata` de Next et l'attribut `lang` de la balise `<html>`.",
+      "type": "object",
+      "required": ["title", "description", "locale"],
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "description": "Titre du site. Alimente `metadata.title` : c'est le texte affiché dans l'onglet du navigateur et repris par les moteurs de recherche.",
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "description": "Description courte du site, en une ou deux phrases. Alimente `metadata.description`, donc la balise `<meta name=\"description\">` et l'extrait affiché dans les résultats de recherche.",
+          "type": "string",
+          "minLength": 1
+        },
+        "locale": {
+          "description": "Langue principale du contenu, au format BCP 47 abrégé : `fr`, `en`, ou avec la région `fr-BE`, `en-US`. Posée sur `<html lang>`, elle détermine la prononciation par les lecteurs d'écran et la césure typographique du navigateur.",
+          "type": "string",
+          "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+        }
+      }
+    },
+    "navigation": {
+      "title": "Navigation",
+      "description": "Disposition du header et arborescence des pages du site.",
+      "type": "object",
+      "required": ["type", "tree"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "description": "Disposition de la navigation. `topbar` déroule l'arbre en menus horizontaux dans le header — adapté aux arbres larges et peu profonds. `sidebar` l'affiche dans un panneau latéral repliable — adapté aux arbres profonds ou comptant de nombreuses entrées.",
+          "type": "string",
+          "enum": ["topbar", "sidebar"]
+        },
+        "useSwitcher": {
+          "description": "En mode `sidebar` uniquement : si `true`, les nœuds de premier niveau ne sont pas listés dans le panneau mais proposés dans un sélecteur en tête de sidebar, qui n'affiche que la sous-arborescence choisie. Utile quand le site se divise en quelques grands espaces indépendants (par exemple « Synthèse » et « Détail »). Sans effet en mode `topbar`.",
+          "type": "boolean",
+          "default": false
+        },
+        "tree": {
+          "description": "Arborescence des pages, dans l'ordre d'affichage. Chaque nœud est une page ; ses `children` en sont les sous-pages.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/navigationNode" }
+        }
+      }
+    },
+    "navigationNode": {
+      "title": "Nœud de navigation",
+      "description": "Une page du site, et éventuellement ses sous-pages.",
+      "type": "object",
+      "required": ["path", "name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "description": "Segment d'URL du nœud, **relatif à son parent** et précédé d'une barre oblique. Le chemin complet d'une page est la concaténation des `path` de ses ancêtres : un nœud `/pib` sous `/france` sous `/comptabilite-nationale` répond à `/comptabilite-nationale/france/pib`. N'écrivez donc pas le chemin complet ici. Format imposé : minuscules, chiffres et traits d'union (kebab-case), sans barre finale. La racine du site s'écrit `/`.",
+          "type": "string",
+          "pattern": "^/$|^(?:/[a-z0-9]+(?:-[a-z0-9]+)*)+$"
+        },
+        "name": {
+          "description": "Libellé lisible du nœud. Affiché tel quel dans la navigation, dans le fil d'Ariane du header et dans les résultats de recherche — mettez-y les accents et les majuscules voulus.",
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "description": "Type de page, qui déterminera le gabarit de rendu du nœud. `home` : page d'accueil. `indicator` : page d'un indicateur (graphique, tableau, filtres). `indicator_group` : regroupement d'indicateurs, servant surtout de nœud intermédiaire dans l'arbre. `person` : fiche d'une entité du jeu de données. `about` : page de contenu rédigé. Ajouter un type ici suppose de l'ajouter aussi au registre des gabarits de page.",
+          "type": "string",
+          "enum": ["home", "person", "indicator", "indicator_group", "about"]
+        },
+        "description": {
+          "description": "Résumé d'une phrase de ce que contient la page. Facultatif. Sert à alimenter la recherche : le texte y est indexé au même titre que `name`, et affiché sous le titre dans la liste des suggestions.",
+          "type": "string",
+          "minLength": 1
+        },
+        "searchable": {
+          "description": "Passez à `false` pour exclure la page de la recherche du site. Le nœud reste visible dans la navigation et reste navigable — seule son indexation est désactivée. Utile pour les pages techniques ou les bancs d'essai. Vaut `true` si la clé est absente.",
+          "type": "boolean",
+          "default": true
+        },
+        "children": {
+          "description": "Sous-pages du nœud, dans l'ordre d'affichage. Omettez complètement la clé pour une page terminale — n'écrivez ni `null` ni `[]`.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/navigationNode" }
+        }
+      }
+    }
+  }
+}

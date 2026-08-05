@@ -3,12 +3,12 @@
 import React from 'react';
 import Header from '@/features/header/components/Header/Header';
 import ThemeProvider from '@/features/theme/providers/ThemeProvider';
-import navigationData from '@config/navigation_new.json';
+import siteConfig from '@config/site.config.json';
 
 /**
  * Test page for the header component.
- * Uses navigation_new.json for testing different navigation structures.
- * 
+ * Uses the site manifest for testing different navigation structures.
+ *
  * @returns {JSX.Element} The rendered test page
  */
 export default function TestHeaderPage() {
@@ -25,9 +25,9 @@ export default function TestHeaderPage() {
 
     return (
         <ThemeProvider>
-            {/* Header avec les données de navigation_new.json */}
-            <Header 
-                navigationData={navigationData.main_menu}
+            {/* Header avec l'arbre de navigation de config/site.config.json */}
+            <Header
+                navigationData={siteConfig.navigation.tree}
                 onNavigationItemClick={handleNavigationClick}
             />
             
@@ -36,8 +36,8 @@ export default function TestHeaderPage() {
                 <div className="container">
                     <h1>Page de test du Header</h1>
                     <p>
-                        Cette page utilise le fichier <code>navigation_new.json</code> pour tester 
-                        le composant Header avec différentes structures de navigation.
+                        Cette page utilise l&apos;arbre de navigation de <code>config/site.config.json</code> pour
+                        tester le composant Header avec différentes structures de navigation.
                     </p>
                     
                     <div className="test-sections">
@@ -56,7 +56,7 @@ export default function TestHeaderPage() {
                         <section className="test-section">
                             <h2>Structure de navigation testée</h2>
                             <pre className="code-block">
-                                {JSON.stringify(navigationData.architecture, null, 2)}
+                                {JSON.stringify(siteConfig.navigation.tree, null, 2)}
                             </pre>
                         </section>
                         

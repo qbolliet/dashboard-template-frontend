@@ -1,0 +1,93 @@
+{
+  "$schema": "./schema/site.schema.json",
+  "site": {
+    "title": "Dashboard Template",
+    "description": "Template de tableau de bord pour visualiser des modèles statistiques et de prédiction.",
+    "locale": "fr"
+  },
+  "navigation": {
+    "type": "sidebar",
+    "useSwitcher": false,
+    "tree": [
+      {
+        "path": "/",
+        "name": "Accueil",
+        "type": "home",
+        "description": "Vue d'ensemble du tableau de bord et accès aux principaux indicateurs."
+      },
+      {
+        "path": "/comptabilite-nationale",
+        "name": "Comptabilité Nationale",
+        "type": "indicator_group",
+        "description": "Agrégats de la comptabilité nationale, par pays.",
+        "children": [
+          {
+            "path": "/france",
+            "name": "France",
+            "type": "indicator_group",
+            "children": [
+              {
+                "path": "/pib",
+                "name": "PIB",
+                "type": "indicator"
+              },
+              {
+                "path": "/consommation",
+                "name": "Consommation",
+                "type": "indicator"
+              }
+            ]
+          },
+          {
+            "path": "/allemagne",
+            "name": "Allemagne",
+            "type": "indicator_group",
+            "children": [
+              {
+                "path": "/pib",
+                "name": "PIB",
+                "type": "indicator"
+              },
+              {
+                "path": "/consommation",
+                "name": "Consommation",
+                "type": "indicator"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "path": "/finances-publiques",
+        "name": "Finances Publiques",
+        "type": "indicator_group",
+        "description": "Recettes et dépenses des administrations publiques.",
+        "children": [
+          {
+            "path": "/recettes-publiques",
+            "name": "Recettes Publiques",
+            "type": "indicator"
+          },
+          {
+            "path": "/depenses-publiques",
+            "name": "Dépenses Publiques",
+            "type": "indicator"
+          }
+        ]
+      },
+      {
+        "path": "/filter-primitives",
+        "name": "Filter Primitives",
+        "type": "indicator_group",
+        "description": "Banc d'essai des primitives de filtrage.",
+        "searchable": false
+      },
+      {
+        "path": "/about",
+        "name": "À propos",
+        "type": "about",
+        "description": "Présentation du projet, sources des données et mentions légales."
+      }
+    ]
+  }
+}
