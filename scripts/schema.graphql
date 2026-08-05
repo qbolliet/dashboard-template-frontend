@@ -1,0 +1,359 @@
+# =================================================================
+# SCHEMA SDL — VENDU DEPUIS dashboard-template-api
+# =================================================================
+# Copie figée du schéma GraphQL réel de l'API (fusion de src/schema/typedefs/*.ts
+# à la date de portage), utilisée UNIQUEMENT par scripts/mock-api-server.js pour
+# servir un endpoint GraphQL local sur données fictives. Ce n'est pas la source de
+# vérité du schéma — en cas de divergence avec l'API réelle, c'est cette dernière
+# qui fait foi. Les deux `AggregatedFact` du dépôt source (common.ts vs fact.ts)
+# étaient dupliqués avec des nullabilités différentes ; la version la plus
+# permissive (nullable, avec `keyLabel`) a été retenue ici pour rester une SDL
+# valide (un seul type par nom).
+
+type Query {
+  _empty: String
+  getDimensionTable(name: String!, catalog: String, schema: String): [Dimension]
+
+  "Get fact table data with pagination and filtering"
+  getFactTable(
+    fields: [String!]
+    filters: String
+    structuredFilters: [Filter]
+    limit: Int! = 100
+    offset: Int! = 0
+    sort: [SortInput!]
+    catalog: String
+    schema: String
+  ): PaginatedFacts
+
+  "Get fact data optimized for D3 visualization"
+  getFactTableWithMetadata(
+    fields: [String!]
+    filters: String
+    structuredFilters: [Filter]
+    limit: Int! = 100
+    offset: Int! = 0
+    sort: [SortInput!]
+    catalog: String
+    schema: String
+    "Format de sérialisation des données : OBJECTS (défaut) ou ARRAYS (tableau de tableaux)"
+    format: DataFormat = OBJECTS
+  ): DatasetWithMetadata
+
+  "Get aggregated facts for charts and summaries"
+  getAggregatedFacts(
+    fields: [String!]
+    filters: String
+    structuredFilters: [Filter]
+    groupBy: String!
+    "Measure column to aggregate (e.g. value, lower_bound)"
+    measure: String!
+    aggregation: Aggregation! = SUM
+    limit: Int! = 100
+    offset: Int! = 0
+    sort: [SortInput!]
+    catalog: String
+    schema: String
+  ): [AggregatedFact]
+
+  "Get aggregated facts with D3 metadata"
+  getAggregatedFactsWithMetadata(
+    fields: [String!]
+    filters: String
+    structuredFilters: [Filter]
+    groupBy: String!
+    "Measure column to aggregate (e.g. value, lower_bound)"
+    measure: String!
+    aggregation: Aggregation! = SUM
+    limit: Int! = 100
+    offset: Int! = 0
+    sort: [SortInput!]
+    catalog: String
+    schema: String
+  ): AggregatedFactsWithMetadata
+
+  getMetaData(name: String!, catalog: String, schema: String): Metadata
+  getSelectOptions(fieldName: String!, limit: Int = 50, searchTerm: String = "", catalog: String, schema: String): [SelectOption!]!
+  getGroupedSelectOptions(groupField: String!, optionsField: String!, limit: Int = 50, catalog: String, schema: String): GroupedSelectOptions!
+
+  "Liste tous les catalogues disponibles avec leurs schémas (cascade lazy via les selection sets)"
+  getCatalogs: [Catalog!]!
+
+  "Retourne tous les champs (métadonnées) d'un catalogue/schéma"
+  getCatalogSchema(catalog: String, schema: String): [Metadata!]!
+
+  "Retourne les noms des champs au format {value, label} filtrés par type SQL, catégorie, clé primaire ou sous-chaîne du nom (pour alimenter des menus select)"
+  getFields(
+    catalog: String
+    schema: String
+    sqlType: String
+    isCategorical: Boolean
+    isPrimaryKey: Boolean
+    namePattern: String
+  ): [SelectOption!]!
+
+  "Retourne les dimensions communes à plusieurs paires (catalogue, schéma) — utile pour les requêtes cross-catalog"
+  getSharedDimensions(targets: [CatalogSchemaInput!]!): [String!]!
+
+  "Compare les faits de deux datasets (catalogue + schéma) sur des champs de jointure communs. Les champs catégoriels sont résolus en labels via les tables dim_* avant la jointure (jamais sur l'ID brut)."
+  compareFacts(
+    "Premier catalogue (référence)"
+    catalogA: String!
+    "Second catalogue (comparaison)"
+    catalogB: String!
+    "Schéma dans catalogA (défaut : schéma configuré du catalogue)"
+    schemaA: String
+    "Schéma dans catalogB (défaut : schéma configuré du catalogue)"
+    schemaB: String
+    "Champs utilisés pour la jointure (doivent exister dans les deux datasets)"
+    joinFields: [String!]!
+    limit: Int! = 100
+    offset: Int! = 0
+    sort: [SortInput!]
+  ): PaginatedComparedFacts!
+
+  "Compare les faits agrégés de deux datasets (catalogue + schéma) sur un groupBy commun. Un groupBy catégoriel est agrégé par label (jamais par ID brut)."
+  compareAggregatedFacts(
+    catalogA: String!
+    catalogB: String!
+    "Schéma dans catalogA (défaut : schéma configuré du catalogue)"
+    schemaA: String
+    "Schéma dans catalogB (défaut : schéma configuré du catalogue)"
+    schemaB: String
+    "Champ de regroupement commun aux deux datasets"
+    groupBy: String!
+    aggregation: Aggregation! = SUM
+    limit: Int! = 100
+    offset: Int! = 0
+  ): PaginatedComparedFacts!
+
+  "Retourne les options de sélection communes à plusieurs datasets (intersection sur les labels pour les champs catégoriels)"
+  crossDatabaseSelectOptions(
+    "Nom du champ à intersecter"
+    fieldName: String!
+    "Liste des catalogues à croiser (minimum 2)"
+    catalogs: [String!]!
+    "Schémas alignés par index sur 'catalogs' (défaut : schéma configuré de chaque catalogue)"
+    schemas: [String!]
+    limit: Int! = 50
+  ): [SelectOption!]!
+}
+
+enum SortOrder {
+  ASC
+  DESC
+}
+
+enum Aggregation {
+  SUM
+  AVG
+  MAX
+  MIN
+  COUNT
+  MEDIAN
+  MODE
+}
+
+"An aggregated fact record with key and value"
+type AggregatedFact {
+  "Grouping key"
+  key: String
+  "Aggregated value"
+  aggregatedValue: Float
+  "Number of records in this group"
+  count: Int
+  keyLabel: String
+}
+
+input Filter {
+  key: String!
+  operator: String!
+  value: String
+  values: [String!]
+}
+
+input SortInput {
+  field: String!
+  order: SortOrder = ASC
+}
+
+type SelectOption {
+  value: String!
+  label: String!
+}
+
+type Dimension {
+  value: String
+  label: String
+}
+
+"Details about a dimension including its label"
+type DimensionDetail {
+  "Name of the dimension"
+  name: String!
+  "Value of the dimension"
+  value: String!
+  "Human-readable label for the dimension value"
+  label: String!
+}
+
+"A single measure of a fact row. The value preserves its original type (Float, Int, String…) via the JSON scalar."
+type Measure {
+  "Name of the measure column (e.g. value, lower_bound, notes)"
+  name: String!
+  "Raw measure value, original type preserved"
+  value: JSON
+}
+
+"A single fact record from the fact table"
+type Fact {
+  "All measures of the row (every column with is_primary_key = false)"
+  measures: [Measure!]!
+  "Detailed dimension information including labels"
+  dimensionDetails: [DimensionDetail]
+}
+
+"Paginated response for fact queries"
+type PaginatedFacts {
+  "Array of fact records"
+  data: [Fact]
+  "Total number of records matching the query"
+  total: Int
+  "Whether there are more pages available"
+  hasNextPage: Boolean
+  "Current page number (1-indexed)"
+  currentPage: Int
+  "Total number of pages"
+  totalPages: Int
+}
+
+"Metadata about a dataset, useful for visualization"
+type DatasetMetadata {
+  "Number of records in current page"
+  count: Int!
+  "Min/max values for numeric columns"
+  extents: JSON
+  "Total number of records matching the query"
+  total: Int
+  "Whether there are more pages available"
+  hasNextPage: Boolean
+  "Current page number (1-indexed)"
+  currentPage: Int
+  "Total number of pages"
+  totalPages: Int
+  "ISO 8601 timestamp of when this query was executed"
+  generatedAt: String!
+}
+
+"D3-optimized data format with metadata"
+type DatasetWithMetadata {
+  "Column names in the dataset"
+  columns: [String!]!
+  "Raw data as JSON objects"
+  data: [JSON!]!
+  "Metadata about the dataset"
+  metadata: DatasetMetadata!
+}
+
+"Statistics for aggregated data"
+type AggregationStatistics {
+  mean: Float
+  median: Float
+  stdDev: Float
+  quartiles: [Float]
+}
+
+"Metadata for aggregated facts optimized for D3"
+type AggregatedFactsMetadata {
+  count: Int!
+  keyExtent: JSON
+  valueExtent: [Float!]!
+  statistics: AggregationStatistics
+  groupByFieldInfo: Metadata
+  "ISO 8601 timestamp of when this query was executed"
+  generatedAt: String!
+}
+
+"Aggregated facts with D3-optimized metadata"
+type AggregatedFactsWithMetadata {
+  data: [AggregatedFact!]!
+  metadata: AggregatedFactsMetadata!
+}
+
+"Custom scalar type for JSON objects"
+scalar JSON
+
+"Format de sérialisation des données pour getFactTableWithMetadata"
+enum DataFormat {
+  "Tableau d'objets [{col: val, ...}] — format par défaut, compatible D3 et DataTable"
+  OBJECTS
+  "Tableau de tableaux [[val1, val2, ...]] — plus compact, optimisé pour AG Grid / TanStack"
+  ARRAYS
+}
+
+type Metadata {
+  name: String
+  label: String
+  python_type: String
+  sql_type: String
+  is_categorical: Boolean
+  is_primary_key: Boolean
+}
+
+type GroupedSelectOptions {
+  group: [SelectOption!]!
+  options: [SelectOption!]!
+}
+
+"Informations sur un schéma au sein d'un catalogue (chargement à la demande)"
+type CatalogSchemaInfo {
+  "Nom du schéma DuckLake (ex: 'main', 'staging')"
+  name: String!
+  "Liste des champs et leurs métadonnées (chargé seulement si demandé)"
+  fields: [Metadata!]!
+  "Noms des dimensions catégorielles (chargé seulement si demandé)"
+  dimensionNames: [String!]!
+}
+
+"Informations sur un catalogue DuckLake disponible"
+type Catalog {
+  "Identifiant du catalogue"
+  id: String!
+  "Schéma utilisé par défaut quand aucun schéma n'est précisé (1er élément de schemas)"
+  defaultSchema: String!
+  "Schémas DuckLake hébergés par ce catalogue (1er = schéma par défaut)"
+  schemas: [CatalogSchemaInfo!]!
+}
+
+"Paire (catalogue, schéma) — schema null/absent utilise le schéma par défaut du catalogue"
+input CatalogSchemaInput {
+  "Identifiant du catalogue ciblé"
+  catalog: String!
+  "Nom du schéma ; absent ou null pour utiliser le schéma par défaut"
+  schema: String
+}
+
+"Comparaison d'une valeur entre deux catalogues sur une clé commune"
+type ComparedFact {
+  "Valeur de la clé commune (dimension de jointure)"
+  key: String!
+  "Label lisible de la clé (si dimension catégorielle)"
+  keyLabel: String
+  "Valeur dans le catalogue A"
+  valueA: Float
+  "Valeur dans le catalogue B"
+  valueB: Float
+  "Différence absolue (valueB - valueA)"
+  delta: Float
+  "Différence relative en % ((valueB - valueA) / valueA * 100)"
+  deltaPercent: Float
+}
+
+"Résultat paginé pour les comparaisons cross-database"
+type PaginatedComparedFacts {
+  data: [ComparedFact!]!
+  total: Int!
+  hasNextPage: Boolean!
+  currentPage: Int!
+  totalPages: Int!
+}

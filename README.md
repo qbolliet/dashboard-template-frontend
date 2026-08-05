@@ -48,14 +48,35 @@ Open [http://localhost:3000](http://localhost:3000) to see the result.
 
 ### Connecting to your data
 
-By default the template serves the local fixtures in `src/lib/api/fixtures/`.
-To query a real GraphQL API, copy `.env.example` to `.env.local` and set
-`NEXT_PUBLIC_API_URL` to your endpoint — see `.env.example` for details.
+`NEXT_PUBLIC_API_URL` is the single switch: `src/lib/api/client.js` picks the
+GraphQL or the fixture transport from it, and the `sources/` hooks are
+identical in all modes. Adding an operation means adding a document in
+`src/lib/api/documents/` and a resolver in `src/lib/api/transports/mock.js`
+(and, if it's one of the operations listed below, in
+`scripts/mock-api-server.js`).
 
-That variable is the single switch: `src/lib/api/client.js` picks the GraphQL
-or the fixture transport from it, and the `sources/` hooks are identical in
-both modes. Adding an operation means adding a document in
-`src/lib/api/documents/` and a resolver in `src/lib/api/transports/mock.js`.
+Three ways to run the app:
+
+| Command | Data source | When to use it |
+| --- | --- | --- |
+| `npm run dev` | In-memory fixtures (`src/lib/api/fixtures/`), no network call | Default — fastest inner loop, no server to keep alive |
+| `npm run dev:mock` | A real local GraphQL endpoint (`http://localhost:4000/graphql`) on the same fixtures | See the app talk to an actual GraphQL server — request/response cycle, network tab, pagination — without deploying the real API |
+| `npm run dev:api` | Your real API, via `NEXT_PUBLIC_API_URL` in `.env.local` | Final integration against live data |
+
+`dev:mock` runs `scripts/mock-api-server.js` (graphql-yoga +
+`@graphql-tools/mock`, serving the API's real schema — vendored at
+`scripts/schema.graphql` — mocked with `@graphql-tools/mock`) alongside
+`next dev` pointed at it. `getFactTableWithMetadata`, `getCatalogSchema`,
+`getSelectOptions` and `getGroupedSelectOptions` — the operations the
+template actually consumes — resolve to the same fixtures as `npm run dev`
+(and honor `limit` / `offset` / `sort`, so `<Table>`'s pagination is
+genuinely exercised); every other operation in the schema is auto-mocked
+with arbitrary but type-correct values. Run just the server on its own with
+`npm run mock:api`.
+
+To query your own API instead, copy `.env.example` to `.env.local` and set
+`NEXT_PUBLIC_API_URL` — see `.env.example` for details — then run
+`npm run dev`.
 
 ### Configuring the navigation
 
@@ -81,7 +102,10 @@ token conventions.
 
 ## Development commands
 
-- `npm run dev` — start the development server
+- `npm run dev` — start the development server (in-memory fixtures)
+- `npm run dev:mock` — start the dev server against a local mock GraphQL endpoint
+- `npm run dev:api` — start the dev server against `NEXT_PUBLIC_API_URL`
+- `npm run mock:api` — start just the mock GraphQL endpoint (`http://localhost:4000/graphql`)
 - `npm run lint` — lint the codebase with ESLint
 - `npm run check:palette` — verify design-system color palette consistency
 - `npm run verify` — run lint + palette check
