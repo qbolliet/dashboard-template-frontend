@@ -36,6 +36,7 @@
   --suggestions-item-padding-y: var(--spacing-sm);   // 0.5rem
   --suggestions-item-padding-x: var(--spacing-md);   // 0.75rem
   --suggestions-gap: var(--spacing-sm);              // Gap entre icône et texte
+  --suggestions-content-gap: var(--spacing-xs);      // Gap entre titre et description
   --suggestions-icon-size: var(--font-size-sm);      // Taille de l'icône dans les suggestions
   --suggestions-border-radius: var(--border-radius-md);
 }

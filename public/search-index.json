@@ -1,0 +1,86 @@
+[
+  {
+    "title": "Accueil",
+    "path": "/",
+    "type": "home",
+    "description": "Vue d'ensemble du tableau de bord et accès aux principaux indicateurs.",
+    "keywords": []
+  },
+  {
+    "title": "Comptabilité Nationale",
+    "path": "/comptabilite-nationale",
+    "type": "indicator_group",
+    "description": "Agrégats de la comptabilité nationale, par pays.",
+    "keywords": []
+  },
+  {
+    "title": "France",
+    "path": "/comptabilite-nationale/france",
+    "type": "indicator_group",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "PIB",
+    "path": "/comptabilite-nationale/france/pib",
+    "type": "indicator",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "Consommation",
+    "path": "/comptabilite-nationale/france/consommation",
+    "type": "indicator",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "Allemagne",
+    "path": "/comptabilite-nationale/allemagne",
+    "type": "indicator_group",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "PIB",
+    "path": "/comptabilite-nationale/allemagne/pib",
+    "type": "indicator",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "Consommation",
+    "path": "/comptabilite-nationale/allemagne/consommation",
+    "type": "indicator",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "Finances Publiques",
+    "path": "/finances-publiques",
+    "type": "indicator_group",
+    "description": "Recettes et dépenses des administrations publiques.",
+    "keywords": []
+  },
+  {
+    "title": "Recettes Publiques",
+    "path": "/finances-publiques/recettes-publiques",
+    "type": "indicator",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "Dépenses Publiques",
+    "path": "/finances-publiques/depenses-publiques",
+    "type": "indicator",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "À propos",
+    "path": "/about",
+    "type": "about",
+    "description": "Présentation du projet, sources des données et mentions légales.",
+    "keywords": []
+  }
+]

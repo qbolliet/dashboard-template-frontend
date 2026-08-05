@@ -30,12 +30,17 @@
 
   // ===== SUGGESTIONS - ITEMS =====
   --suggestion-text: var(--color-text-primary);
+  --suggestion-description-text: var(--color-text-tertiary);
   --suggestion-icon: var(--color-text-tertiary);
   --suggestion-separator: var(--color-gray-100);
 
   // ===== SUGGESTIONS - ÉTATS INTERACTIFS =====
   --suggestion-hover-bg: var(--color-gray-50);
   --suggestion-selected-bg: var(--color-primary-50);
+
+  // ===== SUGGESTIONS - SURLIGNAGE DU FRAGMENT CORRESPONDANT =====
+  --suggestion-highlight-bg: var(--color-primary-200);
+  --suggestion-highlight-text: var(--color-primary-900);
 }
 
 // ===== THÈME SOMBRE =====
@@ -60,4 +65,8 @@
   // ===== SUGGESTIONS - ÉTATS INTERACTIFS =====
   --suggestion-hover-bg: var(--color-gray-200);
   --suggestion-selected-bg: 211 80% 20%;  // Bleu sombre pour la sélection
+
+  // ===== SUGGESTIONS - SURLIGNAGE DU FRAGMENT CORRESPONDANT =====
+  --suggestion-highlight-bg: var(--color-primary-800);
+  --suggestion-highlight-text: var(--color-primary-50);
 }

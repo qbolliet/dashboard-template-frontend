@@ -152,26 +152,30 @@
 }
 
 // ===== SUGGESTION INDIVIDUELLE =====
+// C'est un <Link> (donc un <a>) : on repart d'un texte sans décoration ni
+// couleur de lien avant d'appliquer les styles propres au composant.
 .search-suggestion {
   display: flex;
   align-items: center;
   padding: var(--suggestions-item-padding-y) var(--suggestions-item-padding-x);
+  color: inherit;
+  text-decoration: none;
   cursor: pointer;
   transition: background-color var(--search-transition) ease;
   border-bottom: var(--search-border-width) solid hsl(var(--suggestion-separator));
-  
+
   &:last-child {
     border-bottom: none;
   }
-  
+
   &:hover {
     background-color: hsl(var(--suggestion-hover-bg));
   }
-  
+
   &.search-suggestion--selected {
     background-color: hsl(var(--suggestion-selected-bg));
   }
-  
+
   // Icône de la suggestion
   &__icon {
     margin-right: var(--suggestions-gap);
@@ -183,13 +187,41 @@
       height: var(--suggestions-icon-size);
     }
   }
-  
-  // Texte de la suggestion
-  &__text {
+
+  // Colonne titre + description
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--suggestions-content-gap);
+    flex: 1;
+    min-width: 0; // Autorise le troncage du texte dans une colonne flex
+  }
+
+  // Titre de la suggestion
+  &__title {
     color: hsl(var(--suggestion-text));
     font-size: var(--font-size-sm);
     line-height: var(--line-height-normal);
-    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // Description de la suggestion (facultative)
+  &__description {
+    color: hsl(var(--suggestion-description-text));
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-normal);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // Fragment correspondant à la requête, dans le titre ou la description
+  &__highlight {
+    background-color: hsl(var(--suggestion-highlight-bg));
+    color: hsl(var(--suggestion-highlight-text));
+    border-radius: var(--border-radius-sm);
   }
 }
 
