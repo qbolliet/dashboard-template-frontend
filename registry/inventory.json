@@ -1,8 +1,8 @@
 {
   "$comment": "Généré par scripts/build-inventory.js — ne pas éditer à la main.",
-  "generatedAt": "2026-08-05T16:48:51.746Z",
-  "unitCount": 51,
-  "fileCount": 415,
+  "generatedAt": "2026-08-05T20:29:15.705Z",
+  "unitCount": 53,
+  "fileCount": 434,
   "fanoutThreshold": 3,
   "units": {
     "accessible-icon": {
@@ -883,6 +883,123 @@
       "externalConfig": [],
       "warnings": []
     },
+    "docs": {
+      "type": "feature",
+      "distributable": true,
+      "roots": [
+        "src/features/docs"
+      ],
+      "clientBoundary": true,
+      "fileCount": 16,
+      "files": [
+        {
+          "path": "src/features/docs/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/docs/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/docs/components/DocsBreadcrumb/DocsBreadcrumb.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/DocsBreadcrumb/DocsBreadcrumb.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/docs/components/DocsHeader/DocsHeader.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/DocsHeader/DocsHeader.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/docs/components/DocsPagination/DocsPagination.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/DocsPagination/DocsPagination.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/docs/components/DocsShell/DocsShell.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/DocsShell/DocsShell.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/docs/components/DocsSidebar/DocsSidebar.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/DocsSidebar/DocsSidebar.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/docs/components/DocsToc/DocsToc.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/DocsToc/DocsToc.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/docs/constants.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/features/docs/index.js",
+          "kind": "barrel"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "skip-link",
+        "styles-app",
+        "theme",
+        "tokens-global",
+        "utils-navigation",
+        "utils-url"
+      ],
+      "internalCode": [
+        "skip-link",
+        "theme",
+        "utils-navigation",
+        "utils-url"
+      ],
+      "internalTokens": [
+        "styles-app",
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "icons",
+        "skip-link",
+        "styles-app",
+        "theme",
+        "tokens-global",
+        "utils-navigation",
+        "utils-url"
+      ],
+      "styleGlobals": [
+        "src/styles/globals/typography.scss",
+        "src/styles/pages/_api-table.scss",
+        "src/styles/utils/breakpoints.scss"
+      ],
+      "assets": [
+        "/logo.svg"
+      ],
+      "externalConfig": [
+        "config/site.config.json"
+      ],
+      "warnings": []
+    },
     "filter": {
       "type": "feature",
       "distributable": true,
@@ -1121,14 +1238,18 @@
       "npmAsyncOnly": [],
       "asyncOnlyFiles": [],
       "internal": [
-        "tokens-global"
+        "tokens-global",
+        "utils-url"
       ],
-      "internalCode": [],
+      "internalCode": [
+        "utils-url"
+      ],
       "internalTokens": [
         "tokens-global"
       ],
       "internalResolved": [
-        "tokens-global"
+        "tokens-global",
+        "utils-url"
       ],
       "styleGlobals": [
         "src/styles/globals/tokens/semantic-colors.scss",
@@ -1256,7 +1377,8 @@
         "toolbar-tools",
         "utils-accessibility",
         "utils-html",
-        "utils-math"
+        "utils-math",
+        "utils-url"
       ],
       "internalCode": [
         "hover-toolbar",
@@ -1264,7 +1386,8 @@
         "toolbar-tools",
         "utils-accessibility",
         "utils-html",
-        "utils-math"
+        "utils-math",
+        "utils-url"
       ],
       "internalTokens": [
         "globe-tokens",
@@ -1281,7 +1404,8 @@
         "toolbar-tools",
         "utils-accessibility",
         "utils-html",
-        "utils-math"
+        "utils-math",
+        "utils-url"
       ],
       "styleGlobals": [],
       "assets": [
@@ -1573,14 +1697,16 @@
         "icons",
         "theme",
         "tokens-global",
-        "utils-math"
+        "utils-math",
+        "utils-url"
       ],
       "internalCode": [
         "common",
         "hooks-accessibility",
         "icons",
         "theme",
-        "utils-math"
+        "utils-math",
+        "utils-url"
       ],
       "internalTokens": [
         "header-tokens",
@@ -1597,6 +1723,7 @@
         "tokens-global",
         "utils-accessibility",
         "utils-math",
+        "utils-url",
         "visually-hidden"
       ],
       "styleGlobals": [
@@ -1690,17 +1817,20 @@
       "asyncOnlyFiles": [],
       "internal": [
         "large-button",
-        "tokens-global"
+        "tokens-global",
+        "utils-url"
       ],
       "internalCode": [
-        "large-button"
+        "large-button",
+        "utils-url"
       ],
       "internalTokens": [
         "tokens-global"
       ],
       "internalResolved": [
         "large-button",
-        "tokens-global"
+        "tokens-global",
+        "utils-url"
       ],
       "styleGlobals": [
         "src/styles/globals/tokens/semantic-colors.scss",
@@ -2141,14 +2271,18 @@
       "npmAsyncOnly": [],
       "asyncOnlyFiles": [],
       "internal": [
-        "tokens-global"
+        "tokens-global",
+        "utils-url"
       ],
-      "internalCode": [],
+      "internalCode": [
+        "utils-url"
+      ],
       "internalTokens": [
         "tokens-global"
       ],
       "internalResolved": [
-        "tokens-global"
+        "tokens-global",
+        "utils-url"
       ],
       "styleGlobals": [
         "src/styles/globals/tokens/semantic-colors.scss",
@@ -2199,7 +2333,8 @@
       "internalResolved": [
         "card-grid",
         "link-card",
-        "tokens-global"
+        "tokens-global",
+        "utils-url"
       ],
       "styleGlobals": [
         "src/styles/globals/tokens/semantic-colors.scss",
@@ -2338,6 +2473,7 @@
         "utils-accessibility",
         "utils-format",
         "utils-math",
+        "utils-url",
         "visually-hidden"
       ],
       "styleGlobals": [
@@ -3292,6 +3428,7 @@
         "tabs",
         "tokens-global",
         "utils-format",
+        "utils-url",
         "visually-hidden"
       ],
       "styleGlobals": [],
@@ -3340,7 +3477,7 @@
         "src/utils/format"
       ],
       "clientBoundary": false,
-      "fileCount": 2,
+      "fileCount": 3,
       "files": [
         {
           "path": "src/utils/format/constants.js",
@@ -3348,6 +3485,10 @@
         },
         {
           "path": "src/utils/format/formatNumber.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/format/slugify.js",
           "kind": "util"
         }
       ],
@@ -3428,8 +3569,12 @@
         "src/utils/navigation"
       ],
       "clientBoundary": false,
-      "fileCount": 3,
+      "fileCount": 4,
       "files": [
+        {
+          "path": "src/utils/navigation/basePaths.js",
+          "kind": "util"
+        },
         {
           "path": "src/utils/navigation/findNodeByPath.js",
           "kind": "util"
@@ -3440,6 +3585,32 @@
         },
         {
           "path": "src/utils/navigation/resolveNavigationTree.js",
+          "kind": "util"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [],
+      "internalCode": [],
+      "internalTokens": [],
+      "internalResolved": [],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "utils-url": {
+      "type": "lib",
+      "distributable": true,
+      "roots": [
+        "src/utils/url"
+      ],
+      "clientBoundary": false,
+      "fileCount": 1,
+      "files": [
+        {
+          "path": "src/utils/url/withBasePath.js",
           "kind": "util"
         }
       ],
@@ -3514,6 +3685,19 @@
         ]
       },
       {
+        "unit": "globe",
+        "count": 7,
+        "dependencies": [
+          "hover-toolbar",
+          "theme",
+          "toolbar-tools",
+          "utils-accessibility",
+          "utils-html",
+          "utils-math",
+          "utils-url"
+        ]
+      },
+      {
         "unit": "pages",
         "count": 7,
         "dependencies": [
@@ -3540,15 +3724,15 @@
         ]
       },
       {
-        "unit": "globe",
+        "unit": "header",
         "count": 6,
         "dependencies": [
-          "hover-toolbar",
+          "common",
+          "hooks-accessibility",
+          "icons",
           "theme",
-          "toolbar-tools",
-          "utils-accessibility",
-          "utils-html",
-          "utils-math"
+          "utils-math",
+          "utils-url"
         ]
       },
       {
@@ -3575,17 +3759,6 @@
         ]
       },
       {
-        "unit": "header",
-        "count": 5,
-        "dependencies": [
-          "common",
-          "hooks-accessibility",
-          "icons",
-          "theme",
-          "utils-math"
-        ]
-      },
-      {
         "unit": "select-menu",
         "count": 5,
         "dependencies": [
@@ -3605,6 +3778,16 @@
           "hover-toolbar",
           "icons",
           "utils-format"
+        ]
+      },
+      {
+        "unit": "docs",
+        "count": 4,
+        "dependencies": [
+          "skip-link",
+          "theme",
+          "utils-navigation",
+          "utils-url"
         ]
       }
     ]
@@ -3627,9 +3810,13 @@
     ],
     "phantomDependencies": [],
     "orphanDependencies": [
+      "@mdx-js/loader",
+      "@mdx-js/react",
+      "@next/mdx",
       "@visx/clip-path",
       "@visx/group",
-      "graphql"
+      "graphql",
+      "remark-frontmatter"
     ],
     "fixtures": [
       {
@@ -3646,6 +3833,11 @@
       }
     ],
     "externalConfig": [
+      {
+        "unit": "docs",
+        "file": "src/features/docs/components/DocsHeader/DocsHeader.jsx",
+        "target": "config/site.config.json"
+      },
       {
         "unit": "home",
         "file": "src/features/home/data/homeConfig.js",

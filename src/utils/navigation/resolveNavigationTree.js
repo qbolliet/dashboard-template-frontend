@@ -31,7 +31,12 @@ const joinPath = (parentPath, childPath) => {
     // distinguer lien externe et non-lien. Le schéma les interdit aujourd'hui, mais
     // <Header> accepte aussi un arbre construit à la main.
     if (!childPath.startsWith('/')) return childPath;
-    if (childPath === '/') return '/';
+    // Le nœud racine du manifeste HÉRITE du chemin de son parent — c'est ce qui permet
+    // de monter tout l'arbre sous un préfixe (/demo) en ne changeant qu'un argument à
+    // l'appel. Renvoyer '/' en dur avalait ce préfixe pour le seul nœud d'accueil, et
+    // le laissait donc en collision avec la racine du site de documentation.
+    // Quand parentPath vaut '/' (cas historique), le résultat est inchangé.
+    if (childPath === '/') return parentPath;
     // Racine traitée à part, sinon '/' + '/pib' donnerait '//pib'.
     return (parentPath === '/' ? '' : parentPath) + childPath;
 };
@@ -43,7 +48,10 @@ const joinPath = (parentPath, childPath) => {
  * The input is left untouched.
  *
  * @param {Array<Object>} tree - Navigation tree as declared in the site manifest.
- * @param {string} [parentPath='/'] - Absolute path inherited from the parent node.
+ * @param {string} [parentPath='/'] - Absolute path inherited from the parent node. At the
+ *   top level this doubles as the MOUNT POINT of the whole tree: passing `DEMO_BASE_PATH`
+ *   (see ./basePaths.js) is what moves the entire application under /demo, the root node
+ *   included.
  * @returns {Array<Object>} The same tree with absolute paths.
  */
 export const resolveNavigationTree = (tree = [], parentPath = '/') =>

@@ -46,6 +46,13 @@ next-env.d.ts
 /public/r/
 /registry/__registry__.js
 
+# documentation (généré par scripts/build-docs-index.js, cf. scripts dev / prebuild)
+/docs/__docs__.js
+/docs/__docs-pages__.js
+
+# vérification de l'export statique sous sous-chemin (cf. npm run build:docs)
+/tmp/
+
 # claude
 CLAUDE.md
 DESIGN_SYSTEM.md

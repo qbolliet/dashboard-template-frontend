@@ -1,0 +1,66 @@
+// ===== TOKENS DE COULEURS DE LA FEATURE DOCS =====
+// Couleurs du chrome de documentation. Toutes dérivent des rôles sémantiques globaux
+// (src/styles/globals/tokens/) : la documentation est aussi une DÉMONSTRATION du
+// système de tokens, elle ne doit donc introduire aucune valeur brute — un tiers qui
+// change la palette doit voir le site de doc changer avec.
+
+:root {
+  // ===== BARRE SUPÉRIEURE =====
+  --docs-header-bg: var(--color-surface);
+  --docs-header-border: var(--color-border);
+  --docs-header-link-color: var(--color-text-primary);
+  --docs-header-link-hover-color: var(--color-primary-500);
+  --docs-header-badge-bg: var(--color-primary-50);
+  --docs-header-badge-color: var(--color-primary-500);
+  // Le fichier logo.svg est sombre : inversé en thème clair, intact en sombre.
+  --docs-header-logo-filter: invert(100%);
+
+  // ===== SIDEBAR =====
+  --docs-sidebar-bg: var(--color-background);
+  --docs-sidebar-border: var(--color-border);
+  --docs-sidebar-section-color: var(--color-text-primary);
+  --docs-sidebar-link-color: var(--color-text-tertiary);
+  --docs-sidebar-link-hover-color: var(--color-text-primary);
+  --docs-sidebar-link-hover-bg: var(--color-gray-100);
+  --docs-sidebar-link-active-color: var(--color-primary-500);
+  --docs-sidebar-link-active-bg: var(--color-primary-50);
+
+  // ===== SOMMAIRE =====
+  --docs-toc-title-color: var(--color-text-secondary);
+  --docs-toc-link-color: var(--color-text-tertiary);
+  --docs-toc-link-hover-color: var(--color-text-primary);
+  --docs-toc-link-active-color: var(--color-primary-500);
+  --docs-toc-rail-color: var(--color-border);
+
+  // ===== FIL D'ARIANE =====
+  --docs-breadcrumb-color: var(--color-text-tertiary);
+  --docs-breadcrumb-separator-color: var(--color-border);
+  --docs-breadcrumb-current-color: var(--color-text-secondary);
+
+  // ===== PROSE =====
+  --docs-prose-color: var(--color-text-secondary);
+  --docs-prose-heading-color: var(--color-text-primary);
+  --docs-prose-link-color: var(--color-primary-500);
+  --docs-prose-border: var(--color-border);
+  --docs-prose-code-bg: var(--color-gray-100);
+  --docs-prose-code-color: var(--color-text-primary);
+  --docs-prose-muted-color: var(--color-text-tertiary);
+
+  // ===== PAGINATION =====
+  --docs-pagination-border: var(--color-border);
+  --docs-pagination-label-color: var(--color-text-tertiary);
+  --docs-pagination-title-color: var(--color-text-primary);
+  --docs-pagination-hover-border: var(--color-primary-500);
+}
+
+// ===== THÈME SOMBRE =====
+// Seuls les rôles dont le contraste ne suit pas automatiquement sont redéfinis : les
+// autres héritent de la bascule des tokens sémantiques globaux.
+[data-theme="dark"] {
+  --docs-header-link-hover-color: var(--color-white);
+  --docs-header-badge-bg: 211 80% 20%;
+  --docs-header-logo-filter: none;
+  --docs-sidebar-link-hover-bg: var(--color-gray-200);
+  --docs-sidebar-link-active-bg: 211 80% 20%;
+  --docs-prose-code-bg: var(--color-gray-200);
+}

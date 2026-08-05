@@ -24,10 +24,14 @@ const JsxParser = Parser.extend(jsx());
 
 const PROJECT_ROOT = path.resolve(__dirname, '..', '..');
 
-// Alias déclarés dans tsconfig.json (paths). `@config/` pointe hors de src/.
+// Alias déclarés dans tsconfig.json (paths). `@config/` et `@docs/` pointent hors de src/.
+// Cette liste doit rester le miroir de `compilerOptions.paths` : un alias manquant ici est
+// pris pour un paquet npm et remonte en « npm fantôme » dans les diagnostics.
 const ALIASES = [
   { prefix: '@/', target: 'src/' },
   { prefix: '@config/', target: 'config/' },
+  { prefix: '@docs/', target: 'docs/' },
+  { prefix: '@registry/', target: 'registry/' },
 ];
 
 const JS_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.cjs', '.json'];

@@ -8,6 +8,7 @@ import SidebarSwitcher from '../SidebarSwitcher/SidebarSwitcher';
 import SidebarMenu from '../SidebarMenu/SidebarMenu';
 import { useFocusTrap, useAriaAnnounce } from '@/hooks/accessibility';
 import { hasIconsInNavigationData } from '@/features/header/utils/hasIconsInNavigationData';
+import { withBasePath } from '@/utils/url/withBasePath';
 import './NavigationSideBar.scss';
 
 // Context pour gérer l'état de la sidebar
@@ -219,7 +220,7 @@ const NavigationSideBar = ({
                         isOpen && (
                             <div className="sidebar-logo-container">
                                 <Image
-                                    src='/logo.svg'
+                                    src={withBasePath('/logo.svg')}
                                     alt="Logo du site"
                                     width={40}
                                     height={40}

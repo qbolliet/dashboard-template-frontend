@@ -16,6 +16,7 @@ import { markerHtml } from '../components/GlobeMarkers/markerTemplate';
 import { arcTooltipHtml, pointTooltipHtml } from '../components/GlobeTooltip/tooltipTemplates';
 import { clamp } from '@/utils/math/clamp';
 import { lerp } from '@/utils/math/lerp';
+import { withBasePath } from '@/utils/url/withBasePath';
 
 // ===== Globe — moteur Three.js =====
 // Rendu réaliste jour/nuit, morphing globe ↔ planisphère, arcs, points overlay.
@@ -63,10 +64,14 @@ const GLOBE_LAT_LIMIT = 84 * DEG;
 const _starColor = new THREE.Color();
 
 /* ---- Textures Terre auto-hébergées (jour, lumières nocturnes, spéculaire) ---- */
+// withBasePath est indispensable ici : ces URL sont consommées par le TextureLoader de
+// three.js, entièrement HORS de Next — rien ne leur ajoute le sous-chemin de
+// déploiement (/<dépôt> sur GitHub Pages) automatiquement, contrairement à next/image.
+// Sans ce préfixe le globe reste noir une fois déployé, et jamais en local.
 const TEX = {
-  day: '/globe/earth-day.jpg',
-  night: '/globe/earth-night.png',
-  spec: '/globe/earth-specular.jpg',
+  day: withBasePath('/globe/earth-day.jpg'),
+  night: withBasePath('/globe/earth-night.png'),
+  spec: withBasePath('/globe/earth-specular.jpg'),
 };
 
 class GlobeEngine {

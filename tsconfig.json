@@ -31,6 +31,9 @@
       ],
       "@registry/*": [
         "./registry/*"
+      ],
+      "@docs/*": [
+        "./docs/*"
       ]
     }
   },

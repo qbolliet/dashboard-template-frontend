@@ -4,63 +4,78 @@ import siteConfig from '@config/site.config.json';
 import { resolveNavigationTree } from '@/utils/navigation/resolveNavigationTree';
 import { flattenNavigation } from '@/utils/navigation/flattenNavigation';
 import { findNodeByPath } from '@/utils/navigation/findNodeByPath';
+import { DEMO_BASE_PATH } from '@/utils/navigation/basePaths';
 import { PAGE_TYPES } from '@/config/pageTypes';
 
 // =================================================================
-// ROUTE ATTRAPE-TOUT — toutes les pages du site, générées depuis le manifeste
+// ROUTE ATTRAPE-TOUT — toutes les pages de la démo, générées depuis le manifeste
 // =================================================================
-// Il n'y a plus de dossier de page par URL : l'arbre de config/site.config.json est
+// Il n'y a pas de dossier de page par URL : l'arbre de config/site.config.json est
 // aplati en chemins par generateStaticParams(), et le `type` de chaque nœud est
 // résolu en gabarit par src/config/pageTypes.js. Ajouter une page = ajouter un nœud.
 //
-// Le catch-all est OPTIONNEL (`[[...slug]]`) pour couvrir aussi la racine « / ».
-// Conséquence à connaître : Next refuse alors la coexistence d'un src/app/page.tsx
-// (erreur E925, « same specificity as an optional catch-all »), qui a donc été
-// supprimé au profit du gabarit `home`.
+// Le catch-all est OPTIONNEL (`[[...slug]]`) pour couvrir aussi la racine de la démo,
+// /demo elle-même.
 //
-// Les routes physiques restantes (src/app/test-*, src/app/filter-primitives) restent
-// prioritaires sur cette route : un segment statique l'emporte toujours sur un
-// segment dynamique.
+// MONTÉE SOUS /demo (P4.2) : la racine du déploiement appartient désormais au site de
+// documentation (src/app/(docs)/), et l'application de démonstration vit sous /demo.
+// Le manifeste ignore complètement ce déplacement — c'est le segment statique `demo/`
+// de cette route, plus le DEMO_BASE_PATH passé à resolveNavigationTree, qui le
+// réalisent. Les deux doivent rester en phase.
+//
+// Un segment statique l'emporte toujours sur un segment dynamique : cette route gagne
+// donc sur (docs)/[[...slug]] pour tout ce qui commence par /demo, exactement comme
+// les routes physiques restantes (src/app/(site)/test-*, filter-primitives) gagnent
+// sur les deux.
 
 // Résolu au niveau module : les `path` du manifeste sont relatifs à leur parent, tout
-// le reste de ce fichier raisonne en chemins absolus.
-const tree = resolveNavigationTree(siteConfig.navigation.tree);
-
-// TODO(P4.6) — à supprimer avec src/app/filter-primitives/.
-// Ce nœud a encore une route physique : le laisser dans generateStaticParams ferait
-// prérendre deux pages différentes vers la même URL. C'est la seule entorse au
-// principe « un nœud = une page générée ».
-const PHYSICAL_ROUTES = new Set(['/filter-primitives']);
+// le reste de ce fichier raisonne en chemins absolus, déjà préfixés par /demo.
+const tree = resolveNavigationTree(siteConfig.navigation.tree, DEMO_BASE_PATH);
 
 // Le HTML est figé au build puis régénéré en arrière-plan toutes les heures. Sans
 // cela, un build lancé pendant une indisponibilité de l'API figerait un rendu dégradé
-// jusqu'au prochain déploiement.
+// jusqu'au prochain déploiement. Sans effet à l'export statique, qui n'a pas de
+// serveur pour régénérer quoi que ce soit — mais sans effet NÉFASTE non plus : seul
+// `revalidate = 0` (rendu dynamique) y serait rejeté.
 export const revalidate = 3600;
 
-// `dynamicParams` reste à son défaut (true) : un chemin non listé ci-dessous est rendu
-// à la demande, ne trouve pas de nœud et appelle notFound(), ce qui produit un vrai
-// 404. À passer à false si le template est un jour exporté en statique
-// (`output: 'export'`), incompatible avec la valeur par défaut.
+// Export statique oblige : un chemin absent de generateStaticParams n'est pas rendu à
+// la demande — il n'y a pas de serveur pour le produire — et sert le 404 global.
+// C'est le comportement que le notFound() ci-dessous produisait déjà côté serveur.
+export const dynamicParams = false;
 
 /**
  * Rebuilds the absolute path from the catch-all segments.
  *
- * @param {string[]} [slug] - Path segments. `undefined` at the root — the optional
+ * The segments are relative to /demo, the static parent segment of this route, whereas
+ * the resolved tree carries /demo-prefixed absolute paths — d'où le préfixe rajouté ici.
+ *
+ * @param {string[]} [slug] - Path segments. `undefined` at the demo root — the optional
  *   catch-all passes no parameter there.
- * @returns {string} The absolute path, '/' at the root.
+ * @returns {string} The absolute path, DEMO_BASE_PATH at the demo root.
  */
-const toPath = (slug) => '/' + (slug ?? []).join('/');
+const toPath = (slug) => DEMO_BASE_PATH + (slug?.length ? `/${slug.join('/')}` : '');
+
+/**
+ * Strips the /demo prefix off an absolute node path, back to route segments.
+ *
+ * @param {string} path - Absolute path of a manifest node.
+ * @returns {string[]} The catch-all segments, empty at the demo root.
+ */
+const toSegments = (path) => {
+    const relative = path.slice(DEMO_BASE_PATH.length);
+
+    return relative === '' ? [] : relative.slice(1).split('/');
+};
 
 /**
  * Enumerates every page of the manifest as a route parameter set.
  *
- * @returns {Promise<Array<{slug: string[]}>>} One entry per navigable node. The root
- *   is `{ slug: [] }` — omitting the key entirely would fail the build.
+ * @returns {Promise<Array<{slug: string[]}>>} One entry per navigable node. The demo
+ *   root is `{ slug: [] }` — omitting the key entirely would fail the build.
  */
 export const generateStaticParams = async () =>
-    flattenNavigation(tree)
-        .filter((node) => !PHYSICAL_ROUTES.has(node.path))
-        .map((node) => ({ slug: node.path === '/' ? [] : node.path.slice(1).split('/') }));
+    flattenNavigation(tree).map((node) => ({ slug: toSegments(node.path) }));
 
 /**
  * Derives the page metadata from its manifest node.

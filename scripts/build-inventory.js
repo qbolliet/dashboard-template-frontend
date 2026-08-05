@@ -170,6 +170,10 @@ const UNIT_DEFINITIONS = [
   // Le registre type -> composant vit dans src/config/pageTypes.js, hors des
   // racines balayées : c'est du câblage applicatif, au même titre que src/app/.
   { name: 'pages', type: 'feature', roots: ['src/features/pages'] },
+  // Chrome du site de documentation. Déclarée pour que l'inventaire connaisse ces
+  // fichiers (sinon ils remontent en `unownedFiles`), mais NON publiée : elle figure
+  // dans EXCLUDED_UNITS de build-registry.js.
+  { name: 'docs', type: 'feature', roots: ['src/features/docs'] },
 
   // ---- Couches partagées ---------------------------------------------------
   { name: 'hooks-accessibility', type: 'lib', roots: ['src/hooks/accessibility'] },
@@ -181,6 +185,11 @@ const UNIT_DEFINITIONS = [
   { name: 'utils-html', type: 'lib', roots: ['src/utils/html'] },
   { name: 'utils-math', type: 'lib', roots: ['src/utils/math'] },
   { name: 'utils-navigation', type: 'lib', roots: ['src/utils/navigation'] },
+  // Préfixe de déploiement. Unité minuscule mais OBLIGATOIRE : globe, header et home
+  // l'importent, et sans elle la CLI installerait chez un tiers un import cassé — que
+  // `npm run verify` ne détecterait pas (inventaire et registry resteraient cohérents
+  // entre eux). Cf. §7 du plan P4.2.
+  { name: 'utils-url', type: 'lib', roots: ['src/utils/url'] },
 
   // Client API : transport unique de toutes les sources de données (documents
   // GraphQL, transports API/fixtures). Consommé par les `sources/` des features.

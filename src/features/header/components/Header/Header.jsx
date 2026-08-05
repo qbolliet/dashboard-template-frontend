@@ -15,6 +15,7 @@ import ThemeToggleButton from '@/features/theme/components/ThemeToggleButton/The
 import { SkipLink } from '@/components/common';
 import NavigationProvider from '../../providers/NavigationProvider';
 import { hasIconsInNavigationData } from '../../utils/hasIconsInNavigationData';
+import { withBasePath } from '@/utils/url/withBasePath';
 import './Header.scss';
 
 /**
@@ -28,6 +29,11 @@ import './Header.scss';
  * @param {string} [props.navigationType='topbar'] - Type of navigation ('topbar' or 'sidebar')
  * @param {boolean} [props.useSwitcher=false] - Whether to use switcher in sidebar mode
  * @param {string} [props.currentPageTitle] - Title of current page (for sidebar breadcrumb)
+ * @param {string} [props.homeHref='/'] - Destination of the logo link. Defaults to the site
+ *   root, which is what a third party installing this item from the registry expects; this
+ *   repository mounts its demo application under /demo and therefore passes that value from
+ *   `src/app/(site)/layout.jsx`. Not to be confused with the deployment base path, which
+ *   `next/link` adds on top of this value by itself.
  * @returns {JSX.Element} The rendered header component
  */
 const Header = ({
@@ -35,7 +41,8 @@ const Header = ({
     onNavigationItemClick,
     navigationType = 'topbar',
     useSwitcher = false,
-    currentPageTitle
+    currentPageTitle,
+    homeHref = '/'
 }) => {
     // État pour la sidebar (si mode sidebar)
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -138,8 +145,8 @@ const Header = ({
                     ) : (
                         <>
                             {/* Logo de l'application */}
-                            <Link href="/" className="logo-link">
-                                <Image src='/logo.svg' alt="Logo du site" className="logo" width={40} height={40} />
+                            <Link href={homeHref} className="logo-link">
+                                <Image src={withBasePath('/logo.svg')} alt="Logo du site" className="logo" width={40} height={40} />
                             </Link>
 
                             {/* Navigation principale */}

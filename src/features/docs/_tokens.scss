@@ -1,0 +1,84 @@
+// ===== TOKENS DE LA FEATURE DOCS =====
+// Métrique du chrome du site de documentation, partagée entre DocsShell, DocsHeader,
+// DocsSidebar, DocsToc, DocsBreadcrumb et DocsPagination.
+//
+// Ces tokens vivent tous au niveau de la FEATURE et non par composant : la
+// documentation est une grille unique à trois colonnes, et ses trois largeurs se
+// répondent — les séparer par composant obligerait chaque fichier à connaître les
+// deux autres. Un token strictement local à un composant irait, lui, dans
+// features/docs/components/[Composant]/_tokens.scss (cf. SearchBar dans header/).
+
+@use '@/styles/utils/breakpoints' as *;
+
+:root {
+  // ===== BARRE SUPÉRIEURE =====
+  // Même hauteur que le header de l'application (--header-height, 4rem) : les deux
+  // surfaces du dépôt doivent avoir le même bandeau, c'est ce qui les fait lire comme
+  // un seul site. La valeur est REDÉCLARÉE et non référencée : la feature header n'est
+  // pas chargée dans la branche (docs), qui ne rend pas <Header> — un var() vers ses
+  // tokens s'y résoudrait à vide.
+  --docs-header-height: 4rem;
+  --docs-header-padding-x: var(--spacing-3xl);
+  --docs-header-gap: var(--spacing-2xl);
+
+  // ===== GRILLE À TROIS COLONNES =====
+  // sidebar | contenu | sommaire. Le contenu est la seule colonne élastique.
+  --docs-sidebar-width: 17rem;
+  --docs-toc-width: 14rem;
+  // Largeur de lecture : ~70 caractères, la mesure au-delà de laquelle l'œil perd sa
+  // ligne. C'est le seul token qu'un tiers a de bonnes raisons de vouloir changer.
+  --docs-content-max-width: 46rem;
+  --docs-content-padding-x: var(--spacing-3xl);
+  --docs-content-padding-y: var(--spacing-4xl);
+
+  // ===== SIDEBAR =====
+  --docs-sidebar-padding: var(--spacing-lg);
+  --docs-sidebar-gap: var(--spacing-2xl);
+  --docs-sidebar-item-padding-y: var(--spacing-xs);
+  --docs-sidebar-item-padding-x: var(--spacing-sm);
+  --docs-sidebar-item-radius: var(--border-radius-md);
+  // Épaisseur du filet marquant l'entrée courante, réutilisé par le sommaire.
+  --docs-marker-width: var(--spacing-2px);
+
+  // ===== SOMMAIRE =====
+  --docs-toc-gap: var(--spacing-xs);
+  // Décalage des titres de niveau 3 sous leur h2.
+  --docs-toc-indent: var(--spacing-md);
+
+  // ===== PROSE =====
+  // Rythme vertical du contenu rédigé. Une seule valeur pilote l'espacement entre
+  // blocs ; les marges de titres en dérivent plutôt que d'être déclarées une à une.
+  --docs-prose-rhythm: var(--spacing-lg);
+  --docs-prose-line-height: var(--line-height-relaxed);
+  --docs-prose-code-padding: var(--spacing-2px) var(--spacing-xs);
+  --docs-prose-code-radius: var(--border-radius-sm);
+  --docs-prose-pre-padding: var(--spacing-lg);
+
+  // ===== FIL D'ARIANE ET PAGINATION =====
+  --docs-breadcrumb-gap: var(--spacing-xs);
+  --docs-pagination-gap: var(--spacing-lg);
+  --docs-pagination-padding: var(--spacing-lg);
+  --docs-pagination-radius: var(--border-radius-lg);
+
+  // ===== Z-INDEX =====
+  --docs-header-z-index: var(--z-sticky);
+}
+
+// ===== RESPONSIVE =====
+
+// Tablette : le sommaire disparaît, la grille passe à deux colonnes.
+@include breakpoint-down('large') {
+  :root {
+    --docs-content-padding-x: var(--spacing-2xl);
+  }
+}
+
+// Mobile : la sidebar passe en accordéon au-dessus du contenu (cf. DocsShell.scss).
+@include breakpoint-down('medium') {
+  :root {
+    --docs-header-padding-x: var(--spacing-lg);
+    --docs-content-padding-x: var(--spacing-lg);
+    --docs-content-padding-y: var(--spacing-2xl);
+    --docs-sidebar-width: 100%;
+  }
+}

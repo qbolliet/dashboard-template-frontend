@@ -2,18 +2,23 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.scss";
-import Header from '@/features/header/components/Header/Header';
 import ThemeProvider from '@/features/theme/providers/ThemeProvider';
 import siteConfig from '@config/site.config.json';
-import Footer from '@/features/footer/components/Footer/Footer';
 import SWRProvider from './providers';
-import { resolveNavigationTree } from '@/utils/navigation/resolveNavigationTree';
 
-// Les `path` du manifeste sont relatifs à leur parent : on les résout en chemins
-// absolus ICI, une seule fois et au niveau module (pas par rendu). C'est la seule
-// frontière où cette concaténation a lieu — toute la navigation en aval, et la
-// route attrape-tout, ne manipulent plus que des chemins absolus.
-const navigationTree = resolveNavigationTree(siteConfig.navigation.tree);
+// =================================================================
+// LAYOUT RACINE — coquille commune aux DEUX surfaces du dépôt
+// =================================================================
+// Depuis P4.2 le dépôt sert deux choses à des racines différentes, et ce layout ne
+// contient donc plus que ce qu'elles partagent réellement : le document, les polices,
+// le script anti-FOUC et les providers.
+//
+//   src/app/(docs)/  → le site de DOCUMENTATION, à la racine ('/'), avec son propre
+//                      chrome (barre supérieure, sidebar de sections, sommaire).
+//   src/app/(site)/  → l'APPLICATION de démonstration, sous /demo, avec <Header> et
+//                      <Footer> — qui vivent désormais dans (site)/layout.jsx.
+//
+// Aucun <main> ici : chaque branche pose le sien (cf. les en-têtes des deux layouts).
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +47,7 @@ export const metadata: Metadata = {
 // <head>, AVANT le premier paint et l'hydratation React. Il résout le thème (localStorage puis
 // préférence système) et pose data-theme sur <html> pour éviter tout flash clair → sombre.
 // ThemeProvider relira ensuite cet attribut comme source unique de vérité.
+// Inline et sans URL : le sous-chemin de déploiement (basePath) ne peut donc pas le casser.
 const themeInitScript = `(function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
 
 export default function RootLayout({
@@ -61,15 +67,7 @@ export default function RootLayout({
       >
         <SWRProvider>
           <ThemeProvider>
-            {/* Header piloté par config/site.config.json : disposition, sélecteur et arbre
-                de navigation viennent tous du manifeste (JSON sérialisable passé au client) */}
-            <Header
-                navigationData={navigationTree}
-                navigationType={siteConfig.navigation.type}
-                useSwitcher={siteConfig.navigation.useSwitcher}
-            />
             {children}
-            <Footer copyrightText="© 2025 Dashboard Template" />
           </ThemeProvider>
         </SWRProvider>
       </body>

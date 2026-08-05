@@ -1,0 +1,193 @@
+// ===== IMPORTS =====
+@use '@/styles/utils/breakpoints' as *;
+@use '@/styles/globals/typography';
+@use '@/styles/pages/api-table';
+@use '../../_colors';
+@use '../../_tokens';
+
+// =================================================================
+// GRILLE
+// =================================================================
+.docs-shell {
+  min-height: 100vh;
+  background-color: hsl(var(--color-background));
+}
+
+.docs-shell__body {
+  display: grid;
+  // Trois colonnes : sidebar | contenu | sommaire. Seule la colonne centrale est
+  // élastique — les deux latérales sont des repères, leur largeur ne doit pas bouger.
+  grid-template-columns: var(--docs-sidebar-width) minmax(0, 1fr) var(--docs-toc-width);
+  align-items: start;
+}
+
+.docs-shell__sidebar {
+  // Collée sous le bandeau, qui est lui-même collant : d'où le décalage et la hauteur
+  // calculés à partir de sa hauteur.
+  position: sticky;
+  top: var(--docs-header-height);
+  max-height: calc(100vh - var(--docs-header-height));
+  overflow-y: auto;
+  border-right: 1px solid hsl(var(--docs-sidebar-border));
+  background-color: hsl(var(--docs-sidebar-bg));
+}
+
+.docs-shell__main {
+  width: 100%;
+  max-width: var(--docs-content-max-width);
+  padding: var(--docs-content-padding-y) var(--docs-content-padding-x);
+  // Centre la colonne de lecture dans l'espace élastique qui lui est alloué : sans
+  // cela, une fenêtre large collerait le texte contre la sidebar.
+  margin-inline: auto;
+}
+
+.docs-shell__toc {
+  position: sticky;
+  top: var(--docs-header-height);
+  max-height: calc(100vh - var(--docs-header-height));
+  overflow-y: auto;
+  padding: var(--docs-content-padding-y) var(--docs-content-padding-x) 0 0;
+}
+
+// =================================================================
+// PROSE — typographie du contenu rédigé
+// =================================================================
+// La feuille vise les balises NUES : les pages MDX écrivent du Markdown, pas des
+// classes. src/mdx-components.jsx ne surcharge que ce qui demande du comportement
+// (ancres de titres, liens internes, tables) — l'apparence est entièrement ici.
+.docs-prose {
+  color: hsl(var(--docs-prose-color));
+  line-height: var(--docs-prose-line-height);
+
+  // Rythme vertical uniforme : chaque bloc pousse le suivant, plutôt que chaque balise
+  // ne déclare ses deux marges. `> * + *` évite la marge parasite du premier enfant.
+  > * + * {
+    margin-top: var(--docs-prose-rhythm);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: hsl(var(--docs-prose-heading-color));
+    line-height: var(--line-height-tight);
+    // Les titres respirent plus au-dessus qu'en dessous : c'est ce qui les rattache
+    // visuellement au texte qu'ils introduisent.
+    margin-top: calc(2 * var(--docs-prose-rhythm));
+  }
+
+  h1 {
+    font-size: var(--font-size-4xl);
+    font-weight: 700;
+    // Pas de marge haute sur le titre de page : le fil d'Ariane est juste au-dessus.
+    margin-top: 0;
+  }
+
+  h2 {
+    font-size: var(--font-size-2xl);
+    font-weight: 600;
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid hsl(var(--docs-prose-border));
+  }
+
+  h3 {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+  }
+
+  h4 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+  }
+
+  a {
+    color: hsl(var(--docs-prose-link-color));
+    text-decoration: underline;
+    text-underline-offset: var(--spacing-2px);
+  }
+
+  ul,
+  ol {
+    padding-left: var(--spacing-2xl);
+  }
+
+  li + li {
+    margin-top: var(--spacing-xs);
+  }
+
+  code {
+    padding: var(--docs-prose-code-padding);
+    border-radius: var(--docs-prose-code-radius);
+    background-color: hsl(var(--docs-prose-code-bg));
+    color: hsl(var(--docs-prose-code-color));
+    font-family: var(--font-geist-mono), monospace;
+    font-size: var(--font-size-sm);
+  }
+
+  pre {
+    padding: var(--docs-prose-pre-padding);
+    border-radius: var(--docs-prose-code-radius);
+    background-color: hsl(var(--docs-prose-code-bg));
+    // Un bloc de code long doit défiler DANS son cadre : sans cela il élargit la page
+    // entière et casse la grille sur petit écran.
+    overflow-x: auto;
+
+    code {
+      padding: 0;
+      background-color: transparent;
+    }
+  }
+
+  blockquote {
+    padding-left: var(--spacing-lg);
+    border-left: var(--spacing-xs) solid hsl(var(--docs-prose-border));
+    color: hsl(var(--docs-prose-muted-color));
+  }
+
+  // Idem que pour <pre> : une table large défile dans son propre cadre.
+  table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid hsl(var(--docs-prose-border));
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+// =================================================================
+// RESPONSIVE
+// =================================================================
+
+// Le sommaire disparaît le premier : c'est l'aide la moins essentielle des trois.
+@include breakpoint-down('large') {
+  .docs-shell__body {
+    grid-template-columns: var(--docs-sidebar-width) minmax(0, 1fr);
+  }
+
+  .docs-shell__toc {
+    display: none;
+  }
+}
+
+// Puis la sidebar cesse d'être une colonne : elle devient un bandeau horizontal
+// défilant sous l'en-tête (cf. DocsSidebar.scss).
+@include breakpoint-down('medium') {
+  .docs-shell__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .docs-shell__sidebar {
+    position: static;
+    max-height: none;
+    border-right: none;
+    border-bottom: 1px solid hsl(var(--docs-sidebar-border));
+  }
+}

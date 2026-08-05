@@ -19,6 +19,12 @@ const eslintConfig = [
     ignores: [
       ".next/**",
       "node_modules/**",
+      // Sorties de l'export statique : out/ est le site généré par `npm run build:docs`,
+      // tmp/ la copie sous sous-chemin servie pour le vérifier. Ce sont des artefacts de
+      // build (chunks minifiés), pas du code source — sans cette exclusion, `npm run lint`
+      // les analyse et remonte des milliers de problèmes qui masquent les vrais.
+      "out/**",
+      "tmp/**",
       "next-env.d.ts",
       "old_components/**",
       "old_src/**",
@@ -27,6 +33,10 @@ const eslintConfig = [
       // le script, pas par le lint. registry/examples/ reste linté, lui — ce
       // sont des composants React distribués, ils doivent tenir la même barre.
       "registry/__registry__.js",
+      // Idem pour les deux modules générés par scripts/build-docs-index.js.
+      // docs/content/**.mdx n'est pas concerné : ESLint ne lint pas le MDX.
+      "docs/__docs__.js",
+      "docs/__docs-pages__.js",
     ],
   },
   {

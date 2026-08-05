@@ -1,0 +1,46 @@
+// ===== IMPORTS =====
+@use '@/styles/globals/typography';
+@use '../../_colors';
+@use '../../_tokens';
+
+.docs-pagination {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--docs-pagination-gap);
+  margin-top: calc(2 * var(--docs-prose-rhythm));
+}
+
+.docs-pagination__link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--docs-pagination-padding);
+  border: 1px solid hsl(var(--docs-pagination-border));
+  border-radius: var(--docs-pagination-radius);
+  text-decoration: none;
+  transition: border-color var(--transition-fast);
+
+  &:hover {
+    border-color: hsl(var(--docs-pagination-hover-border));
+  }
+}
+
+// Le lien « suivant » s'aligne à droite : la direction de lecture doit se voir sans
+// lire les libellés.
+.docs-pagination__link--next {
+  grid-column: 2;
+  text-align: right;
+}
+
+.docs-pagination__label {
+  color: hsl(var(--docs-pagination-label-color));
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.docs-pagination__title {
+  color: hsl(var(--docs-pagination-title-color));
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}

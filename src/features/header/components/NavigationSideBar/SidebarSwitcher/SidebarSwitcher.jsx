@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useId } from 'react';
 import Image from 'next/image';
 import { useSidebar } from '../NavigationSideBar/NavigationSideBar';
 import { useKeyboardNavigation, useAriaAnnounce } from '@/hooks/accessibility';
+import { withBasePath } from '@/utils/url/withBasePath';
 import './SidebarSwitcher.scss';
 
 /**
@@ -161,7 +162,7 @@ const SidebarSwitcher = ({
             >
                 {/* Logo */}
                 <Image
-                    src={logoSrc}
+                    src={withBasePath(logoSrc)}
                     alt="Logo"
                     width={32}
                     height={32}
@@ -223,7 +224,7 @@ const SidebarSwitcher = ({
                             {/* Icône de l'item (si disponible) */}
                             {item.icon && (
                                 <Image
-                                    src={item.icon}
+                                    src={withBasePath(item.icon)}
                                     alt=""
                                     width={16}
                                     height={16}

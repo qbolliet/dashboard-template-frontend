@@ -1,5 +1,6 @@
 import React from 'react';
 import LargeButton from '@/components/ui/LargeButton/LargeButton';
+import { withBasePath } from '@/utils/url/withBasePath';
 import './Hero.scss';
 
 /**
@@ -25,7 +26,10 @@ const Hero = ({
     <section 
       className={`hero ${className}`} 
       style={{
-        '--hero-bg-image': backgroundImage ? `url(${backgroundImage})` : 'none'
+        // url() CSS posée en style inline : elle échappe à next/image, donc le
+        // sous-chemin de déploiement doit être ajouté à la main. Une erreur ici ne
+        // produit AUCUNE ligne rouge dans l'onglet réseau, juste un fond manquant.
+        '--hero-bg-image': backgroundImage ? `url(${withBasePath(backgroundImage)})` : 'none'
       }}
       {...props}
     >

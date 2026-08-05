@@ -1,0 +1,82 @@
+// ===== IMPORTS =====
+@use '@/styles/utils/breakpoints' as *;
+@use '@/styles/globals/typography';
+@use '../../_colors';
+@use '../../_tokens';
+
+.docs-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--docs-sidebar-gap);
+  padding: var(--docs-sidebar-padding);
+}
+
+.docs-sidebar__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--docs-sidebar-item-padding-y);
+}
+
+// Le titre de section est lui-même un lien : chaque section a une page d'accueil
+// (son index.mdx), il serait absurde de la rendre inatteignable.
+.docs-sidebar__section-title {
+  padding: var(--docs-sidebar-item-padding-y) var(--docs-sidebar-item-padding-x);
+  border-radius: var(--docs-sidebar-item-radius);
+  color: hsl(var(--docs-sidebar-section-color));
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    background-color: hsl(var(--docs-sidebar-link-hover-bg));
+  }
+
+  &[aria-current='page'] {
+    color: hsl(var(--docs-sidebar-link-active-color));
+    background-color: hsl(var(--docs-sidebar-link-active-bg));
+  }
+}
+
+.docs-sidebar__list {
+  display: flex;
+  flex-direction: column;
+  // Filet vertical matérialisant l'imbrication, aligné sur le padding du titre.
+  margin-left: var(--docs-sidebar-item-padding-x);
+  padding-left: var(--docs-sidebar-item-padding-x);
+  border-left: var(--docs-marker-width) solid hsl(var(--docs-sidebar-border));
+  list-style: none;
+}
+
+.docs-sidebar__link {
+  display: block;
+  padding: var(--docs-sidebar-item-padding-y) var(--docs-sidebar-item-padding-x);
+  border-radius: var(--docs-sidebar-item-radius);
+  color: hsl(var(--docs-sidebar-link-color));
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+
+  &:hover {
+    color: hsl(var(--docs-sidebar-link-hover-color));
+    background-color: hsl(var(--docs-sidebar-link-hover-bg));
+  }
+
+  &[aria-current='page'] {
+    color: hsl(var(--docs-sidebar-link-active-color));
+    background-color: hsl(var(--docs-sidebar-link-active-bg));
+    font-weight: 500;
+  }
+}
+
+// Sur petit écran la sidebar cesse d'être une colonne : elle se replie en bandeau
+// horizontal défilant au-dessus du contenu (cf. DocsShell.scss).
+@include breakpoint-down('medium') {
+  .docs-sidebar {
+    flex-direction: row;
+    gap: var(--docs-sidebar-padding);
+    overflow-x: auto;
+  }
+
+  .docs-sidebar__list {
+    display: none;
+  }
+}

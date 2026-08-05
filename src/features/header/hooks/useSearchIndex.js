@@ -2,6 +2,8 @@
 
 import { useRef, useState } from 'react';
 
+import { withBasePath } from '@/utils/url/withBasePath';
+
 // =================================================================
 // USE SEARCH INDEX — chargement paresseux de public/search-index.json
 // =================================================================
@@ -32,7 +34,9 @@ export const useSearchIndex = () => {
         if (loadPromiseRef.current) return loadPromiseRef.current;
 
         setIsLoading(true);
-        loadPromiseRef.current = fetch('/search-index.json')
+        // withBasePath : un fetch d'URL absolue ne passe par aucun mécanisme de Next,
+        // il faut donc lui ajouter le sous-chemin de déploiement à la main.
+        loadPromiseRef.current = fetch(withBasePath('/search-index.json'))
             .then((response) => {
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 return response.json();

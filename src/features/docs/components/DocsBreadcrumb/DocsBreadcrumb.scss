@@ -1,0 +1,43 @@
+// ===== IMPORTS =====
+@use '@/styles/globals/typography';
+@use '../../_colors';
+@use '../../_tokens';
+
+.docs-breadcrumb__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--docs-breadcrumb-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--font-size-sm);
+}
+
+.docs-breadcrumb__item {
+  display: flex;
+  align-items: center;
+  gap: var(--docs-breadcrumb-gap);
+
+  // Séparateur en pseudo-élément plutôt qu'en balise : il est purement décoratif et
+  // n'a rien à faire dans l'arbre d'accessibilité.
+  & + &::before {
+    content: '/';
+    color: hsl(var(--docs-breadcrumb-separator-color));
+  }
+}
+
+.docs-breadcrumb__link {
+  color: hsl(var(--docs-breadcrumb-color));
+  text-decoration: none;
+
+  &:hover {
+    color: hsl(var(--docs-breadcrumb-current-color));
+    text-decoration: underline;
+  }
+}
+
+.docs-breadcrumb__current {
+  color: hsl(var(--docs-breadcrumb-current-color));
+  font-weight: 500;
+}

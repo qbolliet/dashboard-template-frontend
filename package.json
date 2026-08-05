@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run build:search && npm run build:registry && next dev",
+    "dev": "npm run build:search && npm run build:registry && npm run build:docs-index && next dev",
     "build": "next build",
-    "prebuild": "npm run build:search && npm run build:registry",
+    "prebuild": "npm run build:search && npm run build:registry && npm run build:docs-index",
     "start": "next start",
     "lint": "eslint",
     "check:palette": "node scripts/check-palette-sync.js",
@@ -14,12 +14,17 @@
     "build:inventory": "node scripts/build-inventory.js",
     "build:registry": "node scripts/build-registry.js",
     "build:search": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-search-index.js",
-    "verify": "npm run lint && npm run check:palette && npm run validate:config && npm run check:gql && npm run build:registry",
+    "build:docs-index": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-docs-index.js",
+    "build:docs": "cross-env DOCS_STATIC_EXPORT=1 NEXT_PUBLIC_BASE_PATH=/dashboard-template-frontend REGISTRY_BASE_URL=https://qbolliet.github.io/dashboard-template-frontend npm run build",
+    "verify": "npm run lint && npm run check:palette && npm run validate:config && npm run check:gql && npm run build:registry && npm run build:docs-index",
     "mock:api": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/mock-api-server.js",
     "dev:api": "cross-env NEXT_PUBLIC_API_URL=http://localhost:4000/graphql next dev",
     "dev:mock": "concurrently \"npm:mock:api\" \"npm:dev:api\""
   },
   "dependencies": {
+    "@mdx-js/loader": "^3.1.1",
+    "@mdx-js/react": "^3.1.1",
+    "@next/mdx": "^16.3.0",
     "@visx/axis": "^4.0.0",
     "@visx/brush": "^4.0.0",
     "@visx/clip-path": "^4.0.0",
@@ -45,6 +50,7 @@
     "next": "^16.2.9",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "remark-frontmatter": "^5.0.0",
     "sass": "^1.90.0",
     "swr": "^2.4.2",
     "three": "^0.185.1"

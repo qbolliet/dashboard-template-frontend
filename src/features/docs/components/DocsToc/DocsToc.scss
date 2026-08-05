@@ -1,0 +1,60 @@
+// ===== IMPORTS =====
+@use '@/styles/globals/typography';
+@use '../../_colors';
+@use '../../_tokens';
+
+.docs-toc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--docs-toc-gap);
+}
+
+.docs-toc__title {
+  margin: 0 0 var(--docs-toc-gap);
+  color: hsl(var(--docs-toc-title-color));
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.docs-toc__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--docs-toc-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  // Filet vertical continu le long du sommaire : il donne au marqueur d'entrée active
+  // une piste sur laquelle se poser.
+  border-left: var(--docs-marker-width) solid hsl(var(--docs-toc-rail-color));
+}
+
+.docs-toc__item {
+  padding-left: var(--docs-toc-indent);
+
+  // Les h3 sont décalés d'un cran supplémentaire sous leur h2.
+  &[data-depth='3'] {
+    padding-left: calc(2 * var(--docs-toc-indent));
+  }
+}
+
+.docs-toc__link {
+  display: block;
+  color: hsl(var(--docs-toc-link-color));
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-tight);
+  text-decoration: none;
+
+  &:hover {
+    color: hsl(var(--docs-toc-link-hover-color));
+  }
+
+  // aria-current="location" plutôt que "page" : la cible est une section DE la page
+  // courante, pas une autre page. L'état visuel suit l'état sémantique, il n'y a pas
+  // de classe « active » à maintenir en parallèle.
+  &[aria-current='location'] {
+    color: hsl(var(--docs-toc-link-active-color));
+    font-weight: 500;
+  }
+}

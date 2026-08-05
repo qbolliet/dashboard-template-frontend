@@ -953,7 +953,8 @@
       "description": "Pied de page à colonnes de liens et mentions.",
       "dependencies": [],
       "registryDependencies": [
-        "tokens-global"
+        "tokens-global",
+        "utils-url"
       ],
       "files": [
         {
@@ -992,7 +993,8 @@
         "toolbar-tools",
         "utils-accessibility",
         "utils-html",
-        "utils-math"
+        "utils-math",
+        "utils-url"
       ],
       "files": [
         {
@@ -1148,7 +1150,8 @@
         "icons",
         "theme",
         "tokens-global",
-        "utils-math"
+        "utils-math",
+        "utils-url"
       ],
       "files": [
         {
@@ -1478,7 +1481,8 @@
       "dependencies": [],
       "registryDependencies": [
         "large-button",
-        "tokens-global"
+        "tokens-global",
+        "utils-url"
       ],
       "files": [
         {
@@ -1866,7 +1870,8 @@
       "description": "Carte cliquable à image, titre et description.",
       "dependencies": [],
       "registryDependencies": [
-        "tokens-global"
+        "tokens-global",
+        "utils-url"
       ],
       "files": [
         {
@@ -2741,8 +2746,8 @@
     {
       "name": "utils-format",
       "type": "registry:lib",
-      "title": "Formatage de nombres",
-      "description": "Formatage localisé : devise, pourcentage, notation compacte, unités, décimales contrôlées.",
+      "title": "Formatage de nombres et de texte",
+      "description": "Formatage localisé : devise, pourcentage, notation compacte, unités, décimales contrôlées. Plus slugify, qui dérive un identifiant d'ancre stable d'un texte.",
       "dependencies": [],
       "registryDependencies": [
         "tokens-global"
@@ -2757,6 +2762,11 @@
           "path": "src/utils/format/formatNumber.js",
           "type": "registry:file",
           "target": "~/src/utils/format/formatNumber.js"
+        },
+        {
+          "path": "src/utils/format/slugify.js",
+          "type": "registry:file",
+          "target": "~/src/utils/format/slugify.js"
         }
       ]
     },
@@ -2803,12 +2813,17 @@
       "name": "utils-navigation",
       "type": "registry:lib",
       "title": "Utilitaires de navigation",
-      "description": "Résolution des chemins relatifs d'un arbre de navigation en chemins absolus, aplatissement et recherche par chemin.",
+      "description": "Résolution des chemins relatifs d'un arbre de navigation en chemins absolus, aplatissement et recherche par chemin. Le point de montage de l'arbre est un argument, ce qui permet de servir toute l'application sous un préfixe.",
       "dependencies": [],
       "registryDependencies": [
         "tokens-global"
       ],
       "files": [
+        {
+          "path": "src/utils/navigation/basePaths.js",
+          "type": "registry:file",
+          "target": "~/src/utils/navigation/basePaths.js"
+        },
         {
           "path": "src/utils/navigation/findNodeByPath.js",
           "type": "registry:file",
@@ -2823,6 +2838,23 @@
           "path": "src/utils/navigation/resolveNavigationTree.js",
           "type": "registry:file",
           "target": "~/src/utils/navigation/resolveNavigationTree.js"
+        }
+      ]
+    },
+    {
+      "name": "utils-url",
+      "type": "registry:lib",
+      "title": "Préfixe de déploiement",
+      "description": "Ajoute le basePath aux URL absolues que Next ne réécrit pas lui-même : fetch, textures WebGL, url() en style inline. Indispensable dès que le site est servi depuis un sous-chemin.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/utils/url/withBasePath.js",
+          "type": "registry:file",
+          "target": "~/src/utils/url/withBasePath.js"
         }
       ]
     },

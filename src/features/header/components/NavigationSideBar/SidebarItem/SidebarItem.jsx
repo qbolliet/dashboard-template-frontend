@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSidebar } from '../NavigationSideBar/NavigationSideBar';
+import { withBasePath } from '@/utils/url/withBasePath';
 import './SidebarItem.scss';
 
 /**
@@ -73,7 +74,7 @@ const SidebarItem = ({
             {/* Icône de l'item (si des icônes existent dans la navigation) */}
             {hasIcons && item.icon && (
                 <Image
-                    src={item.icon}
+                    src={withBasePath(item.icon)}
                     alt=""
                     width={20}
                     height={20}

@@ -56,8 +56,12 @@ const TOKENS_ITEM = 'tokens-global';
 
 // Unités présentes dans l'inventaire mais non publiables. `components-index`
 // est un baril cassé (il importe './navigation', qui n'existe pas) : le
-// distribuer donnerait un import mort chez le consommateur.
-const EXCLUDED_UNITS = new Set(['components-index']);
+// distribuer donnerait un import mort chez le consommateur. `docs` est le chrome
+// du site de documentation DE CE DÉPÔT (sidebar, sommaire, fil d'Ariane) : il
+// habille le template, il n'a rien à faire dans le projet d'un tiers — et il
+// dépend de modules générés au build (docs/__docs__.js) qui n'existeraient pas
+// chez lui.
+const EXCLUDED_UNITS = new Set(['components-index', 'docs']);
 
 // Champs qu'un humain rédige dans registry.json et que --sync préserve. Tout
 // le reste est dérivé de l'inventaire et régénéré sans état — `meta` compris,

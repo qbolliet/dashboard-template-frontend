@@ -7,6 +7,7 @@ import { useSidebar } from '../NavigationSideBar/NavigationSideBar';
 import { AccessibleIcon } from '@/components/common';
 import { ChevronIcon } from '@/components/icons';
 import SidebarNode from '../SidebarNode/SidebarNode';
+import { withBasePath } from '@/utils/url/withBasePath';
 import './SidebarGroup.scss';
 
 /**
@@ -136,7 +137,7 @@ const SidebarGroup = ({
                 {/* Icône de l'item (si disponible et si des icônes existent dans la navigation) */}
                 {hasIcons && item.icon && (
                     <Image
-                        src={item.icon}
+                        src={withBasePath(item.icon)}
                         alt=""
                         width={20}
                         height={20}

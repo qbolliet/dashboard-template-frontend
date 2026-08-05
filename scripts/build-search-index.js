@@ -60,8 +60,15 @@ async function main() {
   const { flattenNavigation } = await importEsm(
     path.join(PROJECT_ROOT, 'src/utils/navigation/flattenNavigation.js'),
   );
+  const { DEMO_BASE_PATH } = await importEsm(
+    path.join(PROJECT_ROOT, 'src/utils/navigation/basePaths.js'),
+  );
 
-  const tree = resolveNavigationTree(siteConfig.navigation.tree);
+  // Même point de montage que src/app/(site)/layout.jsx et que la route attrape-tout de
+  // la démo : depuis P4.2 la racine du déploiement appartient au site de documentation,
+  // et l'application vit sous /demo. Omettre le préfixe ici produirait un index dont
+  // chaque suggestion mène à un 404.
+  const tree = resolveNavigationTree(siteConfig.navigation.tree, DEMO_BASE_PATH);
 
   const entries = flattenNavigation(tree)
     .filter((node) => node.searchable)

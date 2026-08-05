@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { withBasePath } from '@/utils/url/withBasePath';
 import './LinkCard.scss';
 
 /**
@@ -26,7 +27,7 @@ const LinkCard = ({
       {/* Image container avec optimisation Next.js */}
       <figure className="link-card__image">
         <Image
-          src={image}
+          src={withBasePath(image)}
           alt={title}
           width={200}
           height={200}

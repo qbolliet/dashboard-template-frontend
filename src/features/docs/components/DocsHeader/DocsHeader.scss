@@ -1,0 +1,85 @@
+// ===== IMPORTS =====
+@use '@/styles/utils/breakpoints' as *;
+@use '@/styles/globals/typography';
+@use '../../_colors';
+@use '../../_tokens';
+
+.docs-header {
+  display: flex;
+  align-items: center;
+  gap: var(--docs-header-gap);
+  height: var(--docs-header-height);
+  padding: 0 var(--docs-header-padding-x);
+  background-color: hsl(var(--docs-header-bg));
+  border-bottom: 1px solid hsl(var(--docs-header-border));
+  // Le bandeau reste visible au défilement : c'est le seul point d'accès à la bascule
+  // de thème et à l'autre surface du site.
+  position: sticky;
+  top: 0;
+  z-index: var(--docs-header-z-index);
+}
+
+.docs-header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  text-decoration: none;
+  // Le bloc de marque pousse le reste à droite.
+  margin-right: auto;
+}
+
+.docs-header__logo {
+  height: var(--spacing-3xl);
+  width: auto;
+  object-fit: contain;
+  // Le logo source est sombre : inversé en thème clair, laissé tel quel en sombre.
+  // Même mécanisme que --logo-filter dans la feature header, redéclaré localement pour
+  // la même raison que les couleurs ci-dessous.
+  filter: var(--docs-header-logo-filter);
+}
+
+.docs-header__title {
+  color: hsl(var(--color-text-primary));
+  font-size: var(--font-size-base);
+  font-weight: 600;
+}
+
+.docs-header__badge {
+  padding: var(--spacing-2px) var(--spacing-sm);
+  border-radius: var(--border-radius-pill);
+  background-color: hsl(var(--docs-header-badge-bg));
+  color: hsl(var(--docs-header-badge-color));
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.docs-header__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--docs-header-gap);
+}
+
+// Les rôles --nav-link-* de la feature header ne sont PAS réutilisés : cette feuille
+// est chargée dans la branche (docs), où <Header> n'est jamais rendu et où ses tokens
+// ne sont donc pas déclarés.
+.docs-header__link {
+  color: hsl(var(--docs-header-link-color));
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    color: hsl(var(--docs-header-link-hover-color));
+    text-decoration: underline;
+  }
+}
+
+// Sur petit écran le nom du site disparaît : logo, pastille et bascule suffisent à
+// situer, et la place manque.
+@include breakpoint-down('small') {
+  .docs-header__title {
+    display: none;
+  }
+}
