@@ -1,0 +1,18 @@
+// ===== INDICATOR EXPLORER - ÉTATS DE CHARGEMENT ET D'ERREUR =====
+// La mise en page du bloc vient de .page (PageBody) : ne restent ici que les deux
+// lignes de statut, qui n'appartiennent à aucun composant existant.
+@use '@/styles/globals/tokens/semantic-colors';
+@use '@/styles/globals/primitives/colors';
+@use '@/styles/globals/typography';
+
+.indicator-explorer__status {
+    font-size: var(--font-size-sm);
+    color: hsl(var(--color-text-tertiary));
+}
+
+.indicator-explorer__status--error {
+    // Pas de rôle sémantique « erreur » dans tokens/ : on consomme la primitive, comme
+    // le font déjà les états d'erreur des primitives de filtre.
+    color: hsl(var(--color-error-600));
+    font-weight: 600;
+}

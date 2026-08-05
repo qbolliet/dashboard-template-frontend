@@ -48,39 +48,36 @@ export const useNavigation = () => {
 
     /**
      * Check if a path is currently active.
-     * 
-     * @param {string} path - The path to check
+     *
+     * A node is active on its own page and on any page below it. The comparison
+     * is segment-bounded: `/finances-publiques` must not light up on
+     * `/finances-publiques-locales`.
+     *
+     * @param {string} path - The absolute path to check
      * @returns {boolean} True if the path is active
      */
     const isActivePath = (path) => {
         if (path === '/') {
             return pathname === '/';
         }
-        return pathname.startsWith(path);
+        // Le '/' final est ce qui borne le préfixe au segment d'URL : sans lui,
+        // startsWith() marquerait tout frère dont le nom commence pareil.
+        return pathname === path || pathname.startsWith(path + '/');
     };
 
     /**
      * Check if an item has active children.
-     * 
+     *
      * @param {Object} item - The navigation item to check
      * @returns {boolean} True if the item has active children
      */
     const hasActiveChildren = (item) => {
-        if (!item.children) return false;
-        
-        // Vérification pour les enfants simples (tableau d'objets)
-        if (Array.isArray(item.children)) {
-            return item.children.some(child => 
-                pathname.startsWith(item.path + child.path)
-            );
-        }
-        
-        // Vérification pour les enfants complexes (objets avec sous-enfants)
-        return Object.values(item.children).some(group => 
-            Array.isArray(group) && group.some(child => 
-                pathname.startsWith(item.path + child.path)
-            )
-        );
+        // Les chemins des enfants sont absolus (resolveNavigationTree) : la même
+        // règle de bornage que ci-dessus s'applique, on la réutilise plutôt que de
+        // la redupliquer.
+        if (!Array.isArray(item.children)) return false;
+
+        return item.children.some(child => isActivePath(child.path));
     };
 
     // Listener resize UNIQUE partagé par toute la navigation (monté une seule fois via

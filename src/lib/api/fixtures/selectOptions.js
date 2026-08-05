@@ -24,7 +24,16 @@ export const MOCK_FLAT_OPTIONS = [
 // de getSelectOptions(fieldName) qui renvoie les valeurs distinctes d'une colonne.
 // Repli sur MOCK_FLAT_OPTIONS pour tout champ absent (cf. useSelectOptions).
 export const MOCK_OPTIONS_BY_FIELD = {
-  country: MOCK_FLAT_OPTIONS,
+  // `value` = la valeur telle qu'elle figure DANS les lignes du panel macro
+  // (fixtures/chartFactTable.js), pas un code pays : un filtre posé sur `country`
+  // depuis une page indicateur compare la valeur de l'option à celle de la ligne,
+  // et des codes (`fr`, `de`…) ne correspondraient jamais à rien. getSelectOptions
+  // renvoie les valeurs distinctes d'une colonne — ce sont donc bien ces trois-là.
+  country: [
+    { value: "France", label: "France" },
+    { value: "Allemagne", label: "Allemagne" },
+    { value: "Italie", label: "Italie" },
+  ],
   indicator: [
     { value: "pib", label: "PIB" },
     { value: "conso", label: "Consommation" },

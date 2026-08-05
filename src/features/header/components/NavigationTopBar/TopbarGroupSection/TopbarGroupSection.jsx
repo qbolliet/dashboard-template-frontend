@@ -9,9 +9,8 @@ import TopbarGroupItem from '../TopbarGroupItem/TopbarGroupItem';
  * Renders as a `<li>` à la SidebarGroup: header link, a chevron toggle visible
  * on mobile/tablet (accordion), and the nested `<ul>` of sub-items.
  *
- * @param {Object} group - The group item (name, path, children).
+ * @param {Object} group - The group item (name, absolute path, children).
  * @param {number} groupIndex - Index of the group among its siblings.
- * @param {string} basePath - Path prefix inherited from the parent dropdown item.
  * @param {boolean} isExpanded - Whether the group is expanded (mobile accordion).
  * @param {Function} onToggle - Toggles the group expansion (mobile).
  * @param {Function} onItemClick - Click handler for links (closes the dropdown).
@@ -21,14 +20,13 @@ import TopbarGroupItem from '../TopbarGroupItem/TopbarGroupItem';
 const TopbarGroupSection = ({
     group,
     groupIndex,
-    basePath,
     isExpanded,
     onToggle,
     onItemClick,
     isActivePath
 }) => {
-    // Chemin complet de l'en-tête du groupe
-    const groupPath = basePath + group.path;
+    // Les chemins de l'arbre sont déjà absolus (résolus une seule fois par
+    // resolveNavigationTree, cf. src/app/layout.tsx) : plus rien à concaténer ici.
     // Le groupe n'affiche un chevron + une sous-liste que s'il a réellement des enfants
     const hasChildren =
         Array.isArray(group.children) && group.children.length > 0;
@@ -47,7 +45,7 @@ const TopbarGroupSection = ({
         'nav-link',
         'nav-link--parent',
         'topbar-group-header',
-        isActivePath(groupPath) && 'topbar-group-header--active'
+        isActivePath(group.path) && 'topbar-group-header--active'
     ]
         .filter(Boolean)
         .join(' ');
@@ -55,7 +53,7 @@ const TopbarGroupSection = ({
     return (
         <li className={groupClasses}>
             {/* En-tête / lien principal du groupe */}
-            <Link href={groupPath} className={headerClasses} onClick={onItemClick}>
+            <Link href={group.path} className={headerClasses} onClick={onItemClick}>
                 <span className="nav-text topbar-text">{group.name}</span>
             </Link>
 
@@ -88,9 +86,9 @@ const TopbarGroupSection = ({
                     {group.children.map((subChild, subIndex) => (
                         <TopbarGroupItem
                             key={`sub-${groupIndex}-${subIndex}`}
-                            href={groupPath + subChild.path}
+                            href={subChild.path}
                             name={subChild.name}
-                            isActive={isActivePath(groupPath + subChild.path)}
+                            isActive={isActivePath(subChild.path)}
                             onItemClick={onItemClick}
                             itemClass="topbar-item"
                             linkClass="topbar-link"

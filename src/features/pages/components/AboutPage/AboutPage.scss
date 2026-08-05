@@ -1,0 +1,35 @@
+// ===== ABOUT PAGE - PAGE DE CONTENU RÉDIGÉ =====
+@use '@/styles/globals/tokens/semantic-colors';
+@use '@/styles/globals/typography';
+
+.about-page__prose {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    // Mesure de lecture : au-delà, l'œil perd la ligne d'un paragraphe à l'autre.
+    max-width: 70ch;
+
+    color: hsl(var(--color-text-secondary));
+    line-height: var(--line-height-relaxed);
+
+    h2 {
+        // Marge haute uniquement à partir du deuxième titre : le `gap` du conteneur
+        // suffit après le premier.
+        font-size: var(--font-size-2xl);
+        font-weight: 600;
+        color: hsl(var(--color-text-primary));
+
+        &:not(:first-child) {
+            margin-top: var(--spacing-2xl);
+        }
+    }
+
+    code {
+        padding: 0 var(--spacing-xs);
+        font-family: var(--font-geist-mono), monospace;
+        font-size: var(--font-size-sm);
+        background: hsl(var(--color-background));
+        border: 1px solid hsl(var(--color-border));
+        border-radius: var(--border-radius-sm);
+    }
+}

@@ -1,0 +1,18 @@
+// =================================================================
+// PAGES — tokens partagés par tous les gabarits générés
+// =================================================================
+// Gabarits de page pilotés par config/site.config.json. Les trois seuls paramètres
+// que l'intégrateur d'un site voudra réellement régler : la largeur du contenu, sa
+// respiration horizontale et le rythme vertical entre sections. Tout le reste est
+// dérivé en calc() ou repris des tokens globaux.
+
+:root {
+    // Largeur maximale du contenu d'une page.
+    --page-max-width: 80rem;
+    // Marge horizontale du contenu (réduite sous le palier mobile, cf. les gabarits).
+    --page-padding-x: var(--spacing-3xl);
+    // Espace vertical entre deux sections d'une page.
+    --page-gap: var(--spacing-4xl);
+    // Retrait vertical du bloc de page dans la fenêtre.
+    --page-padding-y: var(--spacing-4xl);
+}

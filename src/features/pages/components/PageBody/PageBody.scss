@@ -1,0 +1,23 @@
+// ===== PAGE BODY - COLONNE DE CONTENU DES GABARITS GÉNÉRÉS =====
+@use '../../tokens' as *;   // Tokens de la feature (--page-max-width, --page-gap…)
+@use '@/styles/globals/typography';
+@use '@/styles/utils/breakpoints' as *;
+
+.page {
+    // Colonne centrée et bornée : le rythme vertical entre sections vient du `gap`,
+    // jamais de marges sur les enfants (elles fusionneraient et casseraient le rythme).
+    display: flex;
+    flex-direction: column;
+    gap: var(--page-gap);
+
+    max-width: var(--page-max-width);
+    margin-inline: auto;
+    padding: var(--page-padding-y) var(--page-padding-x);
+
+    @include breakpoint-down('small') {
+        // Sur mobile la marge horizontale mange trop de largeur utile : on redéfinit
+        // les tokens du bloc plutôt que d'en introduire de nouveaux.
+        --page-padding-x: var(--spacing-lg);
+        --page-gap: var(--spacing-3xl);
+    }
+}

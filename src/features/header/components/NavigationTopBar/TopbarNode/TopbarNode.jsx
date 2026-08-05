@@ -27,7 +27,7 @@ const isGroupedStructure = (children) =>
  * TopbarGroupSection) and a flat list (`<ul>` of TopbarGroupItem) depending on the
  * shape of the data.
  *
- * @param {Object} item - The parent navigation item (provides `children` and base `path`).
+ * @param {Object} item - The parent navigation item (provides `children`).
  * @param {string} id - DOM id of the dropdown panel (the <ul> itself).
  * @param {boolean} isOpen - Whether the dropdown is open (drives the --open modifier).
  * @param {Function} onItemClick - Click handler for links (closes the dropdown).
@@ -45,7 +45,9 @@ const TopbarNode = ({
     expandedGroups,
     toggleGroupExpansion
 }) => {
-    const { children, path: basePath } = item;
+    // Pas de chemin de base à propager : les chemins de l'arbre sont déjà absolus
+    // (resolveNavigationTree, appelé une seule fois dans src/app/layout.tsx).
+    const { children } = item;
 
     // Structure non reconnue ou vide → rien à afficher
     if (!Array.isArray(children) || children.length === 0) {
@@ -72,7 +74,6 @@ const TopbarNode = ({
                         key={`group-${groupIndex}`}
                         group={group}
                         groupIndex={groupIndex}
-                        basePath={basePath}
                         isExpanded={expandedGroups.has(groupIndex)}
                         onToggle={() => toggleGroupExpansion(groupIndex)}
                         onItemClick={onItemClick}
@@ -93,9 +94,9 @@ const TopbarNode = ({
             {children.map((child, childIndex) => (
                 <TopbarGroupItem
                     key={`child-${childIndex}`}
-                    href={basePath + child.path}
+                    href={child.path}
                     name={child.name}
-                    isActive={isActivePath(basePath + child.path)}
+                    isActive={isActivePath(child.path)}
                     onItemClick={onItemClick}
                     itemClass="topbar-item"
                     linkClass="topbar-link"

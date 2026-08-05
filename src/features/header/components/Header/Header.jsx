@@ -21,11 +21,13 @@ import './Header.scss';
  * Main header component for the application.
  * Supports both topbar and sidebar navigation modes.
  *
- * @param {Array} navigationData - Array of navigation items to display
- * @param {Function} onNavigationItemClick - Optional callback when a navigation item is clicked
- * @param {string} navigationType - Type of navigation ('topbar' or 'sidebar')
- * @param {boolean} useSwitcher - Whether to use switcher in sidebar mode
- * @param {string} currentPageTitle - Title of current page (for sidebar breadcrumb)
+ * @param {Object} props - Component props
+ * @param {Array} props.navigationData - Navigation items to display, with absolute paths
+ *   (the manifest tree resolved by `resolveNavigationTree`)
+ * @param {Function} [props.onNavigationItemClick] - Optional callback when a navigation item is clicked
+ * @param {string} [props.navigationType='topbar'] - Type of navigation ('topbar' or 'sidebar')
+ * @param {boolean} [props.useSwitcher=false] - Whether to use switcher in sidebar mode
+ * @param {string} [props.currentPageTitle] - Title of current page (for sidebar breadcrumb)
  * @returns {JSX.Element} The rendered header component
  */
 const Header = ({

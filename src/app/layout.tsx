@@ -7,6 +7,13 @@ import ThemeProvider from '@/features/theme/providers/ThemeProvider';
 import siteConfig from '@config/site.config.json';
 import Footer from '@/features/footer/components/Footer/Footer';
 import SWRProvider from './providers';
+import { resolveNavigationTree } from '@/utils/navigation/resolveNavigationTree';
+
+// Les `path` du manifeste sont relatifs à leur parent : on les résout en chemins
+// absolus ICI, une seule fois et au niveau module (pas par rendu). C'est la seule
+// frontière où cette concaténation a lieu — toute la navigation en aval, et la
+// route attrape-tout, ne manipulent plus que des chemins absolus.
+const navigationTree = resolveNavigationTree(siteConfig.navigation.tree);
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,8 +27,14 @@ const geistMono = Geist_Mono({
 
 // Métadonnées dérivées du manifeste : le titre et la description du site s'éditent dans
 // config/site.config.json, pas ici.
+// `template` s'applique aux segments enfants uniquement (jamais à ce layout) : les pages
+// générées n'ont donc qu'à renvoyer le nom de leur nœud, le suffixe du site est ajouté ici
+// et nulle part ailleurs. Une page qui veut son titre verbatim utilise `title: { absolute }`.
 export const metadata: Metadata = {
-  title: siteConfig.site.title,
+  title: {
+    default: siteConfig.site.title,
+    template: `%s — ${siteConfig.site.title}`,
+  },
   description: siteConfig.site.description,
 };
 
@@ -51,7 +64,7 @@ export default function RootLayout({
             {/* Header piloté par config/site.config.json : disposition, sélecteur et arbre
                 de navigation viennent tous du manifeste (JSON sérialisable passé au client) */}
             <Header
-                navigationData={siteConfig.navigation.tree}
+                navigationData={navigationTree}
                 navigationType={siteConfig.navigation.type}
                 useSwitcher={siteConfig.navigation.useSwitcher}
             />

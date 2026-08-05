@@ -87,9 +87,9 @@
           "minLength": 1
         },
         "type": {
-          "description": "Type de page, qui déterminera le gabarit de rendu du nœud. `home` : page d'accueil. `indicator` : page d'un indicateur (graphique, tableau, filtres). `indicator_group` : regroupement d'indicateurs, servant surtout de nœud intermédiaire dans l'arbre. `person` : fiche d'une entité du jeu de données. `about` : page de contenu rédigé. Ajouter un type ici suppose de l'ajouter aussi au registre des gabarits de page.",
+          "description": "Type de page, qui détermine le gabarit de rendu du nœud. `home` : page d'accueil. `indicator` : page d'un indicateur (graphique, tableau, filtres). `indicator_group` : regroupement d'indicateurs, qui liste ses sous-pages. `about` : page de contenu rédigé. Cette énumération doit rester le miroir exact du registre des gabarits, `src/config/pageTypes.js` : un type déclaré ici mais absent du registre produit une page introuvable.",
           "type": "string",
-          "enum": ["home", "person", "indicator", "indicator_group", "about"]
+          "enum": ["home", "indicator", "indicator_group", "about"]
         },
         "description": {
           "description": "Résumé d'une phrase de ce que contient la page. Facultatif. Sert à alimenter la recherche : le texte y est indexé au même titre que `name`, et affiché sous le titre dans la liste des suggestions.",

@@ -12,3 +12,9 @@ export { default as Table } from './components/Table';
 export { useFactTableWithMetadata } from './sources/useFactTableWithMetadata';
 
 export * from './utils/formatCell';
+
+// Évaluation d'un `defaultFilter` sur une ligne : exposée pour qu'un consommateur
+// puisse appliquer EXACTEMENT le même filtre que le tableau à une autre vue du même
+// jeu de données (un graphique côte à côte, typiquement) sans réimplémenter la
+// sémantique des connecteurs et des opérateurs.
+export { normalizeDefaultFilter, evalFilterNode } from './utils/defaultFilterEngine';
