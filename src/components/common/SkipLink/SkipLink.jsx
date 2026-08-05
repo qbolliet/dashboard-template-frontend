@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import PropTypes from 'prop-types';
 import './SkipLink.scss';
 
 /**
@@ -54,15 +53,6 @@ const SkipLink = ({ href, children, className = '', ...props }) => {
       {children}
     </a>
   );
-};
-
-SkipLink.propTypes = {
-  /** ID de l'élément cible (avec #) */
-  href: PropTypes.string.isRequired,
-  /** Texte du lien */
-  children: PropTypes.node.isRequired,
-  /** Classes CSS additionnelles */
-  className: PropTypes.string,
 };
 
 export default SkipLink;

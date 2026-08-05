@@ -23,6 +23,10 @@ const eslintConfig = [
       "old_components/**",
       "old_src/**",
       "design-system/**",
+      // Module généré par scripts/build-registry.js : sa forme est décidée par
+      // le script, pas par le lint. registry/examples/ reste linté, lui — ce
+      // sont des composants React distribués, ils doivent tenir la même barre.
+      "registry/__registry__.js",
     ],
   },
   {

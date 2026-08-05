@@ -1,8 +1,8 @@
 {
   "$comment": "Généré par scripts/build-inventory.js — ne pas éditer à la main.",
-  "generatedAt": "2026-08-04T21:37:52.503Z",
-  "unitCount": 49,
-  "fileCount": 395,
+  "generatedAt": "2026-08-05T16:48:51.746Z",
+  "unitCount": 51,
+  "fileCount": 415,
   "fanoutThreshold": 3,
   "units": {
     "accessible-icon": {
@@ -23,9 +23,7 @@
           "kind": "barrel"
         }
       ],
-      "npm": [
-        "prop-types"
-      ],
+      "npm": [],
       "npmAsyncOnly": [],
       "asyncOnlyFiles": [],
       "internal": [
@@ -51,7 +49,7 @@
         "src/lib/api"
       ],
       "clientBoundary": false,
-      "fileCount": 12,
+      "fileCount": 13,
       "files": [
         {
           "path": "src/lib/api/client.js",
@@ -91,6 +89,10 @@
         },
         {
           "path": "src/lib/api/fixtures/selectOptions.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/lib/api/serverRequest.js",
           "kind": "lib"
         },
         {
@@ -1334,7 +1336,7 @@
         "src/features/header"
       ],
       "clientBoundary": true,
-      "fileCount": 54,
+      "fileCount": 56,
       "files": [
         {
           "path": "src/features/header/components/Header/Header.jsx",
@@ -1545,11 +1547,19 @@
           "kind": "hook"
         },
         {
+          "path": "src/features/header/hooks/useSearchIndex.js",
+          "kind": "hook"
+        },
+        {
           "path": "src/features/header/providers/NavigationProvider.jsx",
           "kind": "provider"
         },
         {
           "path": "src/features/header/utils/hasIconsInNavigationData.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/header/utils/searchMatch.js",
           "kind": "util"
         }
       ],
@@ -2200,6 +2210,149 @@
       "externalConfig": [],
       "warnings": []
     },
+    "pages": {
+      "type": "feature",
+      "distributable": true,
+      "roots": [
+        "src/features/pages"
+      ],
+      "clientBoundary": true,
+      "fileCount": 14,
+      "files": [
+        {
+          "path": "src/features/pages/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/pages/components/AboutPage/AboutPage.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/pages/components/AboutPage/AboutPage.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/pages/components/HomePage/HomePage.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/pages/components/IndicatorExplorer/IndicatorExplorer.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/pages/components/IndicatorExplorer/IndicatorExplorer.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/pages/components/IndicatorGroupPage/IndicatorGroupPage.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/pages/components/IndicatorGroupPage/IndicatorGroupPage.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/pages/components/IndicatorPage/IndicatorPage.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/pages/components/PageBody/PageBody.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/pages/components/PageBody/PageBody.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/pages/components/PageHeader/PageHeader.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/pages/components/PageHeader/PageHeader.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/pages/utils/deriveEncoding.js",
+          "kind": "util"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "api-client",
+        "chart",
+        "filter",
+        "home",
+        "table",
+        "tokens-global",
+        "ui",
+        "utils-format"
+      ],
+      "internalCode": [
+        "api-client",
+        "chart",
+        "filter",
+        "home",
+        "table",
+        "ui",
+        "utils-format"
+      ],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "api-client",
+        "badge",
+        "calendar-month",
+        "card-grid",
+        "chart",
+        "chart-tokens",
+        "constraint-field",
+        "date-parse",
+        "filter",
+        "filter-feature-tokens",
+        "filter-tokens",
+        "home",
+        "hooks-accessibility",
+        "hooks-debounce",
+        "hooks-floating",
+        "hooks-layout-effect",
+        "hover-toolbar",
+        "icons",
+        "large-button",
+        "link-card",
+        "link-cards-section",
+        "select-menu",
+        "stat-card",
+        "table",
+        "table-tokens",
+        "tabs",
+        "tokens-global",
+        "toolbar-button",
+        "toolbar-tokens",
+        "toolbar-tools",
+        "tooltip",
+        "type-aware-input",
+        "ui",
+        "utils-accessibility",
+        "utils-format",
+        "utils-math",
+        "visually-hidden"
+      ],
+      "styleGlobals": [
+        "src/styles/globals/primitives/colors.scss",
+        "src/styles/globals/tokens/semantic-colors.scss",
+        "src/styles/globals/typography.scss",
+        "src/styles/utils/breakpoints.scss"
+      ],
+      "assets": [],
+      "externalConfig": [
+        "config/filter/operations.json",
+        "config/site.config.json"
+      ],
+      "warnings": []
+    },
     "select-menu": {
       "type": "component",
       "distributable": true,
@@ -2292,9 +2445,7 @@
           "kind": "style"
         }
       ],
-      "npm": [
-        "prop-types"
-      ],
+      "npm": [],
       "npmAsyncOnly": [],
       "asyncOnlyFiles": [],
       "internal": [
@@ -2408,19 +2559,14 @@
       "distributable": false,
       "roots": [
         "src/styles/globals/resets.scss",
-        "src/styles/globals/custom-properties.scss",
         "src/styles/globals/accessibility.scss",
         "src/styles/pages"
       ],
       "clientBoundary": false,
-      "fileCount": 4,
+      "fileCount": 3,
       "files": [
         {
           "path": "src/styles/globals/accessibility.scss",
-          "kind": "style"
-        },
-        {
-          "path": "src/styles/globals/custom-properties.scss",
           "kind": "style"
         },
         {
@@ -2446,9 +2592,7 @@
         "tokens-global"
       ],
       "styleGlobals": [
-        "src/styles/globals/primitives/colors.scss",
-        "src/styles/globals/tokens/semantic-colors.scss",
-        "src/styles/globals/typography.scss"
+        "src/styles/globals/custom-properties.scss"
       ],
       "assets": [],
       "externalConfig": [],
@@ -2837,12 +2981,17 @@
         "src/styles/globals/primitives",
         "src/styles/globals/tokens",
         "src/styles/globals/typography.scss",
+        "src/styles/globals/custom-properties.scss",
         "src/styles/utils/breakpoints.scss",
         "src/styles/utils/functions.scss"
       ],
       "clientBoundary": false,
-      "fileCount": 5,
+      "fileCount": 6,
       "files": [
+        {
+          "path": "src/styles/globals/custom-properties.scss",
+          "kind": "style"
+        },
         {
           "path": "src/styles/globals/primitives/colors.scss",
           "kind": "style"
@@ -3272,6 +3421,40 @@
       "externalConfig": [],
       "warnings": []
     },
+    "utils-navigation": {
+      "type": "lib",
+      "distributable": true,
+      "roots": [
+        "src/utils/navigation"
+      ],
+      "clientBoundary": false,
+      "fileCount": 3,
+      "files": [
+        {
+          "path": "src/utils/navigation/findNodeByPath.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/navigation/flattenNavigation.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/navigation/resolveNavigationTree.js",
+          "kind": "util"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [],
+      "internalCode": [],
+      "internalTokens": [],
+      "internalResolved": [],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
     "visually-hidden": {
       "type": "component",
       "distributable": true,
@@ -3294,9 +3477,7 @@
           "kind": "style"
         }
       ],
-      "npm": [
-        "prop-types"
-      ],
+      "npm": [],
       "npmAsyncOnly": [],
       "asyncOnlyFiles": [],
       "internal": [
@@ -3330,6 +3511,19 @@
           "select-menu",
           "tooltip",
           "type-aware-input"
+        ]
+      },
+      {
+        "unit": "pages",
+        "count": 7,
+        "dependencies": [
+          "api-client",
+          "chart",
+          "filter",
+          "home",
+          "table",
+          "ui",
+          "utils-format"
         ]
       },
       {
@@ -3431,16 +3625,7 @@
         "specifier": "./navigation"
       }
     ],
-    "phantomDependencies": [
-      {
-        "package": "prop-types",
-        "units": [
-          "accessible-icon",
-          "skip-link",
-          "visually-hidden"
-        ]
-      }
-    ],
+    "phantomDependencies": [],
     "orphanDependencies": [
       "@visx/clip-path",
       "@visx/group",
@@ -3465,6 +3650,16 @@
         "unit": "home",
         "file": "src/features/home/data/homeConfig.js",
         "target": "config/content/home.json"
+      },
+      {
+        "unit": "pages",
+        "file": "src/features/pages/components/AboutPage/AboutPage.jsx",
+        "target": "config/site.config.json"
+      },
+      {
+        "unit": "pages",
+        "file": "src/features/pages/components/IndicatorExplorer/IndicatorExplorer.jsx",
+        "target": "config/filter/operations.json"
       }
     ],
     "unownedFiles": []

@@ -42,6 +42,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# registry (généré par scripts/build-registry.js, cf. scripts dev / prebuild)
+/public/r/
+/registry/__registry__.js
+
 # claude
 CLAUDE.md
 DESIGN_SYSTEM.md

@@ -1,0 +1,3305 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "dashboard-template",
+  "homepage": "https://github.com/quentinbolliet/dashboard-template-frontend",
+  "items": [
+    {
+      "name": "accessible-icon",
+      "type": "registry:ui",
+      "title": "AccessibleIcon",
+      "description": "Enveloppe une icône d'un nom accessible, ou la marque décorative et la retire de l'arbre d'accessibilité.",
+      "categories": [
+        "accessibilité"
+      ],
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global",
+        "visually-hidden"
+      ],
+      "files": [
+        {
+          "path": "src/components/common/AccessibleIcon/AccessibleIcon.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/common/AccessibleIcon/AccessibleIcon.jsx"
+        },
+        {
+          "path": "src/components/common/AccessibleIcon/index.js",
+          "type": "registry:file",
+          "target": "~/src/components/common/AccessibleIcon/index.js"
+        }
+      ]
+    },
+    {
+      "name": "api-client",
+      "type": "registry:lib",
+      "title": "Client API GraphQL",
+      "description": "Transport injectable : `NEXT_PUBLIC_API_URL` choisit entre l'API GraphQL réelle et les fixtures locales, en un seul point. Les hooks de données appellent `client.request(document, variables)` et sont identiques dans les deux modes.",
+      "categories": [
+        "données"
+      ],
+      "dependencies": [
+        "graphql-request"
+      ],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/lib/api/client.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/client.js"
+        },
+        {
+          "path": "src/lib/api/documents/catalogSchema.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/documents/catalogSchema.js"
+        },
+        {
+          "path": "src/lib/api/documents/factTable.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/documents/factTable.js"
+        },
+        {
+          "path": "src/lib/api/documents/gql.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/documents/gql.js"
+        },
+        {
+          "path": "src/lib/api/documents/index.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/documents/index.js"
+        },
+        {
+          "path": "src/lib/api/documents/selectOptions.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/documents/selectOptions.js"
+        },
+        {
+          "path": "src/lib/api/fixtures/catalogSchema.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/fixtures/catalogSchema.js"
+        },
+        {
+          "path": "src/lib/api/fixtures/chartFactTable.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/fixtures/chartFactTable.js"
+        },
+        {
+          "path": "src/lib/api/fixtures/factTable.json",
+          "type": "registry:file",
+          "target": "~/src/lib/api/fixtures/factTable.json"
+        },
+        {
+          "path": "src/lib/api/fixtures/selectOptions.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/fixtures/selectOptions.js"
+        },
+        {
+          "path": "src/lib/api/serverRequest.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/serverRequest.js"
+        },
+        {
+          "path": "src/lib/api/transports/graphql.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/transports/graphql.js"
+        },
+        {
+          "path": "src/lib/api/transports/mock.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/transports/mock.js"
+        }
+      ],
+      "docs": "Sans `NEXT_PUBLIC_API_URL`, le client sert les fixtures embarquées : le composant se rend hors ligne. Définis la variable pour brancher ta propre API — le SDL attendu est dans `schema.graphql`."
+    },
+    {
+      "name": "badge",
+      "type": "registry:ui",
+      "title": "Badge",
+      "description": "Pastille d'état déclinée en variantes sémantiques (succès, alerte, neutre…).",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/Badge/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Badge/_colors.scss"
+        },
+        {
+          "path": "src/components/ui/Badge/Badge.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Badge/Badge.jsx"
+        },
+        {
+          "path": "src/components/ui/Badge/Badge.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Badge/Badge.scss"
+        }
+      ]
+    },
+    {
+      "name": "calendar-month",
+      "type": "registry:ui",
+      "title": "CalendarMonth",
+      "description": "Calendrier mensuel navigable au clavier, en sélection d'un jour ou d'une plage.",
+      "categories": [
+        "filtres"
+      ],
+      "dependencies": [],
+      "registryDependencies": [
+        "filter-tokens",
+        "icons",
+        "tokens-global",
+        "visually-hidden"
+      ],
+      "files": [
+        {
+          "path": "src/components/filter/CalendarMonth/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/CalendarMonth/_colors.scss"
+        },
+        {
+          "path": "src/components/filter/CalendarMonth/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/CalendarMonth/_tokens.scss"
+        },
+        {
+          "path": "src/components/filter/CalendarMonth/CalendarMonth.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/filter/CalendarMonth/CalendarMonth.jsx"
+        },
+        {
+          "path": "src/components/filter/CalendarMonth/CalendarMonth.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/CalendarMonth/CalendarMonth.scss"
+        }
+      ]
+    },
+    {
+      "name": "card-grid",
+      "type": "registry:ui",
+      "title": "CardGrid",
+      "description": "Grille de cartes à nombre de colonnes fixe ou automatique, avec repli sur écrans étroits.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/CardGrid/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/CardGrid/_tokens.scss"
+        },
+        {
+          "path": "src/components/ui/CardGrid/CardGrid.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/ui/CardGrid/CardGrid.jsx"
+        },
+        {
+          "path": "src/components/ui/CardGrid/CardGrid.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/CardGrid/CardGrid.scss"
+        }
+      ]
+    },
+    {
+      "name": "chart",
+      "type": "registry:block",
+      "title": "Chart",
+      "description": "Graphique adaptatif : les paramètres `x`, `y`, `z` et `hue` suffisent, le type de tracé se déduit du type des colonnes (courbe, barres, violon, carte de chaleur, densité). Zoom, mini-vues, intervalles de confiance, projections et normalisation s'ajoutent par descripteurs de barre d'outils.",
+      "categories": [
+        "visualisation"
+      ],
+      "dependencies": [
+        "@visx/axis",
+        "@visx/brush",
+        "@visx/curve",
+        "@visx/glyph",
+        "@visx/grid",
+        "@visx/pattern",
+        "@visx/responsive",
+        "@visx/scale",
+        "@visx/shape",
+        "@visx/voronoi",
+        "d3-array",
+        "d3-color",
+        "d3-contour",
+        "d3-format",
+        "d3-geo",
+        "d3-interpolate",
+        "d3-shape",
+        "d3-time-format",
+        "swr"
+      ],
+      "registryDependencies": [
+        "api-client",
+        "chart-tokens",
+        "hooks-layout-effect",
+        "hover-toolbar",
+        "icons",
+        "tokens-global",
+        "toolbar-tools"
+      ],
+      "files": [
+        {
+          "path": "src/features/chart/components/Chart/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/Chart/_colors.scss"
+        },
+        {
+          "path": "src/features/chart/components/Chart/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/Chart/_tokens.scss"
+        },
+        {
+          "path": "src/features/chart/components/Chart/Chart.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/Chart/Chart.jsx"
+        },
+        {
+          "path": "src/features/chart/components/Chart/Chart.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/Chart/Chart.scss"
+        },
+        {
+          "path": "src/features/chart/components/ChartAxis/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartAxis/_colors.scss"
+        },
+        {
+          "path": "src/features/chart/components/ChartAxis/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartAxis/_tokens.scss"
+        },
+        {
+          "path": "src/features/chart/components/ChartAxis/ChartAxisBottom/ChartAxisBottom.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartAxis/ChartAxisBottom/ChartAxisBottom.jsx"
+        },
+        {
+          "path": "src/features/chart/components/ChartAxis/ChartAxisBottom/ChartAxisBottom.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartAxis/ChartAxisBottom/ChartAxisBottom.scss"
+        },
+        {
+          "path": "src/features/chart/components/ChartAxis/ChartAxisLeft/ChartAxisLeft.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartAxis/ChartAxisLeft/ChartAxisLeft.jsx"
+        },
+        {
+          "path": "src/features/chart/components/ChartAxis/ChartAxisLeft/ChartAxisLeft.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartAxis/ChartAxisLeft/ChartAxisLeft.scss"
+        },
+        {
+          "path": "src/features/chart/components/ChartAxis/tickHelpers.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartAxis/tickHelpers.js"
+        },
+        {
+          "path": "src/features/chart/components/ChartLegend/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartLegend/_colors.scss"
+        },
+        {
+          "path": "src/features/chart/components/ChartLegend/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartLegend/_tokens.scss"
+        },
+        {
+          "path": "src/features/chart/components/ChartLegend/ChannelLegend/ChannelLegend.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartLegend/ChannelLegend/ChannelLegend.jsx"
+        },
+        {
+          "path": "src/features/chart/components/ChartLegend/ChannelLegend/ChannelLegend.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartLegend/ChannelLegend/ChannelLegend.scss"
+        },
+        {
+          "path": "src/features/chart/components/ChartLegend/LegendGlyph/LegendGlyph.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartLegend/LegendGlyph/LegendGlyph.jsx"
+        },
+        {
+          "path": "src/features/chart/components/ChartLegend/SequentialLegend/SequentialLegend.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartLegend/SequentialLegend/SequentialLegend.jsx"
+        },
+        {
+          "path": "src/features/chart/components/ChartLegend/SequentialLegend/SequentialLegend.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartLegend/SequentialLegend/SequentialLegend.scss"
+        },
+        {
+          "path": "src/features/chart/components/ChartMinimap/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartMinimap/_colors.scss"
+        },
+        {
+          "path": "src/features/chart/components/ChartMinimap/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartMinimap/_tokens.scss"
+        },
+        {
+          "path": "src/features/chart/components/ChartMinimap/BrushMinimap/BrushMinimap.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartMinimap/BrushMinimap/BrushMinimap.jsx"
+        },
+        {
+          "path": "src/features/chart/components/ChartMinimap/BrushMinimap/BrushMinimap.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartMinimap/BrushMinimap/BrushMinimap.scss"
+        },
+        {
+          "path": "src/features/chart/components/ChartMinimap/MinimapToggle/MinimapToggle.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartMinimap/MinimapToggle/MinimapToggle.jsx"
+        },
+        {
+          "path": "src/features/chart/components/ChartMinimap/MinimapToggle/MinimapToggle.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartMinimap/MinimapToggle/MinimapToggle.scss"
+        },
+        {
+          "path": "src/features/chart/components/ChartMinimap/MiniProjection/MiniProjection.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartMinimap/MiniProjection/MiniProjection.jsx"
+        },
+        {
+          "path": "src/features/chart/components/ChartToolbar/ChartToolbar.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartToolbar/ChartToolbar.jsx"
+        },
+        {
+          "path": "src/features/chart/components/ChartToolbar/ToolIcon/ToolIcon.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartToolbar/ToolIcon/ToolIcon.jsx"
+        },
+        {
+          "path": "src/features/chart/components/ChartTooltip/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartTooltip/_colors.scss"
+        },
+        {
+          "path": "src/features/chart/components/ChartTooltip/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartTooltip/_tokens.scss"
+        },
+        {
+          "path": "src/features/chart/components/ChartTooltip/ChartTooltip.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartTooltip/ChartTooltip.jsx"
+        },
+        {
+          "path": "src/features/chart/components/ChartTooltip/ChartTooltip.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartTooltip/ChartTooltip.scss"
+        },
+        {
+          "path": "src/features/chart/components/marks/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/marks/_colors.scss"
+        },
+        {
+          "path": "src/features/chart/components/marks/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/marks/_tokens.scss"
+        },
+        {
+          "path": "src/features/chart/components/marks/BarMarks/BarMarks.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/marks/BarMarks/BarMarks.jsx"
+        },
+        {
+          "path": "src/features/chart/components/marks/BarMarks/BarMarks.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/marks/BarMarks/BarMarks.scss"
+        },
+        {
+          "path": "src/features/chart/components/marks/DensityMarks/DensityMarks.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/marks/DensityMarks/DensityMarks.jsx"
+        },
+        {
+          "path": "src/features/chart/components/marks/DensityMarks/DensityMarks.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/marks/DensityMarks/DensityMarks.scss"
+        },
+        {
+          "path": "src/features/chart/components/marks/HeatmapMarks/HeatmapMarks.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/marks/HeatmapMarks/HeatmapMarks.jsx"
+        },
+        {
+          "path": "src/features/chart/components/marks/HeatmapMarks/HeatmapMarks.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/marks/HeatmapMarks/HeatmapMarks.scss"
+        },
+        {
+          "path": "src/features/chart/components/marks/LineMarks/LineMarks.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/marks/LineMarks/LineMarks.jsx"
+        },
+        {
+          "path": "src/features/chart/components/marks/LineMarks/LineMarks.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/marks/LineMarks/LineMarks.scss"
+        },
+        {
+          "path": "src/features/chart/components/marks/shared/HatchPatterns.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/marks/shared/HatchPatterns.jsx"
+        },
+        {
+          "path": "src/features/chart/components/marks/shared/SeriesMarker.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/marks/shared/SeriesMarker.jsx"
+        },
+        {
+          "path": "src/features/chart/components/marks/ViolinMarks/ViolinMarks.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/marks/ViolinMarks/ViolinMarks.jsx"
+        },
+        {
+          "path": "src/features/chart/components/marks/ViolinMarks/ViolinMarks.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/marks/ViolinMarks/ViolinMarks.scss"
+        },
+        {
+          "path": "src/features/chart/components/MultiChart/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/MultiChart/_colors.scss"
+        },
+        {
+          "path": "src/features/chart/components/MultiChart/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/MultiChart/_tokens.scss"
+        },
+        {
+          "path": "src/features/chart/components/MultiChart/MultiChart.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/MultiChart/MultiChart.jsx"
+        },
+        {
+          "path": "src/features/chart/components/MultiChart/MultiChart.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/MultiChart/MultiChart.scss"
+        },
+        {
+          "path": "src/features/chart/components/MultiChart/MultiLegend/MultiLegend.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/MultiChart/MultiLegend/MultiLegend.jsx"
+        },
+        {
+          "path": "src/features/chart/components/MultiChart/MultiLegend/MultiLegend.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/MultiChart/MultiLegend/MultiLegend.scss"
+        },
+        {
+          "path": "src/features/chart/components/overlays/BeforeAfterOverlay/BeforeAfterOverlay.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/overlays/BeforeAfterOverlay/BeforeAfterOverlay.jsx"
+        },
+        {
+          "path": "src/features/chart/components/overlays/BeforeAfterOverlay/BeforeAfterOverlay.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/overlays/BeforeAfterOverlay/BeforeAfterOverlay.scss"
+        },
+        {
+          "path": "src/features/chart/components/overlays/ConfidenceOverlay/ConfidenceOverlay.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/overlays/ConfidenceOverlay/ConfidenceOverlay.jsx"
+        },
+        {
+          "path": "src/features/chart/components/overlays/ConfidenceOverlay/ConfidenceOverlay.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/overlays/ConfidenceOverlay/ConfidenceOverlay.scss"
+        },
+        {
+          "path": "src/features/chart/components/overlays/DragBar/DragBar.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/overlays/DragBar/DragBar.jsx"
+        },
+        {
+          "path": "src/features/chart/components/overlays/DragBar/DragBar.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/overlays/DragBar/DragBar.scss"
+        },
+        {
+          "path": "src/features/chart/components/overlays/HoverOverlays/HoverOverlays.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/overlays/HoverOverlays/HoverOverlays.jsx"
+        },
+        {
+          "path": "src/features/chart/components/overlays/NormalizeOverlay/NormalizeOverlay.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/overlays/NormalizeOverlay/NormalizeOverlay.jsx"
+        },
+        {
+          "path": "src/features/chart/components/overlays/NormalizeOverlay/NormalizeOverlay.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/overlays/NormalizeOverlay/NormalizeOverlay.scss"
+        },
+        {
+          "path": "src/features/chart/components/overlays/overlayData.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/overlays/overlayData.js"
+        },
+        {
+          "path": "src/features/chart/hooks/useBrushZoom.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/hooks/useBrushZoom.js"
+        },
+        {
+          "path": "src/features/chart/hooks/useChartGeometry.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/hooks/useChartGeometry.js"
+        },
+        {
+          "path": "src/features/chart/hooks/useFeatureState.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/hooks/useFeatureState.js"
+        },
+        {
+          "path": "src/features/chart/hooks/useMinimapState.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/hooks/useMinimapState.js"
+        },
+        {
+          "path": "src/features/chart/hooks/useSeriesHover.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/hooks/useSeriesHover.js"
+        },
+        {
+          "path": "src/features/chart/index.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/index.js"
+        },
+        {
+          "path": "src/features/chart/sources/demoData.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/sources/demoData.js"
+        },
+        {
+          "path": "src/features/chart/sources/useFactTable.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/sources/useFactTable.js"
+        },
+        {
+          "path": "src/features/chart/toolbar-features/beforeAfter.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/toolbar-features/beforeAfter.js"
+        },
+        {
+          "path": "src/features/chart/toolbar-features/channelAssign.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/toolbar-features/channelAssign.js"
+        },
+        {
+          "path": "src/features/chart/toolbar-features/confidenceInterval.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/toolbar-features/confidenceInterval.js"
+        },
+        {
+          "path": "src/features/chart/toolbar-features/index.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/toolbar-features/index.js"
+        },
+        {
+          "path": "src/features/chart/toolbar-features/minimaps.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/toolbar-features/minimaps.js"
+        },
+        {
+          "path": "src/features/chart/toolbar-features/normalize.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/toolbar-features/normalize.js"
+        },
+        {
+          "path": "src/features/chart/toolbar-features/zoom.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/toolbar-features/zoom.js"
+        },
+        {
+          "path": "src/features/chart/utils/datasetList.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/utils/datasetList.js"
+        },
+        {
+          "path": "src/features/chart/utils/encoding.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/utils/encoding.js"
+        },
+        {
+          "path": "src/features/chart/utils/exportImage.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/utils/exportImage.js"
+        },
+        {
+          "path": "src/features/chart/utils/formatters.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/utils/formatters.js"
+        },
+        {
+          "path": "src/features/chart/utils/kde.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/utils/kde.js"
+        },
+        {
+          "path": "src/features/chart/utils/measureText.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/utils/measureText.js"
+        },
+        {
+          "path": "src/features/chart/utils/minimapGeometry.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/utils/minimapGeometry.js"
+        },
+        {
+          "path": "src/features/chart/utils/scales.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/utils/scales.js"
+        },
+        {
+          "path": "src/features/chart/utils/stacking.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/utils/stacking.js"
+        },
+        {
+          "path": "src/features/chart/utils/typeDetection.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/utils/typeDetection.js"
+        }
+      ],
+      "docs": "Deux paquets (`d3-contour`, `d3-geo`) ne sont chargés que par les tracés de densité et de carte de chaleur : ils restent dans un fragment asynchrone."
+    },
+    {
+      "name": "chart-tokens",
+      "type": "registry:file",
+      "title": "Tokens des graphiques",
+      "description": "Marges, grilles, couleurs de série et d'axe.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/features/chart/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/_colors.scss"
+        },
+        {
+          "path": "src/features/chart/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/_tokens.scss"
+        }
+      ]
+    },
+    {
+      "name": "common",
+      "type": "registry:ui",
+      "title": "Baril des primitives communes",
+      "description": "Réexporte VisuallyHidden, AccessibleIcon et SkipLink sous un import unique.",
+      "dependencies": [],
+      "registryDependencies": [
+        "accessible-icon",
+        "skip-link",
+        "tokens-global",
+        "visually-hidden"
+      ],
+      "files": [
+        {
+          "path": "src/components/common/index.js",
+          "type": "registry:file",
+          "target": "~/src/components/common/index.js"
+        }
+      ]
+    },
+    {
+      "name": "constraint-field",
+      "type": "registry:ui",
+      "title": "ConstraintField",
+      "description": "Contrainte numérique ou temporelle : deux saisies et un curseur double, avec bornes fournies ou récupérées depuis l'API par `fieldName`.",
+      "categories": [
+        "filtres"
+      ],
+      "dependencies": [
+        "swr"
+      ],
+      "registryDependencies": [
+        "date-parse",
+        "filter-tokens",
+        "tokens-global",
+        "type-aware-input",
+        "utils-math"
+      ],
+      "files": [
+        {
+          "path": "src/components/filter/ConstraintField/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/ConstraintField/_colors.scss"
+        },
+        {
+          "path": "src/components/filter/ConstraintField/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/ConstraintField/_tokens.scss"
+        },
+        {
+          "path": "src/components/filter/ConstraintField/ConstraintField.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/filter/ConstraintField/ConstraintField.jsx"
+        },
+        {
+          "path": "src/components/filter/ConstraintField/ConstraintField.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/ConstraintField/ConstraintField.scss"
+        },
+        {
+          "path": "src/components/filter/ConstraintField/useRangeBounds.js",
+          "type": "registry:file",
+          "target": "~/src/components/filter/ConstraintField/useRangeBounds.js"
+        }
+      ]
+    },
+    {
+      "name": "date-parse",
+      "type": "registry:lib",
+      "title": "Analyse de dates",
+      "description": "Conversion entre le format de saisie `JJ/MM/AAAA` et les dates ISO, sans dépendance externe.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/components/filter/utils/dateParse.js",
+          "type": "registry:file",
+          "target": "~/src/components/filter/utils/dateParse.js"
+        }
+      ]
+    },
+    {
+      "name": "filter",
+      "type": "registry:block",
+      "title": "Menu de filtres",
+      "description": "Construction d'une clause de filtre : une variable, une opération adaptée à son type, une valeur. Les critères se combinent par connecteurs logiques et parenthèses, et se traduisent en SQL.",
+      "categories": [
+        "filtres"
+      ],
+      "dependencies": [
+        "swr"
+      ],
+      "registryDependencies": [
+        "api-client",
+        "constraint-field",
+        "date-parse",
+        "filter-feature-tokens",
+        "hooks-debounce",
+        "icons",
+        "select-menu",
+        "tokens-global",
+        "tooltip",
+        "type-aware-input"
+      ],
+      "files": [
+        {
+          "path": "src/features/filter/components/CriterionMenu/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/filter/components/CriterionMenu/_colors.scss"
+        },
+        {
+          "path": "src/features/filter/components/CriterionMenu/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/filter/components/CriterionMenu/_tokens.scss"
+        },
+        {
+          "path": "src/features/filter/components/CriterionMenu/CriterionCard/CriterionCard.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/filter/components/CriterionMenu/CriterionCard/CriterionCard.jsx"
+        },
+        {
+          "path": "src/features/filter/components/CriterionMenu/CriterionCard/CriterionCard.scss",
+          "type": "registry:file",
+          "target": "~/src/features/filter/components/CriterionMenu/CriterionCard/CriterionCard.scss"
+        },
+        {
+          "path": "src/features/filter/components/CriterionMenu/CriterionMenu.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/filter/components/CriterionMenu/CriterionMenu.jsx"
+        },
+        {
+          "path": "src/features/filter/components/CriterionMenu/CriterionRow/CriterionRow.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/filter/components/CriterionMenu/CriterionRow/CriterionRow.jsx"
+        },
+        {
+          "path": "src/features/filter/components/CriterionMenu/CriterionRow/CriterionRow.scss",
+          "type": "registry:file",
+          "target": "~/src/features/filter/components/CriterionMenu/CriterionRow/CriterionRow.scss"
+        },
+        {
+          "path": "src/features/filter/components/CriterionMenu/ValueField/ValueField.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/filter/components/CriterionMenu/ValueField/ValueField.jsx"
+        },
+        {
+          "path": "src/features/filter/components/CriterionMenu/ValueField/ValueField.scss",
+          "type": "registry:file",
+          "target": "~/src/features/filter/components/CriterionMenu/ValueField/ValueField.scss"
+        },
+        {
+          "path": "src/features/filter/components/MultiCriterionMenu/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/filter/components/MultiCriterionMenu/_colors.scss"
+        },
+        {
+          "path": "src/features/filter/components/MultiCriterionMenu/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/filter/components/MultiCriterionMenu/_tokens.scss"
+        },
+        {
+          "path": "src/features/filter/components/MultiCriterionMenu/Connector/Connector.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/filter/components/MultiCriterionMenu/Connector/Connector.jsx"
+        },
+        {
+          "path": "src/features/filter/components/MultiCriterionMenu/Connector/Connector.scss",
+          "type": "registry:file",
+          "target": "~/src/features/filter/components/MultiCriterionMenu/Connector/Connector.scss"
+        },
+        {
+          "path": "src/features/filter/components/MultiCriterionMenu/MultiCriterionMenu.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/filter/components/MultiCriterionMenu/MultiCriterionMenu.jsx"
+        },
+        {
+          "path": "src/features/filter/components/MultiCriterionMenu/MultiCriterionMenu.scss",
+          "type": "registry:file",
+          "target": "~/src/features/filter/components/MultiCriterionMenu/MultiCriterionMenu.scss"
+        },
+        {
+          "path": "src/features/filter/index.js",
+          "type": "registry:file",
+          "target": "~/src/features/filter/index.js"
+        },
+        {
+          "path": "src/features/filter/sources/useVariableMetadata.js",
+          "type": "registry:file",
+          "target": "~/src/features/filter/sources/useVariableMetadata.js"
+        },
+        {
+          "path": "src/features/filter/utils/filterEngine.js",
+          "type": "registry:file",
+          "target": "~/src/features/filter/utils/filterEngine.js"
+        },
+        {
+          "path": "src/features/filter/utils/filterTypes.js",
+          "type": "registry:file",
+          "target": "~/src/features/filter/utils/filterTypes.js"
+        }
+      ]
+    },
+    {
+      "name": "filter-feature-tokens",
+      "type": "registry:file",
+      "title": "Tokens du menu de filtres",
+      "description": "Dimensions et couleurs des cartes de critère.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/features/filter/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/filter/_colors.scss"
+        },
+        {
+          "path": "src/features/filter/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/filter/_tokens.scss"
+        }
+      ]
+    },
+    {
+      "name": "filter-tokens",
+      "type": "registry:file",
+      "title": "Tokens des primitives de filtre",
+      "description": "Dimensions et couleurs partagées par les champs de filtre.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/components/filter/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/_colors.scss"
+        },
+        {
+          "path": "src/components/filter/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/_tokens.scss"
+        }
+      ]
+    },
+    {
+      "name": "footer",
+      "type": "registry:block",
+      "title": "Pied de page",
+      "description": "Pied de page à colonnes de liens et mentions.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "public/logo.svg",
+          "type": "registry:file",
+          "target": "~/public/logo.svg"
+        },
+        {
+          "path": "src/features/footer/components/Footer/Footer.js",
+          "type": "registry:file",
+          "target": "~/src/features/footer/components/Footer/Footer.js"
+        },
+        {
+          "path": "src/features/footer/components/Footer/Footer.scss",
+          "type": "registry:file",
+          "target": "~/src/features/footer/components/Footer/Footer.scss"
+        }
+      ]
+    },
+    {
+      "name": "globe",
+      "type": "registry:block",
+      "title": "Globe",
+      "description": "Globe terrestre WebGL à points et flux animés, morphable en planisphère. Couleur, taille, icône et infobulle de chaque point sont pilotées par accesseurs.",
+      "categories": [
+        "visualisation"
+      ],
+      "dependencies": [
+        "three"
+      ],
+      "registryDependencies": [
+        "globe-tokens",
+        "hover-toolbar",
+        "theme",
+        "tokens-global",
+        "toolbar-tools",
+        "utils-accessibility",
+        "utils-html",
+        "utils-math"
+      ],
+      "files": [
+        {
+          "path": "src/features/globe/components/Globe/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/globe/components/Globe/_colors.scss"
+        },
+        {
+          "path": "src/features/globe/components/Globe/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/globe/components/Globe/_tokens.scss"
+        },
+        {
+          "path": "src/features/globe/components/Globe/Globe.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/globe/components/Globe/Globe.jsx"
+        },
+        {
+          "path": "src/features/globe/components/Globe/Globe.scss",
+          "type": "registry:file",
+          "target": "~/src/features/globe/components/Globe/Globe.scss"
+        },
+        {
+          "path": "src/features/globe/components/GlobeMarkers/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/globe/components/GlobeMarkers/_colors.scss"
+        },
+        {
+          "path": "src/features/globe/components/GlobeMarkers/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/globe/components/GlobeMarkers/_tokens.scss"
+        },
+        {
+          "path": "src/features/globe/components/GlobeMarkers/GlobeMarkers.scss",
+          "type": "registry:file",
+          "target": "~/src/features/globe/components/GlobeMarkers/GlobeMarkers.scss"
+        },
+        {
+          "path": "src/features/globe/components/GlobeMarkers/markerTemplate.js",
+          "type": "registry:file",
+          "target": "~/src/features/globe/components/GlobeMarkers/markerTemplate.js"
+        },
+        {
+          "path": "src/features/globe/components/GlobeToolbar/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/globe/components/GlobeToolbar/_tokens.scss"
+        },
+        {
+          "path": "src/features/globe/components/GlobeToolbar/GlobeToolbar.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/globe/components/GlobeToolbar/GlobeToolbar.jsx"
+        },
+        {
+          "path": "src/features/globe/components/GlobeToolbar/GlobeToolbar.scss",
+          "type": "registry:file",
+          "target": "~/src/features/globe/components/GlobeToolbar/GlobeToolbar.scss"
+        },
+        {
+          "path": "src/features/globe/components/GlobeToolbar/GlobeToolIcon/GlobeToolIcon.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/globe/components/GlobeToolbar/GlobeToolIcon/GlobeToolIcon.jsx"
+        },
+        {
+          "path": "src/features/globe/components/GlobeTooltip/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/globe/components/GlobeTooltip/_colors.scss"
+        },
+        {
+          "path": "src/features/globe/components/GlobeTooltip/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/globe/components/GlobeTooltip/_tokens.scss"
+        },
+        {
+          "path": "src/features/globe/components/GlobeTooltip/GlobeTooltip.scss",
+          "type": "registry:file",
+          "target": "~/src/features/globe/components/GlobeTooltip/GlobeTooltip.scss"
+        },
+        {
+          "path": "src/features/globe/components/GlobeTooltip/tooltipTemplates.js",
+          "type": "registry:file",
+          "target": "~/src/features/globe/components/GlobeTooltip/tooltipTemplates.js"
+        },
+        {
+          "path": "src/features/globe/engine/GlobeEngine.js",
+          "type": "registry:file",
+          "target": "~/src/features/globe/engine/GlobeEngine.js"
+        },
+        {
+          "path": "src/features/globe/engine/palette.js",
+          "type": "registry:file",
+          "target": "~/src/features/globe/engine/palette.js"
+        },
+        {
+          "path": "src/features/globe/engine/shaders.js",
+          "type": "registry:file",
+          "target": "~/src/features/globe/engine/shaders.js"
+        },
+        {
+          "path": "src/features/globe/hooks/useGlobeEngine.js",
+          "type": "registry:file",
+          "target": "~/src/features/globe/hooks/useGlobeEngine.js"
+        },
+        {
+          "path": "src/features/globe/index.js",
+          "type": "registry:file",
+          "target": "~/src/features/globe/index.js"
+        }
+      ],
+      "docs": "Les trois textures de la Terre (`public/globe/earth-day.jpg`, `earth-night.png`, `earth-specular.jpg`) sont des binaires : le registry ne peut pas les transporter. Copie-les depuis le dépôt du template dans le `public/globe/` de ton projet. `three` (~600 kB) n'est chargé qu'à l'affichage du composant.",
+      "meta": {
+        "binaryAssets": [
+          "public/globe/earth-day.jpg",
+          "public/globe/earth-night.png",
+          "public/globe/earth-specular.jpg"
+        ]
+      }
+    },
+    {
+      "name": "globe-tokens",
+      "type": "registry:file",
+      "title": "Tokens du globe",
+      "description": "Couleurs de la sphère, des pastilles et des flux.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/features/globe/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/globe/_colors.scss"
+        },
+        {
+          "path": "src/features/globe/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/globe/_tokens.scss"
+        }
+      ]
+    },
+    {
+      "name": "header",
+      "type": "registry:block",
+      "title": "En-tête et navigation",
+      "description": "En-tête complet : barre de navigation, recherche et bascule de thème. Le composant choisit seul entre barre horizontale et barre latérale repliable selon la profondeur de l'arbre de navigation.",
+      "categories": [
+        "mise en page"
+      ],
+      "dependencies": [],
+      "registryDependencies": [
+        "common",
+        "header-tokens",
+        "hooks-accessibility",
+        "icons",
+        "theme",
+        "tokens-global",
+        "utils-math"
+      ],
+      "files": [
+        {
+          "path": "public/logo.svg",
+          "type": "registry:file",
+          "target": "~/public/logo.svg"
+        },
+        {
+          "path": "src/features/header/components/Header/Header.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/Header/Header.jsx"
+        },
+        {
+          "path": "src/features/header/components/Header/Header.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/Header/Header.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/_colors.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/_tokens.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/index.js",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/index.js"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/NavigationSideBar/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/NavigationSideBar/_tokens.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/NavigationSideBar/NavigationSideBar.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/NavigationSideBar/NavigationSideBar.jsx"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/NavigationSideBar/NavigationSideBar.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/NavigationSideBar/NavigationSideBar.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarGroup/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/SidebarGroup/_tokens.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarGroup/SidebarGroup.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/SidebarGroup/SidebarGroup.jsx"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarGroup/SidebarGroup.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/SidebarGroup/SidebarGroup.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarItem/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/SidebarItem/_tokens.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarItem/SidebarItem.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/SidebarItem/SidebarItem.jsx"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarItem/SidebarItem.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/SidebarItem/SidebarItem.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarMenu/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/SidebarMenu/_tokens.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarMenu/SidebarMenu.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/SidebarMenu/SidebarMenu.jsx"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarMenu/SidebarMenu.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/SidebarMenu/SidebarMenu.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarNode/SidebarNode.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/SidebarNode/SidebarNode.jsx"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarSwitcher/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/SidebarSwitcher/_tokens.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarSwitcher/SidebarSwitcher.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/SidebarSwitcher/SidebarSwitcher.jsx"
+        },
+        {
+          "path": "src/features/header/components/NavigationSideBar/SidebarSwitcher/SidebarSwitcher.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationSideBar/SidebarSwitcher/SidebarSwitcher.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/_tokens.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/index.js",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/index.js"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarContainer/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarContainer/_tokens.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarContainer/TopbarContainer.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarContainer/TopbarContainer.jsx"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarContainer/TopbarContainer.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarContainer/TopbarContainer.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarGroup/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarGroup/_tokens.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarGroup/TopbarGroup.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarGroup/TopbarGroup.jsx"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarGroup/TopbarGroup.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarGroup/TopbarGroup.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarGroupItem/TopbarGroupItem.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarGroupItem/TopbarGroupItem.jsx"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarGroupSection/TopbarGroupSection.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarGroupSection/TopbarGroupSection.jsx"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarItem/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarItem/_tokens.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarItem/TopbarItem.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarItem/TopbarItem.jsx"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarItem/TopbarItem.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarItem/TopbarItem.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarMenu/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarMenu/_tokens.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarMenu/TopbarMenu.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarMenu/TopbarMenu.jsx"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarMenu/TopbarMenu.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarMenu/TopbarMenu.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarNode/TopbarNode.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarNode/TopbarNode.jsx"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarOverlay/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarOverlay/_tokens.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarOverlay/TopbarOverlay.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarOverlay/TopbarOverlay.jsx"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarOverlay/TopbarOverlay.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarOverlay/TopbarOverlay.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarToggleButton/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarToggleButton/_tokens.scss"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarToggleButton/TopbarToggleButton.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarToggleButton/TopbarToggleButton.jsx"
+        },
+        {
+          "path": "src/features/header/components/NavigationTopBar/TopbarToggleButton/TopbarToggleButton.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavigationTopBar/TopbarToggleButton/TopbarToggleButton.scss"
+        },
+        {
+          "path": "src/features/header/components/NavTrigger/index.js",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavTrigger/index.js"
+        },
+        {
+          "path": "src/features/header/components/NavTrigger/NavTrigger.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/NavTrigger/NavTrigger.jsx"
+        },
+        {
+          "path": "src/features/header/components/SearchBar/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/SearchBar/_colors.scss"
+        },
+        {
+          "path": "src/features/header/components/SearchBar/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/SearchBar/_tokens.scss"
+        },
+        {
+          "path": "src/features/header/components/SearchBar/SearchBar.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/SearchBar/SearchBar.jsx"
+        },
+        {
+          "path": "src/features/header/components/SearchBar/SearchBar.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/components/SearchBar/SearchBar.scss"
+        },
+        {
+          "path": "src/features/header/hooks/useNavigation.js",
+          "type": "registry:file",
+          "target": "~/src/features/header/hooks/useNavigation.js"
+        },
+        {
+          "path": "src/features/header/hooks/useResizable.js",
+          "type": "registry:file",
+          "target": "~/src/features/header/hooks/useResizable.js"
+        },
+        {
+          "path": "src/features/header/hooks/useSearchIndex.js",
+          "type": "registry:file",
+          "target": "~/src/features/header/hooks/useSearchIndex.js"
+        },
+        {
+          "path": "src/features/header/providers/NavigationProvider.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/header/providers/NavigationProvider.jsx"
+        },
+        {
+          "path": "src/features/header/utils/hasIconsInNavigationData.js",
+          "type": "registry:file",
+          "target": "~/src/features/header/utils/hasIconsInNavigationData.js"
+        },
+        {
+          "path": "src/features/header/utils/searchMatch.js",
+          "type": "registry:file",
+          "target": "~/src/features/header/utils/searchMatch.js"
+        }
+      ]
+    },
+    {
+      "name": "header-tokens",
+      "type": "registry:file",
+      "title": "Tokens de l'en-tête",
+      "description": "Hauteurs de barre, tailles de bascule, mixins de navigation partagés par la barre haute et la barre latérale.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/features/header/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/_colors.scss"
+        },
+        {
+          "path": "src/features/header/_nav-mixins.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/_nav-mixins.scss"
+        },
+        {
+          "path": "src/features/header/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/_tokens.scss"
+        },
+        {
+          "path": "src/features/header/nav-base.scss",
+          "type": "registry:file",
+          "target": "~/src/features/header/nav-base.scss"
+        }
+      ]
+    },
+    {
+      "name": "home",
+      "type": "registry:block",
+      "title": "Page d'accueil",
+      "description": "Bandeau d'accueil et grille de cartes, alimentés par un fichier de contenu JSON.",
+      "dependencies": [],
+      "registryDependencies": [
+        "large-button",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "config/content/home.json",
+          "type": "registry:file",
+          "target": "~/config/content/home.json"
+        },
+        {
+          "path": "src/features/home/components/Hero/Hero.js",
+          "type": "registry:file",
+          "target": "~/src/features/home/components/Hero/Hero.js"
+        },
+        {
+          "path": "src/features/home/components/Hero/Hero.scss",
+          "type": "registry:file",
+          "target": "~/src/features/home/components/Hero/Hero.scss"
+        },
+        {
+          "path": "src/features/home/components/index.js",
+          "type": "registry:file",
+          "target": "~/src/features/home/components/index.js"
+        },
+        {
+          "path": "src/features/home/data/homeConfig.js",
+          "type": "registry:file",
+          "target": "~/src/features/home/data/homeConfig.js"
+        }
+      ]
+    },
+    {
+      "name": "hooks-accessibility",
+      "type": "registry:hook",
+      "title": "Hooks d'accessibilité",
+      "description": "Piège à focus, retour de focus, navigation clavier, annonces ARIA et détection de `prefers-reduced-motion`.",
+      "categories": [
+        "accessibilité"
+      ],
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global",
+        "utils-accessibility"
+      ],
+      "files": [
+        {
+          "path": "src/hooks/accessibility/index.js",
+          "type": "registry:file",
+          "target": "~/src/hooks/accessibility/index.js"
+        },
+        {
+          "path": "src/hooks/accessibility/useAriaAnnounce.js",
+          "type": "registry:file",
+          "target": "~/src/hooks/accessibility/useAriaAnnounce.js"
+        },
+        {
+          "path": "src/hooks/accessibility/useFocusReturn.js",
+          "type": "registry:file",
+          "target": "~/src/hooks/accessibility/useFocusReturn.js"
+        },
+        {
+          "path": "src/hooks/accessibility/useFocusTrap.js",
+          "type": "registry:file",
+          "target": "~/src/hooks/accessibility/useFocusTrap.js"
+        },
+        {
+          "path": "src/hooks/accessibility/useKeyboardNavigation.js",
+          "type": "registry:file",
+          "target": "~/src/hooks/accessibility/useKeyboardNavigation.js"
+        },
+        {
+          "path": "src/hooks/accessibility/useReducedMotion.js",
+          "type": "registry:file",
+          "target": "~/src/hooks/accessibility/useReducedMotion.js"
+        }
+      ]
+    },
+    {
+      "name": "hooks-debounce",
+      "type": "registry:hook",
+      "title": "Hooks d’amortissement",
+      "description": "Amortissement d'une valeur ou d'un rappel — utilisé pour ne pas requêter à chaque frappe.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/hooks/debounce/useDebouncedCallback.js",
+          "type": "registry:file",
+          "target": "~/src/hooks/debounce/useDebouncedCallback.js"
+        },
+        {
+          "path": "src/hooks/debounce/useDebouncedValue.js",
+          "type": "registry:file",
+          "target": "~/src/hooks/debounce/useDebouncedValue.js"
+        }
+      ]
+    },
+    {
+      "name": "hooks-floating",
+      "type": "registry:hook",
+      "title": "Positionnement flottant",
+      "description": "Position d'un panneau portalé dans le viewport, recalculée au défilement et au redimensionnement.",
+      "dependencies": [],
+      "registryDependencies": [
+        "hooks-layout-effect",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/hooks/floating/useFloatingPosition.js",
+          "type": "registry:file",
+          "target": "~/src/hooks/floating/useFloatingPosition.js"
+        }
+      ]
+    },
+    {
+      "name": "hooks-layout-effect",
+      "type": "registry:hook",
+      "title": "useIsomorphicLayoutEffect",
+      "description": "`useLayoutEffect` côté navigateur, `useEffect` au rendu serveur : évite l'avertissement de React.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/hooks/layoutEffect/useIsomorphicLayoutEffect.js",
+          "type": "registry:file",
+          "target": "~/src/hooks/layoutEffect/useIsomorphicLayoutEffect.js"
+        }
+      ]
+    },
+    {
+      "name": "hover-toolbar",
+      "type": "registry:ui",
+      "title": "HoverToolbar",
+      "description": "Barre d'outils flottante qui apparaît au survol de la visualisation qu'elle pilote.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global",
+        "toolbar-button",
+        "toolbar-tokens"
+      ],
+      "files": [
+        {
+          "path": "src/components/toolbar/HoverToolbar/HoverToolbar.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/toolbar/HoverToolbar/HoverToolbar.jsx"
+        },
+        {
+          "path": "src/components/toolbar/HoverToolbar/HoverToolbar.scss",
+          "type": "registry:file",
+          "target": "~/src/components/toolbar/HoverToolbar/HoverToolbar.scss"
+        }
+      ]
+    },
+    {
+      "name": "icons",
+      "type": "registry:ui",
+      "title": "Jeu d'icônes",
+      "description": "Une trentaine d'icônes SVG à trait, dimensionnées en `em` et colorées par `currentColor` : elles suivent la taille et la couleur du texte qui les entoure.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/components/icons/BellIcon/BellIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/BellIcon/BellIcon.js"
+        },
+        {
+          "path": "src/components/icons/BracketLeftIcon/BracketLeftIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/BracketLeftIcon/BracketLeftIcon.js"
+        },
+        {
+          "path": "src/components/icons/BracketRightIcon/BracketRightIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/BracketRightIcon/BracketRightIcon.js"
+        },
+        {
+          "path": "src/components/icons/CalendarIcon/CalendarIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/CalendarIcon/CalendarIcon.js"
+        },
+        {
+          "path": "src/components/icons/ChartIcon/ChartIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/ChartIcon/ChartIcon.js"
+        },
+        {
+          "path": "src/components/icons/CheckIcon/CheckIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/CheckIcon/CheckIcon.js"
+        },
+        {
+          "path": "src/components/icons/ChevronDownIcon/ChevronDownIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/ChevronDownIcon/ChevronDownIcon.js"
+        },
+        {
+          "path": "src/components/icons/ChevronDownIcon/ChevronDownIcon.scss",
+          "type": "registry:file",
+          "target": "~/src/components/icons/ChevronDownIcon/ChevronDownIcon.scss"
+        },
+        {
+          "path": "src/components/icons/ChevronIcon/ChevronIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/ChevronIcon/ChevronIcon.js"
+        },
+        {
+          "path": "src/components/icons/ClearIcon/ClearIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/ClearIcon/ClearIcon.js"
+        },
+        {
+          "path": "src/components/icons/ClearIcon/ClearIcon.scss",
+          "type": "registry:file",
+          "target": "~/src/components/icons/ClearIcon/ClearIcon.scss"
+        },
+        {
+          "path": "src/components/icons/CloseIcon/CloseIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/CloseIcon/CloseIcon.js"
+        },
+        {
+          "path": "src/components/icons/CloseIcon/CloseIcon.scss",
+          "type": "registry:file",
+          "target": "~/src/components/icons/CloseIcon/CloseIcon.scss"
+        },
+        {
+          "path": "src/components/icons/CogIcon/CogIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/CogIcon/CogIcon.js"
+        },
+        {
+          "path": "src/components/icons/CopyIcon/CopyIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/CopyIcon/CopyIcon.js"
+        },
+        {
+          "path": "src/components/icons/CrossIcon/CrossIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/CrossIcon/CrossIcon.js"
+        },
+        {
+          "path": "src/components/icons/DocIcon/DocIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/DocIcon/DocIcon.js"
+        },
+        {
+          "path": "src/components/icons/DownloadIcon/DownloadIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/DownloadIcon/DownloadIcon.js"
+        },
+        {
+          "path": "src/components/icons/FilterIcon/FilterIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/FilterIcon/FilterIcon.js"
+        },
+        {
+          "path": "src/components/icons/GridIcon/GridIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/GridIcon/GridIcon.js"
+        },
+        {
+          "path": "src/components/icons/HamburgerIcon/HamburgerIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/HamburgerIcon/HamburgerIcon.js"
+        },
+        {
+          "path": "src/components/icons/HamburgerIcon/HamburgerIcon.scss",
+          "type": "registry:file",
+          "target": "~/src/components/icons/HamburgerIcon/HamburgerIcon.scss"
+        },
+        {
+          "path": "src/components/icons/index.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/index.js"
+        },
+        {
+          "path": "src/components/icons/InfoIcon/InfoIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/InfoIcon/InfoIcon.js"
+        },
+        {
+          "path": "src/components/icons/LayersIcon/LayersIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/LayersIcon/LayersIcon.js"
+        },
+        {
+          "path": "src/components/icons/PlusIcon/PlusIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/PlusIcon/PlusIcon.js"
+        },
+        {
+          "path": "src/components/icons/PulseIcon/PulseIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/PulseIcon/PulseIcon.js"
+        },
+        {
+          "path": "src/components/icons/ResetIcon/ResetIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/ResetIcon/ResetIcon.js"
+        },
+        {
+          "path": "src/components/icons/SearchIcon/SearchIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/SearchIcon/SearchIcon.js"
+        },
+        {
+          "path": "src/components/icons/SearchIcon/SearchIcon.scss",
+          "type": "registry:file",
+          "target": "~/src/components/icons/SearchIcon/SearchIcon.scss"
+        },
+        {
+          "path": "src/components/icons/SortAscIcon/SortAscIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/SortAscIcon/SortAscIcon.js"
+        },
+        {
+          "path": "src/components/icons/SortDescIcon/SortDescIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/SortDescIcon/SortDescIcon.js"
+        },
+        {
+          "path": "src/components/icons/SortNoneIcon/SortNoneIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/SortNoneIcon/SortNoneIcon.js"
+        },
+        {
+          "path": "src/components/icons/SunMoonIcon/SunMoonIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/SunMoonIcon/SunMoonIcon.js"
+        },
+        {
+          "path": "src/components/icons/SunMoonIcon/SunMoonIcon.scss",
+          "type": "registry:file",
+          "target": "~/src/components/icons/SunMoonIcon/SunMoonIcon.scss"
+        },
+        {
+          "path": "src/components/icons/TableIcon/TableIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/TableIcon/TableIcon.js"
+        },
+        {
+          "path": "src/components/icons/TrendArrowIcon/TrendArrowIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/TrendArrowIcon/TrendArrowIcon.js"
+        },
+        {
+          "path": "src/components/icons/UsersIcon/UsersIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/UsersIcon/UsersIcon.js"
+        }
+      ]
+    },
+    {
+      "name": "large-button",
+      "type": "registry:ui",
+      "title": "LargeButton",
+      "description": "Bouton d'appel à l'action, en variantes pleine et bordée.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/LargeButton/LargeButton.js",
+          "type": "registry:file",
+          "target": "~/src/components/ui/LargeButton/LargeButton.js"
+        },
+        {
+          "path": "src/components/ui/LargeButton/LargeButton.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/LargeButton/LargeButton.scss"
+        }
+      ]
+    },
+    {
+      "name": "link-card",
+      "type": "registry:ui",
+      "title": "LinkCard",
+      "description": "Carte cliquable à image, titre et description.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/LinkCard/LinkCard.js",
+          "type": "registry:file",
+          "target": "~/src/components/ui/LinkCard/LinkCard.js"
+        },
+        {
+          "path": "src/components/ui/LinkCard/LinkCard.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/LinkCard/LinkCard.scss"
+        }
+      ]
+    },
+    {
+      "name": "link-cards-section",
+      "type": "registry:ui",
+      "title": "LinkCardsSection",
+      "description": "Section titrée composée d'une grille de LinkCard.",
+      "dependencies": [],
+      "registryDependencies": [
+        "card-grid",
+        "link-card",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/LinkCardsSection/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/LinkCardsSection/_colors.scss"
+        },
+        {
+          "path": "src/components/ui/LinkCardsSection/LinkCardsSection.js",
+          "type": "registry:file",
+          "target": "~/src/components/ui/LinkCardsSection/LinkCardsSection.js"
+        },
+        {
+          "path": "src/components/ui/LinkCardsSection/LinkCardsSection.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/LinkCardsSection/LinkCardsSection.scss"
+        }
+      ]
+    },
+    {
+      "name": "pages",
+      "type": "registry:block",
+      "title": "Gabarits de page",
+      "description": "Gabarits rendus par la route générée depuis le manifeste de site : page d'indicateur, page de groupe, explorateur, page à propos.",
+      "categories": [
+        "mise en page"
+      ],
+      "dependencies": [],
+      "registryDependencies": [
+        "api-client",
+        "chart",
+        "filter",
+        "home",
+        "table",
+        "tokens-global",
+        "ui",
+        "utils-format"
+      ],
+      "files": [
+        {
+          "path": "config/filter/operations.json",
+          "type": "registry:file",
+          "target": "~/config/filter/operations.json"
+        },
+        {
+          "path": "config/site.config.json",
+          "type": "registry:file",
+          "target": "~/config/site.config.json"
+        },
+        {
+          "path": "src/features/pages/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/pages/_tokens.scss"
+        },
+        {
+          "path": "src/features/pages/components/AboutPage/AboutPage.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/pages/components/AboutPage/AboutPage.jsx"
+        },
+        {
+          "path": "src/features/pages/components/AboutPage/AboutPage.scss",
+          "type": "registry:file",
+          "target": "~/src/features/pages/components/AboutPage/AboutPage.scss"
+        },
+        {
+          "path": "src/features/pages/components/HomePage/HomePage.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/pages/components/HomePage/HomePage.jsx"
+        },
+        {
+          "path": "src/features/pages/components/IndicatorExplorer/IndicatorExplorer.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/pages/components/IndicatorExplorer/IndicatorExplorer.jsx"
+        },
+        {
+          "path": "src/features/pages/components/IndicatorExplorer/IndicatorExplorer.scss",
+          "type": "registry:file",
+          "target": "~/src/features/pages/components/IndicatorExplorer/IndicatorExplorer.scss"
+        },
+        {
+          "path": "src/features/pages/components/IndicatorGroupPage/IndicatorGroupPage.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/pages/components/IndicatorGroupPage/IndicatorGroupPage.jsx"
+        },
+        {
+          "path": "src/features/pages/components/IndicatorGroupPage/IndicatorGroupPage.scss",
+          "type": "registry:file",
+          "target": "~/src/features/pages/components/IndicatorGroupPage/IndicatorGroupPage.scss"
+        },
+        {
+          "path": "src/features/pages/components/IndicatorPage/IndicatorPage.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/pages/components/IndicatorPage/IndicatorPage.jsx"
+        },
+        {
+          "path": "src/features/pages/components/PageBody/PageBody.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/pages/components/PageBody/PageBody.jsx"
+        },
+        {
+          "path": "src/features/pages/components/PageBody/PageBody.scss",
+          "type": "registry:file",
+          "target": "~/src/features/pages/components/PageBody/PageBody.scss"
+        },
+        {
+          "path": "src/features/pages/components/PageHeader/PageHeader.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/pages/components/PageHeader/PageHeader.jsx"
+        },
+        {
+          "path": "src/features/pages/components/PageHeader/PageHeader.scss",
+          "type": "registry:file",
+          "target": "~/src/features/pages/components/PageHeader/PageHeader.scss"
+        },
+        {
+          "path": "src/features/pages/utils/deriveEncoding.js",
+          "type": "registry:file",
+          "target": "~/src/features/pages/utils/deriveEncoding.js"
+        }
+      ],
+      "docs": "Ces gabarits sont câblés par `src/config/pageTypes.js` et la route `src/app/[...slug]/`, qui restent du ressort de ton application : le registry ne les installe pas."
+    },
+    {
+      "name": "select-menu",
+      "type": "registry:ui",
+      "title": "SelectMenu",
+      "description": "Menu déroulant en sélection simple ou multiple, avec recherche amortie et options groupées. Les options viennent d'une liste statique ou de l'API via `fieldName`.",
+      "categories": [
+        "filtres"
+      ],
+      "dependencies": [
+        "swr"
+      ],
+      "registryDependencies": [
+        "api-client",
+        "filter-tokens",
+        "hooks-debounce",
+        "hooks-floating",
+        "icons",
+        "tokens-global",
+        "visually-hidden"
+      ],
+      "files": [
+        {
+          "path": "src/components/filter/SelectMenu/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/SelectMenu/_colors.scss"
+        },
+        {
+          "path": "src/components/filter/SelectMenu/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/SelectMenu/_tokens.scss"
+        },
+        {
+          "path": "src/components/filter/SelectMenu/SelectMenu.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/filter/SelectMenu/SelectMenu.jsx"
+        },
+        {
+          "path": "src/components/filter/SelectMenu/SelectMenu.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/SelectMenu/SelectMenu.scss"
+        },
+        {
+          "path": "src/components/filter/SelectMenu/useSelectOptions.js",
+          "type": "registry:file",
+          "target": "~/src/components/filter/SelectMenu/useSelectOptions.js"
+        }
+      ]
+    },
+    {
+      "name": "skip-link",
+      "type": "registry:ui",
+      "title": "SkipLink",
+      "description": "Lien d'évitement révélé au premier Tab, qui saute la navigation et pose le focus sur le contenu.",
+      "categories": [
+        "accessibilité"
+      ],
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/components/common/SkipLink/index.js",
+          "type": "registry:file",
+          "target": "~/src/components/common/SkipLink/index.js"
+        },
+        {
+          "path": "src/components/common/SkipLink/SkipLink.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/common/SkipLink/SkipLink.jsx"
+        },
+        {
+          "path": "src/components/common/SkipLink/SkipLink.scss",
+          "type": "registry:file",
+          "target": "~/src/components/common/SkipLink/SkipLink.scss"
+        }
+      ]
+    },
+    {
+      "name": "stat-card",
+      "type": "registry:ui",
+      "title": "StatCard",
+      "description": "Carte d'indicateur : valeur formatée, pastille d'évolution, icône teintée, pied de carte. La valeur reste un nombre brut, `format` décide de sa présentation.",
+      "categories": [
+        "indicateurs"
+      ],
+      "dependencies": [],
+      "registryDependencies": [
+        "icons",
+        "tokens-global",
+        "utils-format"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/StatCard/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/StatCard/_colors.scss"
+        },
+        {
+          "path": "src/components/ui/StatCard/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/StatCard/_tokens.scss"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatBadge/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/StatCard/StatBadge/_colors.scss"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatBadge/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/StatCard/StatBadge/_tokens.scss"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatBadge/StatBadge.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/ui/StatCard/StatBadge/StatBadge.jsx"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatBadge/StatBadge.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/StatCard/StatBadge/StatBadge.scss"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatCard.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/ui/StatCard/StatCard.jsx"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatCard.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/StatCard/StatCard.scss"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatCardIcon/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/StatCard/StatCardIcon/_colors.scss"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatCardIcon/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/StatCard/StatCardIcon/_tokens.scss"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatCardIcon/StatCardIcon.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/ui/StatCard/StatCardIcon/StatCardIcon.jsx"
+        },
+        {
+          "path": "src/components/ui/StatCard/StatCardIcon/StatCardIcon.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/StatCard/StatCardIcon/StatCardIcon.scss"
+        },
+        {
+          "path": "src/components/ui/StatCard/utils/formatStatValue.js",
+          "type": "registry:file",
+          "target": "~/src/components/ui/StatCard/utils/formatStatValue.js"
+        }
+      ]
+    },
+    {
+      "name": "table",
+      "type": "registry:block",
+      "title": "DataTable",
+      "description": "Tableau de données trié, filtrable et exportable. Les colonnes se décrivent à la main ou se dérivent des métadonnées de l'API ; le filtre accepte l'arbre produit par le menu de critères.",
+      "categories": [
+        "visualisation"
+      ],
+      "dependencies": [
+        "swr"
+      ],
+      "registryDependencies": [
+        "api-client",
+        "filter",
+        "hover-toolbar",
+        "icons",
+        "table-tokens",
+        "tokens-global",
+        "utils-format"
+      ],
+      "files": [
+        {
+          "path": "src/features/table/components/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/_colors.scss"
+        },
+        {
+          "path": "src/features/table/components/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/_tokens.scss"
+        },
+        {
+          "path": "src/features/table/components/Table.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/Table.jsx"
+        },
+        {
+          "path": "src/features/table/components/Table.scss",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/Table.scss"
+        },
+        {
+          "path": "src/features/table/components/TableChipRow/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/TableChipRow/_colors.scss"
+        },
+        {
+          "path": "src/features/table/components/TableChipRow/TableChipRow.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/TableChipRow/TableChipRow.jsx"
+        },
+        {
+          "path": "src/features/table/components/TableChipRow/TableChipRow.scss",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/TableChipRow/TableChipRow.scss"
+        },
+        {
+          "path": "src/features/table/components/TableFilterPopover/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/TableFilterPopover/_colors.scss"
+        },
+        {
+          "path": "src/features/table/components/TableFilterPopover/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/TableFilterPopover/_tokens.scss"
+        },
+        {
+          "path": "src/features/table/components/TableFilterPopover/TableFilterPopover.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/TableFilterPopover/TableFilterPopover.jsx"
+        },
+        {
+          "path": "src/features/table/components/TableFilterPopover/TableFilterPopover.scss",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/TableFilterPopover/TableFilterPopover.scss"
+        },
+        {
+          "path": "src/features/table/components/TableFooter/TableFooter.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/TableFooter/TableFooter.jsx"
+        },
+        {
+          "path": "src/features/table/components/TableFooter/TableFooter.scss",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/TableFooter/TableFooter.scss"
+        },
+        {
+          "path": "src/features/table/components/TableHeaderCell/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/TableHeaderCell/_colors.scss"
+        },
+        {
+          "path": "src/features/table/components/TableHeaderCell/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/TableHeaderCell/_tokens.scss"
+        },
+        {
+          "path": "src/features/table/components/TableHeaderCell/TableHeaderCell.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/TableHeaderCell/TableHeaderCell.jsx"
+        },
+        {
+          "path": "src/features/table/components/TableHeaderCell/TableHeaderCell.scss",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/TableHeaderCell/TableHeaderCell.scss"
+        },
+        {
+          "path": "src/features/table/components/TableSnippetReveal/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/TableSnippetReveal/_colors.scss"
+        },
+        {
+          "path": "src/features/table/components/TableSnippetReveal/TableSnippetReveal.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/TableSnippetReveal/TableSnippetReveal.jsx"
+        },
+        {
+          "path": "src/features/table/components/TableSnippetReveal/TableSnippetReveal.scss",
+          "type": "registry:file",
+          "target": "~/src/features/table/components/TableSnippetReveal/TableSnippetReveal.scss"
+        },
+        {
+          "path": "src/features/table/hooks/useDataTableState.js",
+          "type": "registry:file",
+          "target": "~/src/features/table/hooks/useDataTableState.js"
+        },
+        {
+          "path": "src/features/table/index.js",
+          "type": "registry:file",
+          "target": "~/src/features/table/index.js"
+        },
+        {
+          "path": "src/features/table/sources/useFactTableWithMetadata.js",
+          "type": "registry:file",
+          "target": "~/src/features/table/sources/useFactTableWithMetadata.js"
+        },
+        {
+          "path": "src/features/table/utils/defaultFilterEngine.js",
+          "type": "registry:file",
+          "target": "~/src/features/table/utils/defaultFilterEngine.js"
+        },
+        {
+          "path": "src/features/table/utils/exporters.js",
+          "type": "registry:file",
+          "target": "~/src/features/table/utils/exporters.js"
+        },
+        {
+          "path": "src/features/table/utils/formatCell.js",
+          "type": "registry:file",
+          "target": "~/src/features/table/utils/formatCell.js"
+        },
+        {
+          "path": "src/features/table/utils/querySnippets.js",
+          "type": "registry:file",
+          "target": "~/src/features/table/utils/querySnippets.js"
+        }
+      ]
+    },
+    {
+      "name": "table-tokens",
+      "type": "registry:file",
+      "title": "Tokens des tableaux",
+      "description": "Hauteurs de ligne, couleurs d'en-tête et de survol.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/features/table/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/table/_colors.scss"
+        },
+        {
+          "path": "src/features/table/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/table/_tokens.scss"
+        }
+      ]
+    },
+    {
+      "name": "tabs",
+      "type": "registry:ui",
+      "title": "Tabs",
+      "description": "Onglets composables (Tabs / TabList / Tab / TabPanels / TabPanel) suivant le motif WAI-ARIA, en trois variantes visuelles, avec contexte partagé optionnel entre panneaux.",
+      "dependencies": [],
+      "registryDependencies": [
+        "hooks-layout-effect",
+        "tokens-global",
+        "visually-hidden"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/Tabs/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/_colors.scss"
+        },
+        {
+          "path": "src/components/ui/Tabs/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/_tokens.scss"
+        },
+        {
+          "path": "src/components/ui/Tabs/index.js",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/index.js"
+        },
+        {
+          "path": "src/components/ui/Tabs/Tab/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/Tab/_colors.scss"
+        },
+        {
+          "path": "src/components/ui/Tabs/Tab/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/Tab/_tokens.scss"
+        },
+        {
+          "path": "src/components/ui/Tabs/Tab/Tab.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/Tab/Tab.jsx"
+        },
+        {
+          "path": "src/components/ui/Tabs/Tab/Tab.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/Tab/Tab.scss"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabList/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/TabList/_tokens.scss"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabList/TabList.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/TabList/TabList.jsx"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabList/TabList.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/TabList/TabList.scss"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabPanel/TabPanel.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/TabPanel/TabPanel.jsx"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabPanel/TabPanel.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/TabPanel/TabPanel.scss"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabPanels/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/TabPanels/_tokens.scss"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabPanels/TabPanels.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/TabPanels/TabPanels.jsx"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabPanels/TabPanels.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/TabPanels/TabPanels.scss"
+        },
+        {
+          "path": "src/components/ui/Tabs/Tabs/Tabs.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/Tabs/Tabs.jsx"
+        },
+        {
+          "path": "src/components/ui/Tabs/Tabs/Tabs.scss",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/Tabs/Tabs.scss"
+        },
+        {
+          "path": "src/components/ui/Tabs/TabsContext.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/ui/Tabs/TabsContext.jsx"
+        }
+      ]
+    },
+    {
+      "name": "theme",
+      "type": "registry:block",
+      "title": "Thème clair / sombre",
+      "description": "Fournisseur de thème, bascule accessible et persistance du choix, avec script anti-clignotement au premier rendu.",
+      "categories": [
+        "fondations"
+      ],
+      "dependencies": [],
+      "registryDependencies": [
+        "icons",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/features/theme/components/ThemeToggleButton/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/theme/components/ThemeToggleButton/_colors.scss"
+        },
+        {
+          "path": "src/features/theme/components/ThemeToggleButton/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/theme/components/ThemeToggleButton/_tokens.scss"
+        },
+        {
+          "path": "src/features/theme/components/ThemeToggleButton/ThemeToggleButton.js",
+          "type": "registry:file",
+          "target": "~/src/features/theme/components/ThemeToggleButton/ThemeToggleButton.js"
+        },
+        {
+          "path": "src/features/theme/components/ThemeToggleButton/ThemeToggleButton.scss",
+          "type": "registry:file",
+          "target": "~/src/features/theme/components/ThemeToggleButton/ThemeToggleButton.scss"
+        },
+        {
+          "path": "src/features/theme/hooks/useTheme.js",
+          "type": "registry:file",
+          "target": "~/src/features/theme/hooks/useTheme.js"
+        },
+        {
+          "path": "src/features/theme/providers/ThemeProvider.js",
+          "type": "registry:file",
+          "target": "~/src/features/theme/providers/ThemeProvider.js"
+        }
+      ]
+    },
+    {
+      "name": "tokens-global",
+      "type": "registry:file",
+      "title": "Tokens globaux",
+      "description": "Socle du système visuel : primitives de couleur (HSL brutes), tokens sémantiques de rôle, échelle typographique et d'espacement, mixins de points de rupture. Tout autre item en dépend.",
+      "categories": [
+        "fondations"
+      ],
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "src/styles/globals/custom-properties.scss",
+          "type": "registry:file",
+          "target": "~/src/styles/globals/custom-properties.scss"
+        },
+        {
+          "path": "src/styles/globals/primitives/colors.scss",
+          "type": "registry:file",
+          "target": "~/src/styles/globals/primitives/colors.scss"
+        },
+        {
+          "path": "src/styles/globals/tokens/semantic-colors.scss",
+          "type": "registry:file",
+          "target": "~/src/styles/globals/tokens/semantic-colors.scss"
+        },
+        {
+          "path": "src/styles/globals/typography.scss",
+          "type": "registry:file",
+          "target": "~/src/styles/globals/typography.scss"
+        },
+        {
+          "path": "src/styles/utils/breakpoints.scss",
+          "type": "registry:file",
+          "target": "~/src/styles/utils/breakpoints.scss"
+        },
+        {
+          "path": "src/styles/utils/functions.scss",
+          "type": "registry:file",
+          "target": "~/src/styles/utils/functions.scss"
+        }
+      ],
+      "docs": "Importe le point d'entrée depuis ta feuille de styles globale, en chemin RELATIF : `@use '../styles/globals/custom-properties';` depuis src/app/globals.scss. Un import par alias (`@/styles/...`) casse la résolution des `@use` relatifs imbriqués dans le fichier cible. C'est le seul fichier de l'item qui émet quelque chose : les cinq autres sont des partiels. Ton projet doit par ailleurs exposer l'alias `@/` vers `src/`, dont dépendent les `@use` des composants."
+    },
+    {
+      "name": "toolbar-button",
+      "type": "registry:ui",
+      "title": "ToolbarButton",
+      "description": "Bouton d'outil à état actif, icône et légende courte.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global",
+        "toolbar-tokens"
+      ],
+      "files": [
+        {
+          "path": "src/components/toolbar/ToolbarButton/ToolbarButton.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/toolbar/ToolbarButton/ToolbarButton.jsx"
+        },
+        {
+          "path": "src/components/toolbar/ToolbarButton/ToolbarButton.scss",
+          "type": "registry:file",
+          "target": "~/src/components/toolbar/ToolbarButton/ToolbarButton.scss"
+        }
+      ]
+    },
+    {
+      "name": "toolbar-tokens",
+      "type": "registry:file",
+      "title": "Tokens des barres d’outils",
+      "description": "Dimensions et couleurs partagées par les outils.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/components/toolbar/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/components/toolbar/_colors.scss"
+        },
+        {
+          "path": "src/components/toolbar/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/toolbar/_tokens.scss"
+        }
+      ]
+    },
+    {
+      "name": "toolbar-tools",
+      "type": "registry:ui",
+      "title": "Descripteurs d'outils",
+      "description": "Table des outils partagés (zoom, export, densité…) : identifiant, icône et libellé accessible.",
+      "dependencies": [],
+      "registryDependencies": [
+        "icons",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/components/toolbar/tools.js",
+          "type": "registry:file",
+          "target": "~/src/components/toolbar/tools.js"
+        }
+      ]
+    },
+    {
+      "name": "tooltip",
+      "type": "registry:ui",
+      "title": "Tooltip",
+      "description": "Infobulle affichée au survol et au focus clavier, conforme au motif WAI-ARIA, sur les quatre côtés.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/components/filter/Tooltip/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/Tooltip/_colors.scss"
+        },
+        {
+          "path": "src/components/filter/Tooltip/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/Tooltip/_tokens.scss"
+        },
+        {
+          "path": "src/components/filter/Tooltip/Tooltip.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/filter/Tooltip/Tooltip.jsx"
+        },
+        {
+          "path": "src/components/filter/Tooltip/Tooltip.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/Tooltip/Tooltip.scss"
+        }
+      ]
+    },
+    {
+      "name": "type-aware-input",
+      "type": "registry:ui",
+      "title": "TypeAwareInput",
+      "description": "Champ de saisie qui adapte son clavier, sa validation et son calendrier au type de donnée attendu (texte, entier, décimal, date, plage de dates).",
+      "categories": [
+        "filtres"
+      ],
+      "dependencies": [],
+      "registryDependencies": [
+        "calendar-month",
+        "date-parse",
+        "filter-tokens",
+        "hooks-accessibility",
+        "icons",
+        "tokens-global",
+        "utils-accessibility",
+        "visually-hidden"
+      ],
+      "files": [
+        {
+          "path": "src/components/filter/TypeAwareInput/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/TypeAwareInput/_colors.scss"
+        },
+        {
+          "path": "src/components/filter/TypeAwareInput/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/TypeAwareInput/_tokens.scss"
+        },
+        {
+          "path": "src/components/filter/TypeAwareInput/TypeAwareInput.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/filter/TypeAwareInput/TypeAwareInput.jsx"
+        },
+        {
+          "path": "src/components/filter/TypeAwareInput/TypeAwareInput.scss",
+          "type": "registry:file",
+          "target": "~/src/components/filter/TypeAwareInput/TypeAwareInput.scss"
+        }
+      ]
+    },
+    {
+      "name": "ui",
+      "type": "registry:ui",
+      "title": "Baril des composants d’interface",
+      "description": "Réexporte les composants de `src/components/ui/`.",
+      "dependencies": [],
+      "registryDependencies": [
+        "badge",
+        "card-grid",
+        "large-button",
+        "link-card",
+        "link-cards-section",
+        "stat-card",
+        "tabs",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/components/ui/index.js",
+          "type": "registry:file",
+          "target": "~/src/components/ui/index.js"
+        }
+      ]
+    },
+    {
+      "name": "utils-accessibility",
+      "type": "registry:lib",
+      "title": "Utilitaires d'accessibilité",
+      "description": "Annonceur ARIA à région live, détection de la navigation au clavier, aide au piégeage du focus.",
+      "categories": [
+        "accessibilité"
+      ],
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/utils/accessibility/a11y.js",
+          "type": "registry:file",
+          "target": "~/src/utils/accessibility/a11y.js"
+        },
+        {
+          "path": "src/utils/accessibility/AriaAnnouncer.js",
+          "type": "registry:file",
+          "target": "~/src/utils/accessibility/AriaAnnouncer.js"
+        },
+        {
+          "path": "src/utils/accessibility/focusManagement.js",
+          "type": "registry:file",
+          "target": "~/src/utils/accessibility/focusManagement.js"
+        }
+      ]
+    },
+    {
+      "name": "utils-format",
+      "type": "registry:lib",
+      "title": "Formatage de nombres",
+      "description": "Formatage localisé : devise, pourcentage, notation compacte, unités, décimales contrôlées.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/utils/format/constants.js",
+          "type": "registry:file",
+          "target": "~/src/utils/format/constants.js"
+        },
+        {
+          "path": "src/utils/format/formatNumber.js",
+          "type": "registry:file",
+          "target": "~/src/utils/format/formatNumber.js"
+        }
+      ]
+    },
+    {
+      "name": "utils-html",
+      "type": "registry:lib",
+      "title": "Utilitaires HTML",
+      "description": "Échappement de chaînes destinées à une injection HTML.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/utils/html/escapeHtml.js",
+          "type": "registry:file",
+          "target": "~/src/utils/html/escapeHtml.js"
+        }
+      ]
+    },
+    {
+      "name": "utils-math",
+      "type": "registry:lib",
+      "title": "Utilitaires numériques",
+      "description": "Bornage, pas d'arrondi, interpolation.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/utils/math/clamp.js",
+          "type": "registry:file",
+          "target": "~/src/utils/math/clamp.js"
+        },
+        {
+          "path": "src/utils/math/lerp.js",
+          "type": "registry:file",
+          "target": "~/src/utils/math/lerp.js"
+        }
+      ]
+    },
+    {
+      "name": "utils-navigation",
+      "type": "registry:lib",
+      "title": "Utilitaires de navigation",
+      "description": "Résolution des chemins relatifs d'un arbre de navigation en chemins absolus, aplatissement et recherche par chemin.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/utils/navigation/findNodeByPath.js",
+          "type": "registry:file",
+          "target": "~/src/utils/navigation/findNodeByPath.js"
+        },
+        {
+          "path": "src/utils/navigation/flattenNavigation.js",
+          "type": "registry:file",
+          "target": "~/src/utils/navigation/flattenNavigation.js"
+        },
+        {
+          "path": "src/utils/navigation/resolveNavigationTree.js",
+          "type": "registry:file",
+          "target": "~/src/utils/navigation/resolveNavigationTree.js"
+        }
+      ]
+    },
+    {
+      "name": "visually-hidden",
+      "type": "registry:ui",
+      "title": "VisuallyHidden",
+      "description": "Masque un contenu à l'écran en le laissant lisible par les lecteurs d'écran.",
+      "categories": [
+        "accessibilité"
+      ],
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/components/common/VisuallyHidden/index.js",
+          "type": "registry:file",
+          "target": "~/src/components/common/VisuallyHidden/index.js"
+        },
+        {
+          "path": "src/components/common/VisuallyHidden/VisuallyHidden.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/common/VisuallyHidden/VisuallyHidden.jsx"
+        },
+        {
+          "path": "src/components/common/VisuallyHidden/VisuallyHidden.scss",
+          "type": "registry:file",
+          "target": "~/src/components/common/VisuallyHidden/VisuallyHidden.scss"
+        }
+      ]
+    },
+    {
+      "name": "chart-basic",
+      "type": "registry:block",
+      "title": "Série temporelle simple",
+      "description": "La forme minimale de `<Chart>` : des lignes, une colonne d'abscisse, une colonne d'ordonnée. Le type de graphique est déduit du type des colonnes — ici une date et un nombre, donc une courbe.",
+      "dependencies": [],
+      "registryDependencies": [
+        "chart",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/chart-basic.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/chart-basic.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "chart"
+      }
+    },
+    {
+      "name": "chart-hue",
+      "type": "registry:block",
+      "title": "Courbes par canal `hue`",
+      "description": "`hue` accepte jusqu'à trois colonnes, affectées dans l'ordre à la couleur, au style de trait puis au marqueur. Chaque canal reçoit sa propre légende, nommée par `labels`.",
+      "dependencies": [],
+      "registryDependencies": [
+        "chart",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/chart-hue.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/chart-hue.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "chart"
+      }
+    },
+    {
+      "name": "chart-stacked-bar",
+      "type": "registry:block",
+      "title": "Barres empilées",
+      "description": "Une abscisse catégorielle produit des barres. `fill=\"fill\"` les remplit et `stack=\"color\"` empile les séries du canal couleur au lieu de les juxtaposer.",
+      "dependencies": [],
+      "registryDependencies": [
+        "chart",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/chart-stacked-bar.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/chart-stacked-bar.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "chart"
+      }
+    },
+    {
+      "name": "constraint-field-range",
+      "type": "registry:block",
+      "title": "Intervalle numérique borné",
+      "description": "`ConstraintField` associe deux saisies et un curseur double. Il fonctionne sans être contrôlé : `defaultValueLow` / `defaultValueHigh` amorcent l'état interne et `onChange` n'est là que pour observer.",
+      "dependencies": [],
+      "registryDependencies": [
+        "constraint-field",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/constraint-field-range.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/constraint-field-range.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "constraint-field"
+      }
+    },
+    {
+      "name": "criterion-menu-basic",
+      "type": "registry:block",
+      "title": "Critère de filtre unique",
+      "description": "`CriterionMenu` est contrôlé : `criterion` porte la variable, l'opération et la valeur, et `onChange` renvoie l'objet complet. Le champ de saisie s'adapte au `sql_type` et à `is_categorical` de la variable choisie.",
+      "dependencies": [],
+      "registryDependencies": [
+        "filter",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/criterion-menu-basic.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/criterion-menu-basic.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "filter"
+      }
+    },
+    {
+      "name": "globe-basic",
+      "type": "registry:block",
+      "title": "Globe à points et flux",
+      "description": "La forme minimale : une liste de points géolocalisés et une liste d'arcs qui les relient par leur `id`. La barre d'outils complète (globe / planisphère, rotation, zoom, tooltips) est présente par défaut.",
+      "dependencies": [],
+      "registryDependencies": [
+        "globe",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/globe-basic.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/globe-basic.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "globe"
+      }
+    },
+    {
+      "name": "globe-custom-markers",
+      "type": "registry:block",
+      "title": "Pastilles et infobulles sur mesure",
+      "description": "Quatre accesseurs personnalisent chaque point : `colorFor`, `sizeFor`, `iconFor` (SVG en chaîne) et `tooltipFor` (HTML en chaîne). Ce dernier est injecté tel quel par le moteur : toute donnée y passe par `escapeHtml`.",
+      "dependencies": [],
+      "registryDependencies": [
+        "globe",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/globe-custom-markers.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/globe-custom-markers.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "globe"
+      }
+    },
+    {
+      "name": "header-basic",
+      "type": "registry:block",
+      "title": "En-tête et navigation du site",
+      "description": "`Header` choisit seul entre barre horizontale et barre latérale repliable selon la profondeur de l'arbre qu'on lui passe. `resolveNavigationTree` transforme les chemins relatifs du manifeste en chemins absolus.",
+      "dependencies": [],
+      "registryDependencies": [
+        "header",
+        "tokens-global",
+        "utils-navigation"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/header-basic.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/header-basic.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "header"
+      }
+    },
+    {
+      "name": "multi-criterion-menu-basic",
+      "type": "registry:block",
+      "title": "Filtre composé et clause SQL",
+      "description": "`MultiCriterionMenu` combine plusieurs critères par connecteurs logiques et parenthèses. Son `onChange` renvoie `{ criteria, tree, balanced, serial }` ; `treeToSQL` transforme l'arbre en clause `WHERE`.",
+      "dependencies": [],
+      "registryDependencies": [
+        "filter",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/multi-criterion-menu-basic.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/multi-criterion-menu-basic.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "filter"
+      }
+    },
+    {
+      "name": "select-menu-basic",
+      "type": "registry:block",
+      "title": "Sélection unique sur une liste statique",
+      "description": "Passer `options` court-circuite tout appel réseau : le menu filtre la liste côté client. `value` est un tableau d'objets `{ value, label }`, même en sélection unique — la forme ne change pas selon `allowMulti`.",
+      "dependencies": [],
+      "registryDependencies": [
+        "select-menu",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/select-menu-basic.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/select-menu-basic.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "select-menu"
+      }
+    },
+    {
+      "name": "select-menu-multi",
+      "type": "registry:block",
+      "title": "Multi-sélection alimentée par l'API",
+      "description": "Sans `options`, le menu interroge l'API via `fieldName` — les valeurs distinctes de la colonne — en amortissant la saisie de recherche. `allowMulti` ne change pas la forme de `value` : c'est un tableau dans les deux cas.",
+      "dependencies": [],
+      "registryDependencies": [
+        "select-menu",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/select-menu-multi.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/select-menu-multi.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "select-menu"
+      }
+    },
+    {
+      "name": "stat-card-basic",
+      "type": "registry:block",
+      "title": "Carte d'indicateur",
+      "description": "`value` reste un nombre brut : c'est `format` qui décide de sa présentation (devise, pourcentage, notation compacte, unité). `badge` affiche l'évolution et `direction` en choisit la couleur et la flèche.",
+      "dependencies": [],
+      "registryDependencies": [
+        "stat-card",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/stat-card-basic.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/stat-card-basic.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "stat-card"
+      }
+    },
+    {
+      "name": "stat-card-grid",
+      "type": "registry:block",
+      "title": "Rangée d'indicateurs",
+      "description": "`CardGrid` dispose les cartes et gère seul le repli en colonnes étroites. `iconTone` et `tone` teintent respectivement la pastille d'icône et la barre d'accent, ce qui donne une lecture d'ensemble avant même de lire les chiffres.",
+      "dependencies": [],
+      "registryDependencies": [
+        "card-grid",
+        "stat-card",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/stat-card-grid.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/stat-card-grid.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "stat-card"
+      }
+    },
+    {
+      "name": "table-basic",
+      "type": "registry:block",
+      "title": "Tableau dérivé des métadonnées",
+      "description": "La forme la plus économique de `<Table>` : on ne décrit aucune colonne, le tableau les dérive de `columnsMetadata` (nom, libellé, type SQL) — ce que renvoie déjà l'API. Tri, filtre et retrait de colonnes sont actifs par défaut.",
+      "dependencies": [],
+      "registryDependencies": [
+        "table",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/table-basic.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/table-basic.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "table"
+      }
+    },
+    {
+      "name": "table-custom-columns",
+      "type": "registry:block",
+      "title": "Colonnes décrites à la main",
+      "description": "`columns` reprend la main sur `columnsMetadata` : libellé, police à chasse fixe, emphase, et surtout `format` (spécification ou fonction) et `render` pour produire un nœud React — ici un `<Badge>` par statut.",
+      "dependencies": [],
+      "registryDependencies": [
+        "badge",
+        "table",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/table-custom-columns.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/table-custom-columns.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "table"
+      }
+    },
+    {
+      "name": "table-with-filter",
+      "type": "registry:block",
+      "title": "Tableau filtré par un MultiCriterionMenu",
+      "description": "Le menu de critères et le tableau se branchent par une seule prop : la sortie structurée de `onChange` alimente `defaultFilter`. Les variables filtrables se dérivent des métadonnées de colonnes, clé primaire exclue.",
+      "dependencies": [],
+      "registryDependencies": [
+        "filter",
+        "table",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/table-with-filter.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/table-with-filter.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "table"
+      }
+    },
+    {
+      "name": "tabs-basic",
+      "type": "registry:block",
+      "title": "Barre d'onglets",
+      "description": "La composition canonique : `<Tabs>` porte l'état, `<TabList>` les déclencheurs, `<TabPanels>` les contenus. Chaque `<Tab>` s'apparie à son `<TabPanel>` par la prop `value`.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tabs",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/tabs-basic.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/tabs-basic.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "tabs"
+      }
+    },
+    {
+      "name": "tabs-shared",
+      "type": "registry:block",
+      "title": "Deux lectures d'un même jeu de données",
+      "description": "`shared` place une valeur dans le contexte des onglets ; chaque `<TabPanel>` la reçoit par render-prop. C'est le motif « graphique ou tableau » : une seule source de données, deux représentations.",
+      "dependencies": [],
+      "registryDependencies": [
+        "chart",
+        "tabs",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/tabs-shared.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/tabs-shared.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "tabs"
+      }
+    },
+    {
+      "name": "tooltip-basic",
+      "type": "registry:block",
+      "title": "Infobulle positionnée",
+      "description": "`Tooltip` enveloppe n'importe quel enfant focalisable et l'annonce au survol comme au focus clavier. `position` place le panneau sur l'un des quatre côtés.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global",
+        "tooltip"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/tooltip-basic.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/tooltip-basic.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "tooltip"
+      }
+    },
+    {
+      "name": "type-aware-input-date",
+      "type": "registry:block",
+      "title": "Saisie de date et de plage de dates",
+      "description": "`inputType` choisit le clavier de saisie et la validation ; en `date`, `dateMode` bascule entre une date unique et une plage. `validate` colore le champ selon l'état de la saisie.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global",
+        "type-aware-input"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/type-aware-input-date.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/type-aware-input-date.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "type-aware-input"
+      }
+    }
+  ]
+}

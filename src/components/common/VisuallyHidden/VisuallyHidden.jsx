@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import './VisuallyHidden.scss';
 
 /**
@@ -24,13 +23,6 @@ const VisuallyHidden = ({ children, as: Component = 'span', ...props }) => {
       {children}
     </Component>
   );
-};
-
-VisuallyHidden.propTypes = {
-  /** Contenu à masquer visuellement */
-  children: PropTypes.node.isRequired,
-  /** Tag HTML à utiliser pour le wrapper */
-  as: PropTypes.string,
 };
 
 export default VisuallyHidden;

@@ -56,6 +56,11 @@ const UNIT_DEFINITIONS = [
       'src/styles/globals/primitives',
       'src/styles/globals/tokens',
       'src/styles/globals/typography.scss',
+      // Point d'entrée de l'unité : les cinq autres fichiers sont des partiels
+      // qui n'émettent rien seuls. custom-properties.scss est le seul à les
+      // agréger et à les déverser dans :root — sans lui, un tiers qui installe
+      // `tokens-global` récupère cinq partiels orphelins et aucune variable CSS.
+      'src/styles/globals/custom-properties.scss',
       'src/styles/utils/breakpoints.scss',
       'src/styles/utils/functions.scss',
     ],
@@ -66,7 +71,6 @@ const UNIT_DEFINITIONS = [
     distributable: false,
     roots: [
       'src/styles/globals/resets.scss',
-      'src/styles/globals/custom-properties.scss',
       'src/styles/globals/accessibility.scss',
       'src/styles/pages',
     ],
@@ -162,6 +166,10 @@ const UNIT_DEFINITIONS = [
   { name: 'theme', type: 'feature', roots: ['src/features/theme'] },
   { name: 'home', type: 'feature', roots: ['src/features/home'] },
   { name: 'footer', type: 'feature', roots: ['src/features/footer'] },
+  // Gabarits de page rendus par la route générée depuis le manifeste (P3.2).
+  // Le registre type -> composant vit dans src/config/pageTypes.js, hors des
+  // racines balayées : c'est du câblage applicatif, au même titre que src/app/.
+  { name: 'pages', type: 'feature', roots: ['src/features/pages'] },
 
   // ---- Couches partagées ---------------------------------------------------
   { name: 'hooks-accessibility', type: 'lib', roots: ['src/hooks/accessibility'] },
@@ -172,6 +180,7 @@ const UNIT_DEFINITIONS = [
   { name: 'utils-format', type: 'lib', roots: ['src/utils/format'] },
   { name: 'utils-html', type: 'lib', roots: ['src/utils/html'] },
   { name: 'utils-math', type: 'lib', roots: ['src/utils/math'] },
+  { name: 'utils-navigation', type: 'lib', roots: ['src/utils/navigation'] },
 
   // Client API : transport unique de toutes les sources de données (documents
   // GraphQL, transports API/fixtures). Consommé par les `sources/` des features.

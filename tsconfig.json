@@ -28,6 +28,9 @@
       ],
       "@config/*": [
         "./config/*"
+      ],
+      "@registry/*": [
+        "./registry/*"
       ]
     }
   },

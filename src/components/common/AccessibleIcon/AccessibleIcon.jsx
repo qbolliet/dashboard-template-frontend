@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import VisuallyHidden from '../VisuallyHidden';
 
 /**
@@ -56,17 +55,6 @@ const AccessibleIcon = ({
       {label && <VisuallyHidden>{label}</VisuallyHidden>}
     </span>
   );
-};
-
-AccessibleIcon.propTypes = {
-  /** Composant ou élément icône à rendre */
-  icon: PropTypes.oneOfType([PropTypes.func, PropTypes.node]).isRequired,
-  /** Label accessible pour l'icône (requis si decorative=false) */
-  label: PropTypes.string,
-  /** Marque l'icône comme purement décorative (aria-hidden) */
-  decorative: PropTypes.bool,
-  /** Classes CSS additionnelles */
-  className: PropTypes.string,
 };
 
 export default AccessibleIcon;
