@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npm run build:search && npm run build:registry && npm run build:docs-index && npm run build:tokens && next dev",
+    "dev": "npm run build:search && npm run build:registry && npm run build:props && npm run build:docs-index && npm run build:tokens && next dev",
     "build": "next build",
-    "prebuild": "npm run build:search && npm run build:registry && npm run build:docs-index && npm run build:tokens",
+    "prebuild": "npm run build:search && npm run build:registry && npm run build:props && npm run build:docs-index && npm run build:tokens",
     "start": "next start",
     "lint": "eslint",
     "check:palette": "node scripts/check-palette-sync.js",
@@ -15,9 +15,10 @@
     "build:registry": "node scripts/build-registry.js",
     "build:search": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-search-index.js",
     "build:docs-index": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-docs-index.js",
+    "build:props": "node scripts/build-props-doc.js",
     "build:tokens": "node scripts/build-tokens-doc.js",
     "build:docs": "cross-env DOCS_STATIC_EXPORT=1 NEXT_PUBLIC_BASE_PATH=/dashboard-template-frontend REGISTRY_BASE_URL=https://qbolliet.github.io/dashboard-template-frontend npm run build",
-    "verify": "npm run lint && npm run check:palette && npm run validate:config && npm run check:gql && npm run build:registry && npm run build:docs-index && npm run build:tokens -- --strict",
+    "verify": "npm run lint && npm run check:palette && npm run validate:config && npm run check:gql && npm run build:registry && npm run build:props -- --strict && npm run build:docs-index && npm run build:tokens -- --strict",
     "mock:api": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/mock-api-server.js",
     "dev:api": "cross-env NEXT_PUBLIC_API_URL=http://localhost:4000/graphql next dev",
     "dev:mock": "concurrently \"npm:mock:api\" \"npm:dev:api\""
@@ -73,6 +74,7 @@
     "eslint": "^9",
     "eslint-config-next": "^16.2.9",
     "graphql-yoga": "^5.21.2",
+    "react-docgen": "^8.0.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

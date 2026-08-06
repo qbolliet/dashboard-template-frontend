@@ -5,6 +5,7 @@ import ComponentPlayground from '@/features/docs/components/ComponentPlayground/
 import ComponentPreview from '@/features/docs/components/ComponentPreview/ComponentPreview';
 import ComponentPreviewSource from '@/features/docs/components/ComponentPreview/ComponentPreviewSource';
 import DocsCodeBlock from '@/features/docs/components/DocsCodeBlock/DocsCodeBlock';
+import PropsTable from '@/features/docs/components/PropsTable/PropsTable';
 import TokenCascade from '@/features/docs/components/TokenCascade/TokenCascade';
 import TokenPlayground from '@/features/docs/components/TokenPlayground/TokenPlayground';
 import TokenReference from '@/features/docs/components/TokenReference/TokenReference';
@@ -130,6 +131,11 @@ export function useMDXComponents(components) {
         ComponentPlayground,
         ComponentPreview,
         ComponentPreviewSource,
+
+        // ===== SURFACES GÉNÉRÉES DES PAGES DE COMPOSANTS =====
+        // Server Component, contrairement aux trois surfaces ci-dessus : la table est
+        // lue dans docs/__props__.json à la génération de la page et n'a aucun état.
+        PropsTable,
 
         // ===== SURFACES DE LA SECTION « FONDATIONS » =====
         // TokenCascade est un Server Component ; les deux autres sont des composants

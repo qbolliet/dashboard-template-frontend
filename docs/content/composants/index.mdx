@@ -11,7 +11,8 @@ order: 3
 
 ## Comment lire une page de composant
 
-Chaque page de composant expose deux surfaces, qui ne répondent pas à la même question.
+Chaque page de composant expose deux surfaces de démonstration, qui ne répondent pas à
+la même question.
 
 Le **playground** répond à « que fait ce composant si je change ce paramètre ? ». Ses
 contrôles pilotent les props, le rendu se met à jour en direct, et le code affiché est
@@ -32,6 +33,35 @@ Le bouton en coin de chaque aperçu change le thème **de ce cadre uniquement**,
 c'est la démonstration que les tokens sont des propriétés personnalisées CSS, donc
 héritées, donc surchargeables sur un sous-arbre. Deux apparences du même composant peuvent
 coexister sur une page — sans variante de code, sans prop supplémentaire, sans rebuild.
+
+## La table des props n'est pas écrite
+
+Sous les surfaces de démonstration, chaque page porte la table des props du composant.
+Elle n'est pas rédigée : elle est **lue dans le code au moment du build**, en croisant
+la signature déstructurée du composant avec ses propres `@param`.
+
+<PropsTable name="AccessibleIcon" />
+
+Ce n'est pas une commodité de rédaction, c'est une garantie. Une table recopiée à la
+main se périme au premier renommage, et rien ne le signale — le lecteur découvre la
+dérive en voyant sa prop ignorée. Ici la dérive est **impossible dans un sens** et
+**détectée dans l'autre** : une prop ajoutée apparaît sans que personne y pense, et
+`scripts/build-props-doc.js` fait échouer `npm run verify` si une docstring décrit une
+prop qui n'existe plus ou annonce une valeur par défaut que le code contredit.
+
+Trois colonnes viennent du code, une seule des commentaires :
+
+| Colonne | Source |
+|---|---|
+| Prop, et son ordre | les clés déstructurées de la signature |
+| Requis | l'absence de valeur par défaut **et** de crochets `[…]` dans la docstring |
+| Défaut | la valeur de la déstructuration |
+| Type et description | la balise `@param` correspondante |
+
+L'ordre des lignes est celui de la signature, pas l'alphabet : c'est l'ordre dans lequel
+l'auteur a pensé le composant, et les props obligatoires y viennent d'elles-mêmes en
+tête. Une prop sans description est affichée **quand même**, marquée comme telle — la
+masquer laisserait croire que le composant ne la prend pas.
 
 ## Installer un composant
 

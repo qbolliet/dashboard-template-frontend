@@ -28,7 +28,7 @@ import './DragBar.scss';
  * @param {number} props.innerWidth - Plot width (px).
  * @param {number} props.innerHeight - Plot height (px).
  * @param {function(*): void} props.onCommit - Called with the committed domain value on release.
- * @param {string} [props.color='var(--chart-bar)'] - Stroke/label color.
+ * @param {string} [props.color='hsl(var(--chart-bar))'] - Stroke/label color.
  * @param {string} [props.label] - Optional label drawn at the bar's head.
  * @param {boolean} [props.dashed=true] - Whether to dash the stroke when no explicit dash.
  * @param {string} [props.dash] - Explicit dash-array (overrides `dashed`).

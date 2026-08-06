@@ -50,6 +50,9 @@ next-env.d.ts
 /docs/__docs__.js
 /docs/__docs-pages__.js
 
+# tables de props (généré par scripts/build-props-doc.js, cf. scripts dev / prebuild)
+/docs/__props__.json
+
 # vérification de l'export statique sous sous-chemin (cf. npm run build:docs)
 /tmp/
 

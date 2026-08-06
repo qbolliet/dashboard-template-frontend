@@ -1,0 +1,76 @@
+// =================================================================
+// PROPS TABLE — table d'API générée
+// =================================================================
+// Structure : figure.props-table > .api-card-scroll > table.api-table.props-table__table
+//             + figcaption.props-table__note
+//
+// L'HABILLAGE N'EST PAS REDÉFINI ICI. `.api-card-scroll` et `.api-table` sont la
+// feuille partagée des tableaux d'API (src/styles/pages/_api-table.scss), déjà chargée
+// par DocsShell.scss et déjà appliquée aux tableaux écrits en Markdown par
+// src/mdx-components.jsx. Une table générée et une table rédigée à la main dans la même
+// page doivent se ressembler au pixel : ce fichier ne pose donc que ce que la feuille
+// partagée ne connaît pas — la pastille « requis » et les deux mentions grises.
+//
+// Couleurs : ./_colors.scss. Aucun _tokens.scss : les rares dimensions ci-dessous
+// s'expriment directement en tokens globaux, en créer des alias locaux qu'un tiers ne
+// voudrait jamais régler séparément irait contre la règle de CLAUDE.md.
+
+@use './colors' as *;
+
+.props-table {
+  // <figure> a des marges d'agent utilisateur ; le rythme vertical de la prose est
+  // porté par `.docs-prose`, qui vise les enfants directs de l'article.
+  margin: 0;
+}
+
+.props-table__table {
+  // La colonne des noms ne se replie jamais : un nom de prop coupé en deux ne se
+  // reconnaît plus, et c'est la colonne sur laquelle l'œil balaie la table.
+  .props-table__name {
+    white-space: nowrap;
+    // `.api-table th` grise et capitalise les en-têtes de colonne. La cellule de nom
+    // est un th de LIGNE : elle doit se lire comme du code, pas comme un en-tête.
+    text-transform: none;
+    letter-spacing: normal;
+    color: hsl(var(--color-text-primary));
+    font-weight: 400;
+  }
+}
+
+// Pastille « requis ». Posée à la suite du nom plutôt qu'en cinquième colonne : une
+// colonne entière vide aux trois quarts coûterait plus de largeur qu'elle n'en informe.
+.props-table__required {
+  display: inline-block;
+  margin-left: var(--spacing-sm);
+  padding: 0 var(--spacing-xs);
+  border-radius: var(--border-radius-sm);
+  background: hsl(var(--props-table-required) / 0.10);
+  color: hsl(var(--props-table-required));
+  font-family: var(--font-sans);
+  // Un cran SOUS le plus petit token de la grille : la pastille est une annotation
+  // posée dans la cellule du nom, elle ne doit pas peser autant que lui. Dérivée par
+  // calc plutôt que déclarée, faute de palier plus bas dans typography.scss.
+  font-size: calc(var(--font-size-xs) * 0.85);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  vertical-align: middle;
+}
+
+// Prop présente dans la signature mais absente des docstrings. Le trou est MONTRÉ et
+// non masqué : c'est la même dette que la check-list de scripts/build-props-doc.js, et
+// la voir dans la documentation publiée est ce qui la fait combler.
+.props-table__undocumented {
+  color: hsl(var(--props-table-undocumented));
+  font-style: italic;
+}
+
+.props-table__note {
+  margin-top: var(--spacing-sm);
+  color: hsl(var(--props-table-undocumented));
+  font-size: var(--font-size-xs);
+}
+
+// Composant sans aucune prop : une phrase, pas une table à zéro ligne.
+.props-table__empty {
+  color: hsl(var(--color-text-secondary));
+}

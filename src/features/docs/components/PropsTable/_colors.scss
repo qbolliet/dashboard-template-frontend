@@ -1,0 +1,19 @@
+// ===== COULEURS DU COMPOSANT PROPSTABLE =====
+// Deux marqueurs seulement : la pastille « requis » et la mention d'une prop sans
+// description. Tout le reste de la table (fond, filets, en-têtes, code) vient de
+// `.api-table`, la feuille partagée des tableaux d'API — src/styles/pages/_api-table.scss.
+//
+// Aucun bloc [data-theme="dark"] : les deux alias pointent sur des tokens sémantiques
+// déjà théma-conscients.
+//
+// `:root, [data-theme]` et non `:root` seul — cf. l'en-tête de
+// src/styles/globals/primitives/colors.scss.
+
+:root, [data-theme] {
+  // Rouge d'erreur pour « requis » : ce n'est pas une alerte, mais c'est la teinte que
+  // le dépôt réserve à « son absence casse quelque chose », ce qui est exactement le
+  // sens du marqueur. Posée en teinte de texte sur un fond très dilué, elle reste une
+  // annotation et non un avertissement.
+  --props-table-required: var(--color-error-500);
+  --props-table-undocumented: var(--color-text-tertiary);
+}
