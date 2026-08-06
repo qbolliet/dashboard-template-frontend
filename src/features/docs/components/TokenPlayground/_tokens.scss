@@ -1,0 +1,17 @@
+// ===== TOKENS DU COMPOSANT TOKENPLAYGROUND =====
+// Dimensions de la démonstration « avant / après » de surcharge de tokens.
+//
+// Pas de _colors.scss : les couleurs viennent des tokens de la feature docs
+// (--docs-demo-*), déjà théma-conscients. Le cadre d'aperçu qui entoure ce composant
+// bascule sur son propre `data-theme` — introduire ici une couleur brute figerait la
+// démonstration en clair.
+
+:root {
+  // Largeur en dessous de laquelle les deux rendus passent l'un sous l'autre. Exprimée
+  // en rem : la comparaison devient illisible dès que chaque colonne descend sous ~16rem,
+  // ce qui dépend de la taille du texte et non de la taille de l'écran — d'où un
+  // conteneur, et non un point de rupture.
+  --token-playground-min-column: 16rem;
+  --token-playground-gap: var(--docs-demo-gap);
+  --token-playground-padding: var(--docs-demo-padding);
+}

@@ -6,14 +6,229 @@ order: 3
 
 # Theming
 
-{/* Coquille posée en P4.2 (infrastructure du site de documentation).
-    Contenu rédigé en P4.4. Les deux sous-titres ci-dessous existent pour que le
-    sommaire de page ait de quoi s'afficher tant que la page est vide. */}
+Quatre façons de changer l'apparence, du moins au plus invasif. **Les trois premières ne
+touchent aucun fichier du template** : ce sont des surcharges appliquées à l'exécution,
+que vous écrivez dans votre propre feuille de styles et que vous pouvez limiter à un
+sous-arbre du DOM.
 
-## Les quatre niveaux
+Sur cette page, chaque niveau est démontré en direct : le composant est rendu **deux
+fois**, tel qu'il est livré à gauche, sous surcharge à droite. Même composant, mêmes
+props, aucune variante de code. Le bloc de code sous chaque démonstration est exactement
+la feuille qui s'applique à la colonne de droite — bougez un contrôle, il change avec.
 
-_À rédiger._
+## Niveau A — Rebranding global
+
+Surchargez les **primitives** dans une feuille chargée après les globals. Toute
+l'interface suit : les rôles sémantiques en dérivent, les tokens de feature dérivent des
+rôles, et les tokens de composant des tokens de feature. Une dizaine de lignes suffisent,
+thème sombre compris.
+
+<TokenPlayground
+  example="tabs-basic"
+  scopeName="ma-page"
+  note={<>Le soulignement actif, la couleur de l’onglet sélectionné et la pastille de compteur descendent tous de <code>--color-primary-500</code> par <code>--tab-accent-primary</code>. Aucun token d’onglet n’a été touché — et la valeur sombre suit sa propre surcharge, que le bouton soleil/lune du cadre permet de vérifier.</>}
+  tokens={[
+    { name: '--color-primary-500', label: 'Primaire', type: 'color', default: '209 79% 24%', dark: '211 100% 73%' },
+  ]} />
+
+Dans un vrai projet, la surcharge vise `:root` et `[data-theme="dark"]`, et non une
+classe :
+
+```scss
+/* app/theme-override.scss, importé APRÈS globals.scss */
+:root {
+  --color-primary-500: 271 76% 53%;
+  --color-primary-200: 271 76% 85%;
+  --color-primary-50:  271 76% 97%;
+}
+
+[data-theme="dark"] {
+  --color-primary-500: 271 76% 72%;
+  --color-primary-50:  271 40% 20%;
+}
+```
+
+Notez la forme des valeurs : un **triplet HSL sans la fonction `hsl()`**. C'est la
+convention du dépôt, et elle est obligatoire — le template lit ces tokens en
+`hsl(var(--token))` pour pouvoir moduler l'opacité. Écrire `hsl(271 76% 53%)` produirait
+une déclaration valide qui ne peint rien.
+
+## Niveau B — Ajustement d'un rôle
+
+Quand la palette vous convient mais que le **mappage primitive → rôle** ne vous convient
+pas : des surfaces plus contrastées, des bordures plus marquées, un texte secondaire plus
+sombre. Vous ne touchez pas aux couleurs, vous changez ce que chaque rôle désigne.
+
+<TokenPlayground
+  example="stat-card-basic"
+  scopeName="ma-page"
+  note={<>Ni la palette ni les tokens de la carte ne changent : seuls les rôles <code>--color-surface</code> et <code>--color-border</code> sont remappés.</>}
+  tokens={[
+    { name: '--color-surface', label: 'Surface', type: 'color', default: '0 0% 100%', dark: '222 20% 7%' },
+    { name: '--color-border', label: 'Bordure', type: 'color', default: '212 33% 89%', dark: '215 16% 25%' },
+  ]} />
+
+```scss
+:root {
+  --color-surface: var(--color-white);
+  --color-border:  var(--color-gray-300);   /* plus marquée que --color-gray-200 */
+}
+```
+
+Un rôle peut pointer vers une primitive existante — c'est le cas le plus courant — ou
+recevoir une valeur propre. La liste complète des rôles est dans
+`src/styles/globals/tokens/semantic-colors.scss`, et dans la
+[référence des tokens](/fondations/tokens) filtrée sur le niveau 2.
+
+## Niveau C — Personnalisation locale
+
+C'est le niveau le plus utile au quotidien, et le plus mal connu. Les tokens sont des
+**propriétés personnalisées CSS**, pas des variables SCSS : elles s'héritent. Une
+surcharge peut donc être limitée à un sous-arbre du DOM — ce qui permet **deux apparences
+du même composant sur la même page**, sans variante de code, sans prop supplémentaire,
+sans recompilation.
+
+<TokenPlayground
+  example="stat-card-basic"
+  scopeName="carte-dense"
+  note="Rayon, densité, taille et couleur du chiffre : quatre tokens de composant, une classe sur un conteneur. Le composant, lui, est rigoureusement le même des deux côtés."
+  tokens={[
+    { name: '--stat-card-radius', label: 'Rayon', type: 'number', default: 12, min: 0, max: 32, step: 2, unit: 'px' },
+    { name: '--stat-card-padding', label: 'Densité', type: 'number', default: 24, min: 8, max: 40, step: 2, unit: 'px' },
+    { name: '--stat-card-value-size', label: 'Taille du chiffre', type: 'number', default: 36, min: 20, max: 56, step: 2, unit: 'px' },
+    { name: '--stat-card-value', label: 'Couleur du chiffre', type: 'color', default: '220 39% 11%', dark: '0 0% 100%' },
+  ]} />
+
+```scss
+/* un header compact sur cette page uniquement */
+.page-dense {
+  --header-height: 3rem;
+  --header-control-size: 1.75rem;
+  --nav-link-font-size: var(--font-size-xs);
+}
+```
+
+### Le piège de l'indirection, à connaître avant de scoper
+
+Une surcharge scopée agit sur tout ce qui lit le token **directement dans une règle**
+(`height: var(--header-height)`). Elle n'agit **pas** sur les tokens qui en dérivent par
+indirection, comme `--search-height: var(--header-control-size)`.
+
+La raison est dans la spécification CSS : une propriété personnalisée est substituée sur
+l'élément où elle est **déclarée**, puis héritée figée. `--search-height` étant déclarée
+sur `:root`, son `var(--header-control-size)` y est résolu une fois pour toutes ; un
+descendant qui redéfinit `--header-control-size` arrive trop tard.
+
+La parade est en place dans tout le dépôt : les blocs de base sont déclarés
+`:root, [data-theme]` et non `:root` seul. Il suffit donc de poser `data-theme` sur votre
+conteneur pour que **tous** les blocs se redéclarent dessus et y résolvent leurs
+indirections :
+
+```jsx
+<section className="page-dense" data-theme={theme}>
+  {/* ici, --header-control-size surcharge bien --search-height */}
+</section>
+```
+
+C'est exactement ce que fait le cadre d'aperçu de cette documentation : il pose
+`data-theme` sur lui-même plutôt que sur `<html>`, et c'est pour cela que son bouton
+soleil/lune ne change le thème que de l'aperçu. Les démonstrations ci-dessus reposent sur
+le même mécanisme.
+
+## Niveau D — Édition des fichiers
+
+Réservé au changement **structurel** : nouvelle disposition, nouveau sous-composant,
+comportement différent. C'est le mode assumé pour qui installe via le registry — le code
+vous appartient, il est dans votre dépôt, et vous n'avez aucune mise à jour à absorber.
+
+```bash
+npx shadcn@latest add https://qbolliet.github.io/dashboard-template-frontend/r/stat-card.json
+```
+
+Une règle de conception à garder si vous ajoutez vos propres composants : **aucune valeur
+d'apparence ne doit être atteignable uniquement par une prop JavaScript.** Toute
+dimension, couleur, durée ou élévation passe par un token — sinon les niveaux A à C
+perdent leur pouvoir sur votre composant, et vous vous retrouvez à propager des props de
+style de proche en proche.
+
+## Les échappatoires JavaScript
+
+Un point à connaître **avant** de changer votre palette, sous peine de conclure que le
+rebranding ne marche pas : un consommateur du dépôt ne lit pas les propriétés CSS.
+
+### Les échelles de couleur des graphiques
+
+`src/features/chart/utils/encoding.js` déclare `PALETTE` (12 teintes catégorielles) et
+`SEQUENTIAL` (rampe à 5 arrêts) comme **constantes JavaScript littérales** :
+
+```js
+export const PALETTE = [
+  'hsl(207, 74.4%, 22.9%)', // --color-navy
+  'hsl(2, 65.1%, 44.9%)',   // --color-brick
+  // …
+];
+```
+
+Ce n'est pas un oubli. Les échelles de d3/visx doivent produire une couleur **concrète**,
+calculable sans accès au DOM ni à la cascade CSS — au rendu serveur comme à l'export
+d'image, où la rastérisation sur canvas échouerait sur un `var(--…)` non résolu.
+
+**Deux fichiers à éditer conjointement**, donc :
+
+| Fichier | Ce qu'on y change |
+|---|---|
+| `src/styles/globals/primitives/colors.scss` | la primitive `--color-navy`, `--color-brick`… |
+| `src/features/chart/utils/encoding.js` | la constante correspondante de `PALETTE` / `SEQUENTIAL` |
+
+Et **`npm run check:palette` fait échouer `npm run verify` en cas de dérive** : le script
+`scripts/check-palette-sync.js` compare les deux fichiers et sort en erreur dès qu'une
+valeur diverge. Vous ne pouvez pas oublier la moitié du travail sans que le build vous le
+dise.
+
+Deux pièges dans ce fichier, tous deux signalés en commentaire à leur emplacement :
+
+- **La syntaxe à virgules `hsl(h, s%, l%)` est obligatoire.** `d3-color` interprète la
+  syntaxe CSS Color 4 (`hsl(207 74.4% 22.9%)`) comme du noir, ce qui casserait
+  silencieusement l'interpolation de la rampe séquentielle.
+- **Le commentaire `// --color-<nom>` en fin de ligne est lu par le script.** Le
+  supprimer ou le reformater fait échouer la vérification avec « aucune entrée
+  `--color-*` trouvée ».
+
+### Le globe : le cas résolu
+
+Le globe est souvent cité comme une seconde échappatoire. **Il n'en est plus une.**
+`src/features/globe/engine/palette.js` lit les tokens `--globe-*` sur le conteneur par
+`getComputedStyle`, et les relit à chaque bascule de thème — les valeurs JavaScript qu'on
+y trouve ne sont qu'un repli, utilisé seulement si la feuille de la feature n'est pas
+encore chargée.
+
+Pour recolorer le globe, un seul fichier :
+
+```scss
+/* src/features/globe/_colors.scss */
+:root, [data-theme] {
+  --globe-atmo: 218.0 100% 70.0%;
+  --globe-arc: 216.3 95.6% 55.0%;
+  --globe-marker-accent: 213.7 89.4% 40.6%;
+  --globe-earth-fallback: 215.0 46.2% 74.0%;
+}
+```
+
+C'est le modèle à imiter quand c'est possible, et c'est aussi celui des points de
+rupture : `--breakpoint-small`, `--breakpoint-medium` et `--breakpoint-large` sont
+déclarés dans `typography.scss` et relus en JavaScript par
+`src/features/header/hooks/useNavigation.js`. Une seule source de vérité, côté SCSS.
 
 ## Choisir son niveau
 
-_À rédiger._
+| Vous voulez… | Niveau | Où écrire |
+|---|---|---|
+| Changer la couleur de marque partout | A | `:root` + `[data-theme="dark"]`, dans votre feuille |
+| Des surfaces ou des bordures différentes | B | `:root`, en remappant un rôle |
+| Un composant différent sur une page | C | une classe de conteneur (+ `data-theme` si vous surchargez une primitive) |
+| Une disposition ou un comportement différents | D | le fichier du composant, installé chez vous |
+| Changer les couleurs des graphiques | — | `primitives/colors.scss` **et** `chart/utils/encoding.js` |
+
+En cas de doute sur le niveau où porter une surcharge, la colonne « chaîne de dérivation »
+de la [référence des tokens](/fondations/tokens) répond directement : elle montre de quoi
+chaque token descend, donc ce que vous déplacerez en le changeant.

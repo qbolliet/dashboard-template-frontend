@@ -1,0 +1,17 @@
+// ===== TOKENS DU COMPOSANT TOKENCASCADE =====
+// Dimensions du schéma des quatre niveaux.
+//
+// Ce composant n'a pas de _colors.scss : toutes ses couleurs sont des tokens de la
+// feature docs (--docs-demo-*, --docs-prose-*), déjà théma-conscients. En introduire
+// de nouveaux ici ne ferait qu'ajouter des alias sans consommateur.
+
+:root {
+  // Pastille numérotée du niveau. PILOTE UNIQUE : le retrait progressif de chaque
+  // rangée en dérive, de sorte que l'escalier reste aligné sur la colonne des pastilles.
+  --token-cascade-badge-size: var(--spacing-2xl);
+  --token-cascade-gap: var(--spacing-sm);
+  --token-cascade-padding: var(--spacing-lg);
+  --token-cascade-radius: var(--docs-demo-radius);
+  // Décalage d'un niveau au suivant : c'est ce qui donne à lire la descente.
+  --token-cascade-indent: var(--spacing-2xl);
+}

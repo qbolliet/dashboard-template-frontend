@@ -1,0 +1,20 @@
+// ===== TOKENS DU COMPOSANT TOKENREFERENCE =====
+// Dimensions de la table de référence des tokens.
+//
+// Pour les couleurs, voir ./_colors.scss dans ce même dossier.
+
+:root {
+  // PILOTE UNIQUE de la densité de la table : la hauteur de rangée en dérive, et les
+  // 880 lignes de la référence se resserrent ou s'aèrent d'un seul réglage.
+  --token-reference-cell-padding: var(--spacing-sm);
+  --token-reference-font-size: var(--font-size-xs);
+  --token-reference-gap: var(--spacing-lg);
+
+  // Pastille de couleur et barre d'échelle de la colonne « Aperçu ».
+  --token-reference-chip-size: var(--spacing-xl);
+  --token-reference-bar-height: var(--spacing-sm);
+  --token-reference-radius: var(--border-radius-sm);
+
+  // Retrait d'un maillon de chaîne au suivant.
+  --token-reference-chain-indent: var(--spacing-md);
+}

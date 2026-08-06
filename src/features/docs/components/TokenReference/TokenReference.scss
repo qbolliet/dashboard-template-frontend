@@ -1,0 +1,262 @@
+// =================================================================
+// TOKEN REFERENCE — table générée des propriétés personnalisées
+// =================================================================
+// Structure : section.token-reference > search.token-reference__filters
+//             + p.token-reference__count
+//             + .token-reference__scroll > table.token-reference__table
+//
+// La table est DENSE par construction : sept colonnes dont une chaîne de dérivation
+// arborescente, sur une page qui n'en fait que ~46rem de large. Deux décisions en
+// découlent — le défilement horizontal est confié au conteneur (jamais à la page), et la
+// taille de police descend d'un cran par rapport à la prose.
+//
+// Tokens : ./_tokens.scss. Couleurs : ./_colors.scss.
+
+@use '@/styles/utils/breakpoints' as *;
+@use '../../tokens' as *;
+@use '../../colors' as *;
+@use './tokens' as *;
+@use './colors' as *;
+
+.token-reference {
+  margin: var(--docs-prose-rhythm) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-reference-gap);
+}
+
+// ===== FILTRES =====
+.token-reference__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-lg);
+  align-items: flex-end;
+}
+
+.token-reference__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--docs-prose-muted-color));
+
+  // La recherche prend toute la place restante ; les deux sélecteurs gardent leur
+  // largeur naturelle.
+  &:first-child {
+    flex: 1 1 14rem;
+  }
+}
+
+.token-reference__input,
+.token-reference__select {
+  padding: var(--spacing-sm);
+  border: 1px solid hsl(var(--token-reference-border));
+  border-radius: var(--token-reference-radius);
+  background: hsl(var(--docs-demo-bg));
+  color: hsl(var(--docs-prose-heading-color));
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+}
+
+.token-reference__count {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--docs-prose-muted-color));
+}
+
+// ===== TABLE =====
+// Le débordement est confié à ce conteneur et à lui seul : c'est ce qui évite que la
+// PAGE défile latéralement à cause d'une chaîne de dérivation longue.
+.token-reference__scroll {
+  overflow-x: auto;
+  border: 1px solid hsl(var(--token-reference-border));
+  border-radius: var(--docs-demo-radius);
+}
+
+.token-reference__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--token-reference-font-size);
+
+  th,
+  td {
+    padding: var(--token-reference-cell-padding);
+    border-bottom: 1px solid hsl(var(--token-reference-border));
+    text-align: left;
+    vertical-align: top;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    background: hsl(var(--token-reference-head-bg));
+    color: hsl(var(--token-reference-head-color));
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  tbody tr:hover {
+    background: hsl(var(--token-reference-row-hover-bg));
+  }
+
+  tbody tr:last-child th,
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  code {
+    font-size: inherit;
+    background: none;
+    padding: 0;
+  }
+}
+
+.token-reference__name {
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.token-reference__scope,
+.token-reference__value {
+  color: hsl(var(--token-reference-value-color));
+}
+
+.token-reference__scope {
+  min-width: 12rem;
+}
+
+// Variante responsive d'un token : affichée sous sa portée, c'est là qu'on la cherche.
+.token-reference__responsive {
+  display: block;
+  margin-top: var(--spacing-xs);
+  color: hsl(var(--token-reference-muted));
+}
+
+.token-reference__muted {
+  color: hsl(var(--token-reference-muted));
+}
+
+// ===== PASTILLE DE NIVEAU =====
+.token-reference__level {
+  display: inline-grid;
+  place-items: center;
+  width: var(--spacing-xl);
+  height: var(--spacing-xl);
+  border-radius: var(--border-radius-full);
+  color: hsl(var(--token-reference-level-color));
+  font-weight: 600;
+
+  &--1 { background: hsl(var(--token-reference-level-1)); }
+  &--2 { background: hsl(var(--token-reference-level-2)); }
+  &--3 { background: hsl(var(--token-reference-level-3)); }
+  &--4 { background: hsl(var(--token-reference-level-4)); }
+}
+
+// ===== APERÇU =====
+.token-swatch {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.token-swatch__chip {
+  flex: none;
+  width: var(--token-reference-chip-size);
+  height: var(--token-reference-chip-size);
+  border: 1px solid hsl(var(--token-reference-border));
+  border-radius: var(--token-reference-radius);
+  // Damier : rend visible une couleur translucide, qui sinon se confondrait avec le
+  // fond de la table.
+  background-image:
+    linear-gradient(45deg, hsl(var(--token-reference-chip-checker)) 25%, transparent 25%),
+    linear-gradient(-45deg, hsl(var(--token-reference-chip-checker)) 25%, transparent 25%);
+  background-size: var(--spacing-sm) var(--spacing-sm);
+}
+
+.token-swatch__bar {
+  flex: none;
+  height: var(--token-reference-bar-height);
+  border-radius: var(--border-radius-pill);
+  background: hsl(var(--token-reference-bar));
+}
+
+.token-swatch__figure {
+  color: hsl(var(--token-reference-value-color));
+  white-space: nowrap;
+
+  &--muted {
+    color: hsl(var(--token-reference-muted));
+    font-style: italic;
+  }
+}
+
+// ===== CHAÎNE DE DÉRIVATION =====
+.token-chain__list {
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+  min-width: 16rem;
+
+  // Chaque maillon d'une chaîne imbriquée se décale : la descente se lit sans flèche.
+  .token-chain__list {
+    padding-left: var(--token-reference-chain-indent);
+  }
+}
+
+.token-chain__step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--spacing-xs);
+
+  &--warn {
+    color: hsl(var(--token-reference-warn));
+  }
+}
+
+.token-chain__branches {
+  list-style: none;
+  margin: 0;
+  padding-left: var(--token-reference-chain-indent);
+  width: 100%;
+}
+
+.token-chain__label,
+.token-chain__level {
+  color: hsl(var(--token-reference-muted));
+}
+
+.token-chain__level {
+  font-size: 0.9em;
+}
+
+.token-chain__value {
+  color: hsl(var(--token-reference-value-color));
+}
+
+.token-chain__result {
+  margin-top: var(--spacing-xs);
+  font-weight: 600;
+  color: hsl(var(--docs-prose-heading-color));
+}
+
+.token-chain__leaf {
+  color: hsl(var(--token-reference-muted));
+  font-style: italic;
+}
+
+// ===== ÉTATS =====
+.token-reference__state {
+  margin: var(--docs-prose-rhythm) 0;
+  color: hsl(var(--docs-prose-muted-color));
+}
+
+// ===== RESPONSIVE =====
+// Sous 1149px la colonne de contenu perd le sommaire : la table gagne de la place, mais
+// les filtres passent en pile pour rester manipulables au pouce.
+@include breakpoint-down('medium') {
+  .token-reference__field {
+    flex: 1 1 100%;
+  }
+}

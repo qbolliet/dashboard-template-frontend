@@ -105,6 +105,28 @@ const RULES = {
         // Options courtes et longues — c'est ce que la version d'origine colorait en `.n`.
         { cls: 'hl-n', pattern: String.raw`--?[a-zA-Z][\w-]*` },
     ],
+
+    // SCSS — ajouté pour la section « Fondations » de la documentation, qui est presque
+    // intégralement faite d'extraits de surcharge de tokens. L'ORDRE compte, comme
+    // ailleurs : les couleurs hexadécimales passent AVANT les nombres, sinon `#0f3f66`
+    // ressortirait découpé en morceaux numériques.
+    scss: [
+        { cls: 'hl-c', pattern: String.raw`//[^\n]*|/\*[\s\S]*?\*/` },
+        { cls: 'hl-s', pattern: `${DQ_STRING}|${SQ_STRING}` },
+        // Règles-at SCSS et CSS : @use, @include, @media, @each…
+        { cls: 'hl-k', pattern: String.raw`@[a-z-]+` },
+        // Les deux sélecteurs qui portent toute la cascade de thème du dépôt. Les
+        // colorer les rend repérables dans un extrait, ce qui est précisément le geste
+        // que la documentation enseigne.
+        { cls: 'hl-t', pattern: String.raw`:root|\[data-theme(?:\s*=\s*["'][\w-]+["'])?\]` },
+        // UNE seule couleur pour les propriétés personnalisées, qu'elles soient
+        // déclarées (`--x:`) ou lues (`var(--x)`) : c'est le même objet, et le lecteur
+        // doit le suivre d'un bout à l'autre de l'extrait.
+        { cls: 'hl-a', pattern: String.raw`--[\w-]+` },
+        { cls: 'hl-k', pattern: String.raw`\b(?:var|calc|hsl|hsla|rgb|rgba|clamp|min|max|cubic-bezier|url)(?=\()` },
+        { cls: 'hl-n', pattern: String.raw`#[0-9a-fA-F]{3,8}\b` },
+        { cls: 'hl-n', pattern: String.raw`\b\d*\.?\d+(?:px|rem|em|vh|vw|deg|fr|ms|s|%)?\b` },
+    ],
 };
 
 // Alias acceptés, pour rester compatible avec les appels existants de la feature table
@@ -114,6 +136,9 @@ const LANG_ALIASES = {
     jsx: 'jsx', tsx: 'jsx',
     python: 'python', py: 'python',
     bash: 'bash', sh: 'bash', shell: 'bash', curl: 'bash',
+    // Le CSS est un sous-ensemble du SCSS pour ce qui nous occupe : mêmes propriétés,
+    // mêmes fonctions, mêmes sélecteurs. Un seul jeu de règles couvre les deux.
+    scss: 'scss', css: 'scss', sass: 'scss',
 };
 
 // Les scanners sont construits une fois par langage puis mémorisés : une regex à
@@ -146,7 +171,7 @@ const scannerFor = (lang) => {
  * An unknown language is not an error: the code comes back escaped but uncolored.
  *
  * @param {string} code - Source code to highlight.
- * @param {'js'|'javascript'|'jsx'|'tsx'|'python'|'py'|'bash'|'sh'|'shell'|'curl'} lang -
+ * @param {'js'|'javascript'|'jsx'|'tsx'|'python'|'py'|'bash'|'sh'|'shell'|'curl'|'scss'|'css'|'sass'} lang -
  *   Language hint; aliases accepted.
  * @returns {string} HTML string, meant for `dangerouslySetInnerHTML`.
  */

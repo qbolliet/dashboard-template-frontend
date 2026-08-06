@@ -6,14 +6,36 @@ order: 2
 
 # Fondations
 
-{/* Coquille posée en P4.2 (infrastructure du site de documentation).
-    Contenu rédigé en P4.4. Les deux sous-titres ci-dessous existent pour que le
-    sommaire de page ait de quoi s'afficher tant que la page est vide. */}
+Cette section a un objectif unique : **vous permettre de changer l'apparence des
+composants sans modifier leur code.**
+
+C'est la promesse centrale du template. Les composants ne codent en dur ni une couleur,
+ni une dimension, ni une durée : tout passe par des propriétés personnalisées CSS
+organisées en quatre niveaux. Rebrander l'interface entière tient en une dizaine de
+lignes, et rien de ce que vous écrivez ne sera écrasé à la prochaine mise à jour, parce
+que vous ne touchez pas aux fichiers du template.
 
 ## Ce que couvrent les fondations
 
-_À rédiger._
+| Page | Ce qu'elle répond |
+|---|---|
+| [Design system](/fondations/design-system) | Comment la cascade est organisée, et les quatre règles qui la rendent prévisible. |
+| [Tokens](/fondations/tokens) | La référence des 880 propriétés du dépôt, avec leur chaîne de dérivation. |
+| [Theming](/fondations/theming) | Les quatre façons d'intervenir, de la surcharge de dix lignes à l'édition des fichiers. |
+| [Thème sombre](/fondations/theme-sombre) | Comment la bascule fonctionne, et où redéfinir quoi. |
+| [Accessibilité](/fondations/accessibilite) | Conventions ARIA et navigation au clavier. |
 
 ## Ordre de lecture
 
-_À rédiger._
+Si vous voulez **changer les couleurs et en finir**, allez directement à
+[Theming, niveau A](/fondations/theming#niveau-a-rebranding-global) : une dizaine de
+lignes, et l'interface entière suit, thème sombre compris.
+
+Si vous voulez **comprendre avant de toucher**, lisez
+[Design system](/fondations/design-system) en premier : les quatre niveaux et les quatre
+invariants s'expliquent en une page, et tout le reste en découle.
+
+Si vous cherchez **un token précis**, la [référence](/fondations/tokens) est cherchable
+et filtrable. Sa colonne « chaîne de dérivation » est celle qui compte : elle vous dit à
+quel niveau surcharger pour obtenir l'effet voulu — et surtout ce que vous déplacerez
+d'autre en le faisant.

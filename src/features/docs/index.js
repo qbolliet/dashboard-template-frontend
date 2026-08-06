@@ -28,3 +28,11 @@ export { default as ComponentPreview } from './components/ComponentPreview/Compo
 export { default as ComponentPreviewSource } from './components/ComponentPreview/ComponentPreviewSource';
 export { default as PreviewFrame } from './components/PreviewFrame/PreviewFrame';
 export { default as DocsCodeBlock } from './components/DocsCodeBlock/DocsCodeBlock';
+
+// ===== SURFACES DE LA SECTION « FONDATIONS » =====
+// TokenCascade dessine la cascade, TokenPlayground la met en œuvre en direct, et
+// TokenReference expose les 880 propriétés du dépôt, générées par
+// scripts/build-tokens-doc.js dans public/tokens.json.
+export { default as TokenCascade } from './components/TokenCascade/TokenCascade';
+export { default as TokenPlayground } from './components/TokenPlayground/TokenPlayground';
+export { default as TokenReference } from './components/TokenReference/TokenReference';

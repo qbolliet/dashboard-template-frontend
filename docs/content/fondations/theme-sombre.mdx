@@ -6,14 +6,135 @@ order: 4
 
 # Thème sombre
 
-{/* Coquille posée en P4.2 (infrastructure du site de documentation).
-    Contenu rédigé en P4.4. Les deux sous-titres ci-dessous existent pour que le
-    sommaire de page ait de quoi s'afficher tant que la page est vide. */}
+Le thème sombre n'est pas une seconde feuille de styles : c'est **la même cascade avec
+d'autres valeurs aux niveaux 1 et 2**. Les composants n'en savent rien, et c'est
+précisément ce qui fait qu'un composant que vous écrivez correctement bascule
+gratuitement.
 
 ## Le mécanisme
 
-_À rédiger._
+Un attribut `data-theme` sur `<html>`, et c'est tout :
+
+```scss
+:root, [data-theme] { --color-gray-900: 220 39% 11%; }  /* niveau 1, clair  */
+[data-theme="dark"] { --color-gray-900: 210 40% 96%; }  /* niveau 1, sombre */
+
+:root, [data-theme] { --color-text-primary: var(--color-gray-900); }  /* niveau 2 */
+```
+
+`--color-text-primary` n'est déclaré **qu'une fois**. Il désigne un rôle ; c'est la
+primitive qu'il désigne qui change de valeur. Tout ce qui en dérive — les tokens de
+feature, les tokens de composant, vos propres composants — bascule sans une ligne de plus.
+
+Trois pièces le mettent en œuvre :
+
+| Pièce | Rôle |
+|---|---|
+| `src/app/layout.tsx` | Le script anti-FOUC, exécuté avant le premier rendu. |
+| `src/features/theme/providers/ThemeProvider.js` | L'état React, qui relit l'attribut comme source unique de vérité. |
+| `src/features/theme/components/ThemeToggleButton/` | Le bouton, dans le header. |
 
 ## Anti-FOUC
 
-_À rédiger._
+Le thème doit être posé **avant le premier paint**, sinon la page s'affiche en clair puis
+saute en sombre — le fameux flash. Le script est donc inline dans le `<head>`, synchrone,
+et s'exécute avant l'hydratation React :
+
+```js
+(function () {
+  try {
+    var t = localStorage.getItem('theme');
+    if (t !== 'light' && t !== 'dark') {
+      t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', t);
+  } catch (e) {}
+})();
+```
+
+Trois décisions y sont volontaires :
+
+- **Inline, sans URL.** Un fichier externe serait chargé après le premier paint, et le
+  sous-chemin de déploiement (`basePath`) pourrait en casser l'URL. Inline, rien ne peut
+  le rater.
+- **Le choix explicite prime sur la préférence système**, d'où la lecture de
+  `localStorage` en premier et `prefers-color-scheme` seulement en repli.
+- **`try/catch` muet.** `localStorage` lève en navigation privée sur certains
+  navigateurs ; le pire cas acceptable est un thème clair, pas une page blanche.
+
+`ThemeProvider` initialise ensuite son état en **relisant l'attribut** que ce script vient
+de poser, plutôt qu'en refaisant le calcul. Une seule source de vérité, donc aucun
+désaccord possible entre le rendu serveur et le client.
+
+## Pourquoi `:root, [data-theme]` et non `:root` seul
+
+C'est la ligne la plus discrète du dépôt et la plus facile à casser sans s'en rendre
+compte. Tous les blocs de base sont déclarés ainsi :
+
+```scss
+:root, [data-theme] {
+  --color-surface: var(--color-white);
+}
+```
+
+Une propriété personnalisée est substituée sur l'élément où elle est **déclarée**, puis
+héritée figée. Déclarée sur le seul `:root`, l'indirection `var(--color-white)` est
+résolue une fois pour toutes sur `<html>` : un descendant qui redéfinirait
+`--color-white` ne changerait plus `--color-surface`. Le second sélecteur fait redéclarer
+tout le bloc sur **n'importe quel élément portant `data-theme`**, qui le résout alors sur
+lui-même.
+
+C'est ce qui rend un thème réellement **scopable**, et donc ce qui rend possibles :
+
+- le cadre d'aperçu de cette documentation, qui pose `data-theme` sur lui-même — c'est
+  pour cela que son bouton soleil/lune ne change que l'aperçu ;
+- les surcharges locales du [niveau C](/fondations/theming#niveau-c-personnalisation-locale) ;
+- une section de page en thème inversé, sans dupliquer un seul token.
+
+Revenir à `:root` seul ne lève **aucune erreur** : les aperçus ressortent simplement à
+moitié thémés. Si vous touchez à ces fichiers, c'est le point à ne pas défaire.
+
+Le bloc `[data-theme="dark"]` qui suit garde la même spécificité (0,1,0) et vient après
+dans la source : il l'emporte toujours sur le bloc de base.
+
+## Où redéfinir quoi
+
+**La règle : le thème se joue aux niveaux 1 et 2.** Les niveaux 3 et 4 consomment des
+rôles, et les rôles basculent tout seuls.
+
+Un token de feature ou de composant qu'il faut redéclarer sous `[data-theme="dark"]`
+signale presque toujours qu'il consomme une **primitive** (`--color-gray-100`) là où il
+devrait consommer un **rôle** (`--color-surface`). Corrigez la dérivation plutôt que
+d'ajouter une surcharge sombre : vous supprimez une ligne au lieu d'en ajouter une.
+
+### Les exceptions réelles
+
+Le dépôt n'est pas exemplaire sur ce point, et il vaut mieux le dire que le laisser
+découvrir. Pour voir la liste exacte, ouvrez la [référence des tokens](/fondations/tokens)
+et sélectionnez **Thème sombre → Exceptions — niveaux 3-4**. Elle est produite par le
+script de génération, donc toujours à jour.
+
+Elles se répartissent en deux familles :
+
+- **Légitimes** — la palette WebGL du globe (`--globe-atmo`, `--globe-arc`,
+  `--globe-marker-accent`, `--globe-earth-fallback`). Ce ne sont pas des couleurs de
+  chrome dérivables d'un rôle : ce sont les couleurs d'une scène 3D, lues par Three.js via
+  `getComputedStyle` et relues à chaque bascule. Leur variante sombre est une décision
+  artistique, pas un défaut de dérivation.
+- **De la dette** — l'essentiel du reste, concentré sur la feature `header`. Ces tokens
+  consomment des nuances au lieu de rôles, et leur bloc sombre compense. Ils fonctionnent,
+  mais ils sont à reprendre, et ils ne sont **pas** un modèle à suivre.
+
+## Écrire un composant qui bascule tout seul
+
+Trois règles, et vous n'aurez jamais à écrire de bloc `[data-theme="dark"]` :
+
+1. **Consommez des rôles, pas des nuances.** `var(--color-text-secondary)`, pas
+   `var(--color-gray-600)`.
+2. **Déclarez vos couleurs dans un `_colors.scss`** à côté du composant, en
+   `:root, [data-theme]`, chaque token pointant vers un rôle.
+3. **Lisez-les en `hsl(var(--token))`.** C'est ce qui vous laisse moduler l'opacité sans
+   déclarer de variante.
+
+`src/components/ui/StatCard/_colors.scss` est l'exemple à copier : douze tokens, tous des
+alias de rôles, et pas une ligne de thème sombre.

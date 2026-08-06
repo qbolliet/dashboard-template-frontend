@@ -8,8 +8,13 @@
 
 :root, [data-theme] {
   // ===== Surfaces & bordures de filtre (base commune) =====
+  // --filter-border n'est PAS redéclaré ici : il vient de
+  // src/components/filter/_colors.scss, la couche dont cette feature dépend déjà
+  // (CriterionMenu rend SelectMenu, TypeAwareInput et ConstraintField). Le déclarer
+  // aux deux endroits avec la même valeur était le seul doublon restant après P0.2 —
+  // détecté par `node scripts/build-tokens-doc.js --strict`, qui échoue sur toute
+  // propriété déclarée dans plusieurs fichiers.
   --filter-bg:            var(--color-surface);
-  --filter-border:        var(--color-border);
   --filter-border-strong: var(--color-border-hover);
   --filter-label-color:   var(--color-text-tertiary);
 }

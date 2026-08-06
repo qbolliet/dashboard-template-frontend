@@ -1,10 +1,23 @@
 'use client';
 
 // Importation des modules
-import { useState } from 'react';
+import { createContext, useState } from 'react';
 import { useTheme } from '@/features/theme/hooks/useTheme';
 import SunMoonIcon from '@/components/icons/SunMoonIcon/SunMoonIcon';
 import './PreviewFrame.scss';
+
+/**
+ * Theme currently displayed by the enclosing preview frame.
+ *
+ * Exposé parce qu'un descendant qui veut RESCOPER la cascade doit porter `data-theme`
+ * lui aussi : les blocs de base étant déclarés `:root, [data-theme]`, c'est cet attribut
+ * — et lui seul — qui fait redéclarer les tokens sur un élément, et donc y résoudre leurs
+ * indirections. Sans lui, une surcharge de primitive posée sur un sous-arbre reste sans
+ * effet sur les tokens qui en dérivent (cf. <TokenPlayground>).
+ *
+ * @type {React.Context<'light'|'dark'|null>}
+ */
+export const PreviewThemeContext = createContext(null);
 
 // =================================================================
 // PREVIEW FRAME — cadre d'aperçu, avec bascule clair/sombre LOCALE
@@ -48,24 +61,26 @@ const PreviewFrame = ({ children, label = 'Aperçu du composant', padded = true 
     const next = theme === 'dark' ? 'light' : 'dark';
 
     return (
-        <figure
-            className={`doc-preview-frame${padded ? '' : ' doc-preview-frame--flush'}`}
-            // LA ligne qui porte la démonstration : le thème est un attribut de CE
-            // conteneur, pas du document.
-            data-theme={theme}
-            aria-label={label}>
-            <button
-                type="button"
-                className="doc-preview-frame__theme"
-                onClick={() => setOverride(next)}
-                aria-pressed={theme === 'dark'}
-                title={`Afficher cet aperçu en thème ${next}`}
-                aria-label={`Thème de l'aperçu : ${theme}. Basculer en ${next}.`}>
-                <SunMoonIcon width={18} height={18} />
-            </button>
+        <PreviewThemeContext.Provider value={theme}>
+            <figure
+                className={`doc-preview-frame${padded ? '' : ' doc-preview-frame--flush'}`}
+                // LA ligne qui porte la démonstration : le thème est un attribut de CE
+                // conteneur, pas du document.
+                data-theme={theme}
+                aria-label={label}>
+                <button
+                    type="button"
+                    className="doc-preview-frame__theme"
+                    onClick={() => setOverride(next)}
+                    aria-pressed={theme === 'dark'}
+                    title={`Afficher cet aperçu en thème ${next}`}
+                    aria-label={`Thème de l'aperçu : ${theme}. Basculer en ${next}.`}>
+                    <SunMoonIcon width={18} height={18} />
+                </button>
 
-            {children}
-        </figure>
+                {children}
+            </figure>
+        </PreviewThemeContext.Provider>
     );
 };
 

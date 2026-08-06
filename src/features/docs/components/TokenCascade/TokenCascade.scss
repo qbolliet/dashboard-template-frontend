@@ -1,0 +1,103 @@
+// =================================================================
+// TOKEN CASCADE — schéma des quatre niveaux
+// =================================================================
+// Structure : ol.token-cascade > li.token-cascade__level > p.token-cascade__heading
+//             (span.token-cascade__badge + strong.token-cascade__title)
+//             + p.token-cascade__scope + p.token-cascade__note + p.token-cascade__example
+//
+// Le retrait croissant remplace les flèches ↓ du schéma ASCII : la descente se lit
+// spatialement, sans caractère décoratif qu'un lecteur d'écran devrait épeler.
+//
+// Tokens : ./_tokens.scss. Couleurs : celles de la feature (../../_colors.scss).
+
+@use '@/styles/utils/breakpoints' as *;
+@use '../../tokens' as *;
+@use '../../colors' as *;
+@use './tokens' as *;
+
+.token-cascade {
+  // Annule la puce et le retrait que .docs-prose applique à ses listes : la
+  // numérotation est portée par les pastilles, pas par le marqueur de liste.
+  list-style: none;
+  padding-left: 0;
+  margin: var(--docs-prose-rhythm) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-cascade-gap);
+}
+
+.token-cascade__level {
+  padding: var(--token-cascade-padding);
+  border: 1px solid hsl(var(--docs-demo-border));
+  border-radius: var(--token-cascade-radius);
+  background: hsl(var(--docs-demo-bg));
+
+  // Retrait progressif : chaque niveau démarre un cran plus à droite que le précédent.
+  // `nth-child` plutôt qu'une classe par niveau — la position DANS la liste est
+  // exactement l'information à traduire, et le JSX n'a rien à en savoir.
+  @for $i from 2 through 4 {
+    &:nth-child(#{$i}) {
+      margin-left: calc(var(--token-cascade-indent) * (#{$i} - 1));
+    }
+  }
+}
+
+// ===== EN-TÊTE DE NIVEAU =====
+.token-cascade__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin: 0;
+}
+
+.token-cascade__badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--token-cascade-badge-size);
+  height: var(--token-cascade-badge-size);
+  border-radius: var(--border-radius-full);
+  background: hsl(var(--docs-header-badge-bg));
+  color: hsl(var(--docs-header-badge-color));
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.token-cascade__title {
+  color: hsl(var(--docs-prose-heading-color));
+  font-size: var(--font-size-base);
+}
+
+// ===== CORPS =====
+.token-cascade__scope,
+.token-cascade__note,
+.token-cascade__example {
+  margin: var(--spacing-sm) 0 0;
+  padding-left: calc(var(--token-cascade-badge-size) + var(--spacing-md));
+}
+
+.token-cascade__scope code,
+.token-cascade__example code {
+  font-size: var(--docs-demo-font-size);
+}
+
+.token-cascade__note {
+  color: hsl(var(--docs-prose-muted-color));
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+// ===== RESPONSIVE =====
+// Sous 1149px, l'escalier mangerait toute la largeur utile : les niveaux se remettent
+// à plat et c'est la pastille qui porte seule la progression.
+@include breakpoint-down('medium') {
+  .token-cascade__level:nth-child(n) {
+    margin-left: 0;
+  }
+
+  .token-cascade__scope,
+  .token-cascade__note,
+  .token-cascade__example {
+    padding-left: 0;
+  }
+}

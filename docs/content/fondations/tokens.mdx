@@ -6,14 +6,77 @@ order: 2
 
 # Tokens
 
-{/* Coquille posée en P4.2 (infrastructure du site de documentation).
-    Contenu rédigé en P4.4. Les deux sous-titres ci-dessous existent pour que le
-    sommaire de page ait de quoi s'afficher tant que la page est vide. */}
+La table ci-dessous est **générée** : `scripts/build-tokens-doc.js` lit
+`src/styles/globals/` et les fichiers `_tokens.scss` / `_colors.scss` du dépôt, puis émet
+`public/tokens.json`. Elle ne peut donc pas diverger du code — une propriété ajoutée y
+apparaît sans que personne ait à y penser, et une propriété renommée y change de nom.
 
 ## Lire la référence
 
-_À rédiger._
+| Colonne | Ce qu'elle dit |
+|---|---|
+| **Nom** | La propriété, telle qu'on l'écrit dans une surcharge. |
+| **Niv.** | Son niveau dans la cascade : 1 primitive, 2 sémantique, 3 feature, 4 composant. Déduit du chemin du fichier. |
+| **Portée** | Le fichier qui la déclare — et donc où l'éditer au niveau D. S'y ajoutent ses éventuelles variantes responsive. |
+| **Clair / Sombre** | La valeur **déclarée**, telle qu'elle est écrite. Souvent un `var()` vers le niveau du dessus. |
+| **Aperçu** | Une pastille pour une couleur (deux quand elle bascule en thème sombre), une barre à l'échelle pour une longueur, la valeur calculée sinon. |
+| **Chaîne de dérivation** | De quoi la valeur descend, jusqu'au littéral. |
 
-## Chaîne de dérivation
+Un point à noter sur la colonne **Sombre** : elle n'affiche une valeur que si le token
+est *lui-même* redéclaré sous `[data-theme="dark"]`. La mention « hérité » est le cas
+normal et souhaitable — le token bascule quand même, parce qu'une primitive plus bas dans
+sa chaîne bascule. La pastille sombre de la colonne « Aperçu », elle, montre toujours la
+couleur réellement obtenue.
 
-_À rédiger._
+## La chaîne de dérivation
+
+C'est la colonne qui décide de tout, parce qu'elle répond à la seule question qui compte
+au moment de surcharger : **à quel niveau écrire ma surcharge ?**
+
+Prenons `--sidebar-toggle-size`. Sa chaîne se lit :
+
+```text
+--sidebar-toggle-size → --spacing-3xl → 2rem → 32px
+```
+
+Trois surcharges possibles, trois portées :
+
+- `--sidebar-toggle-size` — seuls les chevrons de la sidebar changent ;
+- `--spacing-3xl` — **toute** l'échelle d'espacement du site bouge, partout où ce cran est
+  utilisé ;
+- rien du tout — vous cherchiez en fait `--nav-toggle-size`, qui pilote le même chevron
+  sous 1149 px.
+
+Sans cette colonne, les trois se ressemblent. Avec elle, le choix est évident.
+
+Quand une valeur combine plusieurs tokens, la chaîne s'ouvre en **branches** plutôt que
+d'en choisir un arbitrairement. `--nav-row-padding-y` en est l'exemple : trois tokens
+pèsent sur son résultat, et changer n'importe lequel des trois le déplace.
+
+Enfin, une chaîne vide se lit « valeur littérale » : le token *est* le bout de la chaîne.
+Le surcharger n'a aucune répercussion ailleurs — ce qui est en soi une information utile.
+
+## La référence
+
+Filtrez avant de chercher : plus de 900 lignes ne se lisent pas d'affilée. La recherche
+porte sur le nom, le fichier et la valeur déclarée — taper `searchbar` rassemble tout ce
+que ce composant déclare, `toggle` rassemble les pilotes de taille de la navigation.
+
+<TokenReference />
+
+## Régénérer la référence
+
+```bash
+npm run build:tokens
+```
+
+Le script est déjà branché sur `npm run dev` et `npm run build` : en usage normal, vous
+n'avez rien à lancer. Deux points valent d'être connus :
+
+- **Il signale les conflits.** Une propriété déclarée dans plusieurs fichiers est une
+  erreur de conception — le lecteur ne peut plus savoir laquelle gagne. `npm run verify`
+  appelle le script avec `--strict`, qui **sort en erreur** dans ce cas.
+- **Il lit du SCSS, pas du CSS.** Il retire les commentaires avant toute analyse
+  (`StatCard/_colors.scss` mentionne `[data-theme="dark"]` en prose pour dire qu'il n'en
+  a pas), suit les blocs `@include breakpoint-down(…)` pour en tirer les variantes
+  responsive, et déplie la boucle `@each` qui génère les tokens `--breakpoint-*`.

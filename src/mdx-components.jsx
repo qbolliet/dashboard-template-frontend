@@ -4,6 +4,10 @@ import { slugify } from '@/utils/format/slugify';
 import ComponentPlayground from '@/features/docs/components/ComponentPlayground/ComponentPlayground';
 import ComponentPreview from '@/features/docs/components/ComponentPreview/ComponentPreview';
 import ComponentPreviewSource from '@/features/docs/components/ComponentPreview/ComponentPreviewSource';
+import DocsCodeBlock from '@/features/docs/components/DocsCodeBlock/DocsCodeBlock';
+import TokenCascade from '@/features/docs/components/TokenCascade/TokenCascade';
+import TokenPlayground from '@/features/docs/components/TokenPlayground/TokenPlayground';
+import TokenReference from '@/features/docs/components/TokenReference/TokenReference';
 
 // =================================================================
 // MDX COMPONENTS — correspondance balises MDX → composants du projet
@@ -20,7 +24,8 @@ import ComponentPreviewSource from '@/features/docs/components/ComponentPreview/
 // surcharge donc que ce qui demande du COMPORTEMENT :
 //   • les titres, pour poser un `id` d'ancre que le sommaire puisse viser ;
 //   • les liens internes, pour passer par <Link> (préchargement + basePath) ;
-//   • les tableaux, pour réutiliser la feuille partagée des tables d'API.
+//   • les tableaux, pour réutiliser la feuille partagée des tables d'API ;
+//   • les blocs de code balisés, pour les rendre COLORÉS et COPIABLES.
 
 /**
  * Flattens an MDX children tree down to plain text.
@@ -55,6 +60,36 @@ const anchoredHeading = (Tag) => {
 };
 
 /**
+ * Renders a fenced code block through the documentation's own code surface.
+ *
+ * MDX compiles ```scss … ``` to `<pre><code className="language-scss">`. Routing it to
+ * <DocsCodeBlock> gives every snippet of the site the copy button and the syntax
+ * colouring the registry examples already had — a documentation whose whole subject is
+ * "copy this snippet into your stylesheet" cannot ship snippets that are not copyable.
+ *
+ * A fence without a language, or a <pre> that does not wrap a <code>, falls back to the
+ * plain tag styled by `.docs-prose`.
+ *
+ * @param {Object} props - Props MDX passes to the `pre` tag.
+ * @param {React.ReactNode} props.children - The `<code>` element MDX nested inside.
+ * @returns {JSX.Element} The rendered code block.
+ */
+const MdxPre = ({ children, ...props }) => {
+    const code = children?.props;
+    if (!code || typeof code.children !== 'string') return <pre {...props}>{children}</pre>;
+
+    const language = /language-([\w-]+)/.exec(code.className ?? '');
+
+    return (
+        <DocsCodeBlock
+            // MDX conserve le saut de ligne final de la clôture ```, qui ajouterait une
+            // ligne vide au bas de chaque bloc.
+            code={code.children.replace(/\n$/, '')}
+            lang={language ? language[1] : 'text'} />
+    );
+};
+
+/**
  * Maps MDX tags to this project's components.
  *
  * @param {Object} [components] - Per-file overrides passed by MDX.
@@ -85,6 +120,8 @@ export function useMDXComponents(components) {
         // importée par DocsShell.scss.
         table: (props) => <table className="api-table" {...props} />,
 
+        pre: MdxPre,
+
         // ===== SURFACES DE DÉMONSTRATION =====
         // Disponibles dans toutes les pages rédigées sans import : le MDX ne sait pas
         // importer, et exiger un import par page serait une ligne de bruit à chaque fois.
@@ -93,6 +130,13 @@ export function useMDXComponents(components) {
         ComponentPlayground,
         ComponentPreview,
         ComponentPreviewSource,
+
+        // ===== SURFACES DE LA SECTION « FONDATIONS » =====
+        // TokenCascade est un Server Component ; les deux autres sont des composants
+        // clients, référencés ici comme les surfaces de démonstration ci-dessus.
+        TokenCascade,
+        TokenPlayground,
+        TokenReference,
 
         // En DERNIER : les surcharges par fichier l'emportent.
         ...components,

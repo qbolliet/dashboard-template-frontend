@@ -1,0 +1,56 @@
+// =================================================================
+// TOKEN PLAYGROUND — démonstration « avant / après »
+// =================================================================
+// Structure : figure.token-playground > style + .tp-section (contrôles)
+//             + figure.doc-preview-frame > .token-playground__pair
+//               > section.token-playground__side ×2 (la seconde porte le scope)
+//             + figure.doc-code
+//
+// Les deux colonnes sont RIGOUREUSEMENT identiques : même composant, mêmes props, même
+// feuille. Seule la classe du conteneur de droite change. Toute règle qui viserait
+// spécifiquement l'une des deux ruinerait la démonstration — il n'y en a aucune ici.
+//
+// Tokens : ./_tokens.scss + ceux de la feature (../../_tokens.scss).
+
+@use '../../tokens' as *;
+@use '../../colors' as *;
+@use './tokens' as *;
+
+.token-playground {
+  margin: var(--docs-prose-rhythm) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--token-playground-gap);
+}
+
+// ===== LES DEUX RENDUS =====
+// `auto-fit` + `minmax` plutôt qu'un point de rupture : le passage à une colonne doit
+// dépendre de la place réellement disponible pour l'aperçu (la grille de documentation
+// a trois colonnes sur grand écran, une seule sur mobile), pas de la largeur de l'écran.
+.token-playground__pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--token-playground-min-column), 1fr));
+  gap: var(--token-playground-gap);
+  align-items: start;
+}
+
+.token-playground__side {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.token-playground__caption {
+  margin: 0;
+  font-size: var(--docs-demo-font-size);
+  color: hsl(var(--docs-demo-label-color));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.token-playground__loading {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: hsl(var(--docs-prose-muted-color));
+}

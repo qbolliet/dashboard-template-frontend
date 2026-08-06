@@ -6,14 +6,161 @@ order: 1
 
 # Design system
 
-{/* Coquille posée en P4.2 (infrastructure du site de documentation).
-    Contenu rédigé en P4.4. Les deux sous-titres ci-dessous existent pour que le
-    sommaire de page ait de quoi s'afficher tant que la page est vide. */}
+Toute valeur d'apparence du template — couleur, dimension, espacement, rayon, durée,
+élévation, z-index — est déclarée comme **propriété personnalisée CSS**, jamais écrite en
+dur dans une règle ni atteignable seulement par une prop JavaScript. Ces propriétés sont
+organisées en quatre niveaux, du plus général au plus local.
 
-## La cascade
+Cette organisation n'est pas décorative : c'est elle qui vous permet de tout changer sans
+toucher au code des composants, et c'est elle qui décide **où** votre surcharge doit être
+écrite pour porter aussi loin que vous le voulez, et pas plus loin.
 
-_À rédiger._
+## La cascade en quatre niveaux
+
+<TokenCascade />
+
+Chaque niveau consomme le précédent. Un token de composant vaut par défaut un token de
+feature, qui vaut un rôle sémantique, qui vaut une primitive. Surcharger un maillon
+déplace tout ce qui en dérive — et rien d'autre.
+
+Les composants de `src/components/` suivent le même schéma **sans le niveau 3** : ils
+n'appartiennent à aucune feature, leurs tokens dérivent donc directement des rôles
+sémantiques.
+
+## Les quatre invariants
+
+Quatre règles rendent la cascade prévisible. Elles sont appliquées dans tout le dépôt ;
+les respecter dans vos propres composants est ce qui vous garantit qu'ils resteront
+thémables comme les autres.
+
+### (a) Les couleurs sont des triplets HSL, sans la fonction `hsl()`
+
+```scss
+--color-primary-500: 209 79% 24%;   // et non hsl(209 79% 24%)
+```
+
+La consommation se fait obligatoirement en `hsl(var(--token))`. Ce détour paraît
+gratuit ; il ne l'est pas. C'est lui qui rend l'opacité possible **sans dupliquer le
+token** :
+
+```scss
+background: hsl(var(--color-primary-500) / 0.12);
+border-color: hsl(var(--color-primary-500) / 0.4);
+```
+
+Stocker `hsl(209 79% 24%)` dans le token interdirait ces deux lignes et forcerait à
+déclarer une variante par niveau d'opacité.
+
+### (b) Un token n'est déclaré qu'au niveau où il est partagé
+
+Si une valeur ne sert qu'à **un** composant, elle descend au niveau 4. Un token de
+niveau 3 a donc toujours au moins deux consommateurs — sans quoi il encombre l'espace de
+noms de la feature sans rien mutualiser.
+
+`src/features/docs/_tokens.scss` illustre la règle et son revers : les trois largeurs de
+colonne du site de documentation y vivent **au niveau de la feature**, parce que la
+documentation est une grille unique dont les colonnes se répondent. Les séparer par
+composant obligerait chaque fichier à connaître les deux autres.
+
+### (c) `calc()` plutôt qu'un nouveau token
+
+Quand deux dimensions sont liées, la relation s'exprime — elle ne se recopie pas.
+
+```scss
+// src/features/header/_tokens.scss
+--nav-row-padding-y: calc(
+  (var(--nav-toggle-size) - var(--line-height-tight) * var(--nav-link-font-size)) / 2
+);
+```
+
+Ce padding n'est pas une valeur choisie : c'est *ce qu'il faut pour qu'une rangée de
+navigation mesure exactement la taille de son chevron*. Changez `--nav-toggle-size`, et
+il suit. Une valeur recopiée aurait divergé au premier ajustement.
+
+### (d) Pilote unique
+
+Une dimension partagée par plusieurs éléments a **un seul** token source ; les autres en
+dérivent. Les deux meilleurs exemples du dépôt sont dans le header.
+
+**`--header-control-size` pilote tous les contrôles de l'en-tête.** Déclaré une fois, il
+donne sa taille au logo, sa hauteur à la barre de recherche et sa taille au bouton de
+thème :
+
+```scss
+// src/features/header/_tokens.scss
+--header-control-size: 2.25rem;                                  // 36px
+
+// src/features/header/components/SearchBar/_tokens.scss
+--search-height: var(--header-control-size);
+
+// src/features/theme/components/ThemeToggleButton/_tokens.scss
+--theme-toggle-size: calc(var(--header-control-size) - 0.5rem);  // 28px
+```
+
+`Header.scss` s'en sert aussi pour la hauteur du logo. Une seule ligne change donc
+l'alignement des trois éléments d'un coup — et il n'existe aucun moyen de les
+désynchroniser par mégarde.
+
+**`--nav-toggle-size` pilote la hauteur de rangée de la navigation.** C'est le cas le plus
+intéressant, parce que le token piloté n'est pas une copie mais une *dérivation* :
+
+```scss
+--nav-toggle-size: calc(var(--spacing-xl) + var(--spacing-xs));  // 24px
+--nav-row-padding-y: calc(
+  (var(--nav-toggle-size) - var(--line-height-tight) * var(--nav-link-font-size)) / 2
+);
+```
+
+Le padding vertical est calculé pour que toute rangée « parente » mesure exactement la
+taille du toggle : chevrons et libellés restent alignés au pixel sur les trois paliers
+d'écran, sans qu'aucune valeur ne soit ajustée à la main. `--topbar-toggle-size` et, sous
+1149 px, `--sidebar-toggle-size` reprennent le même pilote.
+
+La [référence des tokens](/fondations/tokens) affiche ces chaînes en entier : cherchez
+`toggle` pour les voir toutes.
+
+## Le thème sombre en une ligne
+
+La bascule se fait par un attribut `data-theme` posé sur `<html>`, et **le thème ne se
+joue qu'aux niveaux 1 et 2** : les primitives et les rôles changent de valeur, les
+niveaux 3 et 4 n'ont pas à savoir qu'un thème existe.
+
+```scss
+:root, [data-theme] { --color-gray-900: 220 39% 11%; }  // niveau 1, clair
+[data-theme="dark"] { --color-gray-900: 210 40% 96%; }  // niveau 1, sombre
+
+:root, [data-theme] { --color-text-primary: var(--color-gray-900); }  // niveau 2, inchangé
+```
+
+Un token de niveau 3 ou 4 qu'il faut redéfinir sous `[data-theme="dark"]` signale presque
+toujours qu'il consomme une **primitive** au lieu d'un **rôle**. Le mécanisme complet, ses
+exceptions légitimes et la dette qui subsiste sont détaillés sur la page
+[Thème sombre](/fondations/theme-sombre).
 
 ## Conventions de nommage
 
-_À rédiger._
+| Niveau | Préfixe | Exemple |
+|---|---|---|
+| 1 — primitive | `--color-*` | `--color-gray-200`, `--color-navy` |
+| 2 — sémantique | `--color-*` (rôle), `--spacing-*`, `--font-size-*`, `--border-radius-*`, `--shadow-*`, `--transition-*`, `--z-*` | `--color-text-primary`, `--spacing-lg` |
+| 3 — feature | `--[feature]-*` | `--header-height`, `--chart-bar` |
+| 4 — composant | `--[composant]-*` | `--search-height`, `--stat-card-radius` |
+
+Deux points d'attention :
+
+- **Les niveaux 1 et 2 partagent le préfixe `--color-*`.** Ils se distinguent par le
+  suffixe : une nuance (`gray-200`, `primary-500`) est une primitive, un rôle
+  (`text-primary`, `surface`, `border`) est sémantique. Dans vos composants, **consommez
+  des rôles**, jamais des nuances — c'est ce qui fait basculer votre composant en thème
+  sombre gratuitement.
+- **Le préfixe de composant est celui du composant, pas de son dossier.** `SearchBar`
+  déclare `--search-*`, `NavigationSideBar` déclare `--sidebar-*`. La règle est la
+  lisibilité de la propriété dans l'inspecteur, pas le chemin du fichier.
+
+Où déclarer, en une question : *combien de composants utilisent cette valeur ?* Un seul →
+niveau 4. Plusieurs dans la même feature → niveau 3. Plusieurs features → niveau 2.
+
+## Et ensuite
+
+- Pour **changer l'apparence** : [Theming](/fondations/theming).
+- Pour **trouver un token** et voir de quoi il dérive : [Tokens](/fondations/tokens).

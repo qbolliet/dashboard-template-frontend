@@ -49,7 +49,11 @@
 // ===== CODE =====
 // Le débordement horizontal est confié au <pre> et à lui seul : c'est ce qui évite que
 // la PAGE défile latéralement à cause d'une ligne longue.
-.doc-code__pre {
+// SÉLECTEUR À DEUX CLASSES, DÉLIBÉRÉMENT : `.docs-prose pre` pèse (0,1,1) et
+// l'emporterait sur un `.doc-code__pre` seul (0,1,0) — le padding et le fond de la prose
+// écraseraient ceux-ci. Depuis que src/mdx-components.jsx route TOUS les blocs de code
+// balisés de la documentation vers ce composant, le cas est la règle et non l'exception.
+.doc-code .doc-code__pre {
   margin: 0;
   padding: var(--spacing-lg);
   overflow-x: auto;
