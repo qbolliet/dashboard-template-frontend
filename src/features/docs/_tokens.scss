@@ -62,6 +62,19 @@
 
   // ===== Z-INDEX =====
   --docs-header-z-index: var(--z-sticky);
+
+  // ===== SURFACES DE DÉMONSTRATION (playground, aperçu, bloc de code) =====
+  // Partagées entre PreviewFrame, DocsCodeBlock et CopyButton : les trois composent un
+  // même objet à l'écran (un cadre, sa barre, son code) et doivent s'aligner au pixel.
+  --docs-demo-radius: var(--border-radius-lg);
+  --docs-demo-padding: var(--spacing-2xl);
+  --docs-demo-bar-padding: var(--spacing-xs) var(--spacing-md);
+  --docs-demo-gap: var(--spacing-lg);
+  // Hauteur minimale d'un aperçu : en dessous, un composant qui se charge fait sauter
+  // la page à chaque bascule d'onglet.
+  --docs-demo-min-height: 12rem;
+  --docs-demo-font-size: var(--font-size-xs);
+
 }
 
 // ===== RESPONSIVE =====

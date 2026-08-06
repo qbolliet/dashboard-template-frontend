@@ -18,7 +18,7 @@
 // ⚠️ RÈGLE : une couleur propre à UN seul composant vit dans le _colors.scss de
 // ce composant, pas ici.
 
-:root {
+:root, [data-theme] {
   // ===== Barres de feature (before/after, normalisation) =====
   // --chart-bar : couleur par défaut d'une barre de drag générique (DragBar).
   --chart-bar: var(--color-text-secondary);

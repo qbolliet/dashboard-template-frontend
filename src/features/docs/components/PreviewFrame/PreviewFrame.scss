@@ -1,0 +1,73 @@
+// =================================================================
+// PREVIEW FRAME — cadre d'aperçu à thème local
+// =================================================================
+// Structure : <figure.doc-preview-frame[data-theme]> > button.doc-preview-frame__theme
+//             + le composant rendu
+//
+// Rôle : offrir une surface neutre et délimitée, dont le thème est celui de l'ATTRIBUT
+// porté par le <figure> et non celui du document.
+//
+// ⚠️ Le fond et la couleur du texte doivent être lus depuis les rôles sémantiques
+// (--color-surface, --color-text-primary) et JAMAIS écrits en dur : c'est leur
+// redéclaration sur `[data-theme]` (cf. styles/globals/tokens/) qui fait basculer le
+// cadre. Une couleur littérale ici ne bascule pas.
+//
+// Tokens : ../../_tokens.scss. Couleurs : ../../_colors.scss.
+
+@use '../../tokens' as *;
+@use '../../colors' as *;
+
+.doc-preview-frame {
+  position: relative;
+  margin: 0;
+  padding: var(--docs-demo-padding);
+  min-height: var(--docs-demo-min-height);
+  border: 1px solid hsl(var(--docs-demo-border));
+  border-radius: var(--docs-demo-radius);
+  background: hsl(var(--docs-demo-bg));
+  color: hsl(var(--color-text-primary));
+  overflow-x: auto;
+
+  // Centre le composant tant qu'il ne prend pas toute la largeur : un bouton seul
+  // collé en haut à gauche d'un cadre vide se lit mal.
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--docs-demo-gap);
+}
+
+// Variante sans marge intérieure, pour un composant qui gère déjà la sienne
+// (un header pleine largeur, une table).
+.doc-preview-frame--flush {
+  padding: 0;
+}
+
+// ===== BASCULE DE THÈME LOCALE =====
+// En superposition dans le coin : elle appartient au cadre, pas au composant rendu.
+.doc-preview-frame__theme {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  z-index: 1;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs);
+  border: 1px solid hsl(var(--docs-demo-border));
+  border-radius: var(--border-radius-sm);
+  background: hsl(var(--docs-demo-bar-bg));
+  color: hsl(var(--docs-demo-label-color));
+  cursor: pointer;
+  transition: color var(--transition-fast) ease, border-color var(--transition-fast) ease;
+
+  &:hover {
+    color: hsl(var(--color-text-primary));
+    border-color: hsl(var(--color-border-hover));
+  }
+
+  &:focus-visible {
+    outline: 2px solid hsl(var(--color-focus) / 0.45);
+    outline-offset: 1px;
+  }
+}

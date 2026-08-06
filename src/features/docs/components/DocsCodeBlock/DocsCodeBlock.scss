@@ -1,0 +1,73 @@
+// =================================================================
+// DOCS CODE BLOCK — bloc de code coloré et copiable
+// =================================================================
+// Structure : <figure.doc-code> > figcaption.doc-code__bar (span.doc-code__lang +
+//             .doc-copy-btn) + pre.doc-code__pre > code
+//
+// Rôle : afficher du code — généré par le playground ou lu dans registry/examples/ —
+// dans une surface qui suit le thème de la page.
+//
+// La coloration syntaxique elle-même est portée par les classes hl-* émises par
+// src/utils/highlight/ ; ce fichier ne fait que leur donner une couleur.
+//
+// Tokens : ../../_tokens.scss. Couleurs : ../../_colors.scss, ./_colors.scss.
+
+@use '../../tokens' as *;
+@use '../../colors' as *;
+@use './colors' as *;
+
+.doc-code {
+  margin: 0;
+  border: 1px solid hsl(var(--docs-demo-border));
+  border-radius: var(--docs-demo-radius);
+  background: hsl(var(--docs-code-bg));
+  overflow: hidden;
+  min-width: 0;
+}
+
+// ===== BARRE SUPÉRIEURE =====
+.doc-code__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--docs-demo-bar-padding);
+  border-bottom: 1px solid hsl(var(--docs-demo-border));
+  background: hsl(var(--docs-demo-bar-bg));
+}
+
+.doc-code__lang {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--docs-demo-font-size);
+  color: hsl(var(--docs-demo-label-color));
+  // Un chemin de fichier long ne doit pas pousser le bouton de copie hors du cadre.
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ===== CODE =====
+// Le débordement horizontal est confié au <pre> et à lui seul : c'est ce qui évite que
+// la PAGE défile latéralement à cause d'une ligne longue.
+.doc-code__pre {
+  margin: 0;
+  padding: var(--spacing-lg);
+  overflow-x: auto;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--docs-demo-font-size);
+  line-height: 1.7;
+  color: hsl(var(--docs-code-color));
+  white-space: pre;
+  // Annule la mise en forme que .docs-prose applique aux <pre> de la prose MDX : ce
+  // bloc-ci a la sienne.
+  background: none;
+  border: none;
+}
+
+// ===== COLORATION SYNTAXIQUE =====
+.doc-code .hl-k { color: hsl(var(--docs-code-hl-k)); }
+.doc-code .hl-s { color: hsl(var(--docs-code-hl-s)); }
+.doc-code .hl-c { color: hsl(var(--docs-code-hl-c)); font-style: italic; }
+.doc-code .hl-n { color: hsl(var(--docs-code-hl-n)); }
+.doc-code .hl-t { color: hsl(var(--docs-code-hl-t)); }
+.doc-code .hl-a { color: hsl(var(--docs-code-hl-a)); }

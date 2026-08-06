@@ -3,7 +3,7 @@
 // consommés en `hsl(var(--…))` dans ChartTooltip.scss. Le mode sombre est déjà
 // porté par les tokens sémantiques (--color-surface, --color-text-*, …).
 
-:root {
+:root, [data-theme] {
   --chart-tooltip-bg: var(--color-surface);
   --chart-tooltip-border: var(--color-border);
   --chart-tooltip-title-color: var(--color-text-primary);

@@ -2,7 +2,7 @@
 // Couleurs utilisées uniquement par ce composant (au-delà des tokens partagés
 // du groupe filter, voir ../_colors.scss). Importées par SelectMenu.scss.
 
-:root {
+:root, [data-theme] {
   // ===== CASES À COCHER =====
   --select-checkbox-border: var(--color-border-hover);  // contour case décochée
   --select-checkbox-fill:   var(--filter-border-focus); // remplissage case cochée/indéterminée

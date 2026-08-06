@@ -1,0 +1,57 @@
+// =================================================================
+// COPY BUTTON — bouton de copie d'un extrait de code
+// =================================================================
+// Structure : <button.doc-copy-btn> > svg + span.doc-copy-btn__text
+//
+// Rôle : action discrète dans la barre d'un bloc de code, qui se signale au repos
+// (contrairement à ToolbarButton, révélé au survol) et confirme visuellement la copie.
+//
+// L'état « copié » n'est PAS porté par la seule couleur : l'icône passe de la copie au
+// ✓, le libellé change, et le nom accessible aussi (cf. CopyButton.jsx).
+//
+// Tokens : ../../_tokens.scss, ./_tokens.scss. Couleurs : ../../_colors.scss.
+
+@use '../../tokens' as *;
+@use '../../colors' as *;
+@use './tokens' as *;
+
+.doc-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-shrink: 0;
+
+  padding: var(--spacing-2px) var(--spacing-sm);
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-sm);
+  background: none;
+  color: hsl(var(--docs-demo-label-color));
+  font-family: inherit;
+  font-size: var(--docs-demo-font-size);
+  cursor: pointer;
+  transition: color var(--transition-fast) ease, border-color var(--transition-fast) ease;
+
+  svg {
+    width: var(--docs-copy-icon-size);
+    height: var(--docs-copy-icon-size);
+  }
+
+  &:hover {
+    color: hsl(var(--color-text-primary));
+    border-color: hsl(var(--docs-demo-border));
+  }
+
+  &:focus-visible {
+    outline: 2px solid hsl(var(--color-focus) / 0.45);
+    outline-offset: 1px;
+  }
+}
+
+// ===== ÉTAT « COPIÉ » =====
+.doc-copy-btn--done {
+  color: hsl(var(--color-success-500));
+
+  &:hover {
+    color: hsl(var(--color-success-500));
+  }
+}

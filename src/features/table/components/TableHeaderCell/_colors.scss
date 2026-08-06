@@ -4,7 +4,7 @@
 // même couleur tertiaire — un seul token (--table-th-idle-color) plutôt qu'une
 // répétition par élément.
 
-:root {
+:root, [data-theme] {
   --table-th-bg: var(--color-surface);
   --table-th-border: var(--color-border);
 

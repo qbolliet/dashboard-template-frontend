@@ -1,0 +1,9 @@
+// ===== TOKENS DU BOUTON DE COPIE =====
+// Variable propre au SEUL CopyButton. Importée par CopyButton.scss via @use './tokens'.
+// Les métriques partagées des surfaces de démonstration sont dans ../../_tokens.scss.
+
+:root {
+  // Taille de l'icône, calée sur la hauteur de capitale du libellé qui la suit : une
+  // icône à la taille du cadratin paraît trop lourde à côté d'un texte de --font-size-xs.
+  --docs-copy-icon-size: 0.875rem;
+}

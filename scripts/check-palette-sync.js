@@ -16,15 +16,24 @@ const ENCODING_JS = path.join(__dirname, '../src/features/chart/utils/encoding.j
 const EPSILON = 1e-6;
 
 /**
- * Parses `--color-<name>: h s% l%;` declarations from the `:root` block only
- * (i.e. before the first `[data-theme` override block), since PALETTE/SEQUENTIAL
+ * Parses `--color-<name>: h s% l%;` declarations from the base block only
+ * (i.e. before the first `[data-theme="…"]` override block), since PALETTE/SEQUENTIAL
  * only mirror theme-invariant tokens.
+ *
+ * La coupure vise un sélecteur d'ATTRIBUT VALUÉ (`[data-theme=`) et non `[data-theme`
+ * tout court : le bloc de base est déclaré `:root, [data-theme] { … }` pour que la
+ * cascade se ré-résolve sur un conteneur portant son propre thème (cf. l'en-tête de
+ * primitives/colors.scss). Couper au premier `[data-theme` viderait donc le bloc, et ce
+ * script signalerait toute la palette comme absente.
  *
  * @param {string} scss - Full contents of primitives/colors.scss.
  * @returns {Map<string, {h: number, s: number, l: number}>} Token name -> HSL triple.
  */
 function parseScssTokens(scss) {
-  const rootBlock = scss.split(/\[data-theme/)[0];
+  // Les commentaires sont retirés AVANT la coupure : l'en-tête de colors.scss cite
+  // `[data-theme="dark"]` en prose, et un commentaire ne doit pas piloter un parseur.
+  const code = scss.replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  const rootBlock = code.split(/\[data-theme\s*=/)[0];
   const tokens = new Map();
   const re = /--color-([a-z0-9-]+):\s*([\d.]+)\s+([\d.]+)%\s+([\d.]+)%\s*;/g;
   let match;

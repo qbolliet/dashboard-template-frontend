@@ -4,7 +4,7 @@
 // ⚠️ RÈGLE : Si une couleur n'est utilisée que dans UN composant, la mettre dans
 // features/header/components/[Composant]/_colors.scss
 
-:root {
+:root, [data-theme] {
   // ===== NAVIGATION GÉNÉRALE =====
   --nav-link-color: var(--color-text-primary);
   --nav-link-hover-color: var(--color-text-primary);

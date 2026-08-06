@@ -2,7 +2,7 @@
 // Tokens préfixés --criterion-* : reprennent par défaut les couleurs mutualisées de
 // la feature (--filter-*) ou les tokens globaux (--color-*), surchargeables ici.
 
-:root {
+:root, [data-theme] {
   // ===== Carte =====
   --criterion-bg:             var(--filter-bg);
   --criterion-border-default: var(--filter-border);

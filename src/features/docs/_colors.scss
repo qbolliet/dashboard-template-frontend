@@ -4,7 +4,7 @@
 // système de tokens, elle ne doit donc introduire aucune valeur brute — un tiers qui
 // change la palette doit voir le site de doc changer avec.
 
-:root {
+:root, [data-theme] {
   // ===== BARRE SUPÉRIEURE =====
   --docs-header-bg: var(--color-surface);
   --docs-header-border: var(--color-border);
@@ -51,6 +51,16 @@
   --docs-pagination-label-color: var(--color-text-tertiary);
   --docs-pagination-title-color: var(--color-text-primary);
   --docs-pagination-hover-border: var(--color-primary-500);
+
+  // ===== SURFACES DE DÉMONSTRATION =====
+  // Le fond du cadre d'aperçu est --color-surface et RIEN D'AUTRE : c'est ce qui le fait
+  // basculer avec son propre `data-theme` (cf. PreviewFrame.jsx). Une valeur brute ici
+  // figerait le cadre en clair et ruinerait la démonstration.
+  --docs-demo-bg: var(--color-surface);
+  --docs-demo-border: var(--color-border);
+  --docs-demo-bar-bg: var(--color-background);
+  --docs-demo-label-color: var(--color-text-tertiary);
+
 }
 
 // ===== THÈME SOMBRE =====

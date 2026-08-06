@@ -5,8 +5,20 @@
 //
 // ⚠️ RÈGLE : Pas d'alias, pas de var(), seulement des valeurs HSL pures
 // Pour les alias sémantiques, voir styles/globals/tokens/semantic-colors.scss
+//
+// ⚠️ POURQUOI `:root, [data-theme]` ET NON `:root` SEUL
+// Une propriété personnalisée est substituée à l'élément où elle est DÉCLARÉE, puis
+// héritée figée. Déclarée sur le seul `:root`, une indirection comme
+// `--color-surface: var(--color-gray-50)` résout `--color-gray-50` sur <html> : un
+// descendant qui redéfinit la primitive ne la change PLUS. Le second sélecteur fait
+// redéclarer tout le bloc sur n'importe quel élément portant `data-theme`, qui le
+// résout alors sur LUI-MÊME. C'est ce qui rend un thème local réellement scopable
+// (cf. §4.4 niveau C de TEMPLATIZATION_ARCHITECTURE.md, et le cadre d'aperçu de la
+// documentation : src/features/docs/components/PreviewFrame/).
+// Le bloc `[data-theme="dark"]` plus bas garde la même spécificité (0,1,0) et vient
+// après dans la source : il l'emporte toujours sur le bloc de base.
 
-:root {
+:root, [data-theme] {
   // ===== COULEURS NEUTRES =====
   // Blanc à noir avec nuances grises intermédiaires
   --color-white: 0 0% 100%;

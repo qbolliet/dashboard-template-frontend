@@ -4,7 +4,7 @@
 // hover gris — --table-pop-control-* factorise ces quatre éléments plutôt que
 // de répéter le triplet par élément.
 
-:root {
+:root, [data-theme] {
   --table-pop-bg: var(--color-surface);
   --table-pop-border: var(--color-border);
 

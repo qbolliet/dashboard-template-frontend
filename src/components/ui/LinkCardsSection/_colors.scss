@@ -8,7 +8,7 @@
 // Importation des couleurs
 @use '@/styles/globals/tokens/semantic-colors' as *;
 
-:root {
+:root, [data-theme] {
   --link-cards-section-bg: 0 0% 98%;  // Gris très clair pour les sections de cartes
 }
 

@@ -5,7 +5,7 @@
 
 @use '@/styles/globals/tokens/semantic-colors' as *;
 
-:root {
+:root, [data-theme] {
   // ===== PILULE NEUTRE (base) =====
   --stat-badge-border: var(--color-border);
   --stat-badge-bg: var(--color-surface);

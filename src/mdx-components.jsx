@@ -1,6 +1,9 @@
 // Importation des modules
 import Link from 'next/link';
 import { slugify } from '@/utils/format/slugify';
+import ComponentPlayground from '@/features/docs/components/ComponentPlayground/ComponentPlayground';
+import ComponentPreview from '@/features/docs/components/ComponentPreview/ComponentPreview';
+import ComponentPreviewSource from '@/features/docs/components/ComponentPreview/ComponentPreviewSource';
 
 // =================================================================
 // MDX COMPONENTS — correspondance balises MDX → composants du projet
@@ -82,8 +85,16 @@ export function useMDXComponents(components) {
         // importée par DocsShell.scss.
         table: (props) => <table className="api-table" {...props} />,
 
-        // En DERNIER : les surcharges par fichier l'emportent. C'est par là que P4.3
-        // injectera <ComponentPreview> et <ComponentPlayground> page par page.
+        // ===== SURFACES DE DÉMONSTRATION =====
+        // Disponibles dans toutes les pages rédigées sans import : le MDX ne sait pas
+        // importer, et exiger un import par page serait une ligne de bruit à chaque fois.
+        // Ce sont des composants CLIENTS référencés depuis un module serveur, ce qui est
+        // la composition normale — ce fichier reste un Server Component.
+        ComponentPlayground,
+        ComponentPreview,
+        ComponentPreviewSource,
+
+        // En DERNIER : les surcharges par fichier l'emportent.
         ...components,
     };
 }

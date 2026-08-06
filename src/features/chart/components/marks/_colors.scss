@@ -6,7 +6,7 @@
 // réellement constantes — estompage au survol, remplissage d'aire — sont
 // exposées en tokens, reprises à l'identique des valeurs inline du prototype.
 
-:root {
+:root, [data-theme] {
   // Opacité des séries ESTOMPÉES au survol (série non concernée par le hover).
   --chart-marks-line-faded-opacity: 0.12; // LineMarks
   --chart-marks-bar-faded-opacity: 0.2;   // BarMarks

@@ -1,0 +1,86 @@
+// =================================================================
+// COMPONENT PLAYGROUND — contrôles, rendu et code généré
+// =================================================================
+// Structure : <section.doc-playground> > .tp-section.doc-playground__controls
+//             + .doc-playground__panes ( .doc-preview-frame + .doc-code )
+//
+// Rôle : la mise en page du §5.3 — les contrôles en bandeau, puis le rendu et le code
+// côte à côte, pour qu'un changement de contrôle se lise SIMULTANÉMENT des deux côtés.
+// C'est tout l'intérêt du dispositif : voir la prop bouger et le code bouger ensemble.
+//
+// Tokens : ../../_tokens.scss.
+
+@use '../../tokens' as *;
+@use '../../colors' as *;
+@use '@/styles/utils/breakpoints' as *;
+
+.doc-playground {
+  display: flex;
+  flex-direction: column;
+  gap: var(--docs-demo-gap);
+  margin: var(--spacing-2xl) 0;
+  min-width: 0;
+}
+
+.doc-playground__controls {
+  padding: var(--spacing-lg);
+  border: 1px solid hsl(var(--docs-demo-border));
+  border-radius: var(--docs-demo-radius);
+  background: hsl(var(--docs-demo-bar-bg));
+}
+
+// ===== RENDU | CODE =====
+// `minmax(0, 1fr)` et non `1fr` : une piste de grille a `min-width: auto` par défaut,
+// donc une ligne de code longue élargirait la colonne au lieu de faire défiler le <pre>,
+// et pousserait toute la page en débordement horizontal.
+.doc-playground__panes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--docs-demo-gap);
+  align-items: start;
+}
+
+// Sous le point de rupture, le code passe SOUS le rendu : côte à côte, deux colonnes de
+// moins de 20rem ne montrent plus ni l'un ni l'autre.
+@include breakpoint-down('large') {
+  .doc-playground__panes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.doc-playground__loading {
+  margin: 0;
+  font-size: var(--docs-demo-font-size);
+  color: hsl(var(--color-text-tertiary));
+}
+
+// ===== SORTIES DE DÉMONSTRATION =====
+// Panneaux qu'un playground peut afficher à côté du composant (le JSON structuré et le
+// SQL du MultiCriterionMenu, par exemple). Ils appartiennent à la démonstration, pas au
+// composant : c'est pourquoi les contrôles qui les pilotent sont dans `scaffold.omit` et
+// n'apparaissent jamais dans le code généré.
+.doc-playground__output {
+  margin: var(--spacing-lg) 0 0;
+  border: 1px solid hsl(var(--docs-demo-border));
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+
+  figcaption {
+    padding: var(--docs-demo-bar-padding);
+    border-bottom: 1px solid hsl(var(--docs-demo-border));
+    background: hsl(var(--docs-demo-bar-bg));
+    font-size: var(--docs-demo-font-size);
+    color: hsl(var(--docs-demo-label-color));
+  }
+
+  pre {
+    margin: 0;
+    padding: var(--spacing-md);
+    max-height: 16rem;
+    overflow: auto;
+    font-family: var(--font-mono, monospace);
+    font-size: var(--docs-demo-font-size);
+    line-height: 1.6;
+    color: hsl(var(--color-text-secondary));
+  }
+}

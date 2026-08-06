@@ -2,7 +2,7 @@
 // Tokens préfixés --multi-criterion-* : reprennent par défaut les couleurs mutualisées
 // de la feature (--filter-*) ou les tokens globaux (--color-*), surchargeables ici.
 
-:root {
+:root, [data-theme] {
   // ===== Connecteur logique =====
   --multi-criterion-connector-line:          var(--filter-border-strong);
   --multi-criterion-connector-static-bg:     var(--color-gray-100);

@@ -4,7 +4,7 @@
 // sémantique --color-text-secondary), modulée par une opacité propre à chaque
 // élément (grille / ligne d'axe / timbre de graduation / texte / libellé).
 
-:root {
+:root, [data-theme] {
   --chart-axis-color: var(--color-text-secondary);
 
   --chart-axis-grid-opacity: 0.07;

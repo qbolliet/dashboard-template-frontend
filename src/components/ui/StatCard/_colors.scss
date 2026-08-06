@@ -8,7 +8,7 @@
 
 @use '@/styles/globals/tokens/semantic-colors' as *;
 
-:root {
+:root, [data-theme] {
   // ===== SURFACE ET BORDURES =====
   --stat-card-bg: var(--color-surface);
   --stat-card-border: var(--color-border);

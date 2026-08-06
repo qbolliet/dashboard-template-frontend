@@ -6,13 +6,28 @@ order: 1
 
 # Chart
 
-{/* Coquille posée en P4.2 (infrastructure du site de documentation).
-    Contenu rédigé en P4.4. Les deux sous-titres ci-dessous existent pour que le
-    sommaire de page ait de quoi s'afficher tant que la page est vide. */}
+{/* Coquille posée en P4.2. La prose reste à rédiger en P4.4 ; les deux surfaces de
+    démonstration ci-dessous sont, elles, câblées en P4.3 et servent de vérification de
+    bout en bout du playground et de l'aperçu. */}
+
+## Explorer les paramètres
+
+Le playground pilote une instance de `<Chart>` : chaque contrôle modifie le rendu **et**
+le code affiché à côté. Les props laissées à leur valeur par défaut n'apparaissent pas
+dans le code — seul ce que vous avez changé s'y trouve, imports et jeu de données compris.
+
+<ComponentPlayground name="chart" />
 
 ## Choix automatique du tracé
 
 _À rédiger._
+
+## Cas d'usage
+
+Contrairement au playground, un exemple est figé : c'est le fichier réel que le registry
+installe, montré tel quel.
+
+<ComponentPreview name="chart-hue" />
 
 ## Données attendues
 

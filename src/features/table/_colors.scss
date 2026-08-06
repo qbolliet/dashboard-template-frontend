@@ -7,7 +7,7 @@
 // ⚠️ RÈGLE : une couleur propre à UN seul composant vit dans le _colors.scss de
 // ce composant, pas ici.
 
-:root {
+:root, [data-theme] {
   // ===== Bandes de fond partagées =====
   // Survol de ligne du corps du tableau — .tbl-grid tbody tr:hover td.
   --table-row-hover-bg: var(--color-gray-50);

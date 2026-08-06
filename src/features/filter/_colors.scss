@@ -6,7 +6,7 @@
 // ⚠️ RÈGLE : une couleur propre à UN seul composant vit dans le _colors.scss de ce
 // composant, pas ici.
 
-:root {
+:root, [data-theme] {
   // ===== Surfaces & bordures de filtre (base commune) =====
   --filter-bg:            var(--color-surface);
   --filter-border:        var(--color-border);

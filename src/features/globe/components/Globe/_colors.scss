@@ -6,7 +6,7 @@
 // reste en dur dans Globe.scss : ce ne sont pas des paramètres qu'un futur
 // développeur ajusterait indépendamment des couleurs.
 
-:root {
+:root, [data-theme] {
   // ---- Jour : ciel bleuté brumeux, moins d'obscurité visible ----
   --globe-bg-day-1: 214 46% 44%;
   --globe-bg-day-2: 222 44% 22%;

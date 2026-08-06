@@ -6,7 +6,7 @@
 // tertiaire) : pas de token distinct par élément (cf. ChartTooltip pour le
 // précédent d'un découpage plus fin, non nécessaire ici).
 
-:root {
+:root, [data-theme] {
   --globe-tooltip-bg: var(--color-surface);
   --globe-tooltip-border: var(--color-border);
   --globe-tooltip-title-color: var(--color-text-primary); // titre, valeur point, en-tête + valeur arc

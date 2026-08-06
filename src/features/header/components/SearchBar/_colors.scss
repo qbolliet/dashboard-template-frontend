@@ -6,7 +6,7 @@
 // Importation des couleurs
 @use '@/styles/globals/tokens/semantic-colors' as *;
 
-:root {
+:root, [data-theme] {
   // ===== SEARCHBAR - ÉTATS DE BASE =====
   --search-bg: var(--color-gray-50);
   --search-border: var(--color-gray-200);

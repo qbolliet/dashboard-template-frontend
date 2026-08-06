@@ -5,7 +5,7 @@
 // de restauration. Le fond du bandeau et sa bordure réutilisent directement
 // les tokens mutualisés de la feature (--table-band-bg, --color-border).
 
-:root {
+:root, [data-theme] {
   --data-table-chip-bg: var(--color-surface);
   --data-table-chip-border: var(--color-border);
   --data-table-chip-color: var(--color-text-primary);

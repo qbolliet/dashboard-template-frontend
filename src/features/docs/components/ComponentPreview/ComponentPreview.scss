@@ -1,0 +1,30 @@
+// =================================================================
+// COMPONENT PREVIEW — onglets Aperçu / Code d'un exemple figé
+// =================================================================
+// Structure : <section.tabs.doc-preview> > .tab-list + .tab-panels
+//             > .tab-panel > .doc-preview-frame | .doc-code
+//
+// Rôle : quelques ajustements d'assemblage seulement. Toute l'apparence des onglets vient
+// de src/components/ui/Tabs — la documentation d'un template se bâtit avec ses propres
+// composants, elle ne redéclare pas leur style.
+//
+// Tokens : ../../_tokens.scss.
+
+@use '../../tokens' as *;
+
+.doc-preview {
+  margin: var(--spacing-2xl) 0;
+  min-width: 0;
+}
+
+// Le panneau actif ne porte pas de marge propre : le cadre et le bloc de code ont déjà
+// leur bordure, et les empiler produirait un double liseré.
+.doc-preview .tab-panel {
+  padding: 0;
+}
+
+.doc-preview__loading {
+  margin: 0;
+  font-size: var(--docs-demo-font-size);
+  color: hsl(var(--color-text-tertiary));
+}

@@ -162,30 +162,7 @@ export function snippetCurl(vars, queryHint = {}) {
   ].join('\n');
 }
 
-/**
- * Minimal, dependency-free syntax highlighter (keywords / strings / comments)
- * for the code-reveal panel. Direct port of the prototype's `highlight()`.
- *
- * @param {string} code - Source code to highlight.
- * @param {'javascript'|'js'|'python'|'py'|'bash'|'curl'} lang - Language hint.
- * @returns {string} HTML string (escaped code + `<span class="…">` wrappers),
- *   meant for `dangerouslySetInnerHTML` on code we generated ourselves.
- */
-export function highlight(code, lang) {
-  let s = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  if (lang === 'javascript' || lang === 'js') {
-    s = s.replace(/(\/\/[^\n]*)/g, '<span class="c">$1</span>');
-    s = s.replace(/(&quot;[^&]*?&quot;|"[^"]*?"|`[^`]*?`)/g, '<span class="s">$1</span>');
-    s = s.replace(/\b(const|let|var|await|async|function|return|if|else|for|of|in)\b/g, '<span class="k">$1</span>');
-  } else if (lang === 'python' || lang === 'py') {
-    s = s.replace(/(#[^\n]*)/g, '<span class="c">$1</span>');
-    s = s.replace(/("[^"]*?"|'[^']*?'|f"[^"]*?")/g, '<span class="s">$1</span>');
-    s = s.replace(/\b(import|from|as|def|return|if|else|for|in|raise|with|try|except)\b/g, '<span class="k">$1</span>');
-  } else if (lang === 'bash' || lang === 'curl') {
-    s = s.replace(/(#[^\n]*)/g, '<span class="c">$1</span>');
-    s = s.replace(/("[^"]*?")/g, '<span class="s">$1</span>');
-    s = s.replace(/\b(curl)\b/g, '<span class="k">$1</span>');
-    s = s.replace(/(-[a-zA-Z]+)/g, '<span class="n">$1</span>');
-  }
-  return s;
-}
+// NOTE : `highlight()` vivait ici. Elle est promue dans src/utils/highlight/highlight.js
+// depuis qu'un second consommateur non lié existe (les blocs de code de la
+// documentation), et y a été corrigée : coloration en une seule passe, au lieu de
+// `replace` enchaînés dont la regex de chaînes rematchait le balisage déjà injecté.

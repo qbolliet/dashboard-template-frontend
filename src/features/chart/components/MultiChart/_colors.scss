@@ -3,7 +3,7 @@
 // Les couleurs de série affichées PAR les glyphes proviennent de utils/encoding.js
 // (PALETTE), cf. remarque de _colors.scss racine de la feature.
 
-:root {
+:root, [data-theme] {
   --chart-mlegend-title-color: var(--color-text-primary);
   --chart-mlegend-fill-color: var(--color-text-secondary);
   --chart-mlegend-divider: var(--color-border);

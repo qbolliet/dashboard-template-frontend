@@ -4,7 +4,7 @@
 // une variante dark explicite ; .n et .p n'en ont volontairement pas — le
 // prototype ne les réajuste pas non plus pour ce fond inversé.
 
-:root {
+:root, [data-theme] {
   --table-snippet-bg: var(--color-gray-900);
   --table-snippet-color: var(--color-gray-100);
   --table-snippet-lang-color: var(--color-gray-400);

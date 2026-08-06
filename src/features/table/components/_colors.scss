@@ -3,7 +3,7 @@
 // le fond des bandes « chrome » sont mutualisés au niveau feature
 // (--table-row-hover-bg / --table-band-bg) et référencés ici.
 
-:root {
+:root, [data-theme] {
   --data-table-bg: var(--color-surface);
   --data-table-border: var(--color-border);
 

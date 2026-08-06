@@ -12,7 +12,7 @@
 // de theming : ombres physiques, non thémables (noir constant quel que soit
 // le thème clair/sombre).
 
-:root {
+:root, [data-theme] {
   --globe-marker-fill-mix: 88%;   // color-mix(--c, blanc) du remplissage plein
   --globe-marker-border-mix: 60%; // color-mix(--c, blanc) de la bordure
 

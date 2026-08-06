@@ -30,9 +30,12 @@
   font-weight: 500;
 }
 
-// ----- Coloration syntaxique (portée par highlight()) -----
-.data-table-snippet .k { color: hsl(var(--table-snippet-k)); }
-.data-table-snippet .s { color: hsl(var(--table-snippet-s)); }
-.data-table-snippet .c { color: hsl(var(--table-snippet-c)); }
-.data-table-snippet .n { color: hsl(var(--table-snippet-n)); }
-.data-table-snippet .p { color: hsl(var(--table-snippet-p)); }
+// ----- Coloration syntaxique (classes émises par src/utils/highlight/) -----
+// Les classes sont préfixées `hl-` depuis la promotion de highlight() : le contrat
+// est devenu public, et des lettres nues dans un template installé chez un tiers
+// entreraient en collision à la première feuille de style un peu large.
+.data-table-snippet .hl-k { color: hsl(var(--table-snippet-k)); }
+.data-table-snippet .hl-s { color: hsl(var(--table-snippet-s)); }
+.data-table-snippet .hl-c { color: hsl(var(--table-snippet-c)); }
+.data-table-snippet .hl-n { color: hsl(var(--table-snippet-n)); }
+.data-table-snippet .hl-p { color: hsl(var(--table-snippet-p)); }

@@ -1,7 +1,7 @@
 // ===== TOKENS DE COULEURS — CHART MINIMAP =====
 // Sélection + poignées du brush et pastille de bascule.
 
-:root {
+:root, [data-theme] {
   // Rectangle de sélection du brush (.visx-brush-selection).
   --chart-minimap-selection-fill: var(--color-primary-500);
   --chart-minimap-selection-fill-opacity: 0.1;

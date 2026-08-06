@@ -5,7 +5,7 @@
 // ⚠️ RÈGLE : Si une couleur n'est utilisée que dans UN sous-composant, la mettre dans
 // Tabs/[SousComposant]/_colors.scss
 
-:root {
+:root, [data-theme] {
   // ===== ACCENT (onglet actif — décliné par .tabs--{accent} dans Tabs.scss) =====
   --tab-accent-primary:  var(--color-primary-500);
   --tab-accent-positive: var(--color-success-500);

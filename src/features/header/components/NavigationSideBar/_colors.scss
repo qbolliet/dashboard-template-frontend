@@ -9,7 +9,7 @@
 
 @use '@/styles/globals/tokens/semantic-colors' as *;
 
-:root {
+:root, [data-theme] {
   // ===== CHEVRON (sur-survol direct du bouton chevron) =====
   --sidebar-chevron-hover-bg: var(--color-gray-200);
   --sidebar-chevron-hover-color: var(--color-text-secondary);

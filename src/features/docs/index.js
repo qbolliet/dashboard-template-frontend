@@ -19,3 +19,12 @@ export { default as DocsSidebar } from './components/DocsSidebar/DocsSidebar';
 export { default as DocsBreadcrumb } from './components/DocsBreadcrumb/DocsBreadcrumb';
 export { default as DocsToc } from './components/DocsToc/DocsToc';
 export { default as DocsPagination } from './components/DocsPagination/DocsPagination';
+
+// ===== SURFACES DE DÉMONSTRATION =====
+// Injectées dans le MDX par src/mdx-components.jsx : elles sont donc disponibles dans
+// TOUTES les pages rédigées, sans import.
+export { default as ComponentPlayground } from './components/ComponentPlayground/ComponentPlayground';
+export { default as ComponentPreview } from './components/ComponentPreview/ComponentPreview';
+export { default as ComponentPreviewSource } from './components/ComponentPreview/ComponentPreviewSource';
+export { default as PreviewFrame } from './components/PreviewFrame/PreviewFrame';
+export { default as DocsCodeBlock } from './components/DocsCodeBlock/DocsCodeBlock';

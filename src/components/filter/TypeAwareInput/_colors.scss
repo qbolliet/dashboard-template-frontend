@@ -2,7 +2,7 @@
 // Couleurs propres au champ adaptatif (au-delà des tokens partagés du groupe
 // filter, voir ../_colors.scss). Importées par TypeAwareInput.scss.
 
-:root {
+:root, [data-theme] {
   // ===== BOUTON CALENDRIER =====
   --type-input-cal-color:       var(--color-text-tertiary);  // icône au repos
   --type-input-cal-hover-color: var(--color-primary-500);    // icône au survol

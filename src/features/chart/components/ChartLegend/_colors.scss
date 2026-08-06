@@ -3,7 +3,7 @@
 // affichées PAR les glyphes (LegendGlyph) proviennent de utils/encoding.js
 // (PALETTE/SEQUENTIAL), cf. remarque de _colors.scss racine de la feature.
 
-:root {
+:root, [data-theme] {
   --chart-legend-label-color: var(--color-text-tertiary);
   --chart-legend-item-color: var(--color-text-secondary);
   --chart-legend-item-hover-bg: var(--color-gray-100);

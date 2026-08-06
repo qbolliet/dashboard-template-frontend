@@ -5,13 +5,23 @@ import { useId } from 'react';
 import './PlaygroundControls.scss';
 
 // =================================================================
-// CONTRÔLES DE PLAYGROUND — panneau des pages de démonstration
+// CONTRÔLES DE PLAYGROUND — jeu unique de contrôles du dépôt
 // =================================================================
-// Jeu unique de contrôles partagé par /test-tabs, /test-chart,
+// Jeu unique de contrôles, à l'origine partagé par /test-tabs, /test-chart,
 // /test-criterion-menu et /test-multi-criterion-menu. Chacune de ces pages en
 // embarquait auparavant sa propre copie, ainsi qu'une redéclaration des mêmes
 // sélecteurs CSS *globaux* (.ctrl-*, .tp-ctrl-btn) : la dernière feuille chargée
 // l'emportait silencieusement sur les autres.
+//
+// Le fichier a migré de src/app/_playground/ vers la feature de documentation : c'est
+// désormais <ComponentPlayground> qui en est le consommateur principal, via l'aiguilleur
+// PlaygroundControlPanel.jsx qui traduit un schéma de docs/playgrounds/ en contrôles.
+// Les pages /test-* y accèdent encore par une coquille de réexport
+// (src/app/_playground/index.js), jusqu'à leur suppression en P4.6.
+//
+// Les classes restent GLOBALES et gardent leurs noms (.tp-section, .ctrl-*,
+// .tp-ctrl-btn) : cinq page.scss de /test-* les visent encore. Les renommer relève de
+// P4.6, une fois ces pages parties.
 //
 // Motif ARIA retenu pour les groupes d'options exclusives (CtrlRadio) :
 // role="group" + aria-labelledby, et aria-pressed sur chaque <button>. On ne
@@ -164,10 +174,11 @@ const CtrlText = ({ label, value, placeholder, onChange }) => {
  * @param {number} props.value - Current numeric value.
  * @param {number} [props.min] - Lower bound.
  * @param {number} [props.max] - Upper bound.
+ * @param {number} [props.step] - Increment of the native stepper.
  * @param {Function} props.onChange - Called with the new value, already coerced to a number.
  * @returns {JSX.Element} The labelled number field.
  */
-const CtrlNumber = ({ label, value, min, max, onChange }) => {
+const CtrlNumber = ({ label, value, min, max, step, onChange }) => {
   const uid = useId();
 
   return (
@@ -180,7 +191,10 @@ const CtrlNumber = ({ label, value, min, max, onChange }) => {
         value={value}
         min={min}
         max={max}
-        onChange={(e) => onChange(Number(e.target.value))} />
+        step={step}
+        // Un champ vidé donne Number('') === 0, ce qui écraserait silencieusement la
+        // valeur par un 0 hors bornes ; on retombe alors sur le minimum s'il existe.
+        onChange={(e) => onChange(e.target.value === '' ? (min ?? 0) : Number(e.target.value))} />
     </div>
   );
 };

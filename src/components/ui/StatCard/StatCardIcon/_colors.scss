@@ -5,7 +5,7 @@
 
 @use '@/styles/globals/tokens/semantic-colors' as *;
 
-:root {
+:root, [data-theme] {
   --stat-icon-primary: var(--color-primary-500);
   --stat-icon-positive: var(--color-success-500);
   --stat-icon-negative: var(--color-error-500);

@@ -5,7 +5,7 @@
 // la déclarer dans components/filter/[Composant]/_colors.scss.
 // Pour les tokens dimensionnels, voir src/components/filter/_tokens.scss.
 
-:root {
+:root, [data-theme] {
   // ===== BORDURES =====
   --filter-border:         var(--color-border);         // Bordure par défaut
   --filter-border-focus:   var(--color-primary-500);    // Bordure au focus

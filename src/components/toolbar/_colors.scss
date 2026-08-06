@@ -3,7 +3,7 @@
 // toucher aux autres composants. Import dans les scss enfants :
 // @use '../colors' as *.
 
-:root {
+:root, [data-theme] {
   --toolbar-bg: var(--color-surface);
   --toolbar-border: var(--color-border);
   --toolbar-sep-color: var(--color-border);

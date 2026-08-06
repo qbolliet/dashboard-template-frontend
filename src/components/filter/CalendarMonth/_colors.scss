@@ -2,7 +2,7 @@
 // Couleurs d'intention propres aux états des jours (sélection, plage).
 // Importées par CalendarMonth.scss.
 
-:root {
+:root, [data-theme] {
   --calendar-day-selected-bg: var(--color-gray-900);   // fond des jours sélectionnés / bornes de plage
   --calendar-day-selected-fg: var(--color-white);      // texte sur fond sélectionné
   --calendar-in-range-bg:     var(--color-gray-100);   // fond des jours intérieurs à la plage

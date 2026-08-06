@@ -6,13 +6,32 @@ order: 3
 
 # Composants
 
-{/* Coquille posée en P4.2 (infrastructure du site de documentation).
-    Contenu rédigé en P4.4. Les deux sous-titres ci-dessous existent pour que le
-    sommaire de page ait de quoi s'afficher tant que la page est vide. */}
+{/* Coquille posée en P4.2. La prose reste à rédiger en P4.4 ; l'extrait ci-dessous est
+    câblé en P4.3 et vérifie <ComponentPreviewSource> de bout en bout. */}
 
 ## Comment lire une page de composant
 
-_À rédiger._
+Chaque page de composant expose deux surfaces, qui ne répondent pas à la même question.
+
+Le **playground** répond à « que fait ce composant si je change ce paramètre ? ». Ses
+contrôles pilotent les props, le rendu se met à jour en direct, et le code affiché est
+**généré depuis l'état courant des contrôles** — collable tel quel dans un fichier vierge.
+
+Les **exemples** répondent à « à quoi ressemble l'usage canonique ? ». Ils sont figés,
+et leur code est le fichier réel de `registry/examples/`, celui que la CLI installe. Il y
+a un playground par composant, mais autant d'exemples que de cas d'usage.
+
+Quand la prose suffit à expliquer le contexte, seul le code est montré :
+
+<ComponentPreviewSource name="tabs-basic" />
+
+## Le cadre d'aperçu bascule tout seul
+
+Le bouton en coin de chaque aperçu change le thème **de ce cadre uniquement**, en posant
+`data-theme` sur son propre conteneur plutôt que sur le document. Ce n'est pas un gadget :
+c'est la démonstration que les tokens sont des propriétés personnalisées CSS, donc
+héritées, donc surchargeables sur un sous-arbre. Deux apparences du même composant peuvent
+coexister sur une page — sans variante de code, sans prop supplémentaire, sans rebuild.
 
 ## Installer un composant
 

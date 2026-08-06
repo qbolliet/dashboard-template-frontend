@@ -1,0 +1,39 @@
+// ===== TOKENS DE COULEURS — BLOC DE CODE DE LA DOCUMENTATION =====
+// Couleurs propres au SEUL DocsCodeBlock : la surface du code et les teintes de
+// coloration syntaxique. Les surfaces partagées avec le cadre d'aperçu (bordure, barre)
+// sont dans ../../_colors.scss.
+//
+// Les classes colorées ici sont celles émises par src/utils/highlight/highlight.js :
+// hl-k (mot-clé), hl-s (chaîne), hl-c (commentaire), hl-n (nombre / option de CLI),
+// hl-t (balise de composant JSX), hl-a (nom d'attribut JSX).
+//
+// Contrairement au panneau de la table (TableSnippetReveal, surface sombre en thème
+// clair puis inversée), ce bloc SUIT le thème de la page : la documentation en affiche
+// plusieurs par page, au fil de la prose, et une suite de pavés sombres dans un texte
+// clair hache la lecture.
+
+:root, [data-theme] {
+  --docs-code-bg: var(--color-gray-100);
+  --docs-code-color: var(--color-text-primary);
+
+  --docs-code-hl-k: 265 60% 45%;   // mot-clé
+  --docs-code-hl-s: 145 55% 30%;   // chaîne
+  --docs-code-hl-c: 218 11% 50%;   // commentaire
+  --docs-code-hl-n: 25 80% 40%;    // nombre / option
+  --docs-code-hl-t: 205 75% 38%;   // balise de composant
+  --docs-code-hl-a: 340 60% 45%;   // nom d'attribut
+}
+
+// ===== THÈME SOMBRE =====
+// Teintes désaturées et éclaircies : les mêmes hues à 30-45 % de luminosité deviennent
+// illisibles sur un fond sombre.
+[data-theme="dark"] {
+  --docs-code-bg: var(--color-gray-200);
+
+  --docs-code-hl-k: 265 80% 78%;
+  --docs-code-hl-s: 145 55% 65%;
+  --docs-code-hl-c: 218 11% 58%;
+  --docs-code-hl-n: 30 85% 68%;
+  --docs-code-hl-t: 205 80% 70%;
+  --docs-code-hl-a: 340 70% 72%;
+}

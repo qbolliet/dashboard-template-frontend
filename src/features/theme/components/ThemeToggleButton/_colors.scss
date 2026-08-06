@@ -3,7 +3,7 @@
 //
 // Pour les dimensions, voir _tokens.scss dans ce même dossier
 
-:root {
+:root, [data-theme] {
   // ===== THEME TOGGLE - ÉTATS DE BASE =====
   --theme-toggle-icon: var(--color-text-secondary);
 

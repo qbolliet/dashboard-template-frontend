@@ -56,25 +56,6 @@ export function downloadBlob(content, filename, mime) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/**
- * Copies text to the clipboard, preferring the async Clipboard API and
- * falling back to a hidden `<textarea>` + `execCommand('copy')` for browsers
- * (or contexts) where it's unavailable.
- *
- * @param {string} text - Text to copy.
- * @returns {Promise<void>} Resolves once the copy has been attempted.
- */
-export function copyToClipboard(text) {
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    return navigator.clipboard.writeText(text);
-  }
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.position = 'fixed';
-  ta.style.opacity = '0';
-  document.body.appendChild(ta);
-  ta.select();
-  try { document.execCommand('copy'); } catch { /* repli silencieux : rien de plus à tenter */ }
-  document.body.removeChild(ta);
-  return Promise.resolve();
-}
+// NOTE : `copyToClipboard()` vivait ici. Elle est promue dans
+// src/utils/clipboard/copyToClipboard.js — le bouton de copie de la documentation
+// en est un second consommateur, et une feature ne peut pas en importer une autre.

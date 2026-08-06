@@ -1,0 +1,56 @@
+// =================================================================
+// DOCS MISSING — message d'artefact introuvable
+// =================================================================
+// Structure : <aside.doc-missing> > p.doc-missing__title + p.doc-missing__hint
+//             + p.doc-missing__label + ul.doc-missing__list
+//
+// Rôle : rendre une erreur d'auteur (un nom mal orthographié dans du MDX) lisible et
+// réparable sur place, plutôt que silencieuse.
+//
+// Teinte d'avertissement et non d'erreur : la page fonctionne, c'est un seul bloc qui
+// manque.
+//
+// Tokens : ../../_tokens.scss. Couleurs : ../../_colors.scss + rôles globaux.
+
+@use '../../tokens' as *;
+@use '../../colors' as *;
+
+.doc-missing {
+  margin: 0;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border: 1px solid hsl(var(--color-warning-500) / 0.4);
+  border-left-width: var(--spacing-2px);
+  border-left-color: hsl(var(--color-warning-500));
+  border-radius: var(--docs-demo-radius);
+  background: hsl(var(--color-warning-500) / 0.06);
+  font-size: var(--font-size-sm);
+  color: hsl(var(--color-text-secondary));
+
+  code {
+    font-family: var(--font-mono, monospace);
+    color: hsl(var(--color-text-primary));
+  }
+}
+
+.doc-missing__title {
+  margin: 0;
+  font-weight: 500;
+  color: hsl(var(--color-text-primary));
+}
+
+.doc-missing__hint,
+.doc-missing__label {
+  margin: var(--spacing-sm) 0 0;
+  font-size: var(--docs-demo-font-size);
+  color: hsl(var(--docs-demo-label-color));
+}
+
+.doc-missing__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs) var(--spacing-md);
+  margin: var(--spacing-xs) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--docs-demo-font-size);
+}

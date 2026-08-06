@@ -4,7 +4,7 @@
 // (--badge-*-color), choisie pour son contraste sur le fond teinté plutôt que
 // la couleur sémantique elle-même — cf. .tbl-badge--actif/wip du prototype.
 
-:root {
+:root, [data-theme] {
   --badge-success-bg: var(--color-success-500);
   --badge-success-dot: var(--color-success-500);
   --badge-success-color: 138 60% 32%;
