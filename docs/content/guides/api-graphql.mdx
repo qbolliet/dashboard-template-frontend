@@ -6,14 +6,281 @@ order: 1
 
 # Brancher l'API GraphQL
 
-{/* Coquille posée en P4.2 (infrastructure du site de documentation).
-    Contenu rédigé en P4.7. Les deux sous-titres ci-dessous existent pour que le
-    sommaire de page ait de quoi s'afficher tant que la page est vide. */}
+Brancher vos données tient en une variable d'environnement. Il n'y a **aucun bloc à
+décommenter**, aucun composant à modifier, aucun hook à réécrire : le choix du transport se
+fait en un seul point du projet, et tout ce qui est en aval l'ignore.
 
-## Transport injectable
+## La seule variable : `NEXT_PUBLIC_API_URL`
 
-_À rédiger._
+`src/lib/api/client.js` sélectionne son transport à partir d'elle, et de rien d'autre :
 
-## Serveur de démonstration
+```js
+const transport = process.env.NEXT_PUBLIC_API_URL ? graphqlTransport : mockTransport;
+```
 
-_À rédiger._
+Endpoint défini → l'API réelle. Endpoint absent → les fixtures locales de
+`src/lib/api/fixtures/`. Copiez `.env.example` vers `.env.local` pour la renseigner :
+
+```bash
+NEXT_PUBLIC_API_URL=https://mon-api.exemple.org/graphql
+```
+
+Deux conséquences valent d'être énoncées, parce qu'elles sont exactement ce qui distingue ce
+montage d'un « mode démo ».
+
+**Le mode fixtures est un mode de fonctionnement, pas un repli sur erreur.** Une opération
+sans fixture **lève**, et l'erreur remonte telle quelle jusqu'au composant. Rien ne masque
+une panne d'API derrière des données de démonstration : les hooks renvoient un état vide
+accompagné de leur `error`, et c'est au composant d'en faire quelque chose.
+
+**Les hooks de `sources/` sont identiques dans les deux modes.** Ils appellent
+`client.request(document, variables, options)` sans savoir qui répond. Ils sont donc lintés,
+exécutés et éprouvés dans les deux modes — contrairement à un bloc commenté, qui pourrit
+sans que personne s'en aperçoive.
+
+## Les trois modes de développement
+
+| Commande | Source des données | Quand s'en servir |
+|---|---|---|
+| `npm run dev` | fixtures en mémoire, aucun appel réseau | Le défaut. Boucle de développement la plus rapide, aucun serveur à maintenir en vie. |
+| `npm run dev:mock` | un vrai endpoint GraphQL local, `http://localhost:4000/graphql`, sur les mêmes fixtures | Voir l'application dialoguer avec un vrai serveur : cycle requête/réponse, onglet réseau, pagination — sans déployer l'API réelle. |
+| `npm run dev:api` | votre API, via `NEXT_PUBLIC_API_URL` | Intégration finale sur données vivantes. |
+
+`dev:mock` lance `scripts/mock-api-server.js` (graphql-yoga + `@graphql-tools/mock`) à côté
+du serveur Next pointé sur lui. Ce serveur sert le **SDL réel de l'API**, figé dans
+`scripts/schema.graphql`. Les quatre opérations que le template consomme
+(`getFactTableWithMetadata`, `getCatalogSchema`, `getSelectOptions`,
+`getGroupedSelectOptions`) y résolvent sur les mêmes fixtures que `npm run dev` — et
+honorent `limit`, `offset` et `sort`, de sorte que la pagination du tableau est réellement
+exercée. Toute autre opération du schéma est auto-mockée : valeurs arbitraires, mais
+conformes aux types, ce qui permet d'explorer le reste du contrat sans l'implémenter.
+`npm run mock:api` lance le serveur seul.
+
+Cette SDL figée sert une seconde fois : `npm run check:gql` **valide chaque document de
+`src/lib/api/documents/` contre elle**, et fait échouer `npm run verify` si l'un d'eux
+demande un champ qui n'existe pas. Vous ne pouvez pas livrer une requête qui ne compile pas
+côté serveur.
+
+## Ce que chaque feature attend
+
+Les hooks de `sources/` ne reformatent rien : ils passent aux composants exactement ce que
+l'API renvoie. Savoir ce qu'ils attendent, c'est donc savoir ce que votre API doit produire.
+
+### Chart — `useFactTable`
+
+`getFactTableWithMetadata(format: OBJECTS)` renvoie `columns`, `data` et `metadata`. `data`
+est un tableau d'**objets** dont les clés sont les noms de colonnes — le format long, passé
+**tel quel** à `<Chart data={rows} />`. Aucune transformation : le graphique détecte les
+types lui-même et convertit les dates ISO.
+
+```json
+{
+  "columns": ["date_obs", "pays", "gdp"],
+  "data": [
+    { "date_obs": "2024-01-01", "pays": "France", "gdp": 101.4 },
+    { "date_obs": "2024-04-01", "pays": "France", "gdp": 102.8 }
+  ],
+  "metadata": {
+    "count": 2,
+    "extents": { "gdp": [98.0, 112.2], "date_obs": ["2024-01-01", "2024-04-01"] },
+    "total": 240, "hasNextPage": true, "currentPage": 1, "totalPages": 120,
+    "generatedAt": "2026-08-07T09:12:00Z"
+  }
+}
+```
+
+`metadata.extents` donne les bornes par colonne — `[min, max]` pour une mesure, `[premier,
+dernier]` pour une dimension. Utile pour aligner plusieurs graphiques sur une même échelle
+sans reparcourir les lignes.
+
+### Table — `useFactTableWithMetadata`
+
+Le tableau a besoin de deux choses que l'API ne renvoie pas dans le même appel : les
+**lignes** et le **schéma de colonnes**. Ce hook lance donc les deux requêtes en parallèle
+et fusionne leurs réponses. `data` alimente la prop `data`, `columnsMetadata` alimente la
+prop du même nom — c'est elle qui permet au tableau de dériver ses colonnes, ses libellés
+et ses filtres tout seul.
+
+### Filter — `useVariableMetadata`
+
+`getCatalogSchema(catalog, schema)` est la **seule opération d'introspection de champs** de
+l'API. Elle décrit chaque champ, et ces métadonnées pilotent directement le menu de
+critères : le type détermine les opérations offertes, et l'opération détermine le widget de
+saisie.
+
+```json
+[
+  { "name": "gdp", "label": "Croissance du PIB (%)", "python_type": "float",
+    "sql_type": "double precision", "is_categorical": false, "is_primary_key": false },
+  { "name": "pays", "label": "Pays", "python_type": "str",
+    "sql_type": "text", "is_categorical": true, "is_primary_key": false }
+]
+```
+
+Deux champs font tout le travail, et il n'y a **pas de type abstrait intermédiaire** :
+`sql_type` et `is_categorical` sont consommés directement. `metadataToVariables()` les
+transpose en la forme `value` / `label` / `sql_type` / `is_categorical` attendue par
+`CriterionMenu` et `MultiCriterionMenu`.
+
+Les menus déroulants de valeurs, eux, sont servis par `getSelectOptions` (options plates,
+filtrables côté serveur par `searchTerm`) et `getGroupedSelectOptions` (deux niveaux, par
+exemple continent → pays).
+
+### Le rendu serveur : `requestSafe`
+
+Les pages générées sont prérendues au build. Une requête qui lève pendant le prérendu fait
+**échouer le build entier** — inacceptable pour un template que des tiers embarquent, où une
+API momentanément injoignable ne doit jamais avoir cet effet.
+
+`src/lib/api/serverRequest.js` expose donc `requestSafe`, qui renvoie `null` au lieu de
+propager, en journalisant l'échec dans la sortie de `next build`. Le composant rend alors
+son état dégradé, et l'îlot client refait la requête au montage. **Côté serveur uniquement** :
+côté client, les hooks SWR gèrent déjà cache, déduplication et revalidation.
+
+## Ajouter un document GraphQL
+
+Quatre gestes, dont un facultatif.
+
+**1 — Le document**, dans `src/lib/api/documents/`. Le tag `gql` est une identité locale :
+il ne fait qu'assembler la chaîne, mais il permet aux éditeurs de colorer le bloc et au
+vérificateur de l'extraire.
+
+**2 — L'export**, dans `documents/index.js`. C'est le point d'entrée unique des hooks.
+
+**3 — Le résolveur mock**, dans `transports/mock.js`, indexé par **nom d'opération** —
+l'identifiant qui suit `query` en tête du document. Sans lui, le mode par défaut lève sur
+votre nouvelle opération.
+
+**4 — Le résolveur du serveur mock** (facultatif), dans `scripts/mock-api-server.js`, si
+vous voulez que `npm run dev:mock` serve vos fixtures plutôt que des valeurs auto-mockées.
+
+Puis `npm run check:gql` valide le document contre `scripts/schema.graphql`. Si votre API
+diverge de cette SDL, remplacez le fichier par la vôtre — c'est une copie du schéma de
+l'API, versionnée ici pour que la validation soit possible hors ligne.
+
+## Exemple complet
+
+Ajouter une opération `getLastRefresh`, qui renvoie la date de dernière actualisation d'un
+catalogue, et l'afficher dans une page.
+
+```js
+// 1 — src/lib/api/documents/lastRefresh.js
+import { gql } from './gql';
+
+// =================================================================
+// DOCUMENT — getLastRefresh
+// =================================================================
+// Date de dernière actualisation du catalogue. Opération de métadonnées : pas de
+// pagination, pas de filtres, un seul objet en retour.
+
+/**
+ * `getLastRefresh` query document.
+ *
+ * @type {string}
+ */
+export const GET_LAST_REFRESH = gql`
+  query GetLastRefresh($catalog: String, $schema: String) {
+    getLastRefresh(catalog: $catalog, schema: $schema) {
+      refreshedAt
+      rowCount
+    }
+  }
+`;
+```
+
+```js
+// 2 — src/lib/api/documents/index.js — ajouter la ligne
+export { GET_LAST_REFRESH } from './lastRefresh';
+```
+
+```js
+// 3 — src/lib/api/transports/mock.js — ajouter le résolveur au registre RESOLVERS.
+// La clé est le NOM D'OPÉRATION du document (`query GetLastRefresh`), pas le nom du
+// champ racine. Résolveur `async` : la réponse arrive dans une microtâche, ce qui fait
+// passer les composants par le même cycle `loading -> données` que l'API réelle.
+GetLastRefresh: async ({ catalog }) => ({
+  getLastRefresh: {
+    refreshedAt: isCatalogue(catalog) ? '2026-08-01T04:00:00Z' : '2026-08-06T04:00:00Z',
+    rowCount: isCatalogue(catalog) ? 18 : 240,
+  },
+}),
+```
+
+```js
+// 4 — src/features/table/sources/useLastRefresh.js
+import useSWR from 'swr';
+import { request } from '@/lib/api/client';
+import { GET_LAST_REFRESH } from '@/lib/api/documents';
+
+// =================================================================
+// SOURCE — DERNIÈRE ACTUALISATION
+// =================================================================
+// Le transport est choisi une fois pour toutes dans lib/api/client.js : ce hook est
+// identique en mode fixtures et en mode API. `catalog` / `schema` sont les coordonnées
+// ducklake, transmises en arguments de requête ET en en-têtes X-Catalog-Id / X-Schema-Id.
+
+function fetchLastRefresh([, catalog, schema]) {
+  return request(GET_LAST_REFRESH, { catalog, schema }, { catalog, schema })
+    .then((data) => data.getLastRefresh);
+}
+
+/**
+ * Fetches the last refresh date of a catalog.
+ *
+ * Backed by SWR: caches and deduplicates requests sharing the same
+ * `['lastRefresh', catalog, schema]` key across component instances.
+ *
+ * @param {Object} [params]
+ * @param {string} [params.catalog] - Ducklake catalog.
+ * @param {string} [params.schema] - Ducklake schema.
+ * @returns {{refreshedAt: (string|null), rowCount: (number|null), loading: boolean, error: (Error|null)}}
+ */
+export function useLastRefresh({ catalog, schema } = {}) {
+  const { data, error, isLoading } = useSWR(['lastRefresh', catalog, schema], fetchLastRefresh);
+
+  // En cas d'échec, on renvoie un état vide + `error` : masquer la panne derrière une
+  // date de démonstration tromperait le consommateur.
+  if (error) {
+    return { refreshedAt: null, rowCount: null, loading: isLoading, error };
+  }
+
+  return {
+    refreshedAt: data?.refreshedAt ?? null,
+    rowCount: data?.rowCount ?? null,
+    loading: isLoading,
+    error: null,
+  };
+}
+```
+
+```jsx
+// 5 — consommation dans un composant client
+'use client';
+
+import { useLastRefresh } from '@/features/table/sources/useLastRefresh';
+
+const RefreshNotice = ({ catalog }) => {
+  const { refreshedAt, rowCount, loading, error } = useLastRefresh({ catalog });
+
+  if (loading) return <p>Chargement…</p>;
+  if (error) return <p role="alert">Actualisation inconnue : {error.message}</p>;
+
+  return (
+    <p>
+      {rowCount} lignes, actualisées le{' '}
+      <time dateTime={refreshedAt}>{new Date(refreshedAt).toLocaleDateString('fr')}</time>
+    </p>
+  );
+};
+
+export default RefreshNotice;
+```
+
+```bash
+# 6 — vérifier que le document est valide vis-à-vis du schéma de l'API
+npm run check:gql
+```
+
+Cette dernière commande échouera tant que `getLastRefresh` n'existe pas dans
+`scripts/schema.graphql` — c'est précisément son rôle. Mettez la SDL à jour depuis votre
+API, et la vérification passe.

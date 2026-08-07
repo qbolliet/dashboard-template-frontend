@@ -6,14 +6,251 @@ order: 3
 
 # Alimenter la barre de recherche
 
-{/* Coquille posée en P4.2 (infrastructure du site de documentation).
-    Contenu rédigé en P4.7. Les deux sous-titres ci-dessous existent pour que le
-    sommaire de page ait de quoi s'afficher tant que la page est vide. */}
+La barre de recherche du header ne connaît aucune liste de suggestions. Elle consomme
+`public/search-index.json`, **dérivé de `config/site.config.json` au build** par
+`scripts/build-search-index.js`.
 
-## Index dérivé
+C'est ce qui garantit qu'elle ne peut pas mentir : navigation et recherche sont produites à
+partir du même fichier, par les mêmes fonctions — `resolveNavigationTree` puis
+`flattenNavigation`, exactement celles qu'utilise la route attrape-tout pour énumérer les
+pages. Une page qui existe est indexée ; une page qui disparaît sort de l'index au build
+suivant. Il n'y a rien à synchroniser.
 
-_À rédiger._
+## Ce que contient une entrée
 
-## Ajouter des entrées
+```json
+{
+  "title": "PIB",
+  "path": "/demo/comptabilite-nationale/france/pib",
+  "type": "indicator",
+  "description": "Produit intérieur brut, en volume, base 2020.",
+  "keywords": []
+}
+```
 
-_À rédiger._
+`title` et `path` viennent du `name` et du chemin **absolu** du nœud — le préfixe de montage
+compris, sans quoi chaque suggestion mènerait à un 404. `description` vient du nœud et vaut
+la chaîne vide s'il n'en a pas.
+
+`keywords` reste vide pour les nœuds de navigation : rien dans le manifeste ne l'alimente,
+le schéma n'ayant pas cette clé. Le tableau existe pour que la forme d'entrée reste stable
+avec celles que vous ajouterez depuis l'API.
+
+La recherche porte sur `title` **puis** `description`, et une correspondance de titre passe
+toujours devant une correspondance de description. Deux seuils, déclarés en tête de
+`SearchBar.jsx` : deux caractères minimum avant d'afficher quoi que ce soit, dix suggestions
+au maximum.
+
+L'index est chargé **au premier focus** du champ, pas au montage du header : la quasi-totalité
+des visites ne touchent jamais la recherche, et il serait inutile de payer la requête à
+chaque navigation. Un second focus pendant que le premier chargement est en vol réutilise la
+même promesse.
+
+## Retirer une page de l'index
+
+`searchable: false` sur un nœud. La page reste visible dans la navigation et reste
+navigable — seule son indexation est désactivée. Utile pour les pages techniques ou les
+bancs d'essai.
+
+```jsonc
+{
+  "path": "/diagnostics",
+  "name": "Diagnostics",
+  "type": "about",
+  "searchable": false
+}
+```
+
+La clé absente vaut `true`. Le défaut est appliqué par les consommateurs
+(`node.searchable !== false`), pas injecté par le validateur : les `default` du schéma sont
+documentaires, ils s'affichent en infobulle et ne mutent pas vos données.
+
+## Indexer autre chose que des pages
+
+Le manifeste ne décrit que les **pages**. Un catalogue plus fin — les variables d'un
+indicateur, les séries, les entités d'un référentiel — se remonte de l'API au build, et
+s'ajoute à l'index avec la même forme d'entrée.
+
+Une seule condition, et elle est structurelle : **chaque entité doit pointer vers une page
+qui existe.** L'index n'est pas un moteur de recherche, c'est une table de raccourcis vers
+des URL — une entrée dont le `path` ne correspond à aucune route mène au 404.
+
+Le point d'extension est signalé en commentaire dans `scripts/build-search-index.js`, juste
+avant l'écriture du fichier. Deux remarques avant de l'utiliser :
+
+- **Le snippet du commentaire charge le client API par `import()`.** Cela ne fonctionne pas
+  tel quel : les modules de `src/lib/api/` s'importent entre eux sans extension de fichier
+  (`from './gql'`), ce que le résolveur ESM natif de Node ne résout pas — l'appel échoue en
+  `ERR_MODULE_NOT_FOUND`. Adressez l'endpoint par `fetch`, comme ci-dessous.
+- **Prévoyez le cas hors ligne.** Ce script tourne à chaque `npm run dev` et à chaque build.
+  S'il lève quand l'API est injoignable, il bloque le développement de toute l'équipe pour
+  une raison qui n'a rien à voir avec la recherche. Journalisez et continuez avec les seuls
+  nœuds du manifeste.
+
+## Exemple complet
+
+Indexer les champs du catalogue en plus des pages, pour qu'une recherche sur « chômage »
+mène à la page qui expose cette variable.
+
+```js
+// scripts/build-search-index.js — le fichier existant, complété.
+// Seuls les ajouts sont commentés ; le reste est inchangé.
+
+const fs = require('fs');
+const path = require('path');
+const { pathToFileURL } = require('url');
+
+const PROJECT_ROOT = path.join(__dirname, '..');
+const CONFIG_PATH = path.join(PROJECT_ROOT, 'config/site.config.json');
+const OUTPUT_PATH = path.join(PROJECT_ROOT, 'public/search-index.json');
+
+const importEsm = (filePath) => import(pathToFileURL(filePath).href);
+
+// ─── AJOUT — interrogation de l'API ──────────────────────────────────────────
+// Par fetch et non par import du client : les modules de src/lib/api/ s'importent
+// sans extension de fichier, ce que le résolveur ESM de Node ne sait pas suivre.
+const ENDPOINT = process.env.NEXT_PUBLIC_API_URL;
+
+const GET_CATALOG_SCHEMA = `
+  query GetCatalogSchema {
+    getCatalogSchema { name label sql_type is_categorical }
+  }
+`;
+
+/**
+ * Runs a GraphQL document against the configured endpoint.
+ *
+ * @param {string} document - Query document.
+ * @returns {Promise<Object>} The GraphQL `data` object.
+ * @throws {Error} On a transport error or any GraphQL error.
+ */
+async function query(document) {
+  const response = await fetch(ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query: document }),
+  });
+
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+  const { data, errors } = await response.json();
+  if (errors?.length) throw new Error(errors[0].message);
+
+  return data;
+}
+
+/**
+ * Builds one search entry per catalog field, pointing at the page that exposes it.
+ *
+ * Failure is NOT fatal: this script runs on every `npm run dev`, and an unreachable
+ * API must not block a developer whose work has nothing to do with search. On error,
+ * the index falls back to the manifest nodes alone.
+ *
+ * @param {Array<Object>} pages - The manifest entries already built.
+ * @returns {Promise<Array<Object>>} The field entries, empty on failure.
+ */
+async function buildFieldEntries(pages) {
+  if (!ENDPOINT) return [];
+
+  // La page vers laquelle pointer : le premier indicateur de l'index. À remplacer par
+  // votre propre correspondance champ -> page si elle est plus fine.
+  const target = pages.find((entry) => entry.type === 'indicator');
+  if (!target) return [];
+
+  try {
+    const { getCatalogSchema } = await query(GET_CATALOG_SCHEMA);
+
+    return getCatalogSchema.map((field) => ({
+      title: field.label,
+      path: target.path,
+      type: 'field',
+      description: `Variable du catalogue (${field.sql_type}).`,
+      // Le nom technique rejoint les mots-clés : on cherche « chomage » comme « chômage ».
+      keywords: [field.name],
+    }));
+  } catch (err) {
+    console.warn(`build:search : champs non indexés — ${err.message}`);
+    return [];
+  }
+}
+
+function toIndexEntry(node) {
+  return {
+    title: node.name,
+    path: node.path,
+    type: node.type,
+    description: node.description ?? '',
+    keywords: [],
+  };
+}
+
+async function main() {
+  const siteConfig = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+
+  const { resolveNavigationTree } = await importEsm(
+    path.join(PROJECT_ROOT, 'src/utils/navigation/resolveNavigationTree.js'),
+  );
+  const { flattenNavigation } = await importEsm(
+    path.join(PROJECT_ROOT, 'src/utils/navigation/flattenNavigation.js'),
+  );
+  const { DEMO_BASE_PATH } = await importEsm(
+    path.join(PROJECT_ROOT, 'src/utils/navigation/basePaths.js'),
+  );
+
+  const tree = resolveNavigationTree(siteConfig.navigation.tree, DEMO_BASE_PATH);
+
+  const entries = flattenNavigation(tree)
+    .filter((node) => node.searchable)
+    .map(toIndexEntry);
+
+  // ─── AJOUT — les champs du catalogue, après les pages ──────────────────────
+  // Après, et non avant : à pertinence égale, une page doit sortir avant une variable.
+  entries.push(...await buildFieldEntries(entries));
+
+  fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
+  fs.writeFileSync(OUTPUT_PATH, `${JSON.stringify(entries, null, 2)}\n`, 'utf8');
+  console.log(`build:search : index écrit — ${entries.length} entrée(s) → public/search-index.json`);
+}
+
+main().catch((err) => {
+  console.error('build:search : échec —', err.message);
+  process.exit(1);
+});
+```
+
+Une dernière étape est nécessaire pour que `keywords` serve à quelque chose : la recherche
+ne compare aujourd'hui que `title` et `description`. Ajoutez le troisième champ dans
+`computeSuggestions`, en tête de
+`src/features/header/components/SearchBar/SearchBar.jsx` :
+
+```jsx
+for (const entry of entries) {
+    const titleMatch = findMatch(entry.title, query);
+    if (titleMatch) {
+        titleMatches.push({ entry, field: 'title', match: titleMatch });
+        continue;
+    }
+
+    // AJOUT — un mot-clé vaut une correspondance de titre : c'est le nom technique
+    // de l'entité, celui que tape quelqu'un qui connaît le jeu de données. On surligne
+    // le titre, pas le mot-clé, qui n'est pas affiché.
+    if (entry.keywords?.some((keyword) => findMatch(keyword, query))) {
+        titleMatches.push({ entry, field: 'title', match: null });
+        continue;
+    }
+
+    const descriptionMatch = findMatch(entry.description, query);
+    if (descriptionMatch) {
+        descriptionMatches.push({ entry, field: 'description', match: descriptionMatch });
+    }
+}
+```
+
+`renderHighlighted` accepte déjà `null` comme correspondance et rend alors le texte tel
+quel — c'est ce qui permet à une entrée trouvée par mot-clé de s'afficher sans surlignage
+mensonger sur un titre où la requête n'apparaît pas.
+
+```bash
+# Régénérer l'index sans relancer tout le build
+NEXT_PUBLIC_API_URL=https://mon-api.exemple.org/graphql npm run build:search
+```

@@ -6,14 +6,272 @@ order: 3
 
 # Structure du projet
 
-{/* Coquille posée en P4.2 (infrastructure du site de documentation).
-    Contenu rédigé en P4.7. Les deux sous-titres ci-dessous existent pour que le
-    sommaire de page ait de quoi s'afficher tant que la page est vide. */}
+`src/` est organisé en **couches**, et l'ordre des couches est une règle, pas une
+convention d'affichage : chacune ne peut dépendre que de celles au-dessus d'elle. C'est
+ce qui rend le registry possible — installer un composant n'entraîne jamais l'installation
+d'une feature entière — et c'est aussi ce qui vous dit, quand vous ajoutez un fichier, où
+il doit aller.
+
+Vous n'avez pas besoin de connaître cette organisation pour utiliser le template. Vous en
+aurez besoin le jour où vous ajouterez votre propre composant, et surtout le jour où vous
+vous demanderez pourquoi un import « ne devrait pas » exister.
 
 ## Les cinq couches
 
-_À rédiger._
+```
+src/
+├── styles/      ← primitives de style      : les tokens, aucune logique
+├── components/  ← primitives d'interface   : atomiques, sans attache métier
+├── hooks/       ← hooks partagés           : du comportement, aucune UI
+├── utils/       ← fonctions pures partagées: ni React, ni UI
+└── features/    ← modules fonctionnels     : assemblent tout ce qui précède
+```
 
-## Sens des dépendances
+**`styles/`** porte les fondations CSS globales : les primitives de couleur
+(`globals/primitives/`), les tokens sémantiques (`globals/tokens/`), l'échelle
+typographique, les espacements, rayons, ombres et z-index (`globals/typography.scss`), et
+les mixins de points de rupture (`utils/breakpoints.scss`). C'est le niveau que vous
+surchargez pour reprendre la marque — voir [Theming](/fondations/theming).
 
-_À rédiger._
+**`components/`** contient les primitives d'interface : atomiques, réutilisables partout,
+sans attache à une feature. Le dossier est lui-même sous-divisé par famille — `common/`
+(les primitives d'accessibilité), `icons/`, `ui/` (badge, carte, onglets, carte
+d'indicateur), `filter/` (menu de sélection, saisie typée, calendrier), `toolbar/`. Chaque
+composant vit dans son propre dossier, avec son `.jsx`, son `.scss` et ses fichiers de
+tokens.
+
+**`hooks/`** rassemble les hooks React génériques, sans UI et sans attache à une feature,
+groupés par sujet : `accessibility/` (piège de focus, annonce ARIA, navigation clavier,
+mouvement réduit), `debounce/`, `floating/`, `layoutEffect/`.
+
+**`utils/`** rassemble les fonctions pures, sans React ni UI, groupées de la même
+manière : `format/`, `navigation/`, `accessibility/`, `math/`, `url/`, `html/`,
+`clipboard/`, `highlight/`.
+
+**`features/`** contient les modules fonctionnels — `header`, `filter`, `chart`, `table`,
+`globe`, `theme`, `pages`, `home`, `footer`, `docs`. Chacun est autonome et directement
+intégrable dans une page, et suit la même structure interne :
+
+```
+src/features/[feature]/
+├── components/[Composant]/   # composants propres à la feature
+│   ├── [Composant].jsx
+│   ├── [Composant].scss
+│   ├── _tokens.scss          # dimensions et espacements du composant
+│   └── _colors.scss          # couleurs du composant
+├── hooks/                    # hooks propres à la feature
+├── providers/                # contextes React, si besoin
+├── utils/                    # fonctions pures propres à la feature
+├── sources/                  # accès aux données (hooks SWR sur le client API)
+├── _tokens.scss              # tokens partagés par les composants de la feature
+└── _colors.scss              # couleurs partagées par les composants de la feature
+```
+
+Deux sous-dossiers méritent qu'on s'y arrête. **`sources/`** est le seul endroit d'une
+feature qui parle à l'API : chaque fichier y expose un hook SWR qui construit sa clé de
+cache et normalise la forme de retour. **`_tokens.scss` et `_colors.scss` à la racine de
+la feature** sont le niveau 3 de la cascade — ils portent ce qui est partagé par plusieurs
+composants de la feature, et rien d'autre.
+
+## Ce qui n'est pas une couche
+
+Trois dossiers de `src/` ne participent pas à cette hiérarchie, et c'est délibéré.
+
+| Dossier | Rôle |
+|---|---|
+| `lib/` | La plomberie transverse, ni UI ni métier. Aujourd'hui `lib/api/` : le client GraphQL, ses deux transports, les documents de requête et les fixtures. Ne dépend ni de `features/` ni de `components/`. |
+| `config/` | Le registre `pageTypes.js`, qui associe un type de nœud du manifeste au composant qui le rend. À ne pas confondre avec le dossier `config/` de la racine du dépôt, qui contient les fichiers JSON eux-mêmes. |
+| `app/` | Les routes et layouts de l'App Router de Next. Les pages y sont **générées** depuis le manifeste, pas écrites une par une — voir [Générer des pages depuis un JSON](/guides/pages-depuis-json). |
+
+## Le sens des dépendances
+
+La règle tient en une phrase : **les dépendances vont toujours dans le même sens, du
+composé vers l'élémentaire.** Une flèche `A → B` se lit « A peut importer B » :
+
+```
+app/  →  features/  →  components/  →  hooks/  →  utils/
+   │          │              │                       ↑
+   │          └──────────────┴───────────────────────┘
+   │
+   └──→  lib/  ──→  utils/                    styles/ : consommé en @use, par tous
+```
+
+`app/` dépend de tout. `features/` assemble les composants, les hooks et les utilitaires,
+et appelle `lib/` pour ses données. `components/` consomme les hooks et les utilitaires
+partagés. `utils/` ne dépend de rien — c'est l'invariant qui rend cette couche testable et
+partageable, y compris hors du bundler.
+
+En pratique, trois interdits en découlent, et ce sont ceux qui se violent en silence :
+
+- **`components/` ne doit jamais importer depuis `features/`.** Un composant atomique qui
+  importe une feature entraîne cette feature avec lui : le registry ne peut plus distribuer
+  le composant seul, et votre bundle non plus. C'est la violation la plus courante, parce
+  qu'elle se présente toujours sous un bon prétexte — « ce composant a besoin du piège de
+  focus, qui est dans la feature accessibilité ». La réponse est de faire descendre le
+  besoin d'une couche, pas de remonter l'import.
+- **Une feature ne doit jamais atteindre les internes d'un composant.** Elle consomme son
+  API publique (ses props, son export) ; si elle a besoin d'autre chose, c'est que le
+  composant doit l'exposer.
+- **`lib/` ne doit importer ni `features/` ni `components/`.** Le client API ne connaît
+  ni graphique ni tableau — ce sont eux qui l'appellent.
+
+**`utils/` et `hooks/` sont la voie de sortie** de la plupart des conflits. Un besoin
+partagé entre un composant et une feature n'a rien à faire dans l'un ni dans l'autre : il
+descend dans la couche partagée, d'où les deux peuvent l'importer sans se connaître.
+
+Enfin, **tout import inter-dossiers passe par `@/`.** Les imports relatifs ne subsistent
+qu'entre fichiers frères d'un même composant (`./Chart.scss`, `./useSeriesHover`). Ce n'est
+pas de l'esthétique : un fichier installé par le registry atterrit à une profondeur qui
+n'est pas forcément la nôtre, et un `../../../` y pointe dans le vide.
+
+## Quand promouvoir un hook ou un util
+
+La question se pose dès que vous écrivez la même chose deux fois. Le critère est simple, et
+il porte sur les **consommateurs**, pas sur la qualité du code :
+
+> Un hook ou une fonction monte dans `src/hooks/` ou `src/utils/` dès qu'un **second
+> consommateur sans lien avec le premier** en a besoin.
+
+Trois précisions qui font toute la différence à l'usage :
+
+- **Sans lien** est la partie qui compte. Deux composants de la même feature qui partagent
+  un hook n'en font pas un hook partagé : il descend dans `features/[feature]/hooks/`, où
+  il reste avec ses deux utilisateurs. C'est seulement quand le second consommateur est
+  *ailleurs* que le besoin est réellement générique.
+- **Deux, pas trois.** Attendre le troisième consommateur signifie que le second aura
+  recopié le code, et que les deux copies auront divergé avant la promotion.
+- **Un seul et unique consommateur redescend.** La règle marche dans les deux sens : si un
+  utilitaire partagé finit par n'être utilisé qu'à un seul endroit, il redescend auprès de
+  lui. Ce qui vit dans la couche partagée doit y avoir gagné sa place.
+
+Le même raisonnement gouverne les tokens de style, et c'est la même règle : un token n'est
+déclaré qu'au niveau où il est **partagé**. Une variable utilisée dans un seul composant
+descend au niveau 4, quel que soit le nom qu'on lui a donné.
+
+Une contrainte technique s'ajoute pour `src/utils/navigation/` et `src/utils/format/` :
+ces fichiers sont chargés par les scripts de build, **hors du bundler Next**. Ils ne doivent
+donc porter ni dépendance npm ni import aliasé — leur en-tête le rappelle. Si vous y ajoutez
+un fichier, gardez-le autonome.
+
+## Exemple complet
+
+Un besoin réel qui touche quatre couches d'un coup : afficher partout dans l'application le
+délai écoulé depuis la dernière actualisation des données (« il y a 3 minutes »), sur la
+page indicateur comme dans le pied du tableau.
+
+**1 — La fonction pure va dans `utils/`.** Elle n'a ni React ni UI, et deux consommateurs
+sans lien entre eux l'attendent. Elle rejoint le groupe `format/`, qui existe déjà.
+
+```js
+// src/utils/format/formatRelativeTime.js
+
+// Seuils de bascule d'unité, du plus fin au plus grossier. `Intl.RelativeTimeFormat`
+// choisit le libellé et la langue ; on ne fait ici que sélectionner l'unité.
+const THRESHOLDS = [
+    { unit: 'second', ms: 1000, max: 60 },
+    { unit: 'minute', ms: 60_000, max: 60 },
+    { unit: 'hour', ms: 3_600_000, max: 24 },
+    { unit: 'day', ms: 86_400_000, max: Infinity },
+];
+
+/**
+ * Formats a past timestamp as a relative delay ("3 minutes ago").
+ *
+ * @param {string|number|Date} timestamp - The past instant, ISO string or epoch.
+ * @param {string} [locale='fr'] - BCP 47 locale, as declared by `site.locale`.
+ * @param {Date} [now=new Date()] - Reference instant. Injected rather than read
+ *   inside, so the function stays pure and testable.
+ * @returns {string} The formatted delay, or an empty string on an invalid input.
+ */
+export const formatRelativeTime = (timestamp, locale = 'fr', now = new Date()) => {
+    const elapsed = now.getTime() - new Date(timestamp).getTime();
+
+    if (Number.isNaN(elapsed)) return '';
+
+    const { unit, ms } = THRESHOLDS.find(({ ms: step, max }) => elapsed / step < max)
+        ?? THRESHOLDS.at(-1);
+
+    return new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+        .format(-Math.round(elapsed / ms), unit);
+};
+```
+
+**2 — Le hook qui rafraîchit l'affichage va dans `hooks/`.** Il porte du comportement et
+aucune UI ; il consomme la couche `utils/`, ce qui est le sens autorisé.
+
+```js
+// src/hooks/time/useRelativeTime.js
+'use client';
+
+import { useEffect, useState } from 'react';
+import { formatRelativeTime } from '@/utils/format/formatRelativeTime';
+
+/**
+ * Keeps a relative-time label up to date without re-rendering its parent.
+ *
+ * @param {string|number|Date} timestamp - The instant to describe.
+ * @param {string} [locale='fr'] - BCP 47 locale.
+ * @returns {string} The label, refreshed every 30 seconds.
+ */
+export const useRelativeTime = (timestamp, locale = 'fr') => {
+    const [label, setLabel] = useState(() => formatRelativeTime(timestamp, locale));
+
+    useEffect(() => {
+        // `setLabel` est stable, `formatRelativeTime` est pure : les seules dépendances
+        // réelles sont l'horodatage et la langue.
+        const tick = () => setLabel(formatRelativeTime(timestamp, locale));
+
+        tick();
+        const id = setInterval(tick, 30_000);
+
+        return () => clearInterval(id);
+    }, [timestamp, locale]);
+
+    return label;
+};
+```
+
+**3 — Le rendu va dans `components/`.** Un composant atomique, sans attache à une feature,
+donc installable seul par le registry. Il n'importe que la couche `hooks/`.
+
+```jsx
+// src/components/common/RelativeTime/RelativeTime.jsx
+'use client';
+
+import { useRelativeTime } from '@/hooks/time/useRelativeTime';
+
+/**
+ * Renders a past instant as a self-refreshing relative delay.
+ *
+ * The machine-readable value stays in the `dateTime` attribute: screen readers and
+ * crawlers get the exact instant, the reader gets the delay.
+ *
+ * @param {Object} props - Component props.
+ * @param {string} props.value - The instant, as an ISO 8601 string.
+ * @param {string} [props.locale='fr'] - BCP 47 locale.
+ * @returns {JSX.Element} The rendered `<time>` element.
+ */
+const RelativeTime = ({ value, locale = 'fr' }) => {
+    const label = useRelativeTime(value, locale);
+
+    return <time dateTime={value}>{label}</time>;
+};
+
+export default RelativeTime;
+```
+
+**4 — La feature l'assemble.** Elle est la seule des quatre à connaître d'où vient
+l'horodatage : `metadata.generatedAt`, renvoyé par `getFactTableWithMetadata`.
+
+```jsx
+// dans un composant de src/features/table/
+import RelativeTime from '@/components/common/RelativeTime/RelativeTime';
+
+<p className="table-footer__freshness">
+  Données actualisées <RelativeTime value={metadata.generatedAt} />
+</p>
+```
+
+Relisez le sens des imports : `features/` → `components/` → `hooks/` → `utils/`. Aucune
+flèche ne remonte, et c'est ce qui permet à `RelativeTime` d'être distribué seul, sans
+entraîner ni le tableau ni le client API avec lui.

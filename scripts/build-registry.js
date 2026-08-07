@@ -332,7 +332,7 @@ const syncRegistry = () => {
   const registry = {
     $schema: REGISTRY_SCHEMA,
     name: REGISTRY_NAME,
-    homepage: previous.homepage || 'https://github.com/quentinbolliet/dashboard-template-frontend',
+    homepage: previous.homepage || 'https://github.com/qbolliet/dashboard-template-frontend',
     items,
   };
 

@@ -6,14 +6,235 @@ order: 2
 
 # Installation
 
-{/* Coquille posée en P4.2 (infrastructure du site de documentation).
-    Contenu rédigé en P4.7. Les deux sous-titres ci-dessous existent pour que le
-    sommaire de page ait de quoi s'afficher tant que la page est vide. */}
+Deux voies, selon ce que vous avez déjà.
 
-## Dépôt modèle
+**Vous démarrez un tableau de bord** : partez du dépôt modèle. Vous récupérez l'ensemble —
+la navigation, les features, le système de tokens, l'outillage de vérification, la démo et
+cette documentation — dans un dépôt neuf qui vous appartient.
 
-_À rédiger._
+**Vous avez déjà une application Next.js** : piochez dans le registry. La CLI copie les
+fichiers d'un composant dans votre arborescence, installe ses dépendances npm et tire ses
+dépendances internes. Vous n'embarquez que ce que vous demandez.
 
-## CLI du registry
+Le **fork**, lui, ne convient à aucun des deux : il crée un lien permanent vers ce dépôt —
+historique commun, réseau GitHub partagé, issues et PR routées vers le parent — alors que
+vous ne rapatrierez jamais nos refontes internes dans le tableau de bord de votre client.
+C'est l'outil de la contribution en retour, pas celui du démarrage de projet.
 
-_À rédiger._
+## Nouveau projet — le dépôt modèle
+
+Le bouton **« Use this template »** de la page GitHub du dépôt crée une copie complète avec
+un **historique vierge** et aucun lien vers le parent. En ligne de commande :
+
+```bash
+gh repo create mon-dashboard --template qbolliet/dashboard-template-frontend --private --clone
+cd mon-dashboard
+npm install
+npm run dev
+```
+
+Node 22 ou plus est requis : les scripts de build chargent des modules ESM par détection de
+syntaxe, ce que les versions antérieures ne font pas.
+
+`npm run dev` lance les cinq générateurs (index de recherche, registry, tables de props,
+index de la documentation, référence des tokens) puis le serveur de développement :
+
+| URL | Ce que vous y trouvez |
+|---|---|
+| `http://localhost:3000/` | cette documentation, servie par votre propre copie |
+| `http://localhost:3000/demo` | l'application de démonstration, générée depuis `config/site.config.json` |
+
+Aucune configuration n'est nécessaire pour cette première exécution : sans
+`NEXT_PUBLIC_API_URL`, l'application sert les fixtures locales de `src/lib/api/fixtures/`.
+C'est un mode de fonctionnement à part entière, pas un repli sur erreur — voir
+[Brancher l'API GraphQL](/guides/api-graphql).
+
+Les trois gestes qui suivent, dans l'ordre où ils se posent :
+
+1. **Décrivez vos pages** dans `config/site.config.json` — c'est le manifeste dont l'arbre
+   de navigation, les routes et l'index de recherche sont tous dérivés. Voir
+   [Générer des pages depuis un JSON](/guides/pages-depuis-json).
+2. **Branchez vos données** en copiant `.env.example` vers `.env.local` et en y renseignant
+   `NEXT_PUBLIC_API_URL`.
+3. **Reprenez la marque** en surchargeant les primitives de couleur. Une dizaine de lignes
+   suffisent, thème sombre compris : voir [Theming](/fondations/theming), niveau A.
+
+## Projet existant — la CLI du registry
+
+Chaque composant, feature et bloc de ce dépôt est publié comme item de registry au format
+`shadcn`, servi par les mêmes GitHub Pages que cette documentation. Il n'y a pas de CLI
+propre à installer : `npx shadcn` sait consommer un registry tiers par URL.
+
+```bash
+npx shadcn@latest add https://qbolliet.github.io/dashboard-template-frontend/r/stat-card.json
+```
+
+Les items sont publiés en `registry:item` et **chaque fichier porte un `target` explicite**.
+C'est ce couple qui les rend universels au sens de shadcn : la CLI les installe sans exiger
+de `components.json`, sans détection de framework et **sans Tailwind**. Les fichiers
+atterrissent sous `~/`, c'est-à-dire à la racine de votre projet, en reproduisant
+l'arborescence du dépôt — `src/components/ui/StatCard/…` ici devient
+`src/components/ui/StatCard/…` chez vous.
+
+Chaque item déclare aussi :
+
+- ses **dépendances npm** réelles, dérivées par analyse statique des imports de son
+  sous-arbre — la CLI les installe ;
+- ses **dépendances internes** (`registryDependencies`), en URL absolues, que la CLI
+  résout et installe transitivement. Demander `chart` installe donc aussi `api-client`,
+  `icons`, `hover-toolbar`, `tokens-global` et les autres, sans que vous ayez à les
+  connaître.
+
+L'index complet des items se trouve à
+[`/r/registry.json`](https://qbolliet.github.io/dashboard-template-frontend/r/registry.json),
+et le nom d'item de chaque composant figure en tête de sa page dans
+[Composants](/composants) et [Features](/features).
+
+### Les deux réglages à faire une fois
+
+Les fichiers installés sont copiés **verbatim**, avec les chemins d'import du dépôt. Deux
+conventions doivent donc exister dans votre projet, une seule fois, avant le premier item.
+
+**1 — L'alias `@/`.** Tout import inter-dossiers du template passe par `@/`, y compris dans
+les feuilles SCSS (`@use '@/styles/globals/tokens/semantic-colors' as *;`). Déclarez-le dans
+votre `jsconfig.json` ou `tsconfig.json` :
+
+```jsonc
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+```
+
+**2 — Les tokens globaux.** L'item `tokens-global` apporte les primitives, les tokens
+sémantiques, l'échelle typographique et les mixins de points de rupture. Il est tiré
+automatiquement par presque tous les autres items, mais **personne ne peut importer votre
+feuille globale à votre place** : ajoutez la ligne vous-même.
+
+```scss
+/* src/app/globals.scss */
+@use '@/styles/globals/custom-properties';
+```
+
+Sans elle, les composants s'affichent sans aucune couleur ni dimension : leurs tokens de
+niveau 3 et 4 pointent vers des rôles qui n'existent pas.
+
+### Ce que vous récupérez, et ce que vous en faites
+
+Le code installé **vous appartient**. Il est dans votre dépôt, vous l'éditez, et vous n'avez
+aucune mise à jour à absorber. C'est le corollaire assumé de ce mode de distribution : il
+n'y a pas de `node_modules` à mettre à jour, donc pas non plus de mise à jour qui casse —
+mais rien ne vous signalera non plus qu'un correctif est sorti. Relancer la commande `add`
+réinstalle l'item dans sa version courante, en écrasant vos modifications : faites-le sur
+un arbre de travail propre, et relisez le diff.
+
+Avant d'éditer un fichier pour changer une apparence, lisez tout de même
+[Theming](/fondations/theming) : les trois premiers niveaux d'intervention obtiennent le
+résultat sans toucher au code installé, ce qui garde votre copie comparable à la nôtre.
+
+## Exemple complet
+
+Ajouter un graphique filtrable et son tableau à une application Next.js existante, de zéro
+au premier rendu.
+
+```bash
+# 1 — Les items. `filter` et `table` tirent `api-client` et `tokens-global` d'eux-mêmes.
+npx shadcn@latest add https://qbolliet.github.io/dashboard-template-frontend/r/chart.json
+npx shadcn@latest add https://qbolliet.github.io/dashboard-template-frontend/r/filter.json
+npx shadcn@latest add https://qbolliet.github.io/dashboard-template-frontend/r/table.json
+
+# 2 — L'endpoint GraphQL. Omettez cette ligne pour travailler sur les fixtures livrées.
+echo 'NEXT_PUBLIC_API_URL=https://mon-api.exemple.org/graphql' >> .env.local
+```
+
+```jsonc
+// 3 — jsconfig.json (ou tsconfig.json) : l'alias qu'utilisent les fichiers installés.
+{
+  "compilerOptions": {
+    "paths": { "@/*": ["./src/*"] }
+  }
+}
+```
+
+```scss
+/* 4 — src/app/globals.scss : les tokens, avant tout le reste. */
+@use '@/styles/globals/custom-properties';
+```
+
+```jsx
+// 5 — src/app/indicateurs/page.jsx
+'use client';
+
+import { useState } from 'react';
+import { Chart } from '@/features/chart';
+import { Table, useFactTableWithMetadata, normalizeDefaultFilter, evalFilterNode } from '@/features/table';
+import { MultiCriterionMenu } from '@/features/filter';
+
+// Opérations proposées par le menu de critères, indexées par `sql_type` de l'API ;
+// la clé `categorical` s'applique à tout champ marqué `is_categorical`. Le dépôt modèle
+// livre la liste complète en `config/filter/operations.json` — l'item de registry, non,
+// car c'est un choix éditorial : à vous de dire quelles opérations vous exposez.
+const OPERATIONS = {
+  categorical: [
+    { value: 'in', label: 'IN' },
+    { value: 'not_in', label: 'NOT IN' },
+  ],
+  'double precision': [
+    { value: 'gte', label: '≥' },
+    { value: 'lte', label: '≤' },
+    { value: 'between', label: 'Entre' },
+  ],
+};
+
+const IndicateursPage = () => {
+  // Valeur structurée du menu de critères — un ARBRE de critères, pas une liste plate.
+  const [filter, setFilter] = useState(null);
+
+  // Lignes + schéma de colonnes en un seul hook, identique en mode fixtures et en mode API.
+  const { data, columnsMetadata } = useFactTableWithMetadata();
+
+  // Variables filtrables : toutes les colonnes sauf la clé primaire, qui n'a pas de sens
+  // comme critère.
+  const variables = columnsMetadata
+    .filter((column) => !column.is_primary_key)
+    .map(({ name, label, sql_type, is_categorical }) => ({
+      value: name, label, sql_type, is_categorical,
+    }));
+
+  // <Table> applique `defaultFilter` lui-même ; <Chart> reçoit des lignes brutes. On lui
+  // applique donc le MÊME filtre, avec le moteur du tableau plutôt qu'une réimplémentation,
+  // pour que les deux vues montrent toujours le même sous-jeu.
+  const filterTree = normalizeDefaultFilter(filter);
+  const chartData = filterTree ? data.filter((row) => evalFilterNode(row, filterTree)) : data;
+
+  return (
+    <main>
+      <MultiCriterionMenu
+        variables={variables}
+        operationsByType={OPERATIONS}
+        onChange={setFilter} />
+
+      <Chart data={chartData} x="date_obs" y="gdp" hue="pays" height={420} />
+
+      <Table
+        data={data}
+        columnsMetadata={columnsMetadata}
+        defaultFilter={filter}
+        title="Indicateurs macroéconomiques" />
+    </main>
+  );
+};
+
+export default IndicateursPage;
+```
+
+Deux points que cet exemple illustre et qui valent au-delà de lui : le filtre est un
+**arbre**, pas une liste plate, et il est appliqué **côté client** par le moteur du tableau
+— rien n'est renvoyé à l'API tant que vous ne passez pas vous-même `structuredFilters` au
+hook. Le gabarit `IndicatorPage` du dépôt modèle est exactement ce montage, en plus complet.
+
+Les props de chaque composant sont dans sa page, lues dans le code au build plutôt que
+rédigées : [Chart](/features/chart), [Table](/features/table), [Filter](/features/filter).

@@ -6,14 +6,342 @@ order: 2
 
 # Générer des pages depuis un JSON
 
-{/* Coquille posée en P4.2 (infrastructure du site de documentation).
-    Contenu rédigé en P4.7. Les deux sous-titres ci-dessous existent pour que le
-    sommaire de page ait de quoi s'afficher tant que la page est vide. */}
+Il n'y a pas de dossier de page par URL. `config/site.config.json` décrit l'arborescence du
+site, une route attrape-tout l'aplatit en chemins, et un registre associe chaque type de
+nœud au composant qui le rend. **Ajouter une page, c'est ajouter un nœud** — et deux cents
+indicateurs, c'est un tableau JSON, éventuellement produit par un appel à votre API.
 
-## Le manifeste
+Le manifeste est aussi la source de l'arbre de navigation du header et de l'index de
+recherche. Les trois ne peuvent donc pas diverger : ils sont dérivés du même fichier par les
+mêmes fonctions.
 
-_À rédiger._
+## Anatomie du manifeste
 
-## Types de page
+```jsonc
+{
+  "$schema": "./schema/site.schema.json",
+  "site": {
+    "title": "Dashboard Template",
+    "description": "Template de tableau de bord pour visualiser des modèles statistiques.",
+    "locale": "fr"
+  },
+  "navigation": {
+    "type": "sidebar",
+    "useSwitcher": false,
+    "tree": [ /* … les nœuds … */ ]
+  }
+}
+```
 
-_À rédiger._
+**`site`** alimente les métadonnées de Next — `title` devient le titre d'onglet et le
+gabarit des titres de page, `description` la balise `meta`, `locale` l'attribut
+`<html lang>`, qui décide de la prononciation par les lecteurs d'écran et de la césure
+typographique.
+
+**`navigation.type`** choisit la disposition du header : `topbar` déroule l'arbre en menus
+horizontaux (arbres larges et peu profonds), `sidebar` l'affiche dans un panneau latéral
+repliable (arbres profonds ou nombreux). C'est une valeur à changer, pas du code.
+
+**`navigation.useSwitcher`**, en mode `sidebar` uniquement : les nœuds de premier niveau ne
+sont plus listés dans le panneau mais proposés dans un sélecteur en tête, qui n'affiche que
+la sous-arborescence choisie. Utile quand le site se divise en quelques grands espaces
+indépendants.
+
+**La ligne `$schema` est celle qui compte le plus au quotidien.** Elle déclare le JSON
+Schema du fichier, et votre éditeur — VS Code le fait nativement — vous donne alors
+l'autocomplétion des clés, la liste des valeurs admises et la documentation de chaque
+propriété en infobulle, pendant que vous tapez. Pour un fichier de configuration, cela vaut
+mieux qu'un chapitre de documentation. En ligne de commande, `npm run validate:config`
+vérifie le même contrat ; il fait partie de `npm run verify`.
+
+## Un nœud de navigation
+
+```jsonc
+{
+  "path": "/pib",
+  "name": "PIB",
+  "type": "indicator",
+  "description": "Produit intérieur brut, en volume, base 2020.",
+  "searchable": true,
+  "children": [ /* … sous-pages … */ ]
+}
+```
+
+| Clé | Rôle |
+|---|---|
+| `path` | Segment d'URL **relatif au parent**, précédé d'une barre oblique. Minuscules, chiffres et traits d'union. La racine s'écrit `/`. |
+| `name` | Libellé affiché : navigation, fil d'Ariane, résultats de recherche. Accents et majuscules bienvenus. |
+| `type` | Le gabarit qui rend la page. Doit exister dans `src/config/pageTypes.js`. |
+| `description` | Facultatif. Alimente la métadonnée de la page **et** la recherche, où il est indexé au même titre que `name`. |
+| `searchable` | Facultatif, `true` par défaut. À `false`, la page reste navigable mais sort de l'index de recherche. |
+| `children` | Facultatif. **Omettez la clé** sur une page terminale — n'écrivez ni `null` ni `[]`. |
+
+**Le piège est `path`.** Il est relatif à son parent, et le chemin complet est la
+concaténation des `path` des ancêtres : un nœud `/pib` sous `/france` sous
+`/comptabilite-nationale` répond à `/comptabilite-nationale/france/pib`. N'écrivez pas le
+chemin complet — vous obtiendriez `/comptabilite-nationale/france/comptabilite-nationale/france/pib`.
+La concaténation est faite une seule fois, à la frontière, par
+`resolveNavigationTree` ; tout ce qui est en aval travaille sur des chemins absolus.
+
+Notez aussi qu'un nœud parent est **lui-même une page**. `/comptabilite-nationale` a des
+enfants et son propre gabarit (`indicator_group`, qui liste ses sous-pages) : ce n'est pas
+un simple dossier de regroupement.
+
+## Ajouter un type de page
+
+`src/config/pageTypes.js` est le chaînon entre le manifeste et le rendu. La route
+attrape-tout ne connaît que ce registre — elle n'a aucune connaissance des types eux-mêmes.
+
+```js
+export const PAGE_TYPES = {
+    home: { component: HomePage, query: null },
+    indicator: { component: IndicatorPage, query: GET_FACT_TABLE_WITH_METADATA },
+    indicator_group: { component: IndicatorGroupPage, query: null },
+    about: { component: AboutPage, query: null },
+};
+```
+
+Trois gestes, dans cet ordre :
+
+1. **Écrire le composant** sous `src/features/pages/components/`. Il reçoit une seule prop,
+   `node` — le nœud du manifeste, chemins déjà résolus en absolu. Il ne rend **pas** de
+   `<main>` : la route en pose un pour toutes les pages générées, et l'imbriquer serait
+   invalide.
+2. **L'enregistrer ici.**
+3. **Ajouter le type à l'énumération** de `config/schema/site.schema.json`.
+
+Cette énumération et les clés du registre doivent rester le miroir l'une de l'autre. Un type
+validé par le schéma mais absent du registre passe `validate:config` et produit une page
+introuvable — la route le journalise avant d'appeler `notFound()`, de sorte que l'erreur est
+visible dans la sortie de `next build` plutôt que silencieuse.
+
+Le champ `query` est **déclaratif** : il documente l'opération GraphQL que le gabarit
+consomme, et c'est ce qu'un futur préchargement au build lirait pour savoir quoi demander.
+L'appel lui-même reste dans le composant de page, seul à savoir construire ses variables.
+
+**Ajouter une page d'un type déjà enregistré ne demande rien de tout cela** — juste un nœud
+dans le manifeste. C'est tout l'objet du mécanisme.
+
+### Comment les routes sont produites
+
+```js
+// src/app/(site)/demo/[[...slug]]/page.jsx, en substance
+const tree = resolveNavigationTree(siteConfig.navigation.tree, DEMO_BASE_PATH);
+
+export const generateStaticParams = async () =>
+    flattenNavigation(tree).map((node) => ({ slug: toSegments(node.path) }));
+```
+
+Deux réglages de cette route méritent d'être connus avant de la modifier :
+`dynamicParams = false` — un chemin absent de `generateStaticParams` n'est pas rendu à la
+demande, il sert le 404 ; et `revalidate = 3600` — le HTML est régénéré en arrière-plan
+toutes les heures, pour qu'un build lancé pendant une indisponibilité de l'API ne fige pas
+un rendu dégradé jusqu'au déploiement suivant.
+
+## Alimenter l'arbre depuis l'API au build
+
+Quand les pages sont vos données — un indicateur par série, une page par entité — écrire le
+manifeste à la main n'a pas de sens. **Générez-le avant le build.**
+
+Le manifeste est importé statiquement (`import siteConfig from '@config/site.config.json'`) :
+il doit donc exister sur disque **avant** que Next ne compile, et avant `build:search`, qui
+en dérive l'index de recherche. Un script placé en tête de `prebuild` remplit exactement ce
+créneau.
+
+```jsonc
+// package.json
+"scripts": {
+  "build:config": "node scripts/build-site-config.js",
+  "prebuild": "npm run build:config && npm run build:search && npm run build:registry && npm run build:props && npm run build:docs-index && npm run build:tokens"
+}
+```
+
+Un point technique à connaître avant d'écrire ce script : **n'importez pas
+`src/lib/api/client.js` depuis un script de build.** Les modules de `src/lib/api/` sont
+écrits pour le bundler de Next et s'importent entre eux sans extension (`from './gql'`), ce
+que le résolveur ESM natif de Node ne fait pas — l'import échoue en `ERR_MODULE_NOT_FOUND`.
+Dans un script de build, adressez l'endpoint directement par `fetch` : c'est une requête
+POST et un objet JSON, la dépendance ne se justifie pas.
+
+## Exemple complet
+
+Générer une page d'indicateur par mesure continue du catalogue, au build.
+
+```js
+#!/usr/bin/env node
+
+// =================================================================
+// MANIFESTE — génération de l'arbre depuis l'API, au build
+// =================================================================
+// Écrit config/site.config.json à partir de config/site.template.json, dont il ne
+// remplace QUE les enfants du nœud marqué `"generated": "indicators"`. Le reste du
+// manifeste (accueil, à propos, identité du site) reste écrit à la main.
+//
+// Doit tourner AVANT build:search et avant next build : les deux lisent le fichier
+// produit ici. D'où sa place en tête de `prebuild`.
+//
+// Pas d'import de src/lib/api/client.js : ses modules s'importent sans extension de
+// fichier, que le résolveur ESM de Node ne sait pas résoudre hors bundler. Un fetch
+// suffit — c'est un POST et un objet JSON.
+
+const fs = require('fs');
+const path = require('path');
+
+const PROJECT_ROOT = path.join(__dirname, '..');
+const TEMPLATE_PATH = path.join(PROJECT_ROOT, 'config/site.template.json');
+const OUTPUT_PATH = path.join(PROJECT_ROOT, 'config/site.config.json');
+const ENDPOINT = process.env.NEXT_PUBLIC_API_URL;
+
+const GET_CATALOG_SCHEMA = `
+  query GetCatalogSchema($catalog: String, $schema: String) {
+    getCatalogSchema(catalog: $catalog, schema: $schema) {
+      name
+      label
+      sql_type
+      is_categorical
+    }
+  }
+`;
+
+/**
+ * Runs a GraphQL document against the configured endpoint.
+ *
+ * @param {string} document - Query document.
+ * @param {Object} [variables] - Query variables.
+ * @returns {Promise<Object>} The GraphQL `data` object.
+ * @throws {Error} On a transport error or any GraphQL error.
+ */
+async function query(document, variables = {}) {
+  const response = await fetch(ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query: document, variables }),
+  });
+
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+  const { data, errors } = await response.json();
+  if (errors?.length) throw new Error(errors[0].message);
+
+  return data;
+}
+
+/**
+ * Turns a field name into a manifest-legal path segment.
+ *
+ * Le schéma impose du kebab-case ASCII sur `path` : un nom de colonne accentué ou
+ * en camelCase produirait un manifeste invalide, rejeté par validate:config.
+ *
+ * @param {string} text - Source text.
+ * @returns {string} The slug.
+ */
+const slugify = (text) =>
+  String(text)
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+/**
+ * Builds one `indicator` node per continuous measure of the catalog.
+ *
+ * @returns {Promise<Array<Object>>} The generated child nodes.
+ */
+async function buildIndicatorNodes() {
+  const { getCatalogSchema } = await query(GET_CATALOG_SCHEMA);
+
+  return getCatalogSchema
+    // Les dimensions catégorielles servent à découper, pas à porter une page.
+    .filter((field) => !field.is_categorical)
+    .map((field) => ({
+      path: `/${slugify(field.name)}`,
+      name: field.label,
+      type: 'indicator',
+      description: `Série ${field.label}, issue du catalogue.`,
+    }));
+}
+
+async function main() {
+  const manifest = JSON.parse(fs.readFileSync(TEMPLATE_PATH, 'utf8'));
+
+  // Sans endpoint, on recopie le gabarit tel quel : le build reste possible hors ligne,
+  // et l'application sert alors les fixtures locales — même contrat que le client API.
+  if (!ENDPOINT) {
+    console.log('build:config : NEXT_PUBLIC_API_URL absente — arbre du gabarit conservé.');
+    fs.writeFileSync(OUTPUT_PATH, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+    return;
+  }
+
+  const nodes = await buildIndicatorNodes();
+
+  manifest.navigation.tree = manifest.navigation.tree.map((node) =>
+    node.generated === 'indicators'
+      // `generated` est un marqueur du gabarit, pas une clé du schéma : il doit
+      // disparaître du manifeste produit, que `additionalProperties: false` rejetterait.
+      ? { ...node, generated: undefined, children: nodes }
+      : node);
+
+  fs.writeFileSync(OUTPUT_PATH, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+  console.log(`build:config : ${nodes.length} page(s) d'indicateur générée(s).`);
+}
+
+main().catch((err) => {
+  console.error('build:config : échec —', err.message);
+  process.exit(1);
+});
+```
+
+Le gabarit dont il part, `config/site.template.json` : tout ce qui est écrit à la main, plus
+un nœud marqué pour l'injection.
+
+```jsonc
+{
+  "$schema": "./schema/site.schema.json",
+  "site": {
+    "title": "Observatoire macroéconomique",
+    "description": "Séries et projections macroéconomiques.",
+    "locale": "fr"
+  },
+  "navigation": {
+    "type": "sidebar",
+    "useSwitcher": false,
+    "tree": [
+      { "path": "/", "name": "Accueil", "type": "home" },
+      {
+        "path": "/indicateurs",
+        "name": "Indicateurs",
+        "type": "indicator_group",
+        "description": "Toutes les séries du catalogue.",
+        "generated": "indicators"
+      },
+      { "path": "/about", "name": "À propos", "type": "about" }
+    ]
+  }
+}
+```
+
+```bash
+# Génération, validation, build. La deuxième ligne est celle qui vous dira si votre API
+# a produit un arbre invalide — un `path` en camelCase, un `type` inconnu, un `children`
+# vide — plutôt que de le découvrir sur une page blanche.
+NEXT_PUBLIC_API_URL=https://mon-api.exemple.org/graphql npm run build:config
+npm run validate:config
+npm run build
+```
+
+Sur le catalogue de démonstration, ce script produit quatorze nœuds, dont le premier est :
+
+```json
+{
+  "path": "/gdp",
+  "name": "Croissance du PIB (%)",
+  "type": "indicator",
+  "description": "Série Croissance du PIB (%), issue du catalogue."
+}
+```
+
+Quatorze pages, quatorze entrées de navigation et quatorze entrées de recherche, sans qu'un
+seul fichier de route ait été écrit. Ajoutez `config/site.config.json` à votre `.gitignore`
+si vous adoptez ce montage : le fichier devient un artefact de build, et c'est
+`site.template.json` qui est versionné.

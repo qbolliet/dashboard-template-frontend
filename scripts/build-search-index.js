@@ -80,23 +80,45 @@ async function main() {
   // Le manifeste ne couvre que les PAGES du site. Un catalogue d'entités plus
   // fin (variables d'un indicateur, séries…) peut être ajouté ici au build,
   // avec la même forme d'entrée, tant que chaque entité a une page vers
-  // laquelle pointer. Exemple avec un champ de src/lib/api/documents :
+  // laquelle pointer.
   //
-  //   const { request } = await importEsm(path.join(PROJECT_ROOT, 'src/lib/api/client.js'));
-  //   const { GET_CATALOG_SCHEMA } = await importEsm(
-  //     path.join(PROJECT_ROOT, 'src/lib/api/documents/catalogSchema.js'),
-  //   );
-  //   const { getCatalogSchema } = await request(GET_CATALOG_SCHEMA);
-  //   entries.push(...getCatalogSchema.map((field) => ({
-  //     title: field.label,
-  //     path: '/comptabilite-nationale/france/pib', // page qui expose ce champ
-  //     type: 'indicator',
-  //     description: '',
-  //     keywords: [field.name],
-  //   })));
+  // NE PAS passer par src/lib/api/client.js : ses modules s'importent entre eux
+  // SANS EXTENSION de fichier (`from './gql'`), forme que seul le bundler Next
+  // résout — un import() depuis ce script échoue en ERR_MODULE_NOT_FOUND. Les
+  // utilitaires importés plus haut, eux, sont explicitement écrits pour être
+  // chargeables ici (cf. leur en-tête). D'où un fetch direct sur l'endpoint :
   //
-  // Le mode mock (NEXT_PUBLIC_API_URL absent) répond avec les fixtures locales,
-  // donc cet appel est safe à exécuter au build même sans API réelle branchée.
+  //   const ENDPOINT = process.env.NEXT_PUBLIC_API_URL;
+  //   if (ENDPOINT) {
+  //     const target = entries.find((entry) => entry.type === 'indicator');
+  //     const response = await fetch(ENDPOINT, {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({
+  //         query: 'query GetCatalogSchema { getCatalogSchema { name label sql_type } }',
+  //       }),
+  //     });
+  //     const { data } = await response.json();
+  //     entries.push(...data.getCatalogSchema.map((field) => ({
+  //       title: field.label,
+  //       path: target.path,          // page qui expose ce champ
+  //       type: 'field',
+  //       description: `Variable du catalogue (${field.sql_type}).`,
+  //       keywords: [field.name],     // le nom technique, cherché tel quel
+  //     })));
+  //   }
+  //
+  // Deux points à respecter, sans quoi l'ajout se paie ailleurs :
+  //   • l'échec ne doit PAS être fatal — ce script tourne à chaque `npm run dev`,
+  //     et une API injoignable ne doit pas bloquer un développeur dont le travail
+  //     n'a rien à voir avec la recherche : journaliser et continuer avec les
+  //     seuls nœuds du manifeste ;
+  //   • `keywords` n'est comparé par personne aujourd'hui — SearchBar ne regarde
+  //     que `title` et `description`. L'exploiter suppose d'étendre
+  //     `computeSuggestions` (cf. docs/content/guides/barre-de-recherche.mdx).
+  //
+  // Sans NEXT_PUBLIC_API_URL il n'y a pas d'endpoint à interroger : ce bloc est
+  // alors sauté, et l'index se réduit aux pages du manifeste.
 
   fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
   fs.writeFileSync(OUTPUT_PATH, `${JSON.stringify(entries, null, 2)}\n`, 'utf8');

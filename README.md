@@ -1,9 +1,22 @@
 # Dashboard Template Frontend
 
 A configurable [Next.js](https://nextjs.org) dashboard template for presenting
-the results of statistical and prediction models. It is meant to be forked
-and adapted: swap the navigation config, point it at your GraphQL API, and
-you have a data-exploration dashboard.
+the results of statistical and prediction models. Swap the site manifest, point
+it at your GraphQL API, and you have a data-exploration dashboard.
+
+There are two ways to pick it up, and **forking is neither of them** — a fork
+creates a permanent upstream link, shares the parent's GitHub network, and is
+the tool of contributing back rather than of starting a project:
+
+- **Starting a new dashboard** — use the *Use this template* button, which gives
+  you a full copy with a clean history and no link to this repository;
+- **Adding pieces to an existing Next.js app** — install them from the registry,
+  `npx shadcn@latest add https://qbolliet.github.io/dashboard-template-frontend/r/<item>.json`.
+  Items are published as universal `registry:item`s, so no `components.json`
+  and no Tailwind are required.
+
+See the [Installation guide](https://qbolliet.github.io/dashboard-template-frontend/introduction/installation)
+for both paths in full.
 
 It targets teams who need to ship an internal or public-facing dashboard
 without rebuilding navigation, filtering, and charting from scratch —
@@ -15,7 +28,7 @@ metadata-driven analytics UI on top of a GraphQL backend.
 ### Configurable navigation
 The header combines a search bar, a light/dark theme toggle, and a
 navigation tree driven entirely by a JSON config
-(`config/navigation.json`). Depending on the depth of that tree, the
+(`config/site.config.json`). Depending on the depth of that tree, the
 navigation renders as a horizontal top bar (shallow trees) or a
 collapsible sidebar (deeper trees) — no code changes required to restructure
 your site's pages.
@@ -117,7 +130,10 @@ token conventions.
 - `npm run mock:api` — start just the mock GraphQL endpoint (`http://localhost:4000/graphql`)
 - `npm run lint` — lint the codebase with ESLint
 - `npm run check:palette` — verify design-system color palette consistency
-- `npm run verify` — run lint + palette check
+- `npm run validate:config` — validate the site manifest against its JSON Schema
+- `npm run check:gql` — validate the GraphQL documents against `scripts/schema.graphql`
+- `npm run verify` — the full gate: lint, palette, config, GraphQL documents, and
+  the generated registry / props / docs-index / tokens artifacts
 
 ## License
 

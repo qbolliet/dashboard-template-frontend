@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
   "name": "dashboard-template",
-  "homepage": "https://github.com/quentinbolliet/dashboard-template-frontend",
+  "homepage": "https://github.com/qbolliet/dashboard-template-frontend",
   "items": [
     {
       "name": "accessible-icon",

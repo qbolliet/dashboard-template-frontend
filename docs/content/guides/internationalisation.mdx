@@ -6,14 +6,276 @@ order: 4
 
 # Internationalisation
 
-{/* Coquille posée en P4.2 (infrastructure du site de documentation).
-    Contenu rédigé en P4.7. Les deux sous-titres ci-dessous existent pour que le
-    sommaire de page ait de quoi s'afficher tant que la page est vide. */}
+**État actuel : le template n'a pas de couche d'internationalisation.** Il n'y a ni
+librairie i18n, ni fichiers de traduction, ni sélecteur de langue. Le contenu que vous
+écrivez est dans la langue que vous voulez ; l'interface, elle, parle français par défaut,
+et une partie de ses libellés est encore codée en dur.
 
-## Libellés par composant
+Cette page dit exactement où passe la frontière — ce qui est configurable, ce qui se
+surcharge par prop, ce qui demande d'éditer un fichier — et donne le motif à suivre pour
+traduire le reste sans partir dans une direction que la suite contredira.
 
-_À rédiger._
+## Trois catégories, et la frontière entre elles
 
-## Surcharge par prop
+| Catégorie | Comment vous la changez | Volume |
+|---|---|---|
+| **Contenu** — titres de pages, descriptions, textes d'accueil | fichiers JSON de `config/` | tout le contenu |
+| **Libellés surchargeables** — titres de composants, libellés accessibles, textes d'aide | une prop, à l'appel | une vingtaine de props |
+| **Libellés codés en dur** — placeholders, `aria-label`, états vides, boutons | édition du fichier du composant | une quarantaine de chaînes |
 
-_À rédiger._
+### Le contenu est déjà externalisé
+
+Rien de ce que voit l'utilisateur comme *du contenu* n'est écrit dans un composant.
+
+- **`config/site.config.json`** porte `site.title`, `site.description`, et le `name` et la
+  `description` de chaque page. Il porte aussi **`site.locale`**, posée sur `<html lang>` —
+  c'est elle qui détermine la prononciation par les lecteurs d'écran, la césure du
+  navigateur et le formatage des dates et des nombres par `Intl`. Changez-la en même temps
+  que vos libellés.
+- **`config/content/home.json`** porte l'intégralité de la page d'accueil : titre et
+  description du bandeau, texte du bouton, cartes.
+- **`config/filter/operations.json`** porte les libellés d'opérations du menu de critères
+  (`IN`, `≥`, `Entre`…). Beaucoup sont des symboles, donc déjà universels ; `Entre` est le
+  seul mot français du fichier.
+- Le gabarit `AboutPage` tire sa prose du manifeste plutôt que d'une copie codée en dur :
+  renommer votre site produit une page cohérente sans toucher au composant.
+
+### Une vingtaine de props acceptent déjà votre texte
+
+Ces props existent pour d'autres raisons — nommer un graphique, décrire un bouton d'icône —
+mais elles sont de fait le point de traduction de ces composants. Aucune n'a de valeur par
+défaut française, sauf les quatre signalées.
+
+| Composant | Props textuelles |
+|---|---|
+| `Chart`, `MultiChart` | `title`, `labels` (libellés d'axes et de séries), `format` |
+| `Table` | `title`, `queryHint` |
+| `TableFooter` | `sqlHint` |
+| `StatCard` | `title`, `footerTitle` |
+| `SelectMenu` | `placeholder` — défaut `'Sélectionner…'` |
+| `TypeAwareInput` | `forcedMessage` |
+| `CriterionRow` | `label`, `tooltipText` |
+| `ToolbarButton`, `HoverToolbar` | `label`, `caption` |
+| `Tab`, `TabList` | `countLabel`, `label` |
+| `AccessibleIcon` | `label` |
+| `PageHeader` | `description` |
+| `Header` | `currentPageTitle` |
+| `Globe` | `ariaLabel` — défaut `'Globe terrestre interactif'` |
+| `NavTrigger` | `ariaLabel`, `srLabel` — défaut `'Menu de navigation'` |
+| `TopbarContainer` | `ariaLabel` — défaut `'Menu de navigation'` |
+| `ChartAxisBottom`, `ChartAxisLeft`, `SequentialLegend`, `DragBar` | `label` |
+
+La liste exacte, avec les types et les valeurs par défaut, est sur la page de chaque
+composant : elle est lue dans le code au build, donc elle ne se périme pas.
+
+### Ce qui reste en français dans le code
+
+Une quarantaine de chaînes, concentrées sur quatre features. Ce sont surtout des libellés
+d'accessibilité et des états transitoires — précisément ceux qu'on oublie quand on traduit
+une interface à vue.
+
+| Zone | Exemples |
+|---|---|
+| `features/header` | `placeholder` et `aria-label` de la recherche (« Rechercher... (Ctrl+K) », « Effacer la recherche », « Suggestions de recherche »), libellés des panneaux de navigation et des poignées de redimensionnement |
+| `features/table` | « Réinitialiser », « Tout », « Aucun », « Aucune valeur », « Filtrer les valeurs… », « Retirer le tri », « colonne masquée » |
+| `features/filter` et `components/filter` | « Sélectionner une variable… », « Opération… », « Sélectionner des valeurs… », « Supprimer le critère », « Ajouter un critère », « Tout sélectionner », « Aucun résultat », « Mois », « Année », « Mois précédent », « Valeur maximale », « Calendrier » |
+| `features/pages`, `app/not-found` | « Chargement des données… », « Sources des données », « Page introuvable », « Retour à l'accueil de la démonstration » |
+
+Pour les changer aujourd'hui, il faut éditer le fichier du composant. Ce n'est pas aussi
+grave qu'il y paraît dans ce modèle de distribution : **le code est chez vous**, que vous
+soyez parti du dépôt modèle ou que vous l'ayez installé par le registry. Vous n'avez aucune
+mise à jour amont à absorber qui écraserait vos traductions — le seul geste qui les écrase
+est de relancer `npx shadcn add` sur le même item.
+
+## Le motif visé, applicable dès maintenant
+
+La cible du template est **un dictionnaire de libellés par composant, surchargeable par
+prop, avec le français en valeur par défaut** — pas une librairie i18n complète, qui
+imposerait un runtime et un provider à tous les utilisateurs du registry, y compris à ceux
+qui n'installent qu'un bouton.
+
+Si vous traduisez un composant maintenant, adoptez cette forme plutôt qu'un remplacement de
+chaîne : elle est rétrocompatible, et le jour où le template généralisera le mécanisme,
+votre code sera déjà à la bonne forme.
+
+Trois règles font tout le motif :
+
+1. **Un objet unique**, `labels`, et non une prop par chaîne. Sinon un composant qui affiche
+   six textes prend six props.
+2. **Les défauts français dans une constante de module**, fusionnée avec la surcharge. Un
+   appelant qui ne traduit que deux libellés sur six garde les quatre autres.
+3. **Aucune clé nouvelle sans usage.** Le dictionnaire décrit ce que le composant affiche,
+   pas ce qu'il pourrait afficher.
+
+## Exemple complet
+
+Passer la barre de recherche en anglais, en lui donnant le dictionnaire que P5.4
+généralisera.
+
+```jsx
+// src/features/header/components/SearchBar/SearchBar.jsx
+'use client';
+
+// … imports inchangés …
+
+// Seuil de longueur de requête en dessous duquel on n'affiche rien.
+const MIN_QUERY_LENGTH = 2;
+const MAX_SUGGESTIONS = 10;
+
+// =================================================================
+// LIBELLÉS — défauts français, surchargeables par la prop `labels`
+// =================================================================
+// Constante de MODULE et non valeur par défaut de la prop : c'est ce qui permet la
+// fusion partielle plus bas. Un appelant qui ne traduit que le placeholder garde les
+// trois autres libellés en français, au lieu de les perdre.
+const DEFAULT_LABELS = {
+    form: "Rechercher dans l'application",
+    placeholder: 'Rechercher... (Ctrl+K)',
+    clear: 'Effacer la recherche',
+    suggestions: 'Suggestions de recherche',
+};
+
+/**
+ * Search bar component for the application.
+ *
+ * @param {Object} [props] - Component props.
+ * @param {Object} [props.labels] - Wording overrides, merged over the French defaults.
+ *   Keys: `form`, `placeholder`, `clear`, `suggestions`.
+ * @returns {JSX.Element} The rendered search bar component.
+ */
+const SearchBar = ({ labels: labelOverrides }) => {
+    // Fusion à plat : les clés absentes de la surcharge gardent leur défaut. Pas de
+    // useMemo — le compilateur React s'en charge, et l'objet ne sert aucune identité.
+    const labels = { ...DEFAULT_LABELS, ...labelOverrides };
+
+    // … état et gestionnaires inchangés …
+
+    return (
+        <div className={`search-container ${isFocused ? 'search-container--focused' : ''}`}>
+            <form
+                ref={formRef}
+                role="search"
+                className="search-form"
+                onSubmit={handleSubmit}
+                aria-label={labels.form}
+            >
+                <SearchIcon />
+
+                <input
+                    ref={inputRef}
+                    type="search"
+                    name="search"
+                    className="search-input"
+                    placeholder={labels.placeholder}
+                    /* … autres attributs inchangés … */
+                />
+
+                {searchValue && (
+                    <button
+                        type="button"
+                        className="search-clear"
+                        onClick={handleClear}
+                        aria-label={labels.clear}
+                    >
+                        <ClearIcon />
+                    </button>
+                )}
+            </form>
+
+            {isExpanded && (
+                <div
+                    id="search-suggestions"
+                    className="search-suggestions"
+                    role="listbox"
+                    aria-label={labels.suggestions}
+                >
+                    {/* … suggestions inchangées … */}
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default SearchBar;
+```
+
+Le composant reste utilisable sans rien passer, exactement comme avant. `Header` propage
+ensuite la surcharge — c'est une prop à lui ajouter, il n'en a pas aujourd'hui :
+
+```jsx
+// src/features/header/components/Header/Header.jsx
+// Signature : ajouter `searchLabels` aux props existantes.
+const Header = ({ navigationData = [], navigationType = 'topbar', searchLabels, /* … */ }) => (
+    // …
+    <SearchBar labels={searchLabels} />
+);
+```
+
+Et l'application décide, en un seul endroit — le layout du groupe de routes qui rend le
+header :
+
+```jsx
+// src/app/(site)/layout.jsx
+const SEARCH_LABELS_EN = {
+  form: 'Search the application',
+  placeholder: 'Search... (Ctrl+K)',
+  clear: 'Clear search',
+  suggestions: 'Search suggestions',
+};
+
+<Header
+    navigationData={navigationTree}
+    navigationType={siteConfig.navigation.type}
+    useSwitcher={siteConfig.navigation.useSwitcher}
+    homeHref={DEMO_BASE_PATH}
+    searchLabels={SEARCH_LABELS_EN}
+/>
+```
+
+Le dictionnaire traverse ici une frontière Server → Client : c'est un objet de chaînes,
+donc sérialisable, et il passe sans difficulté. La règle à ne pas oublier est celle des
+fonctions, qui ne passent pas — si vous mettez un jour un formateur dans ce dictionnaire,
+il devra être construit côté client.
+
+Reste le contenu, qui ne passe par aucune prop :
+
+```jsonc
+// config/site.config.json — la langue du document et les libellés de pages
+{
+  "$schema": "./schema/site.schema.json",
+  "site": {
+    "title": "Macroeconomic Observatory",
+    "description": "Macroeconomic series and projections.",
+    // Change le formatage des dates et des nombres par Intl, la césure du navigateur
+    // et la prononciation par les lecteurs d'écran. À ne pas oublier.
+    "locale": "en"
+  },
+  "navigation": {
+    "type": "sidebar",
+    "useSwitcher": false,
+    "tree": [
+      { "path": "/", "name": "Home", "type": "home" },
+      {
+        "path": "/national-accounts",
+        "name": "National accounts",
+        "type": "indicator_group",
+        "description": "National accounts aggregates, by country.",
+        "children": [
+          { "path": "/gdp", "name": "GDP", "type": "indicator" }
+        ]
+      },
+      { "path": "/about", "name": "About", "type": "about" }
+    ]
+  }
+}
+```
+
+```bash
+npm run validate:config   # le manifeste reste valide : seules les valeurs ont changé
+npm run build:search      # l'index de recherche se régénère dans la nouvelle langue
+```
+
+Une dernière chose que ce montage ne fait pas, et qu'il faut savoir avant de vous y engager :
+il produit une application **monolingue**, dans la langue de votre choix. Servir deux langues
+simultanément demanderait un segment de route par langue et un manifeste par langue — ce que
+la route attrape-tout permettrait, mais qu'aucun code du template ne fait aujourd'hui.
