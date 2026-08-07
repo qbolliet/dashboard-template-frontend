@@ -53,6 +53,17 @@ const eslintConfig = [
       "@typescript-eslint/no-require-imports": "off",
     },
   },
+  {
+    // e2e/ (Playwright) tourne sous Node, pas dans le navigateur ni sous Next : globals
+    // Node, et les règles React/Next (hooks, composants) n'ont rien à y vérifier.
+    files: ["e2e/**/*.ts", "playwright.config.ts"],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      "react-hooks/rules-of-hooks": "off",
+    },
+  },
 ];
 
 export default eslintConfig;

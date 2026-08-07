@@ -3708,6 +3708,28 @@
       }
     },
     {
+      "name": "table-api",
+      "type": "registry:block",
+      "title": "Données API — branchement direct de useFactTableWithMetadata sur <Table>",
+      "description": "Le hook expose `loading`/`error` en plus des lignes et du schéma de colonnes : le rendu se décompose donc en trois branches (erreur, chargement, succès) plutôt que de masquer l'attente derrière des données de démonstration — même principe que chart-api.jsx pour <Chart>.",
+      "dependencies": [],
+      "registryDependencies": [
+        "table",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/table-api.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/table-api.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "table"
+      }
+    },
+    {
       "name": "table-basic",
       "type": "registry:block",
       "title": "Tableau dérivé des métadonnées",
@@ -3767,6 +3789,28 @@
           "path": "registry/examples/table-default-filter.jsx",
           "type": "registry:file",
           "target": "~/src/examples/table-default-filter.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "table"
+      }
+    },
+    {
+      "name": "table-empty",
+      "type": "registry:block",
+      "title": "Aucune ligne",
+      "description": "`data` vide : les colonnes restent dérivées de `columnsMetadata`, seul le corps du tableau change — un message de remplacement plutôt qu'un tableau blanc muet.",
+      "dependencies": [],
+      "registryDependencies": [
+        "table",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/table-empty.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/table-empty.jsx"
         }
       ],
       "meta": {

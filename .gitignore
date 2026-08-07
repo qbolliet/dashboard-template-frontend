@@ -13,6 +13,13 @@
 # testing
 /coverage
 
+# playwright (rapports/traces de npm run test:e2e — les instantanés de référence,
+# eux, sont committés : e2e/*.spec.ts-snapshots/)
+/test-results/
+/playwright-report/
+/playwright/.cache/
+/blob-report/
+
 # next.js
 /.next/
 src/**/.next/

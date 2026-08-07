@@ -129,11 +129,81 @@ token conventions.
 - `npm run dev:api` — start the dev server against `NEXT_PUBLIC_API_URL`
 - `npm run mock:api` — start just the mock GraphQL endpoint (`http://localhost:4000/graphql`)
 - `npm run lint` — lint the codebase with ESLint
+- `npm run test` — run the unit tests (Vitest)
+- `npm run test:e2e` — run the Playwright suite (smoke, visual regression, edge cases)
 - `npm run check:palette` — verify design-system color palette consistency
 - `npm run validate:config` — validate the site manifest against its JSON Schema
 - `npm run check:gql` — validate the GraphQL documents against `scripts/schema.graphql`
-- `npm run verify` — the full gate: lint, palette, config, GraphQL documents, and
-  the generated registry / props / docs-index / tokens artifacts
+- `npm run verify` — the full gate: lint, unit tests, palette, config, GraphQL
+  documents, and the generated registry / props / docs-index / tokens artifacts
+
+## Testing
+
+Two layers, colocated with what they exercise:
+
+- **Unit tests** (`src/**/*.test.js`, `npm run test`) — pure functions: filter
+  engine, cell formatting, channel assignment, navigation resolvers…
+- **End-to-end tests** (`e2e/`, `npm run test:e2e`, [Playwright](https://playwright.dev)) —
+  three nets, all driving the real documentation site rather than a separate test
+  harness (same dogfooding principle as the rest of the docs — see
+  `docs/content/composants/index.mdx`):
+  - `smoke.spec.ts` — every documentation page (from `docs/content/**.mdx`) and every
+    route generated from `config/site.config.json` loads with no console error and no
+    failed request. Routes are derived at test-collection time
+    (`e2e/helpers/routes.js`), never hard-coded, so a new page or manifest node is
+    covered automatically.
+  - `visual.spec.ts` — screenshot regression of the key components (header, in both
+    its topbar and sidebar variants; chart; table; stat card; criterion menu), in
+    light and dark, captured via their documentation playground frozen on its default
+    values.
+  - `edge-cases.spec.ts` — the limit cases inherited from the removed `/test-*` pages
+    (see `TEMPLATIZATION_PROMPTS.md`, P4.6): chart ISO-date coercion and
+    loading/error/success branching, the heatmap's two legend layouts, table
+    loading/error/empty states, the globe's `prefers-reduced-motion` behavior and
+    repeated-mount WebGL context handling, and the five Tabs limit cases (disabled,
+    `keepMounted`, controlled, no default, overflow).
+
+  First run, install the browser binary once: `npx playwright install chromium`.
+  `npm run test:e2e` then starts its own dev server on port 3100 (see
+  `playwright.config.ts`), so it won't collide with one you're already running on
+  3000.
+
+  **Regenerating screenshots** — after an intentional visual change:
+
+  ```bash
+  npm run test:e2e:update
+  ```
+
+  This overwrites every `*.png` under `e2e/*.spec.ts-snapshots/`; review the diff
+  before committing (`git diff --stat e2e/`) to make sure only the components you
+  meant to change actually moved. To regenerate a single suite, add a grep filter:
+  `npx playwright test visual.spec.ts --update-snapshots`.
+
+  Playwright names snapshots with the OS and browser they were captured on
+  (`*-chromium-win32.png`, `*-chromium-linux.png`…) — a baseline generated on your
+  machine and one generated in CI are **different files**, not a mismatch of the
+  same one. Regenerate from whichever environment is the source of truth for your
+  workflow; to match a Linux CI runner exactly (font rendering can differ enough to
+  matter), regenerate inside the official
+  [`mcr.microsoft.com/playwright`](https://playwright.dev/docs/docker) image rather
+  than on a different host OS.
+
+  **Instability sources are neutralized deliberately, not incidentally**:
+  - `prefers-reduced-motion: reduce` is the project-wide default (`playwright.config.ts`),
+    which freezes both CSS animations/transitions and the globe's JS-driven rotation
+    (`src/features/globe/components/Globe/Globe.jsx` reads the same media feature at
+    mount). Screenshot assertions additionally freeze CSS animations/transitions on
+    their own.
+  - The globe is **excluded from pixel-based comparison** rather than given a loose
+    threshold: this WebGL canvas was found, in practice, unreadable through
+    `toDataURL`/`getImageData` (always returns a blank buffer) and unable to reach
+    Playwright's "stable frame" precondition for `.screenshot()` under software
+    rendering (headless, no GPU) — see the comments at the top of the `Globe`
+    `describe` block in `edge-cases.spec.ts`. Its coverage is DOM/console-based
+    instead: it mounts without a console error under reduced motion, and repeated
+    client-side mount/unmount cycles don't leak a WebGL context error.
+  - Table/StatCard/Chart playgrounds use static or seeded demo data — no timestamped
+    values to freeze.
 
 ## License
 
