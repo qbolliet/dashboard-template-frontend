@@ -45,6 +45,10 @@ export const controls = {
     showSlider: { type: 'boolean', label: 'showSlider', default: true, row: 1 },
     parentheses: { type: 'boolean', label: 'parentheses', default: false, row: 1 },
     hideOperationWhenSet: { type: 'boolean', label: 'Masquer l’opération une fois choisie', default: false, row: 2 },
+    // Démonstration du figeage « filtre de dashboard fixé sur une colonne » : la variable
+    // n'est plus qu'une seule option (celle du seed) et le select se désactive via
+    // `lockedVariable`, plutôt que de laisser l'utilisateur en changer.
+    locked: { type: 'boolean', label: 'locked (variable figée)', default: false, row: 2 },
 };
 
 export const scaffold = {
@@ -74,7 +78,7 @@ export const hint = (
  * @param {Object} values - Current control values.
  * @returns {Object} Props handed to both the preview and the serializer.
  */
-export const toProps = ({ kind, hideOperationWhenSet, ...rest }) => ({
+export const toProps = ({ kind, hideOperationWhenSet, locked, ...rest }) => ({
     criterion: expr('criterion', SEEDS[kind]),
     onChange: expr('setCriterion', undefined),
     variables: expr('variables', undefined),
@@ -82,6 +86,9 @@ export const toProps = ({ kind, hideOperationWhenSet, ...rest }) => ({
     // La page d'origine dérivait showOperation ainsi : masquer l'opération une fois
     // qu'elle est renseignée.
     showOperation: !hideOperationWhenSet || !SEEDS[kind].operation,
+    // `locked` est le nom du contrôle (parle du scénario) ; `lockedVariable` est le nom
+    // réel de la prop du composant (désactive le select Variable).
+    lockedVariable: locked,
     kind,
     ...rest,
 });
@@ -116,22 +123,31 @@ const CriterionCard = ({ seed, variables, ...rest }) => {
  *
  * @param {Object} props - Props derived from the controls.
  * @param {string} props.kind - Demo-only knob selecting the seeded variable type.
+ * @param {boolean} props.lockedVariable - Demo-only knob restricting `variables` to the
+ *   seeded variable and disabling the Variable select (dashboard filter fixed to one
+ *   column).
  * @returns {JSX.Element} The rendered criterion card.
  */
 const CriterionMenuPlayground = ({
-    kind, validate, footer, showLabels, showSlider, parentheses, showOperation,
+    kind, validate, footer, showLabels, showSlider, parentheses, showOperation, lockedVariable,
 }) => {
     const { fields } = useVariableMetadata();
     const allVars = metadataToVariables(fields);
 
     // Sous-ensemble de variables cohérent avec le type sélectionné : proposer une date
     // dans une carte numérique n'apprendrait rien sur la prop qu'on manipule.
-    const variables = allVars.filter((variable) => {
+    const kindVars = allVars.filter((variable) => {
         if (kind === 'catégoriel') return variable.is_categorical;
         if (kind === 'date') return variable.sql_type?.includes('date') || variable.sql_type?.includes('timestamp');
         if (kind === 'numérique') return !variable.is_categorical && isNumericSqlType(variable.sql_type);
         return !variable.is_categorical && !isNumericSqlType(variable.sql_type);
     });
+
+    // `locked` (« filtre de dashboard fixé sur une colonne ») : plus qu'une seule variable
+    // sélectionnable — celle déjà semée pour ce type — en plus de désactiver le select.
+    const variables = lockedVariable
+        ? kindVars.filter((variable) => variable.value === SEEDS[kind].variable)
+        : kindVars;
 
     return (
         <CriterionCard
@@ -143,7 +159,8 @@ const CriterionMenuPlayground = ({
             showLabels={showLabels}
             showSlider={showSlider}
             parentheses={parentheses}
-            showOperation={showOperation} />
+            showOperation={showOperation}
+            lockedVariable={lockedVariable} />
     );
 };
 

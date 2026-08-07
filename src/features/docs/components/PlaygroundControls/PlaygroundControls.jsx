@@ -14,14 +14,14 @@ import './PlaygroundControls.scss';
 // l'emportait silencieusement sur les autres.
 //
 // Le fichier a migré de src/app/_playground/ vers la feature de documentation : c'est
-// désormais <ComponentPlayground> qui en est le consommateur principal, via l'aiguilleur
+// désormais <ComponentPlayground> qui en est le consommateur unique, via l'aiguilleur
 // PlaygroundControlPanel.jsx qui traduit un schéma de docs/playgrounds/ en contrôles.
-// Les pages /test-* y accèdent encore par une coquille de réexport
-// (src/app/_playground/index.js), jusqu'à leur suppression en P4.6.
+// Les pages /test-* et la coquille de réexport src/app/_playground/ ont été supprimées
+// en P4.6 — ce fichier est désormais la SEULE implémentation de contrôles du dépôt.
 //
 // Les classes restent GLOBALES et gardent leurs noms (.tp-section, .ctrl-*,
-// .tp-ctrl-btn) : cinq page.scss de /test-* les visent encore. Les renommer relève de
-// P4.6, une fois ces pages parties.
+// .tp-ctrl-btn) : plus aucune page.scss de /test-* ne les vise, mais les renommer reste
+// un nettoyage séparé, non nécessaire à P4.6.
 //
 // Motif ARIA retenu pour les groupes d'options exclusives (CtrlRadio) :
 // role="group" + aria-labelledby, et aria-pressed sur chaque <button>. On ne

@@ -2,7 +2,7 @@
 // ATTENTION : aucun import des barils `@/features/table` ni `@/features/chart` ici.
 // Ils réexportent des hooks SWR qui n'ont pas de directive 'use client' propre, que le
 // compilateur RSC refuse de résoudre depuis un Server Component (piège documenté en
-// tête de src/app/test-table/page.js). Tout ce qui touche à ces features vit dans
+// tête de docs/playgrounds/table.jsx). Tout ce qui touche à ces features vit dans
 // l'îlot client IndicatorExplorer.
 import { requestSafe } from '@/lib/api/serverRequest';
 import { GET_CATALOG_SCHEMA, GET_FACT_TABLE_WITH_METADATA } from '@/lib/api/documents';

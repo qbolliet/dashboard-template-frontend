@@ -63,8 +63,15 @@ export const hint = (
         Le composant n&apos;expose que le JSON structuré : le SQL affiché ci-dessous est
         dérivé <em>en page</em> par <code>treeToSQL</code>. C&apos;est délibéré — le JSON
         est à terme le seul échange avec l&apos;API.
+        {' '}<code>wrap</code> n&apos;a d&apos;effet qu&apos;en orientation horizontale.
     </>
 );
+
+// Chaque feuille de l'arbre porte un drapeau `complete` : un critère auquel il manque la
+// variable, l'opération ou la valeur produit un « ? » dans le SQL. Logique reprise telle
+// quelle de `registry/examples/multi-criterion-menu-basic.jsx`.
+const isComplete = (node) =>
+    node.type === 'criterion' ? node.complete : node.children.every(isComplete);
 
 /**
  * Maps the control values onto real `<MultiCriterionMenu>` props.
@@ -103,7 +110,9 @@ const MultiCriterionMenuPlayground = ({
 
     // Résultat structuré produit par le composant : { criteria, tree, balanced, serial }.
     const [result, setResult] = useState(null);
-    const sql = result?.tree ? treeToSQL(result.tree) : '';
+    // `balanced` dit si les parenthèses se referment : une clause déséquilibrée n'est pas
+    // traduisible en SQL, un critère incomplet non plus (il produirait un « ? »).
+    const sql = result?.balanced && isComplete(result.tree) ? treeToSQL(result.tree) : '';
 
     return (
         <>

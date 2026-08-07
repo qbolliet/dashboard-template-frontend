@@ -76,13 +76,6 @@
         ]
       },
       {
-        "path": "/filter-primitives",
-        "name": "Filter Primitives",
-        "type": "indicator_group",
-        "description": "Banc d'essai des primitives de filtrage.",
-        "searchable": false
-      },
-      {
         "path": "/about",
         "name": "À propos",
         "type": "about",

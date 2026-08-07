@@ -17,10 +17,17 @@
 
 export const PLAYGROUND_MODULES = {
     'chart': () => import('./chart.jsx'),
+    'constraint-field': () => import('./constraint-field.jsx'),
     'criterion-menu': () => import('./criterion-menu.jsx'),
+    'globe': () => import('./globe.jsx'),
+    'header': () => import('./header.jsx'),
     'multi-criterion-menu': () => import('./multi-criterion-menu.jsx'),
+    'select-menu': () => import('./select-menu.jsx'),
     'stat-card': () => import('./stat-card.jsx'),
+    'table': () => import('./table.jsx'),
     'tabs': () => import('./tabs.jsx'),
+    'tooltip': () => import('./tooltip.jsx'),
+    'type-aware-input': () => import('./type-aware-input.jsx'),
 };
 
 export default PLAYGROUND_MODULES;

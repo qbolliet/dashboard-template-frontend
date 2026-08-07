@@ -2889,6 +2889,72 @@
       ]
     },
     {
+      "name": "chart-api",
+      "type": "registry:block",
+      "title": "Données API — branchement direct de useFactTable sur <Chart>",
+      "description": "`useFactTable()` renvoie des lignes au format long (`getFactTableWithMetadata`, `format: OBJECTS`) directement consommables par `<Chart>` : aucun reformatage. La colonne `date_obs` arrive en chaîne ISO — c'est `coerce()`, en interne au composant, qui la convertit en date. Le hook expose aussi `loading`/`error` : le rendu se décompose donc en trois branches (erreur, chargement, succès) plutôt que de masquer l'attente derrière des données de démonstration.",
+      "dependencies": [],
+      "registryDependencies": [
+        "chart",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/chart-api.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/chart-api.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "chart"
+      }
+    },
+    {
+      "name": "chart-bar-full",
+      "type": "registry:block",
+      "title": "Barres verticales — trois canaux hue + intervalles + normalisation",
+      "description": "`hue` prend ses trois colonnes : Année → couleur, Scénario → hachures, Méthode → marqueur. La barre d'outils ajoute un intervalle de confiance (bandes ±1/±2 issues d'un jeu séparé aligné sur Secteur × Année) et une normalisation qui rebase toutes les barres sur le secteur « Industrie ».",
+      "dependencies": [],
+      "registryDependencies": [
+        "chart",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/chart-bar-full.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/chart-bar-full.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "chart"
+      }
+    },
+    {
+      "name": "chart-bar-horizontal",
+      "type": "registry:block",
+      "title": "Barres horizontales — axes inversés, trois canaux hue",
+      "description": "`x` porte la mesure numérique et `y` la catégorie : les barres se couchent. Mêmes trois canaux hue que la variante verticale (Année → couleur, Scénario → hachures, Méthode → marqueur), avec un intervalle de confiance et une normalisation rebasée sur la région « Île-de-France ».",
+      "dependencies": [],
+      "registryDependencies": [
+        "chart",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/chart-bar-horizontal.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/chart-bar-horizontal.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "chart"
+      }
+    },
+    {
       "name": "chart-basic",
       "type": "registry:block",
       "title": "Série temporelle simple",
@@ -2903,6 +2969,94 @@
           "path": "registry/examples/chart-basic.jsx",
           "type": "registry:file",
           "target": "~/src/examples/chart-basic.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "chart"
+      }
+    },
+    {
+      "name": "chart-combo-area",
+      "type": "registry:block",
+      "title": "Multi-jeux — même série en aire et en ligne",
+      "description": "`data` reçoit deux fois le MÊME jeu de lignes, une fois avec `fill: 'line'` et une fois avec `fill: 'fill'`, pour superposer une courbe à son aire. L'ordre dans la liste fixe l'ordre de dessin : le 1er jeu de la liste est DEVANT le 2e — donc ici la ligne (déclarée en premier) se dessine au-dessus de l'aire (déclarée en second), et non l'inverse comme on pourrait le supposer naïvement. `Pays`, commun aux deux jeux, coordonne la couleur entre l'aire et la ligne.",
+      "dependencies": [],
+      "registryDependencies": [
+        "chart",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/chart-combo-area.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/chart-combo-area.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "chart"
+      }
+    },
+    {
+      "name": "chart-combo-bar",
+      "type": "registry:block",
+      "title": "Multi-jeux — courbe mensuelle + barres trimestrielles",
+      "description": "`data` accepte une liste de jeux au lieu d'un tableau de lignes unique : chaque entrée porte son propre `data`, son `fill` et son `hue`, mais partage l'axe x continu (dates) défini au niveau du `<Chart>`. Le jeu trimestriel force `'categorical-x': true` pour être rendu en barres positionnées à leur date plutôt qu'en points d'une courbe. `Pays` est commun aux deux jeux : la couleur reste cohérente entre la courbe et les barres pour un même pays.",
+      "dependencies": [],
+      "registryDependencies": [
+        "chart",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/chart-combo-bar.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/chart-combo-bar.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "chart"
+      }
+    },
+    {
+      "name": "chart-density",
+      "type": "registry:block",
+      "title": "Density plot — nuage 2D résumé par une KDE",
+      "description": "`x` et `y` numériques avec `z` agrégé (densité) déclenchent une estimation de densité par noyau à deux dimensions (`d3.contourDensity`) plutôt qu'un nuage de points brut — utile dès que le nombre de lignes rend un scatter illisible (ici 1200 observations). Comme pour la heatmap, x et y sont deux axes indépendants : la normalisation prend donc un réticule `{ x, y }` plutôt qu'une valeur scalaire.",
+      "dependencies": [],
+      "registryDependencies": [
+        "chart",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/chart-density.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/chart-density.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "chart"
+      }
+    },
+    {
+      "name": "chart-heatmap",
+      "type": "registry:block",
+      "title": "Heatmap — deux catégories croisées, une mesure en couleur",
+      "description": "`x` et `y` sont tous deux catégoriels (mois, pays) ; `z` colore chaque case. `fill=\"fill\"` peint des cases pleines (l'alternative `\"line\"` ne trace que leurs contours). Sur un croisement x/y, la normalisation ne peut pas ancrer un seul point de l'axe : elle prend un réticule `{ x, y }` déplaçable sur la grille plutôt qu'une valeur scalaire.",
+      "dependencies": [],
+      "registryDependencies": [
+        "chart",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/chart-heatmap.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/chart-heatmap.jsx"
         }
       ],
       "meta": {
@@ -2955,6 +3109,94 @@
       }
     },
     {
+      "name": "chart-violin",
+      "type": "registry:block",
+      "title": "Violin plot — distribution par catégorie, trois canaux hue",
+      "description": "`x` catégoriel + `y` numérique produisent une densité (KDE epanechnikov) par catégorie, doublée d'une boîte à moustaches ; `z` pondère l'épaisseur par la taille d'échantillon. Les trois canaux hue se répartissent en couleur (Jeu), hachures (Optimiseur) et marqueur à la médiane (Init).",
+      "dependencies": [],
+      "registryDependencies": [
+        "chart",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/chart-violin.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/chart-violin.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "chart"
+      }
+    },
+    {
+      "name": "constraint-field-api-bounds",
+      "type": "registry:block",
+      "title": "Bornes résolues via l'API (useRangeBounds)",
+      "description": "Sans `min`/`max`/`step` explicites, ConstraintField interroge `useRangeBounds` via `fieldName` : les bornes du slider et son pas viennent alors de l'API (ou des fixtures locales en mode démo), pas de props statiques. Une prop explicite resterait prioritaire si elle était fournie.",
+      "dependencies": [],
+      "registryDependencies": [
+        "constraint-field",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/constraint-field-api-bounds.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/constraint-field-api-bounds.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "constraint-field"
+      }
+    },
+    {
+      "name": "constraint-field-controlled",
+      "type": "registry:block",
+      "title": "ConstraintField avec callbacks branchés sur un état visible",
+      "description": "ConstraintField n'a pas de prop `value` — c'est un composant non contrôlé — mais ses callbacks s'utilisent comme ceux d'un composant contrôlé : `onChange` remonte `{ value }` (valeur unique) ou `{ min, max }` (plage), et `onValidityChange` un booléen séparé, rempli ET cohérent (type valide, low ≤ high, dans les bornes si connues). Cet exemple répercute les deux dans un état React affiché sous le champ.",
+      "dependencies": [],
+      "registryDependencies": [
+        "constraint-field",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/constraint-field-controlled.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/constraint-field-controlled.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "constraint-field"
+      }
+    },
+    {
+      "name": "constraint-field-date-range",
+      "type": "registry:block",
+      "title": "Plage de dates avec calendrier double et curseur partagé",
+      "description": "`valueType=\"date\"` combiné à `rangeMode` compose un unique calendrier double (une plage \"JJ/MM/AAAA → JJ/MM/AAAA\") ; le slider projette les deux bornes sur un axe en millisecondes (pas par défaut : un jour). `min`/`max` acceptent le même format JJ/MM/AAAA que la saisie manuelle.",
+      "dependencies": [],
+      "registryDependencies": [
+        "constraint-field",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/constraint-field-date-range.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/constraint-field-date-range.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "constraint-field"
+      }
+    },
+    {
       "name": "constraint-field-range",
       "type": "registry:block",
       "title": "Intervalle numérique borné",
@@ -2991,6 +3233,50 @@
           "path": "registry/examples/criterion-menu-basic.jsx",
           "type": "registry:file",
           "target": "~/src/examples/criterion-menu-basic.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "filter"
+      }
+    },
+    {
+      "name": "criterion-menu-brackets",
+      "type": "registry:block",
+      "title": "Crochets de regroupement",
+      "description": "`parentheses` fait apparaître deux boutons crochet de part et d'autre de la carte, qui portent `bracketLeft` / `bracketRight` dans le critère — la granularité que `MultiCriterionMenu` combine ensuite pour équilibrer une expression logique. Le panneau JSON ci-dessous rend visible ce que les clics changent réellement dans l'état.",
+      "dependencies": [],
+      "registryDependencies": [
+        "filter",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/criterion-menu-brackets.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/criterion-menu-brackets.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "filter"
+      }
+    },
+    {
+      "name": "criterion-menu-locked",
+      "type": "registry:block",
+      "title": "Critère figé sur une colonne",
+      "description": "`lockedVariable` désactive le select Variable : la carte reste utilisable (opération, valeur) mais ne porte plus que sur la colonne déjà choisie. Utile pour un filtre de dashboard fixé sur une colonne (ex. un widget qui ne doit jamais filtrer sur autre chose que « gdp »).",
+      "dependencies": [],
+      "registryDependencies": [
+        "filter",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/criterion-menu-locked.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/criterion-menu-locked.jsx"
         }
       ],
       "meta": {
@@ -3043,6 +3329,94 @@
       }
     },
     {
+      "name": "globe-no-toolbar",
+      "type": "registry:block",
+      "title": "Toolbar absente",
+      "description": "`toolbar={[]}` supprime à la fois la barre et sa zone de survol haut-droite : le globe reste manipulable à la souris (glisser pour tourner, molette pour zoomer), mais aucun interrupteur ne le pilote.",
+      "dependencies": [],
+      "registryDependencies": [
+        "globe",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/globe-no-toolbar.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/globe-no-toolbar.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "globe"
+      }
+    },
+    {
+      "name": "globe-points-only",
+      "type": "registry:block",
+      "title": "Points seuls, sans rotation",
+      "description": "Aucun `arcs` : les clés `arcs`/`arcsDynamic` sont retirées de la toolbar, et leur groupe disparaît sans laisser de séparateur orphelin. `defaultAutoRotate={false}` démarre la scène immobile. Autre dépendance croisée : masquer les points (bouton dédié) grise en retour le bouton tooltips, faute de rien à survoler.",
+      "dependencies": [],
+      "registryDependencies": [
+        "globe",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/globe-points-only.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/globe-points-only.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "globe"
+      }
+    },
+    {
+      "name": "globe-static-arcs",
+      "type": "registry:block",
+      "title": "Flux figés, tooltips désactivées",
+      "description": "`defaultArcsDynamic={false}` démarre les flux en dégradé statique (pas de comète animée le long de l'arc) ; `defaultTooltips={false}` démarre sans infobulle au survol. Toolbar complète : l'autre dépendance croisée se vérifie en masquant les flux, qui grise alors en retour le bouton `arcsDynamic` — plus rien à animer.",
+      "dependencies": [],
+      "registryDependencies": [
+        "globe",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/globe-static-arcs.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/globe-static-arcs.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "globe"
+      }
+    },
+    {
+      "name": "globe-toolbar-restricted",
+      "type": "registry:block",
+      "title": "Toolbar restreinte",
+      "description": "`toolbar` accepte une liste de clés : on choisit à l'instanciation quelles options la barre expose. Ici seulement globe/planisphère, rotation et réinitialisation du zoom — combiné à `defaultMode=\"plane\"`, le globe démarre en planisphère avec une barre réduite à trois interrupteurs.",
+      "dependencies": [],
+      "registryDependencies": [
+        "globe",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/globe-toolbar-restricted.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/globe-toolbar-restricted.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "globe"
+      }
+    },
+    {
       "name": "header-basic",
       "type": "registry:block",
       "title": "En-tête et navigation du site",
@@ -3058,6 +3432,29 @@
           "path": "registry/examples/header-basic.jsx",
           "type": "registry:file",
           "target": "~/src/examples/header-basic.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "header"
+      }
+    },
+    {
+      "name": "header-with-click-handler",
+      "type": "registry:block",
+      "title": "En-tête avec callback de clic sur la navigation",
+      "description": "`onNavigationItemClick` est un point d'extension : la navigation elle-même reste gérée par `next/link` (Header pose le `href`), ce callback est prévu pour brancher de la logique ANNEXE au clic — analytics, notifications, etc. `resolveNavigationTree` transforme les chemins relatifs du manifeste en chemins absolus, comme dans `header-basic`.",
+      "dependencies": [],
+      "registryDependencies": [
+        "header",
+        "tokens-global",
+        "utils-navigation"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/header-with-click-handler.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/header-with-click-handler.jsx"
         }
       ],
       "meta": {
@@ -3110,6 +3507,50 @@
       }
     },
     {
+      "name": "select-menu-disabled",
+      "type": "registry:block",
+      "title": "Sélection unique désactivée, avec une valeur déjà choisie",
+      "description": "`disabled` combiné à une sélection simple portant déjà une seule valeur déclenche le cas particulier de SelectMenu — condition exacte dans SelectMenu.jsx : `disabled && !allowMulti && value.length === 1`. Le rendu bascule alors sur un simple libellé statique, sans dropdown ni bouton, plutôt que sur un champ inerte.",
+      "dependencies": [],
+      "registryDependencies": [
+        "select-menu",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/select-menu-disabled.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/select-menu-disabled.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "select-menu"
+      }
+    },
+    {
+      "name": "select-menu-grouped",
+      "type": "registry:block",
+      "title": "Sélection unique groupée, alimentée par l'API",
+      "description": "`groupField` active le mode groupé : les options arrivent déjà réparties en groupes ([{ group, options }]) ; en sélection simple, les en-têtes de groupe sont de simples titres non interactifs (la case à cocher de groupe n'apparaît qu'en `allowMulti`).",
+      "dependencies": [],
+      "registryDependencies": [
+        "select-menu",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/select-menu-grouped.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/select-menu-grouped.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "select-menu"
+      }
+    },
+    {
       "name": "select-menu-multi",
       "type": "registry:block",
       "title": "Multi-sélection alimentée par l'API",
@@ -3129,6 +3570,29 @@
       "meta": {
         "example": true,
         "of": "select-menu"
+      }
+    },
+    {
+      "name": "stat-card-auto-grid",
+      "type": "registry:block",
+      "title": "Grille auto-adaptative",
+      "description": "`auto` ignore `perRow` : les cartes se répartissent en autant de colonnes que la largeur disponible le permet, chacune au moins aussi large que `minWidth`. Utile quand le nombre de cartes n'est pas fixé à l'avance (nombre de KPI variable selon la page) plutôt qu'un nombre de colonnes figé.",
+      "dependencies": [],
+      "registryDependencies": [
+        "card-grid",
+        "stat-card",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/stat-card-auto-grid.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/stat-card-auto-grid.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "stat-card"
       }
     },
     {
@@ -3154,6 +3618,51 @@
       }
     },
     {
+      "name": "stat-card-button",
+      "type": "registry:block",
+      "title": "Carte-bouton",
+      "description": "Passer `onClick` sans `href` fait rendre la carte en `<article role=\"button\">` : elle devient activable au clavier (Entrée au keydown, Espace au keyup, comme un `<button>` natif) en plus du clic souris. Le chiffre affiché EST le nombre d'activations, ce qui rend visible les deux modes d'activation.",
+      "dependencies": [],
+      "registryDependencies": [
+        "stat-card",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/stat-card-button.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/stat-card-button.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "stat-card"
+      }
+    },
+    {
+      "name": "stat-card-formats",
+      "type": "registry:block",
+      "title": "Formats & variantes",
+      "description": "Cinq réglages indépendants du même composant : `valueTone` teinte le chiffre, l'absence d'`icon` laisse le chiffre occuper toute la ligne, `badge.direction` pilote aussi bien la flèche vers le bas que l'état neutre (\"flat\"), `badge.showArrow` la masque complètement, et `format.prefix`/`format.suffix` entourent la valeur formatée (utile pour une unité qui n'est pas un symbole monétaire ou un pourcentage).",
+      "dependencies": [],
+      "registryDependencies": [
+        "card-grid",
+        "stat-card",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/stat-card-formats.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/stat-card-formats.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "stat-card"
+      }
+    },
+    {
       "name": "stat-card-grid",
       "type": "registry:block",
       "title": "Rangée d'indicateurs",
@@ -3169,6 +3678,28 @@
           "path": "registry/examples/stat-card-grid.jsx",
           "type": "registry:file",
           "target": "~/src/examples/stat-card-grid.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "stat-card"
+      }
+    },
+    {
+      "name": "stat-card-link",
+      "type": "registry:block",
+      "title": "Carte-lien",
+      "description": "Passer `href` fait rendre la carte en `<Link>` (next/link) plutôt qu'en `<article>` : elle devient focusable nativement au clavier (Tab, anneau de focus) sans aucune gestion de touche à écrire soi-même — c'est le comportement natif de `<a href>`.",
+      "dependencies": [],
+      "registryDependencies": [
+        "stat-card",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/stat-card-link.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/stat-card-link.jsx"
         }
       ],
       "meta": {
@@ -3222,6 +3753,72 @@
       }
     },
     {
+      "name": "table-default-filter",
+      "type": "registry:block",
+      "title": "Tableau avec filtre par défaut",
+      "description": "`defaultFilter` prend directement la forme que produit `filterEngine.buildTree` : un groupe racine (profondeur 0) dont les feuilles portent `sqlType` / `isCategorical` (jamais un type abstrait) — ici secteur ∈ {Macro, Finance} ET observations > 100. C'est la même forme qu'un `<MultiCriterionMenu>` produit en direct (cf. `table-with-filter`) ; rien n'empêche de la construire à la main.",
+      "dependencies": [],
+      "registryDependencies": [
+        "table",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/table-default-filter.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/table-default-filter.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "table"
+      }
+    },
+    {
+      "name": "table-extra-tools",
+      "type": "registry:block",
+      "title": "Tableau avec outil personnalisé",
+      "description": "`extraTools` injecte des opérations arbitraires en tête de la barre d'outils flottante, dans le même format `ToolSpec` que la toolbar mutualisée (`id`, `icon`, `label`, `caption`, `active`, `onClick`). Démonstration : une bascule de densité d'affichage, pilotée par un état local, qui module aussi le `className` du tableau — le token CSS `--data-table-td-padding-y` (celui que `Table.scss` définit pour le padding vertical des cellules) est surchargé sous la classe `.data-table--dense` plutôt qu'inventé.",
+      "dependencies": [],
+      "registryDependencies": [
+        "table",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/table-extra-tools.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/table-extra-tools.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "table"
+      }
+    },
+    {
+      "name": "table-readonly",
+      "type": "registry:block",
+      "title": "Tableau en lecture seule",
+      "description": "`enableSort`, `enableFilter` et `enableColumnRemoval` à `false` : ni tri au clic sur un en-tête, ni entonnoir de filtre par valeurs, ni croix de suppression de colonne au survol. Le reset de la barre d'outils reste masqué (rien à réinitialiser) ; exports CSV/Parquet et copies de requête restent actifs.",
+      "dependencies": [],
+      "registryDependencies": [
+        "table",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/table-readonly.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/table-readonly.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "table"
+      }
+    },
+    {
       "name": "table-with-filter",
       "type": "registry:block",
       "title": "Tableau filtré par un MultiCriterionMenu",
@@ -3259,6 +3856,116 @@
           "path": "registry/examples/tabs-basic.jsx",
           "type": "registry:file",
           "target": "~/src/examples/tabs-basic.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "tabs"
+      }
+    },
+    {
+      "name": "tabs-controlled",
+      "type": "registry:block",
+      "title": "Mode contrôlé",
+      "description": "`value` et `onChange` transfèrent la propriété de l'onglet actif au parent : `<Tabs>` ne garde alors plus aucun état interne, il se contente de refléter la valeur reçue et de notifier chaque changement. Pratique pour synchroniser l'onglet actif avec le reste de l'interface — ici, une simple ligne de texte.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tabs",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/tabs-controlled.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/tabs-controlled.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "tabs"
+      }
+    },
+    {
+      "name": "tabs-disabled",
+      "type": "registry:block",
+      "title": "Onglet désactivé",
+      "description": "`disabled` sur un `<Tab>` le laisse visible mais le rend non sélectionnable : le clic n'active plus son panneau et la navigation au clavier (flèches) le saute purement et simplement, comme s'il n'était pas dans la piste.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tabs",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/tabs-disabled.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/tabs-disabled.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "tabs"
+      }
+    },
+    {
+      "name": "tabs-keep-mounted",
+      "type": "registry:block",
+      "title": "Persistance d'un panneau avec `keepMounted`",
+      "description": "Sans `keepMounted`, un `<TabPanel>` inactif est démonté (il retourne `null`) et perd tout état interne à chaque changement d'onglet. Ici, le texte saisi dans « Brouillon » doit survivre à un aller-retour par « Aperçu » : c'est la preuve que le panneau reste monté en arrière-plan — simplement masqué via `[hidden]` — plutôt que recréé à chaque activation.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tabs",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/tabs-keep-mounted.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/tabs-keep-mounted.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "tabs"
+      }
+    },
+    {
+      "name": "tabs-no-default",
+      "type": "registry:block",
+      "title": "Sans `defaultValue` — repli du roving tabindex",
+      "description": "Aucun onglet ne correspond à la valeur active (ici inexistante) : tous porteraient `tabindex=\"-1\"` et la piste serait entièrement sautée à la tabulation. `<TabList>` désigne alors un onglet de repli qui expose `tabindex=\"0\"` sans pour autant l'activer — `aria-selected` reste `false`, aucun panneau ne s'affiche et `onChange` n'est pas appelé. Ce repli ouvre juste une porte d'entrée au clavier ; il faut ensuite Entrée/Espace ou une flèche pour réellement sélectionner un onglet.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tabs",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/tabs-no-default.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/tabs-no-default.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "tabs"
+      }
+    },
+    {
+      "name": "tabs-overflow",
+      "type": "registry:block",
+      "title": "Nombre libre d'onglets — défilement horizontal",
+      "description": "`<TabList>` accueille autant d'onglets que nécessaire : au-delà de la largeur disponible, la piste défile horizontalement plutôt que de réduire ou d'empiler les onglets. Certains portent une icône, d'autres non — le mélange est libre.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tabs",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/tabs-overflow.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/tabs-overflow.jsx"
         }
       ],
       "meta": {

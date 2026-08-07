@@ -24,9 +24,10 @@ import { PAGE_TYPES } from '@/config/pageTypes';
 // réalisent. Les deux doivent rester en phase.
 //
 // Un segment statique l'emporte toujours sur un segment dynamique : cette route gagne
-// donc sur (docs)/[[...slug]] pour tout ce qui commence par /demo, exactement comme
-// les routes physiques restantes (src/app/(site)/test-*, filter-primitives) gagnent
-// sur les deux.
+// donc sur (docs)/[[...slug]] pour tout ce qui commence par /demo. Les anciennes routes
+// physiques /test-* et /filter-primitives, qui gagnaient auparavant sur les deux
+// catch-all, ont été supprimées en P4.6 — leur rôle de banc d'essai est repris par les
+// playgrounds du site de documentation (docs/playgrounds/).
 
 // Résolu au niveau module : les `path` du manifeste sont relatifs à leur parent, tout
 // le reste de ce fichier raisonne en chemins absolus, déjà préfixés par /demo.
