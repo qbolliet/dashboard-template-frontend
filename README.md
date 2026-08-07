@@ -1,5 +1,8 @@
 # Dashboard Template Frontend
 
+[![Verify](https://github.com/qbolliet/dashboard-template-frontend/actions/workflows/verify.yml/badge.svg)](https://github.com/qbolliet/dashboard-template-frontend/actions/workflows/verify.yml)
+[![Deploy docs](https://github.com/qbolliet/dashboard-template-frontend/actions/workflows/docs.yml/badge.svg)](https://github.com/qbolliet/dashboard-template-frontend/actions/workflows/docs.yml)
+
 A configurable [Next.js](https://nextjs.org) dashboard template for presenting
 the results of statistical and prediction models. Swap the site manifest, point
 it at your GraphQL API, and you have a data-exploration dashboard.
