@@ -95,7 +95,12 @@ export function evalCriterion(row, leaf) {
     if (op === 'between') {
       const mn = dfNum(value && value.min);
       const mx = dfNum(value && value.max);
-      if (mn == null || mx == null) return true;
+      // Aucune borne → critère neutre (ignoré). Une SEULE borne → contrainte
+      // ouverte de ce côté-là (pas un rejet), plutôt qu'un blanc-seing tant
+      // que la deuxième borne n'est pas saisie.
+      if (mn == null && mx == null) return true;
+      if (mn == null) return c <= mx;
+      if (mx == null) return c >= mn;
       return c >= mn && c <= mx;
     }
     const t = dfNum(value);
@@ -106,7 +111,10 @@ export function evalCriterion(row, leaf) {
       case 'gte': return c >= t;
       case 'lt': return c < t;
       case 'lte': return c <= t;
-      default: return true;
+      // Opération non reconnue (typo, opérateur pas câblé ici) : on EXCLUT la
+      // ligne plutôt que de la laisser passer — un filtre mal formé doit se
+      // remarquer (aucun résultat), pas disparaître silencieusement.
+      default: return false;
     }
   }
 
@@ -118,7 +126,12 @@ export function evalCriterion(row, leaf) {
       const [a, b] = String(value || '').split(' → ');
       const ta = dfTime(a);
       const tb = dfTime(b);
-      if (ta == null || tb == null) return true;
+      // Aucune borne → critère neutre (ignoré). Une SEULE borne → contrainte
+      // ouverte de ce côté-là (pas un rejet), plutôt qu'un blanc-seing tant
+      // que la deuxième borne n'est pas saisie.
+      if (ta == null && tb == null) return true;
+      if (ta == null) return c <= tb;
+      if (tb == null) return c >= ta;
       return c >= ta && c <= tb;
     }
     const t = dfTime(value);
@@ -127,7 +140,10 @@ export function evalCriterion(row, leaf) {
       case 'eq': return c === t;
       case 'before': return c < t;
       case 'after': return c > t;
-      default: return true;
+      // Opération non reconnue (typo, opérateur pas câblé ici) : on EXCLUT la
+      // ligne plutôt que de la laisser passer — un filtre mal formé doit se
+      // remarquer (aucun résultat), pas disparaître silencieusement.
+      default: return false;
     }
   }
 

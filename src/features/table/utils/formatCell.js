@@ -54,10 +54,11 @@ export function isNumericCol(col) {
 
 /**
  * Resolves the display value of a table cell, in priority order:
- * `col.render` (custom node) > `col.format` function > `col.format` FormatSpec
- * object > column-level defaults (localized number for `type: 'number'`, raw
- * string otherwise). Null/empty values render as an em dash, ahead of any
- * other rule.
+ * `col.render` (custom node — called even for a null/empty value, since the
+ * render function owns its own empty-state handling) > null/empty guard (em
+ * dash) > `col.format` function > `col.format` FormatSpec object >
+ * column-level defaults (localized number for `type: 'number'`, raw string
+ * otherwise).
  *
  * @param {*} value - Raw cell value (`row[col.key]`).
  * @param {ColumnDef} col - Column definition.
