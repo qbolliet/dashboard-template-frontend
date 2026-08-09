@@ -45,11 +45,15 @@ const importEsm = (filePath) => import(pathToFileURL(filePath).href);
  * Builds one search-index entry from a resolved (absolute-path) navigation node.
  *
  * @param {Object} node - Entry produced by `flattenNavigation`.
- * @returns {{title: string, path: string, type: string, description: string, keywords: string[]}}
- *   The index entry. `keywords` reste vide pour les nœuds de navigation : rien
- *   dans le manifeste ne l'alimente aujourd'hui (le schéma n'a pas cette clé) ;
- *   le tableau existe pour que la forme reste stable avec les entrées issues de
- *   l'API (voir le point d'extension plus bas).
+ * @returns {{title: string, path: string, type: string, description: string, keywords: string[], breadcrumb: string[]}}
+ *   The index entry. `keywords` porte les synonymes déclarés sur le nœud —
+ *   « GDP » sur la page « PIB » —, déjà résolus dans la langue de l'index.
+ *   `breadcrumb` porte les LIBELLÉS des pages parentes, racine d'abord : c'est
+ *   lui qui permet à « pib france » de trouver la page, et à trois pages « PIB »
+ *   homonymes de s'afficher de façon distinguable.
+ *
+ *   La PROFONDEUR n'est pas stockée : elle est le nombre d'ancêtres, et le
+ *   consommateur la lit sur `breadcrumb.length` (cf. `depthOf` dans SearchBar).
  */
 function toIndexEntry(node) {
   return {
@@ -57,7 +61,8 @@ function toIndexEntry(node) {
     path: node.path,
     type: node.type,
     description: node.description ?? '',
-    keywords: [],
+    keywords: node.keywords ?? [],
+    breadcrumb: node.ancestors,
   };
 }
 
@@ -136,9 +141,10 @@ async function main() {
   //     et une API injoignable ne doit pas bloquer un développeur dont le travail
   //     n'a rien à voir avec la recherche : journaliser et continuer avec les
   //     seuls nœuds du manifeste ;
-  //   • `keywords` n'est comparé par personne aujourd'hui — SearchBar ne regarde
-  //     que `title` et `description`. L'exploiter suppose d'étendre
-  //     `computeSuggestions` (cf. docs/content/guides/barre-de-recherche.mdx).
+  //   • `keywords` EST comparé (poids 6, entre le titre et le fil d'Ariane) : y
+  //     mettre le nom technique du champ suffit à le rendre cherchable, sans
+  //     l'afficher. `breadcrumb`, en revanche, est rendu tel quel sous le titre —
+  //     n'y mettez que des libellés lisibles, pas des identifiants.
   //
   // Sans NEXT_PUBLIC_API_URL il n'y a pas d'endpoint à interroger : ce bloc est
   // alors sauté, et l'index se réduit aux pages du manifeste.

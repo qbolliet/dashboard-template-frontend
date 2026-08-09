@@ -13,6 +13,31 @@ since the copy they took.
 
 ## [Unreleased]
 
+### Added
+
+- **Search** — navigation nodes accept an optional `keywords` list in
+  `config/site.config.json`: terms a page must be found under without them
+  appearing on screen (acronyms, former names, another trade's vocabulary).
+  Plain array for terms that don't translate, locale map otherwise — the same
+  duality as `name` and `description`.
+- **Search** — suggestions now show the page's breadcrumb next to its title,
+  so pages that share a name (three "GDP" under three countries) are told
+  apart at a glance.
+
+### Changed
+
+- **Search** — the matcher went from one contiguous substring in one field to
+  all query terms, each matched by word prefix, each in whichever field suits
+  it: "gdp france" now finds the page, which it could not before. Fields are
+  weighted (title > keywords > breadcrumb > description) and results ranked by
+  score, then by tree depth. Elision and hyphens are handled by tokenisation
+  (`l'emploi`, `Bouches-du-Rhône`), on top of the existing case and diacritics
+  folding.
+- **Search index** — entries gained `breadcrumb` (ancestor labels) and a
+  populated `keywords`; `flattenNavigation` now returns `ancestors` alongside
+  `depth`. Re-run `npm run build:search` (already wired into `dev` and
+  `prebuild`).
+
 ## [1.0.0] - 2026-08-09
 
 Initial public release. Entries are grouped by feature area rather than by

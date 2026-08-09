@@ -30,6 +30,7 @@
           "fr": "Agrégats de la comptabilité nationale, par pays.",
           "en": "National accounts aggregates, by country."
         },
+        "keywords": ["INSEE", "SEC 2010"],
         "children": [
           {
             "path": "/france",
@@ -79,7 +80,11 @@
           {
             "path": "/recettes-publiques",
             "name": { "fr": "Recettes Publiques", "en": "Public Revenue" },
-            "type": "indicator"
+            "type": "indicator",
+            "keywords": {
+              "fr": ["impôts", "prélèvements obligatoires", "fiscalité"],
+              "en": ["taxes", "tax revenue"]
+            }
           },
           {
             "path": "/depenses-publiques",

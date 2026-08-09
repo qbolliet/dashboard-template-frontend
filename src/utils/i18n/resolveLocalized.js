@@ -63,17 +63,48 @@ export const isLocalizedValue = (value) =>
     value != null && typeof value === 'object' && !Array.isArray(value);
 
 /**
+ * Reads a possibly-localized LIST of configuration values.
+ *
+ * Same duality as `resolveLocalized`, one rank up: un tableau nu — les mêmes termes
+ * dans toutes les langues, forme juste pour des sigles ou des noms propres
+ * (`["INSEE", "SEC 2010"]`) — ou une carte de langue vers tableau, quand les synonymes
+ * diffèrent (`{ "fr": ["impôts"], "en": ["taxes"] }`). Le repli descend les mêmes trois
+ * marches, et la valeur de retour est TOUJOURS un tableau : un consommateur n'a jamais
+ * à distinguer « pas de clé » de « clé vide ».
+ *
+ * @param {Array<string>|Object<string, Array<string>>|null|undefined} value - Either a
+ *   plain array (same terms in every locale) or a map of locale code to array.
+ * @param {string} locale - Requested locale code.
+ * @param {string} defaultLocale - The site's default locale, used as first fallback.
+ * @returns {Array<string>} The resolved list, empty when nothing is available.
+ */
+export const resolveLocalizedList = (value, locale, defaultLocale) => {
+    if (value == null) return [];
+    if (Array.isArray(value)) return value;
+    if (typeof value !== 'object') return [];
+
+    // Même invariant que resolveLocalized : on teste la VACUITÉ, pas la présence. Une
+    // langue dont la liste de synonymes est `[]` doit se replier sur celle qui en a.
+    const candidates = [value[locale], value[defaultLocale], ...Object.values(value)];
+    for (const candidate of candidates) {
+        if (Array.isArray(candidate) && candidate.length > 0) return candidate;
+    }
+
+    return [];
+};
+
+/**
  * Resolves every localized field of a navigation tree, in place of the caller.
  *
- * The tree keeps its exact shape and every other key; only `name` and `description`
- * collapse from a locale map to a plain string. Applied once at the route boundary, so
- * that no downstream component — sidebar, topbar, breadcrumb, search index — ever has
- * to know that a field could have been a map.
+ * The tree keeps its exact shape and every other key; only `name`, `description` and
+ * `keywords` collapse from a locale map to a plain value. Applied once at the route
+ * boundary, so that no downstream component — sidebar, topbar, breadcrumb, search
+ * index — ever has to know that a field could have been a map.
  *
  * @param {Array<Object>} tree - Navigation tree, as declared in the manifest.
  * @param {string} locale - Requested locale code.
  * @param {string} defaultLocale - The site's default locale.
- * @returns {Array<Object>} A new tree with resolved `name` and `description`.
+ * @returns {Array<Object>} A new tree with resolved `name`, `description` and `keywords`.
  */
 export const resolveLocalizedTree = (tree = [], locale, defaultLocale) =>
     tree.map((node) => ({
@@ -83,6 +114,11 @@ export const resolveLocalizedTree = (tree = [], locale, defaultLocale) =>
         // était absente, plusieurs composants testent sa présence.
         ...(node.description !== undefined && {
             description: resolveLocalized(node.description, locale, defaultLocale),
+        }),
+        // `keywords` suit la même règle — elle n'alimente que l'index de recherche, qui
+        // traite la clé absente comme une liste vide.
+        ...(node.keywords !== undefined && {
+            keywords: resolveLocalizedList(node.keywords, locale, defaultLocale),
         }),
         ...(node.children && {
             children: resolveLocalizedTree(node.children, locale, defaultLocale),

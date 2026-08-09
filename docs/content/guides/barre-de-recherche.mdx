@@ -22,25 +22,95 @@ suivant. Il n'y a rien à synchroniser.
 ```json
 {
   "title": "PIB",
-  "path": "/demo/comptabilite-nationale/france/pib",
+  "path": "/demo/fr/comptabilite-nationale/france/pib",
   "type": "indicator",
   "description": "Produit intérieur brut, en volume, base 2020.",
-  "keywords": []
+  "keywords": ["GDP", "produit intérieur brut"],
+  "breadcrumb": ["Comptabilité Nationale", "France"]
 }
 ```
 
-`title` et `path` viennent du `name` et du chemin **absolu** du nœud — le préfixe de montage
-compris, sans quoi chaque suggestion mènerait à un 404. `description` vient du nœud et vaut
-la chaîne vide s'il n'en a pas.
+`title` et `path` viennent du `name` et du chemin **absolu** du nœud — les préfixes de
+montage et de langue compris, sans quoi chaque suggestion mènerait à un 404. `description`
+vient du nœud et vaut la chaîne vide s'il n'en a pas.
 
-`keywords` reste vide pour les nœuds de navigation : rien dans le manifeste ne l'alimente,
-le schéma n'ayant pas cette clé. Le tableau existe pour que la forme d'entrée reste stable
-avec celles que vous ajouterez depuis l'API.
+`keywords` porte les synonymes déclarés sur le nœud (voir plus bas). Ils sont **cherchés
+mais jamais affichés** : c'est le vocabulaire par lequel on arrive à la page, pas ce qu'on
+lit dessus.
 
-La recherche porte sur `title` **puis** `description`, et une correspondance de titre passe
-toujours devant une correspondance de description. Deux seuils, déclarés en tête de
-`SearchBar.jsx` : deux caractères minimum avant d'afficher quoi que ce soit, dix suggestions
-au maximum.
+`breadcrumb` porte les **libellés** des pages parentes, racine d'abord. C'est la clé de deux
+comportements : « pib france » trouve la page alors qu'aucun champ ne contient les deux
+mots, et trois pages « PIB » sous trois pays différents s'affichent de façon distinguable —
+le fil d'Ariane est rendu en retrait du titre.
+
+La profondeur d'une page n'est pas stockée : elle **est** son nombre d'ancêtres, et le tri
+la lit sur `breadcrumb.length`. L'index ne porte rien qui se dérive.
+
+## Comment une requête est appariée
+
+Le moteur tient dans `src/features/header/utils/searchMatch.js`. Trois règles :
+
+1. **Tous les termes doivent être trouvés**, chacun dans le champ qu'il veut. « pib france »
+   fonctionne parce que le premier terme est dans le titre et le second dans le fil
+   d'Ariane. Un terme introuvable partout disqualifie l'entrée.
+2. **Chaque terme est cherché en préfixe de mot**, jamais en sous-chaîne : `conso` trouve
+   « Consommation », `sommation` ne la trouve pas. C'est la sémantique d'un champ
+   d'autocomplétion — on complète un mot commencé. La contrainte du point 1 assure la
+   précision.
+3. **Les champs sont pondérés** — titre 10, mots-clés 6, fil d'Ariane 3, description 1 — et
+   chaque terme marque le score de son meilleur champ. Deux bonus s'ajoutent : +2 si le mot
+   est trouvé entier plutôt qu'entamé, +3 si le champ commence par le terme. Le total classe
+   les suggestions ; à égalité, la page la moins profonde passe devant, puis c'est l'ordre
+   du manifeste qui départage.
+
+La comparaison ignore la casse et les accents. L'élision et le trait d'union sont traités
+par le **découpage** — « l'emploi » donne deux jetons, « Bouches-du-Rhône » en donne trois —
+et jamais par une réécriture de la chaîne, qui décalerait le surlignage.
+
+Il n'y a **pas** de tolérance aux fautes de frappe : `pbi` ne trouve pas « PIB ». C'est un
+choix, pas un oubli — sur un catalogue de quelques dizaines d'entrées, une distance
+d'édition produit plus de faux positifs qu'elle ne rattrape de fautes. Le lieu où l'ajouter,
+le jour où le corpus le justifie, est `matchTermInField`.
+
+Deux seuils, déclarés en tête de `SearchBar.jsx` : deux caractères minimum avant d'afficher
+quoi que ce soit, dix suggestions au maximum.
+
+## Déclarer des synonymes
+
+`keywords` sur un nœud du manifeste : les termes sous lesquels la page doit être trouvée
+sans qu'ils apparaissent à l'écran — sigles, anciennes appellations, vocabulaire d'un autre
+métier.
+
+```jsonc
+{
+  "path": "/comptabilite-nationale",
+  "name": { "fr": "Comptabilité Nationale", "en": "National Accounts" },
+  "type": "indicator_group",
+  // Forme simple : les mêmes termes dans toutes les langues.
+  "keywords": ["INSEE", "SEC 2010"]
+}
+```
+
+```jsonc
+{
+  "path": "/recettes-publiques",
+  "name": { "fr": "Recettes Publiques", "en": "Public Revenue" },
+  "type": "indicator",
+  // Forme traduite, quand les synonymes diffèrent d'une langue à l'autre.
+  "keywords": {
+    "fr": ["impôts", "prélèvements obligatoires", "fiscalité"],
+    "en": ["taxes", "tax revenue"]
+  }
+}
+```
+
+C'est la même duplicité que `name` et `description` : un tableau nu pour ce qui ne se
+traduit pas, une carte de langue sinon. `npm run validate:config` vérifie la forme, et
+`npm run check:i18n` signale une langue déclarée mais non couverte.
+
+Sur un catalogue de cette taille, **une liste tenue à la main bat n'importe quelle
+extraction automatique de mots-clés** : les titres de page font trois mots, il n'y a rien à
+extraire d'un texte qui n'existe pas.
 
 L'index est chargé **au premier focus** du champ, pas au montage du header : la quasi-totalité
 des visites ne touchent jamais la recherche, et il serait inutile de payer la requête à
@@ -167,8 +237,12 @@ async function buildFieldEntries(pages) {
       path: target.path,
       type: 'field',
       description: `Variable du catalogue (${field.sql_type}).`,
-      // Le nom technique rejoint les mots-clés : on cherche « chomage » comme « chômage ».
+      // Le nom technique rejoint les mots-clés : cherché, jamais affiché.
       keywords: [field.name],
+      // Le fil d'Ariane de la page visée, pour que la suggestion se situe comme les
+      // autres. La clé peut être omise — les consommateurs traitent son absence comme
+      // une liste vide — mais l'entrée remonte alors sans contexte.
+      breadcrumb: target.breadcrumb,
     }));
   } catch (err) {
     console.warn(`build:search : champs non indexés — ${err.message}`);
@@ -182,15 +256,20 @@ function toIndexEntry(node) {
     path: node.path,
     type: node.type,
     description: node.description ?? '',
-    keywords: [],
+    keywords: node.keywords ?? [],
+    breadcrumb: node.ancestors,
   };
 }
 
 async function main() {
   const siteConfig = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+  const { locales, defaultLocale } = siteConfig.site;
 
   const { resolveNavigationTree } = await importEsm(
     path.join(PROJECT_ROOT, 'src/utils/navigation/resolveNavigationTree.js'),
+  );
+  const { resolveLocalizedTree } = await importEsm(
+    path.join(PROJECT_ROOT, 'src/utils/i18n/resolveLocalized.js'),
   );
   const { flattenNavigation } = await importEsm(
     path.join(PROJECT_ROOT, 'src/utils/navigation/flattenNavigation.js'),
@@ -199,18 +278,35 @@ async function main() {
     path.join(PROJECT_ROOT, 'src/utils/navigation/basePaths.js'),
   );
 
-  const tree = resolveNavigationTree(siteConfig.navigation.tree, DEMO_BASE_PATH);
+  // UN INDEX PAR LANGUE : libellés ET chemins diffèrent d'une langue à l'autre.
+  const indexes = [];
+  for (const locale of locales) {
+    const tree = resolveNavigationTree(
+      resolveLocalizedTree(siteConfig.navigation.tree, locale, defaultLocale),
+      `${DEMO_BASE_PATH}/${locale}`,
+    );
 
-  const entries = flattenNavigation(tree)
-    .filter((node) => node.searchable)
-    .map(toIndexEntry);
+    const entries = flattenNavigation(tree)
+      .filter((node) => node.searchable)
+      .map(toIndexEntry);
 
-  // ─── AJOUT — les champs du catalogue, après les pages ──────────────────────
-  // Après, et non avant : à pertinence égale, une page doit sortir avant une variable.
-  entries.push(...await buildFieldEntries(entries));
+    // ─── AJOUT — les champs du catalogue, après les pages ────────────────────
+    // Après, et non avant : à pertinence égale, une page doit sortir avant une variable.
+    entries.push(...await buildFieldEntries(entries));
 
-  fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
-  fs.writeFileSync(OUTPUT_PATH, `${JSON.stringify(entries, null, 2)}\n`, 'utf8');
+    indexes.push({ locale, entries });
+  }
+
+  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+
+  for (const { locale, entries } of indexes) {
+    fs.writeFileSync(
+      path.join(OUTPUT_DIR, outputName(locale)),
+      `${JSON.stringify(entries, null, 2)}\n`,
+      'utf8',
+    );
+  }
+
   console.log(`build:search : ${indexes.length} index écrit(s)`);
 }
 
@@ -220,37 +316,10 @@ main().catch((err) => {
 });
 ```
 
-Une dernière étape est nécessaire pour que `keywords` serve à quelque chose : la recherche
-ne compare aujourd'hui que `title` et `description`. Ajoutez le troisième champ dans
-`computeSuggestions`, en tête de
-`src/features/header/components/SearchBar/SearchBar.jsx` :
-
-```jsx
-for (const entry of entries) {
-    const titleMatch = findMatch(entry.title, query);
-    if (titleMatch) {
-        titleMatches.push({ entry, field: 'title', match: titleMatch });
-        continue;
-    }
-
-    // AJOUT — un mot-clé vaut une correspondance de titre : c'est le nom technique
-    // de l'entité, celui que tape quelqu'un qui connaît le jeu de données. On surligne
-    // le titre, pas le mot-clé, qui n'est pas affiché.
-    if (entry.keywords?.some((keyword) => findMatch(keyword, query))) {
-        titleMatches.push({ entry, field: 'title', match: null });
-        continue;
-    }
-
-    const descriptionMatch = findMatch(entry.description, query);
-    if (descriptionMatch) {
-        descriptionMatches.push({ entry, field: 'description', match: descriptionMatch });
-    }
-}
-```
-
-`renderHighlighted` accepte déjà `null` comme correspondance et rend alors le texte tel
-quel — c'est ce qui permet à une entrée trouvée par mot-clé de s'afficher sans surlignage
-mensonger sur un titre où la requête n'apparaît pas.
+Rien à modifier côté composant : `keywords` est un champ apparié à part entière (poids 6,
+entre le titre et le fil d'Ariane), et une entrée trouvée par mot-clé s'affiche sans
+surlignage plutôt qu'avec un surlignage mensonger sur un titre où la requête n'apparaît
+pas.
 
 ```bash
 # Régénérer l'index sans relancer tout le build

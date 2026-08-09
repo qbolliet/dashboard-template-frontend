@@ -46,6 +46,27 @@
         }
       ]
     },
+    "localizedStringList": {
+      "title": "Liste de textes, éventuellement traduite",
+      "description": "Même duplicité que `localizedString`, d'un cran au-dessus. Un tableau simple — les mêmes termes dans toutes les langues, forme juste pour des sigles ou des noms propres (`[\"INSEE\", \"SEC 2010\"]`). Ou un objet indexé par code de langue, quand les synonymes diffèrent d'une langue à l'autre — `{ \"fr\": [\"impôts\"], \"en\": [\"taxes\"] }`. Sous la forme objet, la langue déclarée dans `site.defaultLocale` est OBLIGATOIRE, comme partout ailleurs.",
+      "oneOf": [
+        {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Z]{2})?$": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      ]
+    },
     "site": {
       "title": "Identité du site",
       "description": "Métadonnées globales du site. Consommées par `src/app/layout.tsx` pour l'objet `metadata` de Next et l'attribut `lang` de la balise `<html>`.",
@@ -123,6 +144,10 @@
         "description": {
           "description": "Résumé d'une phrase de ce que contient la page. Facultatif. Sert à alimenter la recherche : le texte y est indexé au même titre que `name`, et affiché sous le titre dans la liste des suggestions. Traduisible : voir `localizedString`.",
           "$ref": "#/$defs/localizedString"
+        },
+        "keywords": {
+          "description": "Synonymes et termes métier sous lesquels la page doit être trouvée sans qu'ils apparaissent nulle part à l'écran : sigles (`GDP` sur la page « PIB »), anciennes appellations, vocabulaire d'un autre métier. La recherche les compare juste après le titre et avant le fil d'Ariane, mais ne les AFFICHE pas. Facultatif. Sur un catalogue de cette taille, une liste tenue à la main donne de meilleurs résultats que n'importe quelle extraction automatique de mots-clés. Traduisible : voir `localizedStringList`.",
+          "$ref": "#/$defs/localizedStringList"
         },
         "searchable": {
           "description": "Passez à `false` pour exclure la page de la recherche du site. Le nœud reste visible dans la navigation et reste navigable — seule son indexation est désactivée. Utile pour les pages techniques ou les bancs d'essai. Vaut `true` si la clé est absente.",

@@ -31,9 +31,35 @@ describe('flattenNavigation', () => {
     expect(flattenNavigation(tree)[0].searchable).toBe(false);
   });
 
-  it('carries type and description through', () => {
-    const tree = [{ path: '/a', name: 'A', type: 'page', description: 'desc' }];
-    expect(flattenNavigation(tree)[0]).toMatchObject({ type: 'page', description: 'desc' });
+  it('carries type, description and keywords through', () => {
+    const tree = [{ path: '/a', name: 'A', type: 'page', description: 'desc', keywords: ['k'] }];
+    expect(flattenNavigation(tree)[0]).toMatchObject({
+      type: 'page', description: 'desc', keywords: ['k'],
+    });
+  });
+
+  it('collects the names of the enclosing nodes, root first', () => {
+    const tree = [{
+      path: '/a', name: 'A',
+      children: [{ path: '/a/b', name: 'B', children: [{ path: '/a/b/c', name: 'C' }] }],
+    }];
+    expect(flattenNavigation(tree).map((n) => n.ancestors)).toEqual([[], ['A'], ['A', 'B']]);
+  });
+
+  it('keeps `ancestors` and `depth` in step — the depth of a node IS its ancestor count', () => {
+    const tree = [{ path: '/a', name: 'A', children: [{ path: '/a/b', name: 'B' }] }];
+    for (const node of flattenNavigation(tree)) {
+      expect(node.ancestors).toHaveLength(node.depth);
+    }
+  });
+
+  it('does not leak the ancestors of one branch into its sibling', () => {
+    const tree = [
+      { path: '/a', name: 'A', children: [{ path: '/a/b', name: 'B' }] },
+      { path: '/c', name: 'C', children: [{ path: '/c/d', name: 'D' }] },
+    ];
+    const flat = flattenNavigation(tree);
+    expect(flat.find((n) => n.name === 'D').ancestors).toEqual(['C']);
   });
 
   it('defaults to an empty tree', () => {

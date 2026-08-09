@@ -32,6 +32,11 @@
   --search-transition: var(--transition-normal);  // 0.2s
 
   // ===== SUGGESTIONS DROPDOWN =====
+  // Le panneau est plus LARGE que le champ : une suggestion porte un titre ET le fil
+  // d'Ariane de sa page, qui ne tiennent pas dans --search-max-width. Il est ancré à
+  // droite et grandit vers la gauche, d'où la borne au viewport — sans elle, il
+  // déborderait de l'écran sur mobile, où le champ ne fait que 12.5rem.
+  --suggestions-width: min(28rem, calc(100vw - 2 * var(--spacing-md)));
   --suggestions-max-height: 20rem;
   --suggestions-item-padding-y: var(--spacing-sm);   // 0.5rem
   --suggestions-item-padding-x: var(--spacing-md);   // 0.75rem

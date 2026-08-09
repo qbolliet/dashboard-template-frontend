@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveLocalized, isLocalizedValue, resolveLocalizedTree } from './resolveLocalized';
+import { resolveLocalized, isLocalizedValue, resolveLocalizedList, resolveLocalizedTree } from './resolveLocalized';
 
 describe('resolveLocalized', () => {
   it('returns a plain string unchanged, whatever the locale', () => {
@@ -48,6 +48,35 @@ describe('isLocalizedValue', () => {
   });
 });
 
+describe('resolveLocalizedList', () => {
+  it('returns a plain array unchanged, whatever the locale', () => {
+    expect(resolveLocalizedList(['INSEE', 'SEC 2010'], 'en', 'fr')).toEqual(['INSEE', 'SEC 2010']);
+  });
+
+  it('picks the requested locale of a locale map', () => {
+    const value = { fr: ['impôts'], en: ['taxes'] };
+
+    expect(resolveLocalizedList(value, 'en', 'fr')).toEqual(['taxes']);
+  });
+
+  it('falls back to the default locale, then to any non-empty list', () => {
+    expect(resolveLocalizedList({ fr: ['impôts'] }, 'en', 'fr')).toEqual(['impôts']);
+    expect(resolveLocalizedList({ de: ['Steuern'] }, 'en', 'fr')).toEqual(['Steuern']);
+  });
+
+  // Même invariant que resolveLocalized : une liste vide est un trou de traduction, pas
+  // une valeur — elle se replie plutôt que de rendre la page introuvable.
+  it('treats an empty list as absent', () => {
+    expect(resolveLocalizedList({ fr: ['impôts'], en: [] }, 'en', 'fr')).toEqual(['impôts']);
+  });
+
+  it('never returns undefined', () => {
+    expect(resolveLocalizedList(undefined, 'en', 'fr')).toEqual([]);
+    expect(resolveLocalizedList(null, 'en', 'fr')).toEqual([]);
+    expect(resolveLocalizedList({}, 'en', 'fr')).toEqual([]);
+  });
+});
+
 describe('resolveLocalizedTree', () => {
   const tree = [
     { path: '/', name: { fr: 'Accueil', en: 'Home' }, type: 'home' },
@@ -55,6 +84,7 @@ describe('resolveLocalizedTree', () => {
       path: '/comptabilite-nationale',
       name: { fr: 'Comptabilité Nationale', en: 'National accounts' },
       description: { fr: 'Agrégats.', en: 'Aggregates.' },
+      keywords: { fr: ['impôts'], en: ['taxes'] },
       type: 'indicator_group',
       children: [{ path: '/pib', name: 'PIB', type: 'indicator' }],
     },
@@ -82,6 +112,13 @@ describe('resolveLocalizedTree', () => {
     const resolved = resolveLocalizedTree(tree, 'en', 'fr');
 
     expect('description' in resolved[0]).toBe(false);
+  });
+
+  it('resolves the keywords of a node, and creates no key on a node that had none', () => {
+    const resolved = resolveLocalizedTree(tree, 'en', 'fr');
+
+    expect(resolved[1].keywords).toEqual(['taxes']);
+    expect('keywords' in resolved[0]).toBe(false);
   });
 
   it('does not create a children key on a leaf', () => {

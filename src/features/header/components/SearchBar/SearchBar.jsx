@@ -6,7 +6,7 @@ import Link from 'next/link';
 import SearchIcon from '@/components/icons/SearchIcon/SearchIcon';
 import ClearIcon from '@/components/icons/ClearIcon/ClearIcon';
 import { useSearchIndex } from '../../hooks/useSearchIndex';
-import { findMatch } from '../../utils/searchMatch';
+import { breadcrumbText, scoreEntry, splitQuery } from '../../utils/searchMatch';
 import { mergeLabels } from '@/utils/i18n/mergeLabels';
 import { DEFAULT_LOCALE } from '@/i18n/config';
 import { interpolate } from '@/utils/i18n/interpolate';
@@ -53,56 +53,75 @@ const platformShortcut = () => {
 };
 
 /**
- * Filters the search index against a query, matching on title first, then
- * description — a title match always outranks a description match.
+ * Depth of an index entry in the navigation tree.
+ *
+ * Not a stored field: the depth of a page IS its number of ancestors, and the
+ * breadcrumb already carries them. Keeping the index free of derivable data.
+ *
+ * @param {Object} entry - A search index entry.
+ * @returns {number} 0 for a root-level page.
+ */
+const depthOf = (entry) => entry.breadcrumb?.length ?? 0;
+
+/**
+ * Filters and ranks the search index against a query.
+ *
+ * L'appariement lui-même vit dans `utils/searchMatch.js` (tous les termes, par préfixe
+ * de mot, champs pondérés) ; ce qui reste ici est ce qui appartient au composant : les
+ * deux seuils d'affichage et l'ordre final.
  *
  * @param {?Array<Object>} entries - The loaded search index, or `null` if not
  *   loaded yet.
  * @param {string} rawQuery - The raw input value.
- * @returns {Array<{entry: Object, field: ('title'|'description'), match: {start: number, end: number}}>}
- *   Up to MAX_SUGGESTIONS matches.
+ * @returns {Array<{entry: Object, score: number, ranges: Object<string, Array<{start: number, end: number}>>}>}
+ *   Up to MAX_SUGGESTIONS matches, best first.
  */
 const computeSuggestions = (entries, rawQuery) => {
-    const query = rawQuery.trim();
-    if (!entries || query.length < MIN_QUERY_LENGTH) return [];
+    if (!entries || rawQuery.trim().length < MIN_QUERY_LENGTH) return [];
 
-    const titleMatches = [];
-    const descriptionMatches = [];
+    const terms = splitQuery(rawQuery);
+    if (terms.length === 0) return [];
 
+    const matches = [];
     for (const entry of entries) {
-        const titleMatch = findMatch(entry.title, query);
-        if (titleMatch) {
-            titleMatches.push({ entry, field: 'title', match: titleMatch });
-            continue;
-        }
-
-        const descriptionMatch = findMatch(entry.description, query);
-        if (descriptionMatch) {
-            descriptionMatches.push({ entry, field: 'description', match: descriptionMatch });
-        }
+        const match = scoreEntry(entry, terms);
+        if (match) matches.push({ entry, ...match });
     }
 
-    return [...titleMatches, ...descriptionMatches].slice(0, MAX_SUGGESTIONS);
+    // Score décroissant, puis la page la moins profonde d'abord : à mérite égal, un
+    // groupe vaut mieux que l'une de ses feuilles, car il y mène. `sort` étant stable,
+    // c'est ensuite l'ordre du manifeste — donc celui de la navigation — qui départage.
+    matches.sort((a, b) => b.score - a.score || depthOf(a.entry) - depthOf(b.entry));
+
+    return matches.slice(0, MAX_SUGGESTIONS);
 };
 
 /**
- * Renders text with its matched fragment wrapped in a <mark>.
+ * Renders text with its matched fragments wrapped in <mark>.
  *
  * @param {string} text - Full text to render.
- * @param {?{start: number, end: number}} match - Match bounds, or `null` to
- *   render the text as-is.
- * @returns {React.ReactNode} The text, with the fragment highlighted when matched.
+ * @param {Array<{start: number, end: number}>} [ranges] - Disjoint bounds, left to
+ *   right, as produced by `scoreEntry`. Absent or empty renders the text as-is.
+ * @returns {React.ReactNode} The text, with its fragments highlighted.
  */
-const renderHighlighted = (text, match) => {
-    if (!match) return text;
+const renderHighlighted = (text, ranges) => {
+    if (!ranges || ranges.length === 0) return text;
 
-    return (
-        <>
-            {text.slice(0, match.start)}
-            <mark className="search-suggestion__highlight">{text.slice(match.start, match.end)}</mark>
-            {text.slice(match.end)}
-        </>
-    );
+    const parts = [];
+    let cursor = 0;
+
+    for (const range of ranges) {
+        parts.push(text.slice(cursor, range.start));
+        parts.push(
+            <mark key={range.start} className="search-suggestion__highlight">
+                {text.slice(range.start, range.end)}
+            </mark>,
+        );
+        cursor = range.end;
+    }
+    parts.push(text.slice(cursor));
+
+    return <>{parts}</>;
 };
 
 /**
@@ -350,46 +369,61 @@ const SearchBar = ({ labels: labelOverrides, locale = DEFAULT_LOCALE }) => {
                     role="listbox"
                     aria-label={labels.suggestions}
                 >
-                    {suggestions.map((suggestion, position) => (
-                        <Link
-                            key={suggestion.entry.path}
-                            id={`search-suggestion-${position}`}
-                            href={suggestion.entry.path}
-                            className={`search-suggestion ${
-                                position === selectedSuggestionIndex ? 'search-suggestion--selected' : ''
-                            }`}
-                            role="option"
-                            aria-selected={position === selectedSuggestionIndex}
-                            onClick={handleSuggestionClick}
-                            onMouseEnter={() => setSelectedSuggestionIndex(position)}
-                        >
-                            {/* Icône de suggestion */}
-                            <div className="search-suggestion__icon">
-                                <SearchIcon width="14" height="14" />
-                            </div>
+                    {suggestions.map((suggestion, position) => {
+                        // Fil d'Ariane de la page, dans la MÊME forme que celle sur
+                        // laquelle les intervalles de surlignage ont été calculés.
+                        const trail = breadcrumbText(suggestion.entry);
 
-                            <div className="search-suggestion__content">
-                                {/* Titre, surligné si c'est lui qui a matché */}
-                                <span className="search-suggestion__title">
-                                    {renderHighlighted(
-                                        suggestion.entry.title,
-                                        suggestion.field === 'title' ? suggestion.match : null,
-                                    )}
-                                </span>
+                        return (
+                            <Link
+                                key={suggestion.entry.path}
+                                id={`search-suggestion-${position}`}
+                                href={suggestion.entry.path}
+                                className={`search-suggestion ${
+                                    position === selectedSuggestionIndex ? 'search-suggestion--selected' : ''
+                                }`}
+                                role="option"
+                                aria-selected={position === selectedSuggestionIndex}
+                                onClick={handleSuggestionClick}
+                                onMouseEnter={() => setSelectedSuggestionIndex(position)}
+                            >
+                                {/* Icône de suggestion */}
+                                <div className="search-suggestion__icon">
+                                    <SearchIcon width="14" height="14" />
+                                </div>
 
-                                {/* Description, affichée quand elle existe ; surlignée si c'est
-                                    elle qui a matché (le titre, lui, n'a pas matché dans ce cas) */}
-                                {suggestion.entry.description && (
-                                    <span className="search-suggestion__description">
-                                        {renderHighlighted(
-                                            suggestion.entry.description,
-                                            suggestion.field === 'description' ? suggestion.match : null,
+                                <div className="search-suggestion__content">
+                                    {/* Ligne de tête : titre, puis fil d'Ariane en retrait. Le
+                                        second désambiguïse le premier — trois pages « PIB »
+                                        dans trois groupes différents sont sinon
+                                        indistinguables — et il porte ses propres
+                                        correspondances, puisque la requête peut n'avoir touché
+                                        que lui. */}
+                                    <span className="search-suggestion__heading">
+                                        <span className="search-suggestion__title">
+                                            {renderHighlighted(suggestion.entry.title, suggestion.ranges.title)}
+                                        </span>
+
+                                        {trail && (
+                                            <span className="search-suggestion__breadcrumb">
+                                                {renderHighlighted(trail, suggestion.ranges.breadcrumb)}
+                                            </span>
                                         )}
                                     </span>
-                                )}
-                            </div>
-                        </Link>
-                    ))}
+
+                                    {/* Description, affichée quand elle existe */}
+                                    {suggestion.entry.description && (
+                                        <span className="search-suggestion__description">
+                                            {renderHighlighted(
+                                                suggestion.entry.description,
+                                                suggestion.ranges.description,
+                                            )}
+                                        </span>
+                                    )}
+                                </div>
+                            </Link>
+                        );
+                    })}
                 </div>
             )}
         </div>

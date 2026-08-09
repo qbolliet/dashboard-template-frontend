@@ -37,7 +37,12 @@
 }
 
 // ===== ICÔNE DE RECHERCHE =====
-.search-icon {
+// SCOPÉ AU FORMULAIRE, et non à `.search-icon` nu : cette classe est celle du composant
+// partagé src/components/icons/SearchIcon/, rendu ailleurs — dans chaque suggestion, et
+// dans le popover de filtre de la table. Une règle globale la sortait du flux partout
+// (largeur 0 pour son parent, icône superposée au texte voisin), alors qu'elle ne décrit
+// que l'icône posée DANS le champ de saisie.
+.search-form > .search-icon {
   position: absolute;
   left: var(--search-icon-x);
   display: flex;
@@ -45,7 +50,7 @@
   color: hsl(var(--search-icon));
   pointer-events: none;
   z-index: 2;
-  
+
   svg {
     width: var(--search-icon-size);
     height: var(--search-icon-size);
@@ -126,8 +131,11 @@
 .search-suggestions {
   position: absolute;
   top: calc(100% + var(--spacing-xs));
-  left: 0;
+  // Ancré à DROITE et non étiré sur le champ : le panneau est plus large que lui
+  // (cf. --suggestions-width) et grandit donc vers la gauche, du côté où il y a de la
+  // place — la barre de recherche est en fin de header.
   right: 0;
+  width: var(--suggestions-width);
   background-color: hsl(var(--suggestions-bg));
   border: var(--search-border-width) solid hsl(var(--suggestions-border));
   border-radius: var(--suggestions-border-radius);
@@ -197,10 +205,36 @@
     min-width: 0; // Autorise le troncage du texte dans une colonne flex
   }
 
+  // Ligne de tête : le titre, puis le fil d'Ariane de la page
+  &__heading {
+    display: flex;
+    align-items: baseline;
+    gap: var(--suggestions-gap);
+    min-width: 0; // Autorise le troncage des deux enfants
+  }
+
   // Titre de la suggestion
   &__title {
+    // Rétrécissable, mais moins que le fil d'Ariane : sur une suggestion trop longue,
+    // c'est le contexte qui est tronqué en premier, jamais le nom de la page.
+    flex: 0 1 auto;
+    min-width: 0;
     color: hsl(var(--suggestion-text));
     font-size: var(--font-size-sm);
+    line-height: var(--line-height-normal);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // Fil d'Ariane de la page, en retrait du titre
+  // Même couleur que la description : c'est le même rôle — le texte secondaire de la
+  // suggestion — et un token de plus n'ajouterait ici aucun réglage utile.
+  &__breadcrumb {
+    flex: 0 5 auto;
+    min-width: 0;
+    color: hsl(var(--suggestion-description-text));
+    font-size: var(--font-size-xs);
     line-height: var(--line-height-normal);
     overflow: hidden;
     text-overflow: ellipsis;

@@ -4,83 +4,121 @@
     "path": "/demo/en",
     "type": "home",
     "description": "Dashboard overview and entry point to the main indicators.",
-    "keywords": []
+    "keywords": [],
+    "breadcrumb": []
   },
   {
     "title": "National Accounts",
     "path": "/demo/en/comptabilite-nationale",
     "type": "indicator_group",
     "description": "National accounts aggregates, by country.",
-    "keywords": []
+    "keywords": [
+      "INSEE",
+      "SEC 2010"
+    ],
+    "breadcrumb": []
   },
   {
     "title": "France",
     "path": "/demo/en/comptabilite-nationale/france",
     "type": "indicator_group",
     "description": "",
-    "keywords": []
+    "keywords": [],
+    "breadcrumb": [
+      "National Accounts"
+    ]
   },
   {
     "title": "GDP",
     "path": "/demo/en/comptabilite-nationale/france/pib",
     "type": "indicator",
     "description": "",
-    "keywords": []
+    "keywords": [],
+    "breadcrumb": [
+      "National Accounts",
+      "France"
+    ]
   },
   {
     "title": "Consumption",
     "path": "/demo/en/comptabilite-nationale/france/consommation",
     "type": "indicator",
     "description": "",
-    "keywords": []
+    "keywords": [],
+    "breadcrumb": [
+      "National Accounts",
+      "France"
+    ]
   },
   {
     "title": "Germany",
     "path": "/demo/en/comptabilite-nationale/allemagne",
     "type": "indicator_group",
     "description": "",
-    "keywords": []
+    "keywords": [],
+    "breadcrumb": [
+      "National Accounts"
+    ]
   },
   {
     "title": "GDP",
     "path": "/demo/en/comptabilite-nationale/allemagne/pib",
     "type": "indicator",
     "description": "",
-    "keywords": []
+    "keywords": [],
+    "breadcrumb": [
+      "National Accounts",
+      "Germany"
+    ]
   },
   {
     "title": "Consumption",
     "path": "/demo/en/comptabilite-nationale/allemagne/consommation",
     "type": "indicator",
     "description": "",
-    "keywords": []
+    "keywords": [],
+    "breadcrumb": [
+      "National Accounts",
+      "Germany"
+    ]
   },
   {
     "title": "Public Finances",
     "path": "/demo/en/finances-publiques",
     "type": "indicator_group",
     "description": "General government revenue and expenditure.",
-    "keywords": []
+    "keywords": [],
+    "breadcrumb": []
   },
   {
     "title": "Public Revenue",
     "path": "/demo/en/finances-publiques/recettes-publiques",
     "type": "indicator",
     "description": "",
-    "keywords": []
+    "keywords": [
+      "taxes",
+      "tax revenue"
+    ],
+    "breadcrumb": [
+      "Public Finances"
+    ]
   },
   {
     "title": "Public Expenditure",
     "path": "/demo/en/finances-publiques/depenses-publiques",
     "type": "indicator",
     "description": "",
-    "keywords": []
+    "keywords": [],
+    "breadcrumb": [
+      "Public Finances"
+    ]
   },
   {
     "title": "About",
     "path": "/demo/en/about",
     "type": "about",
     "description": "Project overview, data sources and legal notices.",
-    "keywords": []
+    "keywords": [],
+    "breadcrumb": []
   }
 ]
