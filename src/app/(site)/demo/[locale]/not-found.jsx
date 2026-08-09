@@ -2,8 +2,8 @@
 
 // Importation des modules
 import Link from 'next/link';
-import PageBody from '@/features/pages/components/PageBody/PageBody';
-import PageHeader from '@/features/pages/components/PageHeader/PageHeader';
+import PageBody from '@/page-templates/components/PageBody/PageBody';
+import PageHeader from '@/page-templates/components/PageHeader/PageHeader';
 import { useLocale } from '@/features/i18n/providers/LocaleProvider';
 import { localeHomePath } from '@/utils/i18n/localePath';
 import { DEMO_BASE_PATH } from '@/utils/navigation/basePaths';

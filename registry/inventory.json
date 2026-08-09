@@ -2349,65 +2349,65 @@
       "type": "feature",
       "distributable": true,
       "roots": [
-        "src/features/pages"
+        "src/page-templates"
       ],
       "clientBoundary": true,
       "fileCount": 14,
       "files": [
         {
-          "path": "src/features/pages/_tokens.scss",
+          "path": "src/page-templates/_tokens.scss",
           "kind": "tokens"
         },
         {
-          "path": "src/features/pages/components/AboutPage/AboutPage.jsx",
+          "path": "src/page-templates/components/AboutPage/AboutPage.jsx",
           "kind": "component"
         },
         {
-          "path": "src/features/pages/components/AboutPage/AboutPage.scss",
+          "path": "src/page-templates/components/AboutPage/AboutPage.scss",
           "kind": "style"
         },
         {
-          "path": "src/features/pages/components/HomePage/HomePage.jsx",
+          "path": "src/page-templates/components/HomePage/HomePage.jsx",
           "kind": "component"
         },
         {
-          "path": "src/features/pages/components/IndicatorExplorer/IndicatorExplorer.jsx",
+          "path": "src/page-templates/components/IndicatorExplorer/IndicatorExplorer.jsx",
           "kind": "component"
         },
         {
-          "path": "src/features/pages/components/IndicatorExplorer/IndicatorExplorer.scss",
+          "path": "src/page-templates/components/IndicatorExplorer/IndicatorExplorer.scss",
           "kind": "style"
         },
         {
-          "path": "src/features/pages/components/IndicatorGroupPage/IndicatorGroupPage.jsx",
+          "path": "src/page-templates/components/IndicatorGroupPage/IndicatorGroupPage.jsx",
           "kind": "component"
         },
         {
-          "path": "src/features/pages/components/IndicatorGroupPage/IndicatorGroupPage.scss",
+          "path": "src/page-templates/components/IndicatorGroupPage/IndicatorGroupPage.scss",
           "kind": "style"
         },
         {
-          "path": "src/features/pages/components/IndicatorPage/IndicatorPage.jsx",
+          "path": "src/page-templates/components/IndicatorPage/IndicatorPage.jsx",
           "kind": "component"
         },
         {
-          "path": "src/features/pages/components/PageBody/PageBody.jsx",
+          "path": "src/page-templates/components/PageBody/PageBody.jsx",
           "kind": "component"
         },
         {
-          "path": "src/features/pages/components/PageBody/PageBody.scss",
+          "path": "src/page-templates/components/PageBody/PageBody.scss",
           "kind": "style"
         },
         {
-          "path": "src/features/pages/components/PageHeader/PageHeader.jsx",
+          "path": "src/page-templates/components/PageHeader/PageHeader.jsx",
           "kind": "component"
         },
         {
-          "path": "src/features/pages/components/PageHeader/PageHeader.scss",
+          "path": "src/page-templates/components/PageHeader/PageHeader.scss",
           "kind": "style"
         },
         {
-          "path": "src/features/pages/utils/deriveEncoding.js",
+          "path": "src/page-templates/utils/deriveEncoding.js",
           "kind": "util"
         }
       ],
@@ -3845,12 +3845,12 @@
       },
       {
         "unit": "pages",
-        "file": "src/features/pages/components/AboutPage/AboutPage.jsx",
+        "file": "src/page-templates/components/AboutPage/AboutPage.jsx",
         "target": "config/site.config.json"
       },
       {
         "unit": "pages",
-        "file": "src/features/pages/components/IndicatorExplorer/IndicatorExplorer.jsx",
+        "file": "src/page-templates/components/IndicatorExplorer/IndicatorExplorer.jsx",
         "target": "config/filter/operations.json"
       }
     ],

@@ -308,6 +308,17 @@ const classify = (file) => {
         };
     }
 
+    // src/page-templates/ : même cascade que src/features/*, mais à plat (pas de
+    // segment de nom de feature entre src/ et _tokens.scss).
+    if (file.startsWith('src/page-templates/')) {
+        const atRoot = /^src\/page-templates\/_(tokens|colors)\.scss$/.test(file);
+        return {
+            level: atRoot ? 3 : 4,
+            feature: 'page-templates',
+            component: atRoot ? null : (component ? component[1] : null),
+        };
+    }
+
     // src/components/** : la cascade y saute le niveau feature (cf. §4.1).
     const shared = /^src\/components\/(?:[\w-]+\/)*([\w-]+)\/_(tokens|colors)\.scss$/.exec(file);
     return { level: 4, feature: 'components', component: shared ? shared[1] : null };

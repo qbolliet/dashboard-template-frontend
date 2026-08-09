@@ -1,8 +1,8 @@
 // Importation des modules
-import HomePage from '@/features/pages/components/HomePage/HomePage';
-import IndicatorPage from '@/features/pages/components/IndicatorPage/IndicatorPage';
-import IndicatorGroupPage from '@/features/pages/components/IndicatorGroupPage/IndicatorGroupPage';
-import AboutPage from '@/features/pages/components/AboutPage/AboutPage';
+import HomePage from '@/page-templates/components/HomePage/HomePage';
+import IndicatorPage from '@/page-templates/components/IndicatorPage/IndicatorPage';
+import IndicatorGroupPage from '@/page-templates/components/IndicatorGroupPage/IndicatorGroupPage';
+import AboutPage from '@/page-templates/components/AboutPage/AboutPage';
 import { GET_FACT_TABLE_WITH_METADATA } from '@/lib/api/documents';
 
 // =================================================================
@@ -14,7 +14,7 @@ import { GET_FACT_TABLE_WITH_METADATA } from '@/lib/api/documents';
 // elle n'a aucune connaissance des types eux-mêmes.
 //
 // AJOUTER UN TYPE DE PAGE suppose trois gestes, dans cet ordre :
-//   1. écrire le composant sous src/features/pages/components/ ;
+//   1. écrire le composant sous src/page-templates/components/ ;
 //   2. l'enregistrer ici ;
 //   3. ajouter le type à l'énumération de config/schema/site.schema.json.
 // Cette énumération et les clés de ce registre doivent rester le miroir l'une de

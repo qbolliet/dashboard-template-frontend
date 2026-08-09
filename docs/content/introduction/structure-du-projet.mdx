@@ -49,7 +49,7 @@ manière : `format/`, `navigation/`, `accessibility/`, `math/`, `url/`, `html/`,
 `clipboard/`, `highlight/`.
 
 **`features/`** contient les modules fonctionnels — `header`, `filter`, `chart`, `table`,
-`globe`, `theme`, `pages`, `home`, `footer`, `docs`. Chacun est autonome et directement
+`globe`, `theme`, `home`, `footer`, `docs`. Chacun est autonome et directement
 intégrable dans une page, et suit la même structure interne :
 
 ```
@@ -75,12 +75,13 @@ composants de la feature, et rien d'autre.
 
 ## Ce qui n'est pas une couche
 
-Trois dossiers de `src/` ne participent pas à cette hiérarchie, et c'est délibéré.
+Quatre dossiers de `src/` ne participent pas à cette hiérarchie, et c'est délibéré.
 
 | Dossier | Rôle |
 |---|---|
 | `lib/` | La plomberie transverse, ni UI ni métier. Aujourd'hui `lib/api/` : le client GraphQL, ses deux transports, les documents de requête et les fixtures. Ne dépend ni de `features/` ni de `components/`. |
-| `config/` | Le registre `pageTypes.js`, qui associe un type de nœud du manifeste au composant qui le rend. À ne pas confondre avec le dossier `config/` de la racine du dépôt, qui contient les fichiers JSON eux-mêmes. |
+| `page-templates/` | Les gabarits rendus par la route générée, un par type de nœud du manifeste (`home`, `indicator`, `indicator_group`, `about`…) — voir [Générer des pages depuis un JSON](/guides/pages-depuis-json). Il n'y a pas de dossier par URL : un gabarit reçoit le nœud résolu en props et assemble `features/` et `components/`, sans porter d'état propre. Il vit au même niveau que `features/` et `components/`, mais n'est ni l'un ni l'autre — c'est du câblage applicatif, comme `app/`. La même règle de couche s'y applique : `components/` ne doit jamais l'importer. |
+| `config/` | Le registre `pageTypes.js`, qui associe un type de nœud du manifeste au composant de `page-templates/` qui le rend. À ne pas confondre avec le dossier `config/` de la racine du dépôt, qui contient les fichiers JSON eux-mêmes. |
 | `app/` | Les routes et layouts de l'App Router de Next. Les pages y sont **générées** depuis le manifeste, pas écrites une par une — voir [Générer des pages depuis un JSON](/guides/pages-depuis-json). |
 
 ## Le sens des dépendances
@@ -96,19 +97,22 @@ app/  →  features/  →  components/  →  hooks/  →  utils/
    └──→  lib/  ──→  utils/                    styles/ : consommé en @use, par tous
 ```
 
-`app/` dépend de tout. `features/` assemble les composants, les hooks et les utilitaires,
-et appelle `lib/` pour ses données. `components/` consomme les hooks et les utilitaires
-partagés. `utils/` ne dépend de rien — c'est l'invariant qui rend cette couche testable et
-partageable, y compris hors du bundler.
+`app/` dépend de tout. Entre `app/` et `features/` s'intercale `page-templates/` : le
+registre `config/pageTypes.js` y fait correspondre chaque type de nœud du manifeste à un
+gabarit, qui assemble à son tour les composants, les hooks et les utilitaires — exactement
+comme `features/`, mais sans jamais être importé par eux. `features/` assemble les
+composants, les hooks et les utilitaires, et appelle `lib/` pour ses données. `components/`
+consomme les hooks et les utilitaires partagés. `utils/` ne dépend de rien — c'est
+l'invariant qui rend cette couche testable et partageable, y compris hors du bundler.
 
 En pratique, trois interdits en découlent, et ce sont ceux qui se violent en silence :
 
-- **`components/` ne doit jamais importer depuis `features/`.** Un composant atomique qui
-  importe une feature entraîne cette feature avec lui : le registry ne peut plus distribuer
-  le composant seul, et votre bundle non plus. C'est la violation la plus courante, parce
-  qu'elle se présente toujours sous un bon prétexte — « ce composant a besoin du piège de
-  focus, qui est dans la feature accessibilité ». La réponse est de faire descendre le
-  besoin d'une couche, pas de remonter l'import.
+- **`components/` ne doit jamais importer depuis `features/` ni `page-templates/`.** Un
+  composant atomique qui importe une feature ou un gabarit les entraîne avec lui : le
+  registry ne peut plus distribuer le composant seul, et votre bundle non plus. C'est la
+  violation la plus courante, parce qu'elle se présente toujours sous un bon prétexte —
+  « ce composant a besoin du piège de focus, qui est dans la feature accessibilité ». La
+  réponse est de faire descendre le besoin d'une couche, pas de remonter l'import.
 - **Une feature ne doit jamais atteindre les internes d'un composant.** Elle consomme son
   API publique (ses props, son export) ; si elle a besoin d'autre chose, c'est que le
   composant doit l'exposer.

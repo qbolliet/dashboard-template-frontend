@@ -113,13 +113,14 @@ of `npm run verify`.
 
 ```
 src/
-├── styles/      # Global CSS foundations: primitives, semantic tokens, typography
-├── components/  # Atomic, stateless UI primitives (buttons, inputs, icons…)
-├── hooks/       # Generic, feature-agnostic React hooks
-├── utils/       # Generic, feature-agnostic pure functions
-├── lib/         # Infrastructure: the API client, its transports and documents
-├── features/    # Self-contained features (navigation, filter, chart, table…)
-└── app/         # Next.js App Router pages and layouts
+├── styles/         # Global CSS foundations: primitives, semantic tokens, typography
+├── components/     # Atomic, stateless UI primitives (buttons, inputs, icons…)
+├── hooks/          # Generic, feature-agnostic React hooks
+├── utils/          # Generic, feature-agnostic pure functions
+├── lib/            # Infrastructure: the API client, its transports and documents
+├── features/       # Self-contained features (navigation, filter, chart, table…)
+├── page-templates/ # Page templates fed by the site manifest (home, indicator…)
+└── app/            # Next.js App Router pages and layouts
 ```
 
 See `CLAUDE.md` and `DESIGN_SYSTEM.md` for the full architecture and design

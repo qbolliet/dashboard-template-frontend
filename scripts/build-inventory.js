@@ -166,14 +166,19 @@ const UNIT_DEFINITIONS = [
   { name: 'theme', type: 'feature', roots: ['src/features/theme'] },
   { name: 'home', type: 'feature', roots: ['src/features/home'] },
   { name: 'footer', type: 'feature', roots: ['src/features/footer'] },
-  // Gabarits de page rendus par la route générée depuis le manifeste (P3.2).
-  // Le registre type -> composant vit dans src/config/pageTypes.js, hors des
-  // racines balayées : c'est du câblage applicatif, au même titre que src/app/.
-  { name: 'pages', type: 'feature', roots: ['src/features/pages'] },
   // Chrome du site de documentation. Déclarée pour que l'inventaire connaisse ces
   // fichiers (sinon ils remontent en `unownedFiles`), mais NON publiée : elle figure
   // dans EXCLUDED_UNITS de build-registry.js.
   { name: 'docs', type: 'feature', roots: ['src/features/docs'] },
+
+  // ---- src/page-templates ---------------------------------------------------
+  // Gabarits de page rendus par la route générée depuis le manifeste (P3.2). Ce
+  // n'est pas une feature au sens de src/features/ (pas d'état, pas de logique
+  // propre au-delà de l'assemblage) : elle vit au même niveau que features/ et
+  // components/, cf. CLAUDE.md. Le registre type -> composant vit dans
+  // src/config/pageTypes.js, hors des racines balayées : c'est du câblage
+  // applicatif, au même titre que src/app/.
+  { name: 'pages', type: 'feature', roots: ['src/page-templates'] },
 
   // ---- Couches partagées ---------------------------------------------------
   { name: 'hooks-accessibility', type: 'lib', roots: ['src/hooks/accessibility'] },
@@ -202,6 +207,7 @@ const UNIT_DEFINITIONS = [
 const SCANNED_ROOTS = [
   'src/components',
   'src/features',
+  'src/page-templates',
   'src/hooks',
   'src/utils',
   'src/lib',
@@ -516,8 +522,11 @@ function build() {
       unit.internal.add(targetUnit);
 
       // Invariant de couche (CLAUDE.md) : src/components/ ne doit jamais
-      // importer depuis src/features/.
-      if (repoPath.startsWith('src/components/') && resolved.path.startsWith('src/features/')) {
+      // importer depuis src/features/ ni depuis src/page-templates/.
+      if (
+        repoPath.startsWith('src/components/')
+        && (resolved.path.startsWith('src/features/') || resolved.path.startsWith('src/page-templates/'))
+      ) {
         diagnostics.layerViolations.push({ from: repoPath, to: resolved.path, specifier });
       }
     }

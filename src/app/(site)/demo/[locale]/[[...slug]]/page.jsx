@@ -188,7 +188,7 @@ const GeneratedPage = async ({ params }) => {
 
     // Le <main id="main-content"> est posé ICI, une fois pour toutes les pages générées :
     // c'est la cible du lien d'évitement rendu par le header. Corollaire — aucun gabarit
-    // de src/features/pages/ ne rend de <main> (imbrication invalide).
+    // de src/page-templates/ ne rend de <main> (imbrication invalide).
     //
     // `locale` et `labels` descendent en props explicites plutôt que par un contexte :
     // les gabarits de pages sont des Server Components, et un contexte React ne les

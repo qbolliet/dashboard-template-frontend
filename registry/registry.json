@@ -1946,74 +1946,74 @@
           "target": "~/config/site.config.json"
         },
         {
-          "path": "src/features/pages/_tokens.scss",
+          "path": "src/page-templates/_tokens.scss",
           "type": "registry:file",
-          "target": "~/src/features/pages/_tokens.scss"
+          "target": "~/src/page-templates/_tokens.scss"
         },
         {
-          "path": "src/features/pages/components/AboutPage/AboutPage.jsx",
+          "path": "src/page-templates/components/AboutPage/AboutPage.jsx",
           "type": "registry:file",
-          "target": "~/src/features/pages/components/AboutPage/AboutPage.jsx"
+          "target": "~/src/page-templates/components/AboutPage/AboutPage.jsx"
         },
         {
-          "path": "src/features/pages/components/AboutPage/AboutPage.scss",
+          "path": "src/page-templates/components/AboutPage/AboutPage.scss",
           "type": "registry:file",
-          "target": "~/src/features/pages/components/AboutPage/AboutPage.scss"
+          "target": "~/src/page-templates/components/AboutPage/AboutPage.scss"
         },
         {
-          "path": "src/features/pages/components/HomePage/HomePage.jsx",
+          "path": "src/page-templates/components/HomePage/HomePage.jsx",
           "type": "registry:file",
-          "target": "~/src/features/pages/components/HomePage/HomePage.jsx"
+          "target": "~/src/page-templates/components/HomePage/HomePage.jsx"
         },
         {
-          "path": "src/features/pages/components/IndicatorExplorer/IndicatorExplorer.jsx",
+          "path": "src/page-templates/components/IndicatorExplorer/IndicatorExplorer.jsx",
           "type": "registry:file",
-          "target": "~/src/features/pages/components/IndicatorExplorer/IndicatorExplorer.jsx"
+          "target": "~/src/page-templates/components/IndicatorExplorer/IndicatorExplorer.jsx"
         },
         {
-          "path": "src/features/pages/components/IndicatorExplorer/IndicatorExplorer.scss",
+          "path": "src/page-templates/components/IndicatorExplorer/IndicatorExplorer.scss",
           "type": "registry:file",
-          "target": "~/src/features/pages/components/IndicatorExplorer/IndicatorExplorer.scss"
+          "target": "~/src/page-templates/components/IndicatorExplorer/IndicatorExplorer.scss"
         },
         {
-          "path": "src/features/pages/components/IndicatorGroupPage/IndicatorGroupPage.jsx",
+          "path": "src/page-templates/components/IndicatorGroupPage/IndicatorGroupPage.jsx",
           "type": "registry:file",
-          "target": "~/src/features/pages/components/IndicatorGroupPage/IndicatorGroupPage.jsx"
+          "target": "~/src/page-templates/components/IndicatorGroupPage/IndicatorGroupPage.jsx"
         },
         {
-          "path": "src/features/pages/components/IndicatorGroupPage/IndicatorGroupPage.scss",
+          "path": "src/page-templates/components/IndicatorGroupPage/IndicatorGroupPage.scss",
           "type": "registry:file",
-          "target": "~/src/features/pages/components/IndicatorGroupPage/IndicatorGroupPage.scss"
+          "target": "~/src/page-templates/components/IndicatorGroupPage/IndicatorGroupPage.scss"
         },
         {
-          "path": "src/features/pages/components/IndicatorPage/IndicatorPage.jsx",
+          "path": "src/page-templates/components/IndicatorPage/IndicatorPage.jsx",
           "type": "registry:file",
-          "target": "~/src/features/pages/components/IndicatorPage/IndicatorPage.jsx"
+          "target": "~/src/page-templates/components/IndicatorPage/IndicatorPage.jsx"
         },
         {
-          "path": "src/features/pages/components/PageBody/PageBody.jsx",
+          "path": "src/page-templates/components/PageBody/PageBody.jsx",
           "type": "registry:file",
-          "target": "~/src/features/pages/components/PageBody/PageBody.jsx"
+          "target": "~/src/page-templates/components/PageBody/PageBody.jsx"
         },
         {
-          "path": "src/features/pages/components/PageBody/PageBody.scss",
+          "path": "src/page-templates/components/PageBody/PageBody.scss",
           "type": "registry:file",
-          "target": "~/src/features/pages/components/PageBody/PageBody.scss"
+          "target": "~/src/page-templates/components/PageBody/PageBody.scss"
         },
         {
-          "path": "src/features/pages/components/PageHeader/PageHeader.jsx",
+          "path": "src/page-templates/components/PageHeader/PageHeader.jsx",
           "type": "registry:file",
-          "target": "~/src/features/pages/components/PageHeader/PageHeader.jsx"
+          "target": "~/src/page-templates/components/PageHeader/PageHeader.jsx"
         },
         {
-          "path": "src/features/pages/components/PageHeader/PageHeader.scss",
+          "path": "src/page-templates/components/PageHeader/PageHeader.scss",
           "type": "registry:file",
-          "target": "~/src/features/pages/components/PageHeader/PageHeader.scss"
+          "target": "~/src/page-templates/components/PageHeader/PageHeader.scss"
         },
         {
-          "path": "src/features/pages/utils/deriveEncoding.js",
+          "path": "src/page-templates/utils/deriveEncoding.js",
           "type": "registry:file",
-          "target": "~/src/features/pages/utils/deriveEncoding.js"
+          "target": "~/src/page-templates/utils/deriveEncoding.js"
         }
       ],
       "docs": "Ces gabarits sont câblés par `src/config/pageTypes.js` et la route `src/app/[...slug]/`, qui restent du ressort de ton application : le registry ne les installe pas."
