@@ -2,7 +2,7 @@
   "$comment": "Généré par scripts/build-inventory.js — ne pas éditer à la main.",
   "generatedAt": "2026-08-05T20:29:15.705Z",
   "unitCount": 53,
-  "fileCount": 434,
+  "fileCount": 433,
   "fanoutThreshold": 3,
   "units": {
     "accessible-icon": {
@@ -1786,30 +1786,22 @@
       "externalConfig": [],
       "warnings": []
     },
-    "home": {
-      "type": "feature",
+    "hero": {
+      "type": "component",
       "distributable": true,
       "roots": [
-        "src/features/home"
+        "src/components/ui/Hero"
       ],
       "clientBoundary": false,
-      "fileCount": 4,
+      "fileCount": 2,
       "files": [
         {
-          "path": "src/features/home/components/Hero/Hero.js",
+          "path": "src/components/ui/Hero/Hero.js",
           "kind": "component"
         },
         {
-          "path": "src/features/home/components/Hero/Hero.scss",
+          "path": "src/components/ui/Hero/Hero.scss",
           "kind": "style"
-        },
-        {
-          "path": "src/features/home/components/index.js",
-          "kind": "barrel"
-        },
-        {
-          "path": "src/features/home/data/homeConfig.js",
-          "kind": "lib"
         }
       ],
       "npm": [],
@@ -1838,9 +1830,7 @@
         "src/styles/utils/breakpoints.scss"
       ],
       "assets": [],
-      "externalConfig": [
-        "config/content/home.json"
-      ],
+      "externalConfig": [],
       "warnings": []
     },
     "hooks-accessibility": {
@@ -2352,7 +2342,7 @@
         "src/page-templates"
       ],
       "clientBoundary": true,
-      "fileCount": 14,
+      "fileCount": 15,
       "files": [
         {
           "path": "src/page-templates/_tokens.scss",
@@ -2365,6 +2355,10 @@
         {
           "path": "src/page-templates/components/AboutPage/AboutPage.scss",
           "kind": "style"
+        },
+        {
+          "path": "src/page-templates/components/HomePage/homeConfig.js",
+          "kind": "lib"
         },
         {
           "path": "src/page-templates/components/HomePage/HomePage.jsx",
@@ -2418,7 +2412,7 @@
         "api-client",
         "chart",
         "filter",
-        "home",
+        "hero",
         "table",
         "tokens-global",
         "ui",
@@ -2428,7 +2422,7 @@
         "api-client",
         "chart",
         "filter",
-        "home",
+        "hero",
         "table",
         "ui",
         "utils-format"
@@ -2448,7 +2442,7 @@
         "filter",
         "filter-feature-tokens",
         "filter-tokens",
-        "home",
+        "hero",
         "hooks-accessibility",
         "hooks-debounce",
         "hooks-floating",
@@ -2484,6 +2478,7 @@
       ],
       "assets": [],
       "externalConfig": [
+        "config/content/home.json",
         "config/filter/operations.json",
         "config/site.config.json"
       ],
@@ -3400,6 +3395,7 @@
       "internal": [
         "badge",
         "card-grid",
+        "hero",
         "large-button",
         "link-card",
         "link-cards-section",
@@ -3704,7 +3700,7 @@
           "api-client",
           "chart",
           "filter",
-          "home",
+          "hero",
           "table",
           "ui",
           "utils-format"
@@ -3839,8 +3835,8 @@
         "target": "config/site.config.json"
       },
       {
-        "unit": "home",
-        "file": "src/features/home/data/homeConfig.js",
+        "unit": "pages",
+        "file": "src/page-templates/components/HomePage/homeConfig.js",
         "target": "config/content/home.json"
       },
       {

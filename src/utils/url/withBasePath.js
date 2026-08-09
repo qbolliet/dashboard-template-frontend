@@ -21,7 +21,7 @@
 //   • fetch('/search-index.<langue>.json')    → src/features/header/hooks/useSearchIndex.js
 //   • les textures du globe, chargées par le TextureLoader de three.js
 //                                            → src/features/globe/engine/GlobeEngine.js
-//   • une url() CSS posée en style inline    → src/features/home/components/Hero/Hero.js
+//   • une url() CSS posée en style inline    → src/components/ui/Hero/Hero.js
 //
 // ATTENTION en rédigeant de la documentation ou un nouveau composant : tout
 // `fetch('/…')`, tout `<img>`/<Image> local, et tout `url(/…)` en style inline doit

@@ -1,7 +1,6 @@
 // Importation des modules
-import { Hero } from '@/features/home/components';
-import { LinkCardsSection } from '@/components/ui';
-import { getHomeConfig } from '@/features/home/data/homeConfig';
+import { Hero, LinkCardsSection } from '@/components/ui';
+import { getHomeConfig } from './homeConfig';
 
 /**
  * Page template for `home` nodes: hero banner and a grid of link cards.

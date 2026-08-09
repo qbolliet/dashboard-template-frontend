@@ -112,6 +112,7 @@ const UNIT_DEFINITIONS = [
   { name: 'ui', type: 'component', roots: ['src/components/ui/index.js'] },
   { name: 'badge', type: 'component', roots: ['src/components/ui/Badge'] },
   { name: 'card-grid', type: 'component', roots: ['src/components/ui/CardGrid'] },
+  { name: 'hero', type: 'component', roots: ['src/components/ui/Hero'] },
   { name: 'large-button', type: 'component', roots: ['src/components/ui/LargeButton'] },
   { name: 'link-card', type: 'component', roots: ['src/components/ui/LinkCard'] },
   { name: 'link-cards-section', type: 'component', roots: ['src/components/ui/LinkCardsSection'] },
@@ -164,7 +165,6 @@ const UNIT_DEFINITIONS = [
   { name: 'globe', type: 'feature', roots: ['src/features/globe'] },
 
   { name: 'theme', type: 'feature', roots: ['src/features/theme'] },
-  { name: 'home', type: 'feature', roots: ['src/features/home'] },
   { name: 'footer', type: 'feature', roots: ['src/features/footer'] },
   // Chrome du site de documentation. Déclarée pour que l'inventaire connaisse ces
   // fichiers (sinon ils remontent en `unownedFiles`), mais NON publiée : elle figure

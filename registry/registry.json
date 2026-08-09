@@ -1474,10 +1474,13 @@
       ]
     },
     {
-      "name": "home",
-      "type": "registry:block",
-      "title": "Page d'accueil",
-      "description": "Bandeau d'accueil et grille de cartes, alimentés par un fichier de contenu JSON.",
+      "name": "hero",
+      "type": "registry:ui",
+      "title": "Bandeau d’accueil (Hero)",
+      "description": "Bandeau plein écran avec titre, description et bouton d’action, image de fond optionnelle.",
+      "categories": [
+        "mise en page"
+      ],
       "dependencies": [],
       "registryDependencies": [
         "large-button",
@@ -1486,29 +1489,14 @@
       ],
       "files": [
         {
-          "path": "config/content/home.json",
+          "path": "src/components/ui/Hero/Hero.js",
           "type": "registry:file",
-          "target": "~/config/content/home.json"
+          "target": "~/src/components/ui/Hero/Hero.js"
         },
         {
-          "path": "src/features/home/components/Hero/Hero.js",
+          "path": "src/components/ui/Hero/Hero.scss",
           "type": "registry:file",
-          "target": "~/src/features/home/components/Hero/Hero.js"
-        },
-        {
-          "path": "src/features/home/components/Hero/Hero.scss",
-          "type": "registry:file",
-          "target": "~/src/features/home/components/Hero/Hero.scss"
-        },
-        {
-          "path": "src/features/home/components/index.js",
-          "type": "registry:file",
-          "target": "~/src/features/home/components/index.js"
-        },
-        {
-          "path": "src/features/home/data/homeConfig.js",
-          "type": "registry:file",
-          "target": "~/src/features/home/data/homeConfig.js"
+          "target": "~/src/components/ui/Hero/Hero.scss"
         }
       ]
     },
@@ -1928,13 +1916,18 @@
         "api-client",
         "chart",
         "filter",
-        "home",
+        "hero",
         "table",
         "tokens-global",
         "ui",
         "utils-format"
       ],
       "files": [
+        {
+          "path": "config/content/home.json",
+          "type": "registry:file",
+          "target": "~/config/content/home.json"
+        },
         {
           "path": "config/filter/operations.json",
           "type": "registry:file",
@@ -1959,6 +1952,11 @@
           "path": "src/page-templates/components/AboutPage/AboutPage.scss",
           "type": "registry:file",
           "target": "~/src/page-templates/components/AboutPage/AboutPage.scss"
+        },
+        {
+          "path": "src/page-templates/components/HomePage/homeConfig.js",
+          "type": "registry:file",
+          "target": "~/src/page-templates/components/HomePage/homeConfig.js"
         },
         {
           "path": "src/page-templates/components/HomePage/HomePage.jsx",
@@ -2698,6 +2696,7 @@
       "registryDependencies": [
         "badge",
         "card-grid",
+        "hero",
         "large-button",
         "link-card",
         "link-cards-section",

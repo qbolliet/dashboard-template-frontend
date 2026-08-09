@@ -1,5 +1,5 @@
 {
-  "_comment": "Contenu rédigé de la page d'accueil. Tout champ de texte accepte soit une chaîne (identique dans toutes les langues), soit un objet indexé par code de langue — même convention que config/site.config.json. Résolution : src/features/home/data/homeConfig.js.",
+  "_comment": "Contenu rédigé de la page d'accueil. Tout champ de texte accepte soit une chaîne (identique dans toutes les langues), soit un objet indexé par code de langue — même convention que config/site.config.json. Résolution : src/page-templates/components/HomePage/homeConfig.js.",
 
   "hero": {
     "title": { "fr": "Titre", "en": "Title" },
