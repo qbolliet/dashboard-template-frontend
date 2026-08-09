@@ -5,7 +5,26 @@ import TypeAwareInput from '../TypeAwareInput/TypeAwareInput';
 import { DATE_RANGE_SEP, formatDate, parseDate } from '../utils/dateParse';
 import { useRangeBounds } from './useRangeBounds';
 import { clamp } from '@/utils/math/clamp';
+import { mergeLabels } from '@/utils/i18n/mergeLabels';
+import { DEFAULT_INTL_LOCALE } from '@/utils/format/constants';
+import { DEFAULT_DATE_ORDER } from '../utils/dateParse';
 import './ConstraintField.scss';
+
+// Défauts français, surchargeables par la prop `labels` (cf. mergeLabels).
+const DEFAULT_LABELS = {
+  rangeLabel: 'Plage',
+  minLabel: 'Min',
+  maxLabel: 'Max',
+  dateLabel: 'Date',
+  valueLabel: 'Valeur',
+  boundsLegend: 'Bornes',
+  valueLegend: 'Valeur',
+  minValue: 'Valeur minimale',
+  maxValue: 'Valeur maximale',
+  startAfterEnd: 'Début après la fin',
+  mustBeBelowMax: 'Doit être ≤ max',
+  mustBeAboveMin: 'Doit être ≥ min',
+};
 
 /**
  * Typed constraint field: composes one or two {@link TypeAwareInput} controls and
@@ -46,6 +65,13 @@ import './ConstraintField.scss';
  * @param {boolean}  [inputsOnTop] - Render the inputs above the track (instead of below).
  * @param {string}   [className]   - Additional class(es) merged on the root element.
  * @param {Object}   [style]       - Additional inline styles merged on the root element.
+ * @param {boolean}  [disabled] - Disables the field.
+ * @param {string}   [intlLocale] - Full Intl tag, driving number and date formatting.
+ * @param {string}   [dateMask] - Human-readable date mask shown as a placeholder.
+ * @param {string}   [dateOrder] - Permutation of 'D', 'M' and 'Y' telling how to read
+ *   a typed date. The mask is its display, this is its meaning.
+ * @param {number}   [firstDayOfWeek] - 0 for Sunday, 1 for Monday.
+ * @param {Object}   [labels] - Wording overrides, merged over the French defaults.
  * @returns {JSX.Element}
  */
 const ConstraintField = ({
@@ -67,7 +93,13 @@ const ConstraintField = ({
   inputsOnTop = false,
   className = '',
   style,
+  intlLocale = DEFAULT_INTL_LOCALE,
+  dateMask = 'JJ/MM/AAAA',
+  dateOrder = DEFAULT_DATE_ORDER,
+  firstDayOfWeek = 1,
+  labels: labelOverrides,
 }) => {
+  const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
   const isDate = valueType === 'date';
   // En plage de dates, UN seul TypeAwareInput (calendrier double) porte « A → B »
   const isDateRange = isDate && rangeMode;
@@ -83,7 +115,7 @@ const ConstraintField = ({
   const boundToNum = (b) => {
     if (b == null || b === '') return NaN;
     if (typeof b === 'number') return b;
-    if (isDate) { const d = parseDate(b); return d ? d.getTime() : NaN; }
+    if (isDate) { const d = parseDate(b, dateOrder); return d ? d.getTime() : NaN; }
     return Number(b);
   };
   // Résolution : prop explicite > valeur API > repli
@@ -132,11 +164,11 @@ const ConstraintField = ({
   // ── Adaptateurs type ⇄ nombre (axe du slider) ───────────────────────────
   const toNumber = (str) => {
     if (str == null || str === '') return NaN;
-    if (isDate) { const d = parseDate(str.trim()); return d ? d.getTime() : NaN; }
+    if (isDate) { const d = parseDate(str.trim(), dateOrder); return d ? d.getTime() : NaN; }
     return parseFloat(str);
   };
   const fromNumber = (n) => {
-    if (isDate) return formatDate(new Date(n));
+    if (isDate) return formatDate(new Date(n), dateOrder);
     if (valueType === 'integer') return String(Math.round(n));
     // float : on neutralise les artefacts binaires (0.300000004) sans sur-arrondir
     return String(parseFloat(n.toFixed(6)));
@@ -150,8 +182,8 @@ const ConstraintField = ({
   };
   const dateRangeParts = (str) => {
     const [a, b] = (str || '').split(DATE_RANGE_SEP);
-    const da = a ? parseDate(a.trim()) : null;
-    const db = b ? parseDate(b.trim()) : null;
+    const da = a ? parseDate(a.trim(), dateOrder) : null;
+    const db = b ? parseDate(b.trim(), dateOrder) : null;
     return da && db ? [da.getTime(), db.getTime()] : null;
   };
 
@@ -196,7 +228,7 @@ const ConstraintField = ({
       return true;
     }
     // Valeur unique (numérique ou date simple)
-    const typeOk = isDate ? !!parseDate((lowStr ?? '').trim()) : typeValidNumber(lowStr);
+    const typeOk = isDate ? !!parseDate((lowStr ?? '').trim(), dateOrder) : typeValidNumber(lowStr);
     if (!typeOk) return false;
     const n = toNumber(lowStr);
     if (boundsKnown && (n < minN || n > maxN)) return false;
@@ -333,7 +365,7 @@ const ConstraintField = ({
   // ── Validation de VALEUR → verdict transmis aux inputs (forcedState) ────
   // Étiquette lisible des bornes pour les messages d'erreur.
   const boundLabel = isDate
-    ? `${formatDate(new Date(minN))} – ${formatDate(new Date(maxN))}`
+    ? `${formatDate(new Date(minN), dateOrder)} – ${formatDate(new Date(maxN), dateOrder)}`
     : `${minN} – ${maxN}`;
 
   // Verdict du champ « low » (valeur unique, borne basse, ou plage de dates combinée).
@@ -343,15 +375,15 @@ const ConstraintField = ({
       const parts = dateRangeParts(low);
       if (!parts) return {}; // type invalide → TypeAwareInput affiche son erreur
       const [a, b] = parts;
-      if (a > b) return { forcedState: 'error', forcedMessage: 'Début après la fin' };
+      if (a > b) return { forcedState: 'error', forcedMessage: labels.startAfterEnd };
       if (boundsKnown && (a < minN || b > maxN)) return { forcedState: 'error', forcedMessage: `Hors de ${boundLabel}` };
       return { forcedState: 'success', forcedMessage: '' };
     }
-    if (isDate ? !parseDate((low ?? '').trim()) : !typeValidNumber(low)) return {};
+    if (isDate ? !parseDate((low ?? '').trim(), dateOrder) : !typeValidNumber(low)) return {};
     const n = toNumber(low);
     if (boundsKnown && (n < minN || n > maxN)) return { forcedState: 'error', forcedMessage: `Hors de ${boundLabel}` };
     if (dualInputs && typeValidNumber(high) && n > toNumber(high)) {
-      return { forcedState: 'error', forcedMessage: 'Doit être ≤ max' };
+      return { forcedState: 'error', forcedMessage: labels.mustBeBelowMax };
     }
     return { forcedState: 'success', forcedMessage: '' };
   };
@@ -362,7 +394,7 @@ const ConstraintField = ({
     if (!typeValidNumber(high)) return {};
     const n = toNumber(high);
     if (boundsKnown && (n < minN || n > maxN)) return { forcedState: 'error', forcedMessage: `Hors de ${boundLabel}` };
-    if (typeValidNumber(low) && n < toNumber(low)) return { forcedState: 'error', forcedMessage: 'Doit être ≥ min' };
+    if (typeValidNumber(low) && n < toNumber(low)) return { forcedState: 'error', forcedMessage: labels.mustBeAboveMin };
     return { forcedState: 'success', forcedMessage: '' };
   };
 
@@ -375,7 +407,9 @@ const ConstraintField = ({
   const fillWidth = Math.max(0, fillRight - fillLeft);
 
   // Libellés des champs selon le mode
-  const lowLabel = isDateRange ? 'Plage' : rangeMode ? 'Min' : isDate ? 'Date' : 'Valeur';
+  const lowLabel = isDateRange
+    ? labels.rangeLabel
+    : rangeMode ? labels.minLabel : isDate ? labels.dateLabel : labels.valueLabel;
 
   return (
     <div
@@ -399,7 +433,7 @@ const ConstraintField = ({
             aria-valuemax={rangeMode && Number.isFinite(highN) ? highN : maxN}
             aria-valuenow={Number.isFinite(lowN) ? lowN : minN}
             aria-valuetext={fromNumber(Number.isFinite(lowN) ? lowN : minN)}
-            aria-label={rangeMode ? 'Valeur minimale' : 'Valeur'}
+            aria-label={rangeMode ? labels.minValue : labels.valueLabel}
             onKeyDown={(e) => handleThumbKey('low', e)}
             onPointerDown={(e) => { e.stopPropagation(); setDragging('low'); }} />
           {rangeMode && (
@@ -412,7 +446,7 @@ const ConstraintField = ({
               aria-valuemax={maxN}
               aria-valuenow={Number.isFinite(highN) ? highN : maxN}
               aria-valuetext={fromNumber(Number.isFinite(highN) ? highN : maxN)}
-              aria-label="Valeur maximale"
+              aria-label={labels.maxValue}
               onKeyDown={(e) => handleThumbKey('high', e)}
               onPointerDown={(e) => { e.stopPropagation(); setDragging('high'); }} />
           )}
@@ -420,10 +454,15 @@ const ConstraintField = ({
       )}
 
       <fieldset className="constraint-field__inputs">
-        <legend className="constraint-field__legend">{rangeMode ? 'Bornes' : 'Valeur'}</legend>
+        <legend className="constraint-field__legend">{rangeMode ? labels.boundsLegend : labels.valueLegend}</legend>
         <div className="constraint-field__input-group">
           <label className="constraint-field__input-label" htmlFor={lowId}>{lowLabel}</label>
           <TypeAwareInput
+            intlLocale={intlLocale}
+            dateMask={dateMask}
+            dateOrder={dateOrder}
+            firstDayOfWeek={firstDayOfWeek}
+            labels={labelOverrides}
             id={lowId}
             inputType={valueType}
             dateMode={isDateRange ? 'range' : 'single'}
@@ -442,8 +481,13 @@ const ConstraintField = ({
           <>
             <span className="constraint-field__sep">—</span>
             <div className="constraint-field__input-group">
-              <label className="constraint-field__input-label" htmlFor={highId}>Max</label>
+              <label className="constraint-field__input-label" htmlFor={highId}>{labels.maxLabel}</label>
               <TypeAwareInput
+            intlLocale={intlLocale}
+            dateMask={dateMask}
+            dateOrder={dateOrder}
+            firstDayOfWeek={firstDayOfWeek}
+            labels={labelOverrides}
                 id={highId}
                 inputType={valueType}
                 value={high}

@@ -24,6 +24,7 @@ import './CriterionCard.scss';
  * @param {string} [className] - Additional class(es) merged on the root element.
  * @param {Object} [style] - Additional inline styles merged on the root element.
  * @param {React.ReactNode} children - The criterion rows.
+ * @param {Object} [props.labels] - Wording, already merged by <CriterionMenu>.
  * @returns {JSX.Element}
  */
 const CriterionCard = ({
@@ -38,6 +39,7 @@ const CriterionCard = ({
   className = '',
   style,
   children,
+  labels,
 }) => {
   // Classe d'état — appliquée à la carte ET au wrap (la carte pose sa propre valeur
   // par défaut de --criterion-accent : la classe doit la surcharger localement).
@@ -55,7 +57,7 @@ const CriterionCard = ({
       style={parentheses ? undefined : style}>
       {onRemove && (
         <button type="button" className="criterion-remove"
-          title="Supprimer le critère" aria-label="Supprimer le critère"
+          title={labels.removeCriterion} aria-label={labels.removeCriterion}
           onClick={onRemove}>
           <CrossIcon />
         </button>
@@ -89,7 +91,7 @@ const CriterionCard = ({
         type="button"
         className={`criterion-bracket criterion-bracket--left ${bracketLeft ? 'criterion-bracket--active' : ''}`}
         aria-pressed={bracketLeft}
-        title="Crochet ouvrant"
+        title={labels.openBracket}
         onClick={() => onToggleBracket?.('left')}>
         <BracketLeftIcon />
       </button>
@@ -98,7 +100,7 @@ const CriterionCard = ({
         type="button"
         className={`criterion-bracket criterion-bracket--right ${bracketRight ? 'criterion-bracket--active' : ''}`}
         aria-pressed={bracketRight}
-        title="Crochet fermant"
+        title={labels.closeBracket}
         onClick={() => onToggleBracket?.('right')}>
         <BracketRightIcon />
       </button>

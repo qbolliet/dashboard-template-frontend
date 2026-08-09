@@ -16,6 +16,14 @@ import CriterionMenu from '@/features/filter/components/CriterionMenu/CriterionM
 import { useVariableMetadata, metadataToVariables } from '@/features/filter/sources/useVariableMetadata';
 import { isNumericSqlType } from '@/features/filter/utils/filterTypes';
 import operations from '@config/filter/operations.json';
+import { resolveOperationLabels } from '@/features/filter/utils/filterTypes';
+import { DEFAULT_LOCALE } from '@/i18n/config';
+
+// Les libellés d'opérateurs de config/filter/operations.json acceptent la forme
+// `{ fr, en }` depuis P5.4 : on les aplatit avant de les passer au composant, qui
+// n'attend que des chaînes. Le site de documentation étant monolingue, il résout dans
+// la langue par défaut.
+const localizedOperations = resolveOperationLabels(operations, DEFAULT_LOCALE, DEFAULT_LOCALE);
 
 // Le critère porte ses métadonnées de colonne (sql_type + is_categorical) : le
 // composant n'a besoin d'aucun type abstrait intermédiaire.
@@ -41,7 +49,7 @@ const CriterionMenuBasic = () => {
       criterion={criterion}
       onChange={setCriterion}
       variables={variables}
-      operationsByType={operations}
+      operationsByType={localizedOperations}
       showLabels
       validate
     />

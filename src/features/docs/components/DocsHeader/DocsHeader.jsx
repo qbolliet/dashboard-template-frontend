@@ -2,6 +2,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import siteConfig from '@config/site.config.json';
+import { resolveLocalized } from '@/utils/i18n/resolveLocalized';
+import { DEFAULT_LOCALE } from '@/i18n/config';
 import { DEMO_BASE_PATH } from '@/utils/navigation/basePaths';
 import ThemeToggleButton from '@/features/theme/components/ThemeToggleButton/ThemeToggleButton';
 import { withBasePath } from '@/utils/url/withBasePath';
@@ -22,6 +24,12 @@ import './DocsHeader.scss';
 // Ce bandeau ne réutilise PAS <Header> lui-même : celui-là rend l'arbre de navigation
 // du manifeste, qui décrit la démo et n'a rien à dire sur la documentation.
 
+// Le site de DOCUMENTATION est monolingue, en français (décision de P5.4) : il n'a pas
+// de segment [locale] et résout donc le titre du manifeste dans la langue par défaut.
+// Le titre reste traduisible dans config/site.config.json — c'est l'application de
+// démonstration, sous /demo/<langue>, qui en exploite les variantes.
+const siteTitle = resolveLocalized(siteConfig.site.title, DEFAULT_LOCALE, DEFAULT_LOCALE);
+
 /**
  * Top bar of the documentation site.
  *
@@ -34,7 +42,7 @@ const DocsHeader = () => (
                 Pas de className="logo" — cette classe est stylée par Header.scss, qui
                 n'est pas chargée dans la branche (docs). */}
             <Image src={withBasePath("/logo.svg")} alt="" className="docs-header__logo" width={32} height={32} />
-            <span className="docs-header__title">{siteConfig.site.title}</span>
+            <span className="docs-header__title">{siteTitle}</span>
             <span className="docs-header__badge">docs</span>
         </Link>
 

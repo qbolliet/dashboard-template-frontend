@@ -15,6 +15,10 @@
 // Importation des modules
 import { ResetIcon } from '@/components/icons';
 
+// Libellé par défaut de l'outil partagé : une seule chaîne, une prop suffit à la
+// surcharger — un objet `labels` serait une cérémonie inutile.
+const DEFAULT_RESET_LABEL = 'Réinitialiser le zoom';
+
 /**
  * Shared "reset zoom" ToolSpec factory — consumed by the chart and the globe
  * toolbars so the operation keeps one id, one label and one icon everywhere.
@@ -25,9 +29,10 @@ import { ResetIcon } from '@/components/icons';
  * @param {boolean} [config.disabled] - Greyed-out state (globe never uses it;
  *   available for consumers that prefer an explicit disabled look).
  * @param {JSX.Element} [config.icon] - Icon override (defaults to <ResetIcon/>).
+ * @param {string} [config.label] - Wording override; defaults to the French label.
  * @returns {ToolSpec}
  */
-export const resetZoomTool = ({ onClick, disabled, icon }) => ({
-  id: 'resetZoom', icon: icon ?? <ResetIcon />, label: 'Réinitialiser le zoom',
+export const resetZoomTool = ({ onClick, disabled, icon, label = DEFAULT_RESET_LABEL }) => ({
+  id: 'resetZoom', icon: icon ?? <ResetIcon />, label,
   onClick, disabled,
 });

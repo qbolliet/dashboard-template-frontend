@@ -1,281 +1,328 @@
 ---
 title: Internationalisation
-description: Externaliser les libellés codés en dur des composants.
+description: Servir plusieurs langues, et maintenir les traductions sans les laisser dériver.
 order: 4
 ---
 
 # Internationalisation
 
-**État actuel : le template n'a pas de couche d'internationalisation.** Il n'y a ni
-librairie i18n, ni fichiers de traduction, ni sélecteur de langue. Le contenu que vous
-écrivez est dans la langue que vous voulez ; l'interface, elle, parle français par défaut,
-et une partie de ses libellés est encore codée en dur.
+Le template sert **plusieurs langues simultanément**. L'application de démonstration vit
+sous `/demo/<langue>` — `/demo/fr/…`, `/demo/en/…` —, la langue d'un nouveau visiteur est
+déduite de son navigateur, et un sélecteur dans le header lui permet d'en changer sans
+quitter la page qu'il lit.
 
-Cette page dit exactement où passe la frontière — ce qui est configurable, ce qui se
-surcharge par prop, ce qui demande d'éditer un fichier — et donne le motif à suivre pour
-traduire le reste sans partir dans une direction que la suite contredira.
+Cette page décrit d'abord **le mécanisme**, puis les **trois gestes de maintenance** :
+ajouter une chaîne, ajouter une langue, traduire du contenu. Si vous ne lisez qu'une
+section, lisez celle-là.
 
-## Trois catégories, et la frontière entre elles
+## Deux couches, et pourquoi elles sont séparées
 
-| Catégorie | Comment vous la changez | Volume |
-|---|---|---|
-| **Contenu** — titres de pages, descriptions, textes d'accueil | fichiers JSON de `config/` | tout le contenu |
-| **Libellés surchargeables** — titres de composants, libellés accessibles, textes d'aide | une prop, à l'appel | une vingtaine de props |
-| **Libellés codés en dur** — placeholders, `aria-label`, états vides, boutons | édition du fichier du composant | une quarantaine de chaînes |
+Le point de départ est une contrainte du mode de distribution. Un composant de ce dépôt
+peut arriver chez vous de deux façons : avec tout le projet (*Use this template*), ou
+**seul**, par `npx shadcn add`. Dans le second cas il n'y a ni manifeste, ni provider, ni
+dictionnaire — et il doit fonctionner quand même.
 
-### Le contenu est déjà externalisé
+D'où deux couches, dont une seule dépend de l'autre.
 
-Rien de ce que voit l'utilisateur comme *du contenu* n'est écrit dans un composant.
+### Couche 1 — chaque composant porte ses libellés
 
-- **`config/site.config.json`** porte `site.title`, `site.description`, et le `name` et la
-  `description` de chaque page. Il porte aussi **`site.locale`**, posée sur `<html lang>` —
-  c'est elle qui détermine la prononciation par les lecteurs d'écran, la césure du
-  navigateur et le formatage des dates et des nombres par `Intl`. Changez-la en même temps
-  que vos libellés.
-- **`config/content/home.json`** porte l'intégralité de la page d'accueil : titre et
-  description du bandeau, texte du bouton, cartes.
-- **`config/filter/operations.json`** porte les libellés d'opérations du menu de critères
-  (`IN`, `≥`, `Entre`…). Beaucoup sont des symboles, donc déjà universels ; `Entre` est le
-  seul mot français du fichier.
-- Le gabarit `AboutPage` tire sa prose du manifeste plutôt que d'une copie codée en dur :
-  renommer votre site produit une page cohérente sans toucher au composant.
+Un composant traduisible déclare une constante de module avec des défauts français, et
+accepte une prop `labels` fusionnée par-dessus :
 
-### Une vingtaine de props acceptent déjà votre texte
+```jsx
+const DEFAULT_LABELS = {
+  clear: 'Effacer la recherche',
+  suggestions: 'Suggestions de recherche',
+};
 
-Ces props existent pour d'autres raisons — nommer un graphique, décrire un bouton d'icône —
-mais elles sont de fait le point de traduction de ces composants. Aucune n'a de valeur par
-défaut française, sauf les quatre signalées.
-
-| Composant | Props textuelles |
-|---|---|
-| `Chart`, `MultiChart` | `title`, `labels` (libellés d'axes et de séries), `format` |
-| `Table` | `title`, `queryHint` |
-| `TableFooter` | `sqlHint` |
-| `StatCard` | `title`, `footerTitle` |
-| `SelectMenu` | `placeholder` — défaut `'Sélectionner…'` |
-| `TypeAwareInput` | `forcedMessage` |
-| `CriterionRow` | `label`, `tooltipText` |
-| `ToolbarButton`, `HoverToolbar` | `label`, `caption` |
-| `Tab`, `TabList` | `countLabel`, `label` |
-| `AccessibleIcon` | `label` |
-| `PageHeader` | `description` |
-| `Header` | `currentPageTitle` |
-| `Globe` | `ariaLabel` — défaut `'Globe terrestre interactif'` |
-| `NavTrigger` | `ariaLabel`, `srLabel` — défaut `'Menu de navigation'` |
-| `TopbarContainer` | `ariaLabel` — défaut `'Menu de navigation'` |
-| `ChartAxisBottom`, `ChartAxisLeft`, `SequentialLegend`, `DragBar` | `label` |
-
-La liste exacte, avec les types et les valeurs par défaut, est sur la page de chaque
-composant : elle est lue dans le code au build, donc elle ne se périme pas.
-
-### Ce qui reste en français dans le code
-
-Une quarantaine de chaînes, concentrées sur quatre features. Ce sont surtout des libellés
-d'accessibilité et des états transitoires — précisément ceux qu'on oublie quand on traduit
-une interface à vue.
-
-| Zone | Exemples |
-|---|---|
-| `features/header` | `placeholder` et `aria-label` de la recherche (« Rechercher... (Ctrl+K) », « Effacer la recherche », « Suggestions de recherche »), libellés des panneaux de navigation et des poignées de redimensionnement |
-| `features/table` | « Réinitialiser », « Tout », « Aucun », « Aucune valeur », « Filtrer les valeurs… », « Retirer le tri », « colonne masquée » |
-| `features/filter` et `components/filter` | « Sélectionner une variable… », « Opération… », « Sélectionner des valeurs… », « Supprimer le critère », « Ajouter un critère », « Tout sélectionner », « Aucun résultat », « Mois », « Année », « Mois précédent », « Valeur maximale », « Calendrier » |
-| `features/pages`, `app/not-found` | « Chargement des données… », « Sources des données », « Page introuvable », « Retour à l'accueil de la démonstration » |
-
-Pour les changer aujourd'hui, il faut éditer le fichier du composant. Ce n'est pas aussi
-grave qu'il y paraît dans ce modèle de distribution : **le code est chez vous**, que vous
-soyez parti du dépôt modèle ou que vous l'ayez installé par le registry. Vous n'avez aucune
-mise à jour amont à absorber qui écraserait vos traductions — le seul geste qui les écrase
-est de relancer `npx shadcn add` sur le même item.
-
-## Le motif visé, applicable dès maintenant
-
-La cible du template est **un dictionnaire de libellés par composant, surchargeable par
-prop, avec le français en valeur par défaut** — pas une librairie i18n complète, qui
-imposerait un runtime et un provider à tous les utilisateurs du registry, y compris à ceux
-qui n'installent qu'un bouton.
-
-Si vous traduisez un composant maintenant, adoptez cette forme plutôt qu'un remplacement de
-chaîne : elle est rétrocompatible, et le jour où le template généralisera le mécanisme,
-votre code sera déjà à la bonne forme.
+const SearchBar = ({ labels: labelOverrides }) => {
+  const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
+  // …
+};
+```
 
 Trois règles font tout le motif :
 
-1. **Un objet unique**, `labels`, et non une prop par chaîne. Sinon un composant qui affiche
-   six textes prend six props.
-2. **Les défauts français dans une constante de module**, fusionnée avec la surcharge. Un
-   appelant qui ne traduit que deux libellés sur six garde les quatre autres.
-3. **Aucune clé nouvelle sans usage.** Le dictionnaire décrit ce que le composant affiche,
-   pas ce qu'il pourrait afficher.
+1. **Un objet unique**, `labels`, et non une prop par chaîne. Sinon un composant qui
+   affiche six textes prend six props.
+2. **Les défauts dans une constante de MODULE**, pas dans la valeur par défaut de la
+   prop. C'est ce qui rend la fusion *partielle* possible : un appelant qui ne traduit que
+   deux libellés sur six garde les quatre autres.
+3. **Aucune clé sans usage.** Le dictionnaire décrit ce que le composant affiche.
 
-## Exemple complet
+`mergeLabels` n'est pas un simple `{ ...defaults, ...overrides }`. Il **refuse** les
+surcharges `null`, `undefined`, vides ou blanches, et les clés inconnues du composant.
+C'est la garantie d'accessibilité du template : **une traduction incomplète ne peut pas
+produire un `aria-label` vide**. Elle produit du français.
 
-Passer la barre de recherche en anglais, en lui donnant le dictionnaire que P5.4
-généralisera.
+### Couche 2 — l'application remplit ces props
+
+Le dictionnaire de `src/i18n/dictionaries/` n'est rien d'autre que l'union des formes
+`DEFAULT_LABELS`, rangées par espace de noms :
+
+```js
+// src/i18n/dictionaries/fr.js
+const fr = {
+  header:  { skipToContent: 'Passer la navigation', /* … */ },
+  table:   { reset: 'Réinitialiser', /* … */ },
+  filter:  { addCriterion: 'Ajouter un critère', /* … */ },
+};
+```
+
+Le layout de langue le charge une fois et le distribue :
 
 ```jsx
-// src/features/header/components/SearchBar/SearchBar.jsx
-'use client';
+// src/app/(site)/demo/[locale]/layout.jsx
+const dictionary = await getDictionary(locale);
 
-// … imports inchangés …
+<Header labels={dictionary} locale={locale} />
+```
 
-// Seuil de longueur de requête en dessous duquel on n'affiche rien.
-const MIN_QUERY_LENGTH = 2;
-const MAX_SUGGESTIONS = 10;
+La couche 2 remplit les props de la couche 1, **jamais l'inverse** : aucun composant ne
+lit le dictionnaire, aucun n'importe `src/i18n/`.
 
-// =================================================================
-// LIBELLÉS — défauts français, surchargeables par la prop `labels`
-// =================================================================
-// Constante de MODULE et non valeur par défaut de la prop : c'est ce qui permet la
-// fusion partielle plus bas. Un appelant qui ne traduit que le placeholder garde les
-// trois autres libellés en français, au lieu de les perdre.
+> **Pourquoi pas `next-intl` ou `react-i18next` ?** Parce qu'ils imposeraient un provider
+> et un runtime à **tout** consommateur du registry — y compris à celui qui installe un
+> seul bouton — et leur format de messages à celui qui a déjà sa propre chaîne i18n. Pour
+> 190 libellés, le coût n'est pas justifié. Rien ne vous empêche d'en brancher une :
+> remplissez la prop `labels` depuis votre librairie, les composants ne verront pas la
+> différence.
+
+## Les trois gestes de maintenance
+
+### 1. Ajouter une chaîne à un composant
+
+Trois éditions, dans cet ordre :
+
+```jsx
+// 1. la clé et son défaut français, dans le composant
 const DEFAULT_LABELS = {
-    form: "Rechercher dans l'application",
-    placeholder: 'Rechercher... (Ctrl+K)',
-    clear: 'Effacer la recherche',
-    suggestions: 'Suggestions de recherche',
+  clear: 'Effacer la recherche',
+  export: 'Exporter la sélection',   // ← nouvelle clé
 };
-
-/**
- * Search bar component for the application.
- *
- * @param {Object} [props] - Component props.
- * @param {Object} [props.labels] - Wording overrides, merged over the French defaults.
- *   Keys: `form`, `placeholder`, `clear`, `suggestions`.
- * @returns {JSX.Element} The rendered search bar component.
- */
-const SearchBar = ({ labels: labelOverrides }) => {
-    // Fusion à plat : les clés absentes de la surcharge gardent leur défaut. Pas de
-    // useMemo — le compilateur React s'en charge, et l'objet ne sert aucune identité.
-    const labels = { ...DEFAULT_LABELS, ...labelOverrides };
-
-    // … état et gestionnaires inchangés …
-
-    return (
-        <div className={`search-container ${isFocused ? 'search-container--focused' : ''}`}>
-            <form
-                ref={formRef}
-                role="search"
-                className="search-form"
-                onSubmit={handleSubmit}
-                aria-label={labels.form}
-            >
-                <SearchIcon />
-
-                <input
-                    ref={inputRef}
-                    type="search"
-                    name="search"
-                    className="search-input"
-                    placeholder={labels.placeholder}
-                    /* … autres attributs inchangés … */
-                />
-
-                {searchValue && (
-                    <button
-                        type="button"
-                        className="search-clear"
-                        onClick={handleClear}
-                        aria-label={labels.clear}
-                    >
-                        <ClearIcon />
-                    </button>
-                )}
-            </form>
-
-            {isExpanded && (
-                <div
-                    id="search-suggestions"
-                    className="search-suggestions"
-                    role="listbox"
-                    aria-label={labels.suggestions}
-                >
-                    {/* … suggestions inchangées … */}
-                </div>
-            )}
-        </div>
-    );
-};
-
-export default SearchBar;
 ```
 
-Le composant reste utilisable sans rien passer, exactement comme avant. `Header` propage
-ensuite la surcharge — c'est une prop à lui ajouter, il n'en a pas aujourd'hui :
-
-```jsx
-// src/features/header/components/Header/Header.jsx
-// Signature : ajouter `searchLabels` aux props existantes.
-const Header = ({ navigationData = [], navigationType = 'topbar', searchLabels, /* … */ }) => (
-    // …
-    <SearchBar labels={searchLabels} />
-);
+```js
+// 2. la même clé dans src/i18n/dictionaries/fr.js, sous le bon espace de noms
+searchBar: {
+  clear: 'Effacer la recherche',
+  export: 'Exporter la sélection',
+},
 ```
 
-Et l'application décide, en un seul endroit — le layout du groupe de routes qui rend le
-header :
-
-```jsx
-// src/app/(site)/layout.jsx
-const SEARCH_LABELS_EN = {
-  form: 'Search the application',
-  placeholder: 'Search... (Ctrl+K)',
-  clear: 'Clear search',
-  suggestions: 'Search suggestions',
-};
-
-<Header
-    navigationData={navigationTree}
-    navigationType={siteConfig.navigation.type}
-    useSwitcher={siteConfig.navigation.useSwitcher}
-    homeHref={DEMO_BASE_PATH}
-    searchLabels={SEARCH_LABELS_EN}
-/>
+```bash
+# 3. le script vous dit ce qu'il reste à faire
+npm run check:i18n
+#   en.js → searchBar.export : clé manquante
 ```
 
-Le dictionnaire traverse ici une frontière Server → Client : c'est un objet de chaînes,
-donc sérialisable, et il passe sans difficulté. La règle à ne pas oublier est celle des
-fonctions, qui ne passent pas — si vous mettez un jour un formateur dans ce dictionnaire,
-il devra être construit côté client.
+Vous n'avez rien à mémoriser : **`check:i18n` est la liste des choses à faire**. Il est
+dans la chaîne `verify` et dans la CI avec `--strict`, donc un oubli ne peut pas être
+fusionné.
 
-Reste le contenu, qui ne passe par aucune prop :
+### 2. Ajouter une langue
+
+Cinq lignes, aucune dans un composant :
 
 ```jsonc
-// config/site.config.json — la langue du document et les libellés de pages
+// config/site.config.json — l'ordre compte (voir plus bas)
+"locales": ["fr", "en", "es"],
+"defaultLocale": "fr"
+```
+
+```js
+// src/i18n/getDictionary.js — l'import doit rester LITTÉRAL
+case 'es': {
+  const { default: es } = await import('./dictionaries/es');
+  return deepMerge(fr, es);
+}
+```
+
+```js
+// src/i18n/formats.js — les conventions, qui ne sont pas des traductions
+es: {
+  intlLocale: 'es-ES', currency: 'EUR', percentSuffix: ' %',
+  dateMask: 'DD/MM/AAAA', dateOrder: 'DMY', firstDayOfWeek: 1,
+  d3Locale: 'es-ES', siPrefixBillion: 'G',
+},
+```
+
+Plus le fichier `src/i18n/dictionaries/es.js` (copiez `fr.js` et traduisez), et les deux
+lignes d'import de locale d3 dans `src/i18n/d3Locale.js`.
+
+**Rien d'autre.** Les routes, l'index de recherche et la suite Playwright se déduisent :
+`generateStaticParams` fait le produit cartésien des langues et des pages, et
+`e2e/helpers/routes.ts` fait le même. Ajouter une langue double la couverture du test de
+fumée sans qu'une ligne de test ne bouge.
+
+Tant que `es.js` est incomplet, les clés manquantes s'affichent **en français** — le site
+reste utilisable pendant la traduction.
+
+### 3. Traduire du contenu
+
+Le contenu n'est pas dans les dictionnaires : il est dans `config/`. Tout champ de texte y
+accepte **deux formes** :
+
+```jsonc
 {
-  "$schema": "./schema/site.schema.json",
-  "site": {
-    "title": "Macroeconomic Observatory",
-    "description": "Macroeconomic series and projections.",
-    // Change le formatage des dates et des nombres par Intl, la césure du navigateur
-    // et la prononciation par les lecteurs d'écran. À ne pas oublier.
-    "locale": "en"
-  },
-  "navigation": {
-    "type": "sidebar",
-    "useSwitcher": false,
-    "tree": [
-      { "path": "/", "name": "Home", "type": "home" },
-      {
-        "path": "/national-accounts",
-        "name": "National accounts",
-        "type": "indicator_group",
-        "description": "National accounts aggregates, by country.",
-        "children": [
-          { "path": "/gdp", "name": "GDP", "type": "indicator" }
-        ]
-      },
-      { "path": "/about", "name": "About", "type": "about" }
-    ]
-  }
+  "path": "/pib",
+  "name": "PIB",                                  // identique partout
+  "description": { "fr": "Produit intérieur…", "en": "Gross domestic…" }
+}
+```
+
+La forme chaîne n'est pas une tolérance héritée : c'est la forme **juste** pour un sigle,
+un symbole (`=`, `≥`) ou un nom propre. L'imposer sous forme d'objet à trois clés
+identiques serait du bruit, et inviterait à traduire ce qui ne doit pas l'être.
+
+Trois fichiers sont concernés — `config/site.config.json` (titre, description, arbre de
+navigation), `config/content/home.json` (page d'accueil) et
+`config/filter/operations.json` (libellés d'opérateurs).
+
+Ce qui ne se traduit **jamais** : les `path` d'URL, les `value` d'opérateurs et de
+connecteurs (ce sont des identifiants sérialisés dans le filtre), les chemins d'images.
+
+```bash
+npm run validate:config   # la langue par défaut est-elle présente partout ?
+npm run check:i18n        # une langue déclarée est-elle oubliée quelque part ?
+```
+
+## Ce que la traduction ne couvre pas : les formats
+
+`1 234,5` contre `1,234.5`, `31/12/2026` contre `12/31/2026`, la semaine qui commence
+lundi ou dimanche, l'espace avant le signe pourcent. Ce ne sont pas des libellés : ils
+vivent dans `src/i18n/formats.js` et pilotent `Intl` **comme** d3.
+
+C'est le point qui mérite le plus d'attention si vous reprenez ce code, parce que le dépôt
+s'y est déjà trompé : `d3-format` et `d3-time-format` ont leur **propre** notion de locale,
+indépendante d'`Intl`, et leur défaut est `en-US`. Avant que ce mécanisme n'existe, les
+axes des graphiques affichaient `1,234.5` et des mois `Jan`/`Feb` à côté d'un tableau
+formaté `1 234,5` — sur le même écran.
+
+La règle qui l'empêche de revenir : **aucun `import { format } from 'd3-format'` dans le
+dépôt**. On passe par `d3LocaleFor(locale)`, qui renvoie des formateurs liés à une langue
+sans toucher à l'état global de d3 — indispensable au build, où les pages françaises et
+anglaises sont rendues dans le même processus Node.
+
+## Le routage
+
+```
+/                       site de documentation (celui que vous lisez) — monolingue
+/demo                   porte d'entrée : négocie la langue et redirige
+/demo/fr/…              application, en français
+/demo/en/…              la même, en anglais
+```
+
+La langue est un **segment d'URL**, donc une dimension de build : chaque paire
+(langue, page) est un fichier écrit par `generateStaticParams`. Ce n'est pas un détail
+d'implémentation — c'est ce qui rend chaque page partageable, indexable, et servie
+directement dans la bonne langue sans clignotement.
+
+Le `localStorage` et le cookie ne mémorisent qu'une **préférence**, consultée uniquement
+par `/demo` pour choisir où envoyer un visiteur qui n'a pas précisé de langue. Ils ne
+décident jamais de ce qui est rendu.
+
+### La négociation, et pourquoi elle est côté client
+
+Le déploiement de référence est un **export statique** (GitHub Pages). Next refuse un
+`middleware.ts` sous `output: 'export'` : il n'y a ni serveur pour lire `Accept-Language`,
+ni redirection 30x. `/demo` est donc une page réelle qui choisit dans le navigateur :
+
+1. un choix explicite mémorisé (`localStorage`), qui prime — quelqu'un dont le navigateur
+   est en anglais mais qui a choisi le français veut le français ;
+2. `navigator.languages`, les préférences du système ;
+3. `site.defaultLocale`.
+
+L'ordre de `site.locales` compte à l'étape 2 : un navigateur qui demande `pt` sans région,
+face à `["pt-BR", "pt-PT"]`, obtient la **première** variante déclarée.
+
+Un `<noscript>` liste les langues en clair : sans lui, l'application serait inatteignable
+sans JavaScript.
+
+### Si vous déployez sur un serveur
+
+`examples/middleware.ts` fait la même négociation avec une vraie redirection 307. Il est
+livré **hors** de la racine du projet à dessein : à la racine, Next ferait échouer
+`npm run build:docs`.
+
+```bash
+cp examples/middleware.ts ./middleware.ts
+```
+
+Il appelle **la même** fonction `negotiateLocale` que le repli client : les deux chemins
+ne peuvent pas diverger.
+
+## Deux pièges à connaître
+
+### Les libellés dynamiques sont des gabarits, pas des fonctions
+
+```js
+sortBy: 'Trier par {column}',                    // ✅
+sortBy: (column) => `Trier par ${column}`,       // ❌
+```
+
+Le dictionnaire est chargé par un Server Component puis passé en prop à des composants
+clients. **Une fonction ne traverse pas cette frontière** — React lève « Functions cannot
+be passed directly to Client Components ». D'où `interpolate(labels.sortBy, { column })`.
+
+Les trous sont **nommés** et non positionnels parce que l'ordre des mots n'est pas
+universel : c'est précisément ce qu'une concaténation en JSX empêche de traduire.
+
+Quand le trou porte du balisage — un `<code>`, un lien — utilisez `interpolateNodes`, qui
+substitue des éléments React au lieu de texte. La phrase reste entière dans le
+dictionnaire, donc réordonnable.
+
+### Les pluriels passent par `Intl.PluralRules`
+
+```js
+rowCount: { one: '{count} ligne', other: '{count} lignes' },
+```
+
+Le motif `n > 1 ? 's' : ''` qui traînait dans le dépôt est faux deux fois : l'anglais met
+zéro au pluriel (`0 rows`), et `1,5 ligne` est un singulier en français. `pluralize` lit
+les règles de la langue au lieu de coller un « s ».
+
+## Ce qui reste monolingue, et pourquoi
+
+**Ce site de documentation.** Il documente le template ; il n'est pas un livrable de votre
+projet, et vous le supprimerez sans doute. Le traduire aurait doublé un corpus de 29 pages
+sans rien apprendre à personne.
+
+Conséquence visible dans le code : `<html lang>` est écrit par le layout racine, qui est
+au-dessus du segment `[locale]` et ne peut donc pas le lire. Trois mécanismes se
+complètent pour que la langue soit malgré tout juste : le layout de langue pose `lang` sur
+sa propre racine (WCAG 3.1.2), un script inline corrige `<html lang>` avant le premier
+paint, et `LocaleProvider` le maintient lors des navigations clientes.
+
+**Si vous supprimez la documentation, ce détour disparaît** : `[locale]` devient votre
+premier segment, son layout devient le layout racine, et vous écrivez simplement
+`<html lang={locale}>`.
+
+Enfin, `src/features/chart/sources/demoData.js` reste en français : c'est un **jeu de
+démonstration**, pas de l'interface. Vous le remplacerez par vos données.
+
+## Exemple complet : passer le template en anglais seul
+
+Vous ne voulez pas de site multilingue, juste un site anglais.
+
+```jsonc
+// config/site.config.json
+"site": {
+  "title": "Macroeconomic Observatory",
+  "description": "Macroeconomic series and projections.",
+  "locales": ["en"],
+  "defaultLocale": "en"
 }
 ```
 
 ```bash
-npm run validate:config   # le manifeste reste valide : seules les valeurs ont changé
-npm run build:search      # l'index de recherche se régénère dans la nouvelle langue
+npm run validate:config
+npm run check:i18n        # signale fr.js présent mais non déclaré — sans gravité
+npm run dev
 ```
 
-Une dernière chose que ce montage ne fait pas, et qu'il faut savoir avant de vous y engager :
-il produit une application **monolingue**, dans la langue de votre choix. Servir deux langues
-simultanément demanderait un segment de route par langue et un manifeste par langue — ce que
-la route attrape-tout permettrait, mais qu'aucun code du template ne fait aujourd'hui.
+Les libellés d'interface viennent désormais de `en.js`, les nombres et les dates des
+conventions `en-US`, et l'URL est `/demo/en/…`. Supprimez `fr.js` et sa branche dans
+`getDictionary.js` si vous ne comptez jamais y revenir — mais gardez à l'esprit que la
+**référence** de `check:i18n` est la langue par défaut : c'est désormais `en.js` qui joue
+ce rôle.

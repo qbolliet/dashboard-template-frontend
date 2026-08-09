@@ -693,7 +693,7 @@ class GlobeEngine {
       this._arcHover = hit;
       hit.mat.uniforms.uHover.value = 1;
       this.tooltip.className = 'globe-tooltip globe-tooltip--arc';
-      this.tooltip.innerHTML = arcTooltipHtml(hit.arc, hit.a, hit.b);
+      this.tooltip.innerHTML = arcTooltipHtml(hit.arc, hit.a, hit.b, this.o.labels);
       this.tooltip.style.opacity = '1';
     }
     this.tooltip.style.transform =

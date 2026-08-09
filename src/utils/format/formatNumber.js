@@ -6,6 +6,50 @@
 // la couche transverse src/utils/ car src/components/ ne peut pas dépendre de
 // src/features/, et la table ne doit pas dépendre des internes d'un composant UI.
 
+
+import { DEFAULT_INTL_LOCALE } from './constants';
+
+// Mémoïsation par locale : construire un Intl.NumberFormat coûte, et ces valeurs ne
+// dépendent que de la langue.
+const percentSuffixCache = new Map();
+
+/**
+ * Derives how a locale writes the percent sign, separator included.
+ *
+ * French wants a narrow no-break space before the sign, English wants nothing. Rather
+ * than maintaining that table by hand, the value is read out of Intl itself: format 1 as
+ * a percentage and keep everything that follows the digits. This module lives in
+ * `src/utils/` and must stay free of configuration imports, so asking the platform is
+ * also the only way to know without coupling.
+ *
+ * @param {string} locale - Full Intl tag.
+ * @returns {string} The suffix, e.g. ' %' in French or '%' in English.
+ */
+const percentSuffixFor = (locale) => {
+  if (percentSuffixCache.has(locale)) return percentSuffixCache.get(locale);
+
+  let suffix = ' %';
+  try {
+    const parts = new Intl.NumberFormat(locale, { style: 'percent' }).formatToParts(1);
+    const signIndex = parts.findIndex((part) => part.type === 'percentSign');
+
+    if (signIndex > -1) {
+      // Le séparateur éventuel est la partie « literal » qui précède immédiatement le
+      // signe ; certaines locales le placent AVANT le nombre, auquel cas il n'y a pas de
+      // suffixe à déduire et le défaut fait l'affaire.
+      const previous = parts[signIndex - 1];
+      const separator = previous && previous.type === 'literal' ? previous.value : '';
+      suffix = signIndex > 0 ? separator + parts[signIndex].value : ' %';
+    }
+  } catch {
+    // Locale inconnue de l'environnement : on garde le défaut.
+  }
+
+  percentSuffixCache.set(locale, suffix);
+
+  return suffix;
+};
+
 /**
  * Format specification driving {@link formatNumber}. Every field is optional.
  *
@@ -13,9 +57,10 @@
  * @property {('number'|'currency'|'percent')} [style] - Formatting mode. 'currency' delegates
  *   entirely to Intl.NumberFormat and returns early (prefix/suffix/unit are ignored on that
  *   branch). 'percent' does NOT use Intl's percent style (no ×100 multiplication): it formats
- *   the raw number and appends a ' %' suffix unless a custom `suffix` is provided.
+ *   the raw number and appends the locale's percent suffix unless a custom `suffix` is
+ *   provided.
  * @property {string} [currency] - ISO currency code used when style is 'currency' (default: 'EUR').
- * @property {string} [locale] - Intl locale (default: 'fr-FR', kept explicit so server and
+ * @property {string} [locale] - Intl locale (default: DEFAULT_INTL_LOCALE, kept explicit so server and
  *   client render identically regardless of the runtime's environment locale).
  * @property {number} [decimals] - Sets both minimumFractionDigits and maximumFractionDigits.
  * @property {number} [minDecimals] - Overrides minimumFractionDigits after `decimals` is applied.
@@ -54,7 +99,7 @@ export function formatNumber(value, f) {
     : parseFloat(String(value).replace(/\s/g, '').replace(',', '.'));
   if (Number.isNaN(raw)) return String(value);
 
-  const locale = f.locale || 'fr-FR';
+  const locale = f.locale || DEFAULT_INTL_LOCALE;
   const opts = {};
   if (f.decimals != null) { opts.minimumFractionDigits = f.decimals; opts.maximumFractionDigits = f.decimals; }
   if (f.minDecimals != null) opts.minimumFractionDigits = f.minDecimals;
@@ -84,7 +129,7 @@ export function formatNumber(value, f) {
   const s = new Intl.NumberFormat(locale, opts).format(raw);
   const prefix = f.prefix || '';
   let suffix = f.suffix || '';
-  if (f.style === 'percent' && !suffix) suffix = ' %';
+  if (f.style === 'percent' && !suffix) suffix = percentSuffixFor(locale);
   if (f.unit && !suffix) suffix = ` ${f.unit}`;
   return prefix + s + suffix;
 }

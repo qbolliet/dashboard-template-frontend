@@ -18,7 +18,7 @@
 // Consommateurs actuels :
 //   • les `src` de <Image>                   → LinkCard, Footer, Header, les 4
 //                                              composants de NavigationSideBar, DocsHeader
-//   • fetch('/search-index.json')            → src/features/header/hooks/useSearchIndex.js
+//   • fetch('/search-index.<langue>.json')    → src/features/header/hooks/useSearchIndex.js
 //   • les textures du globe, chargées par le TextureLoader de three.js
 //                                            → src/features/globe/engine/GlobeEngine.js
 //   • une url() CSS posée en style inline    → src/features/home/components/Hero/Hero.js

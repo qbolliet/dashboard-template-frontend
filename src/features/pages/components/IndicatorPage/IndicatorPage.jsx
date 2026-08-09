@@ -24,9 +24,14 @@ import IndicatorExplorer from '../IndicatorExplorer/IndicatorExplorer';
  *
  * @param {Object} props - Component props.
  * @param {Object} props.node - Manifest node, with resolved absolute paths.
+ * @param {string} props.locale - Current locale code, forwarded to the island so that
+ *   numbers and dates follow the reader's conventions.
+ * @param {Object} props.labels - `pages` namespace of the dictionary.
+ * @param {Object} props.dictionary - Full dictionary, forwarded to the island, which
+ *   composes four features each carrying their own namespace.
  * @returns {JSX.Element} The rendered indicator page.
  */
-const IndicatorPage = async ({ node }) => {
+const IndicatorPage = async ({ node, locale, labels, dictionary }) => {
     // Deux appels tolérants à la panne (cf. requestSafe) : le schéma du catalogue, et
     // une seule ligne de faits dont on ne garde QUE la liste des colonnes — le schéma
     // décrit tout le catalogue, les lignes n'en portent qu'un sous-ensemble.
@@ -47,7 +52,12 @@ const IndicatorPage = async ({ node }) => {
     return (
         <PageBody>
             <PageHeader name={node.name} description={node.description} />
-            <IndicatorExplorer name={node.name} columnsMetadata={columnsMetadata} />
+            <IndicatorExplorer
+                name={node.name}
+                columnsMetadata={columnsMetadata}
+                locale={locale}
+                labels={labels}
+                dictionary={dictionary} />
         </PageBody>
     );
 };

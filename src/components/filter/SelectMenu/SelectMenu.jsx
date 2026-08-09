@@ -8,7 +8,23 @@ import { CheckIcon, CrossIcon, ChevronIcon } from '@/components/icons';
 import { useSelectOptions } from './useSelectOptions';
 import { useDebouncedValue } from '@/hooks/debounce/useDebouncedValue';
 import { useFloatingPosition } from '@/hooks/floating/useFloatingPosition';
+import { mergeLabels } from '@/utils/i18n/mergeLabels';
+import { interpolate } from '@/utils/i18n/interpolate';
 import './SelectMenu.scss';
+
+// Défauts français, surchargeables par la prop `labels` (cf. mergeLabels). La prop
+// `placeholder` reste distincte et prioritaire : elle nomme CE menu (« Choisir un pays »),
+// là où `labels.placeholder` est le mot générique de repli.
+const DEFAULT_LABELS = {
+  placeholder: 'Sélectionner…',
+  selectAll: 'Tout sélectionner',
+  remove: 'Retirer {value}',
+  filterField: 'Filtrer {field}',
+  filterOptions: 'Filtrer les options',
+  openList: 'Ouvrir la liste',
+  closeList: 'Fermer la liste',
+  noResults: 'Aucun résultat',
+};
 
 /**
  * Menu déroulant de sélection (simple ou multiple) avec support de recherche
@@ -23,7 +39,9 @@ import './SelectMenu.scss';
  * @param {Array}    value        - Tableau des valeurs sélectionnées [{value, label}].
  * @param {Function} onChange     - (newValues: {value, label}[]) => void.
  * @param {boolean}  [disabled]
- * @param {string}   [placeholder]
+ * @param {string}   [placeholder] - Placeholder naming THIS menu. Falls back to
+ *   `labels.placeholder`, the generic wording.
+ * @param {Object}   [labels] - Wording overrides, merged over the French defaults.
  * @param {boolean}  [compact]    - Variante compacte (hauteur réduite, mono, centré).
  * @param {boolean}  [validate]   - Active la coloration succès quand une valeur est choisie
  *   (aucune validation réelle : simple retour visuel « rempli »). Désactivé par défaut.
@@ -31,6 +49,7 @@ import './SelectMenu.scss';
  *   externe ; sert aussi de base aux ids ARIA du listbox (unicité entre instances).
  * @param {string}   [className]  - Classe(s) additionnelle(s) fusionnée(s) sur le conteneur racine.
  * @param {Object}   [style]      - Styles inline additionnels fusionnés sur le conteneur racine.
+ * @param {boolean}  [disabled] - Disables the menu.
  * @returns {JSX.Element}
  */
 const SelectMenu = ({
@@ -42,13 +61,16 @@ const SelectMenu = ({
   value = [],
   onChange,
   disabled = false,
-  placeholder = 'Sélectionner…',
+  placeholder,
   compact = false,
   validate = false,
   id,
   className = '',
   style,
+  labels: labelOverrides,
 }) => {
+  const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
+  const resolvedPlaceholder = placeholder ?? labels.placeholder;
   // Mode groupé dérivé de la présence du champ de groupe (une seule source de vérité)
   const grouped = !!groupField;
 
@@ -291,7 +313,7 @@ const SelectMenu = ({
           <span className={checkClass}>
             {allChecked ? <CheckIcon /> : someChecked ? <span className="select-check-dash" /> : null}
           </span>
-          <span className="select-label">Tout sélectionner</span>
+          <span className="select-label">{labels.selectAll}</span>
         </li>
       );
     }
@@ -374,7 +396,7 @@ const SelectMenu = ({
                 <button type="button" className="select-tag-remove"
                   onClick={(e) => remove(v.value, e)}>
                   <CrossIcon />
-                  <VisuallyHidden>Retirer {labelFor(v)}</VisuallyHidden>
+                  <VisuallyHidden>{interpolate(labels.remove, { value: labelFor(v) })}</VisuallyHidden>
                 </button>
               </li>
             ))}
@@ -390,7 +412,7 @@ const SelectMenu = ({
           id={id}
           type="text"
           className={`select-filter ${isSingleSelected ? 'select-filter--hidden' : ''}`}
-          placeholder={value.length === 0 ? placeholder : ''}
+          placeholder={value.length === 0 ? resolvedPlaceholder : ''}
           value={filter}
           disabled={disabled}
           onChange={(e) => { setFilter(e.target.value); setOpen(true); setHighlighted(-1); }}
@@ -401,14 +423,14 @@ const SelectMenu = ({
           aria-controls={listboxId}
           aria-autocomplete="list"
           aria-activedescendant={activeDescendant}
-          aria-label={fieldName ? `Filtrer ${fieldName}` : 'Filtrer les options'}
+          aria-label={fieldName ? interpolate(labels.filterField, { field: fieldName }) : labels.filterOptions}
         />
       </div>
 
       {/* Bouton chevron — non atteignable au Tab (le champ porte déjà le focus) */}
       <button type="button" className="select-toggle" onClick={openAndFocus} tabIndex={-1}>
         <ChevronIcon direction={open ? 'up' : 'down'} />
-        <VisuallyHidden>{open ? 'Fermer' : 'Ouvrir'} la liste</VisuallyHidden>
+        <VisuallyHidden>{open ? labels.closeList : labels.openList}</VisuallyHidden>
       </button>
 
       {/* Dropdown : liste ARIA des options, portalée sur document.body pour échapper
@@ -423,7 +445,7 @@ const SelectMenu = ({
           style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
         >
           {navRows.map((row, i) => renderRow(row, i))}
-          {!hasOptionRows && <li className="select-empty" role="presentation">Aucun résultat</li>}
+          {!hasOptionRows && <li className="select-empty" role="presentation">{labels.noResults}</li>}
         </ul>,
         document.body,
       )}

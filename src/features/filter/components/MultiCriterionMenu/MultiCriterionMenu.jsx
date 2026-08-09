@@ -10,6 +10,27 @@ import { useDebouncedCallback } from '@/hooks/debounce/useDebouncedCallback';
 import CriterionMenu from '@/features/filter/components/CriterionMenu/CriterionMenu';
 import Connector from './Connector/Connector';
 import './MultiCriterionMenu.scss';
+import { mergeLabels } from '@/utils/i18n/mergeLabels';
+
+// Défauts français, surchargeables par la prop `labels` (cf. src/utils/i18n/mergeLabels.js).
+const DEFAULT_LABELS = {
+  variable: 'Variable',
+  variableHint: 'Variable — champ à filtrer',
+  variablePlaceholder: 'Sélectionner une variable…',
+  operation: 'Opération',
+  operationHint: 'Opération — comparateur appliqué',
+  operationPlaceholder: 'Opération…',
+  value: 'Valeur',
+  valueHint: 'Valeur — valeur(s) comparée(s)',
+  valuesPlaceholder: 'Sélectionner des valeurs…',
+  valuePlaceholder: 'Sélectionner une valeur…',
+  addCriterion: 'Ajouter un critère',
+  removeCriterion: 'Supprimer le critère',
+  openBracket: 'Crochet ouvrant',
+  closeBracket: 'Crochet fermant',
+  and: 'ET',
+  or: 'OU',
+};
 
 // Identifiant unique d'une carte = (plus grand id présent) + 1. Suffit à garantir des
 // clés React stables (unicité parmi les cartes courantes) SANS variable de module ni
@@ -71,6 +92,12 @@ const makeBlank = (id) => ({
  *   (reusable as `defaultCriteria` to rehydrate the builder).
  * @param {string} [className] - Additional class(es) merged on the root element.
  * @param {Object} [style] - Additional inline styles merged on the root element.
+ * @param {string}   [intlLocale] - Full Intl tag, driving number and date formatting.
+ * @param {string}   [dateMask] - Human-readable date mask shown as a placeholder.
+ * @param {string}   [dateOrder] - Permutation of 'D', 'M' and 'Y' telling how to read
+ *   a typed date. The mask is its display, this is its meaning.
+ * @param {number}   [firstDayOfWeek] - 0 for Sunday, 1 for Monday.
+ * @param {Object}   [labels] - Wording overrides, merged over the French defaults.
  * @returns {JSX.Element}
  */
 const MultiCriterionMenu = ({
@@ -95,7 +122,13 @@ const MultiCriterionMenu = ({
   onChange,
   className = '',
   style,
+  labels: labelOverrides,
+  intlLocale,
+  dateMask,
+  dateOrder,
+  firstDayOfWeek,
 }) => {
+  const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
   // Configuration de figeage (null si aucune variable figée)
   const lockedVars = lockedVariables && lockedVariables.length ? lockedVariables : null;
   // Connecteur par défaut : première option, sinon 'AND'
@@ -328,6 +361,11 @@ const MultiCriterionMenu = ({
 
             <div className="mcm-slot">
               <CriterionMenu
+                labels={labelOverrides}
+                intlLocale={intlLocale}
+                dateMask={dateMask}
+                dateOrder={dateOrder}
+                firstDayOfWeek={firstDayOfWeek}
                 criterion={c}
                 onChange={(next, meta) => updateCriterion(i, next, meta)}
                 onCommit={emit.flush}
@@ -356,12 +394,12 @@ const MultiCriterionMenu = ({
               </div>
             )}
             <div className="mcm-add-wrap">
-              <Tooltip content="Ajouter un critère" position="top">
+              <Tooltip content={labels.addCriterion} position="top">
                 <button
                   type="button"
                   className={`mcm-add mcm-add--${orientation}`}
                   onClick={addCriterion}
-                  aria-label="Ajouter un critère">
+                  aria-label={labels.addCriterion}>
                   <PlusIcon />
                 </button>
               </Tooltip>

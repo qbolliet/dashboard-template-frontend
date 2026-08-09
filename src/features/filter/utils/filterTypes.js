@@ -12,6 +12,7 @@
 // Source unique : utils/dateParse des primitives (séparateur de plage « → » compris) ;
 // ré-exportés ici pour les consommateurs de la feature.
 import { DATE_SINGLE_RE, DATE_RANGE_RE } from '@/components/filter/utils/dateParse';
+import { resolveLocalized } from '@/utils/i18n/resolveLocalized';
 
 export { DATE_SINGLE_RE, DATE_RANGE_RE };
 
@@ -74,10 +75,56 @@ export function resolveOperations(sqlType, isCategorical, operations = {}) {
 // =================================================================
 // c) Connecteurs logiques par défaut
 // =================================================================
+// Les LIBELLÉS étaient écrits en anglais dans une interface française — seule
+// incohérence de langue du fichier. Les `value`, elles, restent 'AND'/'OR' : ce sont des
+// mots-clés SQL, pas du texte affiché, et les traduire casserait la sérialisation du
+// filtre.
+//
+// Un appelant qui veut d'autres libellés passe sa propre liste à `connectorOptions` de
+// <MultiCriterionMenu> — c'est ce que fait l'application, avec les valeurs du
+// dictionnaire.
 export const DEFAULT_CONNECTORS = [
-  { value: 'AND', label: 'AND' },
-  { value: 'OR', label: 'OR' },
+  { value: 'AND', label: 'ET' },
+  { value: 'OR', label: 'OU' },
 ];
+
+/**
+ * Builds the default connector list with caller-supplied wording.
+ *
+ * @param {{and: string, or: string}} labels - Connector wording.
+ * @returns {{value: string, label: string}[]} The two logical connectors.
+ */
+export const connectorsFrom = (labels) => [
+  { value: 'AND', label: labels.and },
+  { value: 'OR', label: labels.or },
+];
+
+/**
+ * Flattens the localized labels of an operations catalogue.
+ *
+ * `config/filter/operations.json` accepts either a plain string (`=`, `≥` — identical in
+ * every language) or a `{ fr, en }` map. The filter components only ever receive
+ * strings: this is the single boundary where the map collapses, shared by the
+ * application and by the documentation playgrounds so the two cannot diverge.
+ *
+ * Keys starting with `_` are dropped — the file carries a `_comment`.
+ *
+ * @param {Object<string, Array<{value: string, label: (string|Object)}>>} operations -
+ *   The raw catalogue, keyed by SQL type.
+ * @param {string} locale - Requested locale code.
+ * @param {string} defaultLocale - Fallback locale.
+ * @returns {Object<string, Array<{value: string, label: string}>>} The same catalogue
+ *   with plain-string labels.
+ */
+export const resolveOperationLabels = (operations, locale, defaultLocale) =>
+  Object.fromEntries(
+    Object.entries(operations)
+      .filter(([key]) => !key.startsWith('_'))
+      .map(([sqlType, ops]) => [
+        sqlType,
+        ops.map((op) => ({ ...op, label: resolveLocalized(op.label, locale, defaultLocale) })),
+      ]),
+  );
 
 // =================================================================
 // d) Adaptateur valeur interne (id) → format SelectMenu

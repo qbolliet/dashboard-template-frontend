@@ -3,18 +3,41 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useTheme } from '@/features/theme/hooks/useTheme';
 import SunMoonIcon from '@/components/icons/SunMoonIcon/SunMoonIcon';
+import { mergeLabels } from '@/utils/i18n/mergeLabels';
+import { interpolate } from '@/utils/i18n/interpolate';
 import './ThemeToggleButton.scss';
 
 // Abonnement vide : l'état d'hydratation ne change qu'une fois (au montage client).
 const emptySubscribe = () => () => {};
 
+// =================================================================
+// LIBELLÉS — défauts français, surchargeables par la prop `labels`
+// =================================================================
+// Ce bouton exposait AVANT P5.4 un `title` et un `aria-label` en ANGLAIS et un texte
+// `sr-only` en FRANÇAIS : un lecteur d'écran annonçait les deux langues à la suite, avec
+// en prime la ponctuation française (« Current theme : ») dans la phrase anglaise. Les
+// trois libellés parlent désormais la même langue, et c'est le dictionnaire qui la
+// choisit.
+const DEFAULT_LABELS = {
+    light: 'clair',
+    dark: 'sombre',
+    toggle: 'Basculer entre thème clair et sombre',
+    switchTo: 'Passer au thème {next}',
+    current: 'Changer de thème. Thème actuel : {current}. Activer le thème {next}.',
+};
+
 /**
  * Theme toggle button component for switching between light/dark themes.
  * Displays a sun/moon animation and handles theme transitions.
- * 
+ *
+ * @param {Object} [props] - Component props.
+ * @param {Object} [props.labels] - Wording overrides, merged over the French defaults.
+ *   Keys: `light`, `dark` (theme names, interpolated into the two sentences), `toggle`,
+ *   `switchTo`, `current`.
  * @returns {JSX.Element} The rendered theme toggle button component
  */
-const ThemeToggleButton = () => {
+const ThemeToggleButton = ({ labels: labelOverrides }) => {
+    const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
     // Récupération des fonctions et état du thème
     const { theme, toggleTheme } = useTheme();
 
@@ -42,8 +65,8 @@ const ThemeToggleButton = () => {
     );
 
     // Déterminer les labels d'accessibilité seulement après hydration
-    const currentThemeLabel = isMounted ? (theme === 'light' ? 'light' : 'dark') : 'light';
-    const nextThemeLabel = isMounted ? (theme === 'light' ? 'dark' : 'light') : 'dark';
+    const currentThemeLabel = isMounted ? (theme === 'light' ? labels.light : labels.dark) : labels.light;
+    const nextThemeLabel = isMounted ? (theme === 'light' ? labels.dark : labels.light) : labels.dark;
 
     /**
      * Handle button click with visual feedback.
@@ -87,8 +110,15 @@ const ThemeToggleButton = () => {
             className={`theme-toggle ${isTransitioning ? 'theme-toggle--transitioning' : ''}`}
             onClick={handleClick}
             onKeyDown={handleKeyDown}
-            title={isMounted ? `Change to ${nextThemeLabel} theme` : "Toggle theme"}
-            aria-label={isMounted ? `Change theme. Current theme : ${currentThemeLabel}. Click to activate the next theme ${nextThemeLabel}.` : "Toggle theme"}
+            title={isMounted ? interpolate(labels.switchTo, { next: nextThemeLabel }) : labels.toggle}
+            aria-label={
+                isMounted
+                    ? interpolate(labels.current, {
+                          current: currentThemeLabel,
+                          next: nextThemeLabel,
+                      })
+                    : labels.toggle
+            }
             aria-live="polite"
             aria-pressed={isMounted ? theme === 'dark' : false}
             type="button"
@@ -105,7 +135,7 @@ const ThemeToggleButton = () => {
 
             {/* Texte accessible caché pour les lecteurs d'écran */}
             <span className="sr-only">
-                Basculer entre thème clair et sombre
+                {labels.toggle}
             </span>
         </button>
     );

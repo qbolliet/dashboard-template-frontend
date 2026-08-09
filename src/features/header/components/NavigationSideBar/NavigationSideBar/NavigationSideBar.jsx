@@ -2,7 +2,7 @@
 
 import { useState, createContext, useContext, useEffect, useId, useRef } from 'react';
 import Image from 'next/image';
-import { useNavigationRoute, useNavigationUI } from '@/features/header/providers/NavigationProvider';
+import { useNavigationRoute, useNavigationUI, useNavigationLabels } from '@/features/header/providers/NavigationProvider';
 import useResizable from '@/features/header/hooks/useResizable';
 import SidebarSwitcher from '../SidebarSwitcher/SidebarSwitcher';
 import SidebarMenu from '../SidebarMenu/SidebarMenu';
@@ -30,6 +30,8 @@ export const useSidebar = () => {
  * @param {Function} onItemClick - Optional callback when a navigation item is clicked
  * @param {boolean} useSwitcher - Whether to display a switcher for first-level navigation
  * @param {boolean} defaultOpen - Whether the sidebar is open by default
+ * @param {string} [siteTitle] - Site name shown next to the logo. Comes from the manifest
+ *   via `<Header>`; the component used to hardcode it.
  * @param {string} className - Optional additional CSS class for the sidebar
  * @returns {JSX.Element} The rendered navigation sidebar
  */
@@ -38,8 +40,11 @@ const NavigationSideBar = ({
     onItemClick,
     useSwitcher = false,
     defaultOpen = false,
+    siteTitle,
     className = ''
 }) => {
+    // Libellés distribués par <Header> via NavigationProvider.
+    const labels = useNavigationLabels('sidebar');
     // État pour gérer l'ouverture/fermeture de la sidebar
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -130,7 +135,7 @@ const NavigationSideBar = ({
             const newState = !prev;
             // Annoncer le changement d'état aux lecteurs d'écran
             announce(
-                newState ? 'Navigation latérale ouverte' : 'Navigation latérale fermée',
+                newState ? labels.opened : labels.closed,
                 'polite'
             );
             return newState;
@@ -197,7 +202,7 @@ const NavigationSideBar = ({
                 id={sidebarId}
                 className={sidebarClasses}
                 data-sidebar-open={isOpen}
-                aria-label="Navigation latérale"
+                aria-label={labels.panel}
                 // Largeur personnalisée appliquée en custom property (desktop/tablette uniquement).
                 style={openWidth != null && !isMobile
                     ? { '--sidebar-width-open': `${openWidth}px` }
@@ -221,13 +226,16 @@ const NavigationSideBar = ({
                             <div className="sidebar-logo-container">
                                 <Image
                                     src={withBasePath('/logo.svg')}
-                                    alt="Logo du site"
+                                    alt={labels.logoAlt}
                                     width={40}
                                     height={40}
                                     className="sidebar-logo"
                                 />
+                                {/* Nom du site issu du manifeste. Il était écrit
+                                    « Mon Site » en dur ici — la seule chaîne de marque
+                                    du dépôt qui doublonnait config/site.config.json. */}
                                 <span className="sidebar-logo-text">
-                                    Mon Site
+                                    {siteTitle}
                                 </span>
                             </div>
                         )
@@ -247,7 +255,7 @@ const NavigationSideBar = ({
                         className="nav-rail nav-rail--right"
                         role="separator"
                         aria-orientation="vertical"
-                        aria-label="Redimensionner la barre latérale"
+                        aria-label={labels.resize}
                         aria-valuemin={200}
                         aria-valuemax={480}
                         tabIndex={0}

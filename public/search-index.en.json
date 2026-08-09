@@ -1,0 +1,86 @@
+[
+  {
+    "title": "Home",
+    "path": "/demo/en",
+    "type": "home",
+    "description": "Dashboard overview and entry point to the main indicators.",
+    "keywords": []
+  },
+  {
+    "title": "National Accounts",
+    "path": "/demo/en/comptabilite-nationale",
+    "type": "indicator_group",
+    "description": "National accounts aggregates, by country.",
+    "keywords": []
+  },
+  {
+    "title": "France",
+    "path": "/demo/en/comptabilite-nationale/france",
+    "type": "indicator_group",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "GDP",
+    "path": "/demo/en/comptabilite-nationale/france/pib",
+    "type": "indicator",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "Consumption",
+    "path": "/demo/en/comptabilite-nationale/france/consommation",
+    "type": "indicator",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "Germany",
+    "path": "/demo/en/comptabilite-nationale/allemagne",
+    "type": "indicator_group",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "GDP",
+    "path": "/demo/en/comptabilite-nationale/allemagne/pib",
+    "type": "indicator",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "Consumption",
+    "path": "/demo/en/comptabilite-nationale/allemagne/consommation",
+    "type": "indicator",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "Public Finances",
+    "path": "/demo/en/finances-publiques",
+    "type": "indicator_group",
+    "description": "General government revenue and expenditure.",
+    "keywords": []
+  },
+  {
+    "title": "Public Revenue",
+    "path": "/demo/en/finances-publiques/recettes-publiques",
+    "type": "indicator",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "Public Expenditure",
+    "path": "/demo/en/finances-publiques/depenses-publiques",
+    "type": "indicator",
+    "description": "",
+    "keywords": []
+  },
+  {
+    "title": "About",
+    "path": "/demo/en/about",
+    "type": "about",
+    "description": "Project overview, data sources and legal notices.",
+    "keywords": []
+  }
+]

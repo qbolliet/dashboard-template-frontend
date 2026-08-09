@@ -2,7 +2,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { SortAscIcon, SortDescIcon, SortNoneIcon, FilterIcon, CloseIcon } from '@/components/icons';
 import TableFilterPopover from '../TableFilterPopover/TableFilterPopover';
+import { mergeLabels } from '@/utils/i18n/mergeLabels';
+import { interpolate } from '@/utils/i18n/interpolate';
 import './TableHeaderCell.scss';
+
+// Défauts français, surchargeables par la prop `labels` (cf. mergeLabels).
+const DEFAULT_LABELS = {
+  sortBy: 'Trier par {label}',
+  sortAsc: '{label} — croissant · cliquer pour décroissant',
+  sortDesc: '{label} — décroissant · cliquer pour désactiver',
+  removeColumn: 'Supprimer la colonne « {label} »',
+  removeColumnAria: 'Supprimer la colonne {label}',
+  filterColumn: 'Filtrer {label}',
+  filterByValues: 'Filtrer par valeurs',
+};
 
 /**
  * Column header cell: clickable sort label, a value-filter funnel button (with
@@ -22,6 +35,7 @@ import './TableHeaderCell.scss';
  * @param {boolean} props.enableFilter - Enables the filter funnel + popover.
  * @param {boolean} props.enableColumnRemoval - Enables the hover-revealed removal button.
  * @param {function(): void} props.onRemove - Hides the column.
+ * @param {Object} [props.labels] - Wording overrides, merged over the French defaults.
  * @returns {JSX.Element}
  */
 const TableHeaderCell = ({
@@ -38,7 +52,9 @@ const TableHeaderCell = ({
   enableFilter,
   enableColumnRemoval,
   onRemove,
+  labels: labelOverrides,
 }) => {
+  const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
   // Ouverture du popover de filtre — seul état local du composant.
   const [filterOpen, setFilterOpen] = useState(false);
   // Réfère le <th> pour la détection de clic extérieur (le popover est un
@@ -70,11 +86,10 @@ const TableHeaderCell = ({
   // longueur que l'ensemble des valeurs).
   const hasActiveFilter = enableFilter && filter !== null && filter.length !== uniqueValues.length;
 
-  const sortTitle = sortDir === 'asc'
-    ? `${label} — croissant · cliquer pour décroissant`
-    : sortDir === 'desc'
-      ? `${label} — décroissant · cliquer pour désactiver`
-      : `Trier par ${label}`;
+  const sortTitle = interpolate(
+    sortDir === 'asc' ? labels.sortAsc : sortDir === 'desc' ? labels.sortDesc : labels.sortBy,
+    { label },
+  );
 
   const thClasses = [
     'data-table-th',
@@ -104,8 +119,8 @@ const TableHeaderCell = ({
           type="button"
           className="data-table-th-remove"
           onClick={onRemove}
-          title={`Supprimer la colonne « ${label} »`}
-          aria-label={`Supprimer la colonne ${label}`}
+          title={interpolate(labels.removeColumn, { label })}
+          aria-label={interpolate(labels.removeColumnAria, { label })}
         >
           <CloseIcon />
         </button>
@@ -139,9 +154,9 @@ const TableHeaderCell = ({
               type="button"
               className={`data-table-th-btn${hasActiveFilter || filterOpen ? ' data-table-th-btn--active' : ''}`}
               onClick={() => setFilterOpen((open) => !open)}
-              aria-label={`Filtrer ${label}`}
+              aria-label={interpolate(labels.filterColumn, { label })}
               aria-expanded={filterOpen}
-              title="Filtrer par valeurs"
+              title={labels.filterByValues}
             >
               <FilterIcon />
             </button>
@@ -150,6 +165,7 @@ const TableHeaderCell = ({
 
         {enableFilter && filterOpen && (
           <TableFilterPopover
+            labels={labelOverrides}
             uniqueValues={uniqueValues}
             valueCounts={valueCounts}
             filter={filter}

@@ -31,6 +31,12 @@ import './ValueField.scss';
  * @param {?string} [catalog] - API catalog forwarded to the primitives.
  * @param {boolean} [validate] - Enables real-time validation on the field.
  * @param {boolean} [showSlider] - Numeric/date: render the ConstraintField slider bar.
+ * @param {string}   [intlLocale] - Full Intl tag, driving number and date formatting.
+ * @param {string}   [dateMask] - Human-readable date mask shown as a placeholder.
+ * @param {string}   [dateOrder] - Permutation of 'D', 'M' and 'Y' telling how to read
+ *   a typed date. The mask is its display, this is its meaning.
+ * @param {number}   [firstDayOfWeek] - 0 for Sunday, 1 for Monday.
+ * @param {Object}   [labels] - Wording overrides, merged over the French defaults.
  * @returns {JSX.Element}
  */
 const ValueField = ({
@@ -45,6 +51,11 @@ const ValueField = ({
   catalog,
   validate = false,
   showSlider = false,
+  labels,
+  intlLocale,
+  dateMask,
+  dateOrder,
+  firstDayOfWeek,
 }) => {
   // ── Aucune variable choisie ──
   if (!fieldName) {
@@ -60,12 +71,13 @@ const ValueField = ({
       const selVal = Array.isArray(value) ? value.map((id) => ({ value: id })) : [];
       return (
         <SelectMenu
+          labels={labels}
           fieldName={fieldName}
           catalog={catalog}
           allowMulti
           value={selVal}
           validate={validate}
-          placeholder="Sélectionner des valeurs…"
+          placeholder={labels.valuesPlaceholder}
           onChange={(items) => onChange(items.map((i) => i.value), { debounce: false })} />
       );
     }
@@ -74,11 +86,12 @@ const ValueField = ({
     const selVal = value != null ? [{ value }] : [];
     return (
       <SelectMenu
+        labels={labels}
         fieldName={fieldName}
         catalog={catalog}
         value={selVal}
         validate={validate}
-        placeholder="Sélectionner une valeur…"
+        placeholder={labels.valuePlaceholder}
         onChange={(items) => onChange(items[0]?.value ?? null, { debounce: false })} />
     );
   }
@@ -91,6 +104,11 @@ const ValueField = ({
     const valueType = isIntegerSqlType(sqlType) ? 'integer' : 'float';
     return (
       <ConstraintField
+        labels={labels}
+        intlLocale={intlLocale}
+        dateMask={dateMask}
+        dateOrder={dateOrder}
+        firstDayOfWeek={firstDayOfWeek}
         key={`${fieldName}-${operation}`}
         valueType={valueType}
         rangeMode={isRange}
@@ -114,6 +132,11 @@ const ValueField = ({
     const isRange = operation === 'between';
     return (
       <ConstraintField
+        labels={labels}
+        intlLocale={intlLocale}
+        dateMask={dateMask}
+        dateOrder={dateOrder}
+        firstDayOfWeek={firstDayOfWeek}
         key={`${fieldName}-${isRange ? 'range' : 'single'}`}
         valueType="date"
         rangeMode={isRange}
@@ -132,6 +155,11 @@ const ValueField = ({
   // ── Texte (et autres types non catégoriels) ──
   return (
     <TypeAwareInput
+        labels={labels}
+        intlLocale={intlLocale}
+        dateMask={dateMask}
+        dateOrder={dateOrder}
+        firstDayOfWeek={firstDayOfWeek}
       inputType="text"
       value={value ?? ''}
       validate={validate}

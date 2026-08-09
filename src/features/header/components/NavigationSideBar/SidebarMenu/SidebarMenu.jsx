@@ -2,6 +2,7 @@
 
 import React from 'react';
 import SidebarNode from '../SidebarNode/SidebarNode';
+import { useNavigationLabels } from '@/features/header/providers/NavigationProvider';
 import './SidebarMenu.scss';
 
 /**
@@ -18,6 +19,11 @@ const SidebarMenu = ({
     onItemClick,
     level = 0
 }) => {
+    // Libellés fournis par <Header>, déjà fusionnés sur ses défauts : ce composant est
+    // trop profond dans l'arbre pour les recevoir en prop sans traverser trois niveaux
+    // qui n'en affichent aucun (cf. l'en-tête de NavigationProvider).
+    const labels = useNavigationLabels('sidebar');
+
     // Vérification des données de navigation
     if (!navigationData || navigationData.length === 0) {
         return null;
@@ -30,7 +36,7 @@ const SidebarMenu = ({
     ].filter(Boolean).join(' ');
 
     return (
-        <nav className={menuClasses} aria-label="Navigation latérale principale">
+        <nav className={menuClasses} aria-label={labels.menu}>
             <ul className="sidebar-list">
                 {/* SidebarNode choisit groupe ou item selon la présence d'enfants */}
                 {navigationData.map((item, index) => (

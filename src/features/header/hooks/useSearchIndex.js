@@ -5,8 +5,12 @@ import { useRef, useState } from 'react';
 import { withBasePath } from '@/utils/url/withBasePath';
 
 // =================================================================
-// USE SEARCH INDEX — chargement paresseux de public/search-index.json
+// USE SEARCH INDEX — chargement paresseux de public/search-index.<langue>.json
 // =================================================================
+// UN INDEX PAR LANGUE (P5.4) : les libellés ET les chemins des suggestions diffèrent
+// d'une langue à l'autre. Le nom de fichier est le contrat partagé avec
+// scripts/build-search-index.js — le changer d'un côté seulement rend la recherche
+// muette sans lever d'erreur visible.
 // Chargé au premier FOCUS du champ de recherche, pas au montage du header :
 // la quasi-totalité des visites ne touchent jamais la recherche, inutile de
 // payer la requête à chaque navigation. `loadPromiseRef` déduplique les
@@ -16,11 +20,12 @@ import { withBasePath } from '@/utils/url/withBasePath';
 /**
  * Lazily loads the static search index, once per page lifetime.
  *
+ * @param {string} locale - Site locale code. Selects which index file is fetched.
  * @returns {{index: (Array<Object>|null), isLoading: boolean, ensureLoaded: Function}}
  *   `index` is `null` until loaded (or on failure, an empty array). `ensureLoaded`
  *   triggers the fetch on first call and is a no-op afterwards.
  */
-export const useSearchIndex = () => {
+export const useSearchIndex = (locale) => {
     const [index, setIndex] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const loadPromiseRef = useRef(null);
@@ -36,7 +41,7 @@ export const useSearchIndex = () => {
         setIsLoading(true);
         // withBasePath : un fetch d'URL absolue ne passe par aucun mécanisme de Next,
         // il faut donc lui ajouter le sous-chemin de déploiement à la main.
-        loadPromiseRef.current = fetch(withBasePath('/search-index.json'))
+        loadPromiseRef.current = fetch(withBasePath(`/search-index.${locale}.json`))
             .then((response) => {
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 return response.json();

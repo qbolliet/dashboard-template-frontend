@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { useSidebar } from '../NavigationSideBar/NavigationSideBar';
 import { useKeyboardNavigation, useAriaAnnounce } from '@/hooks/accessibility';
 import { withBasePath } from '@/utils/url/withBasePath';
+import { useNavigationLabels } from '@/features/header/providers/NavigationProvider';
+import { interpolate } from '@/utils/i18n/interpolate';
 import './SidebarSwitcher.scss';
 
 /**
@@ -23,6 +25,8 @@ const SidebarSwitcher = ({
     onSelectionChange,
     logoSrc = '/logo.svg'
 }) => {
+    // Libellés distribués par <Header> via NavigationProvider.
+    const labels = useNavigationLabels('sidebarSwitcher');
     // État pour gérer l'ouverture du dropdown
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -85,7 +89,7 @@ const SidebarSwitcher = ({
 
         // Annoncer le changement de sélection aux lecteurs d'écran
         if (item?.name) {
-            announce(`${item.name} sélectionné`, 'polite');
+            announce(interpolate(labels.selected, { name: item.name }), 'polite');
         }
 
         if (onSelectionChange) {
@@ -158,12 +162,14 @@ const SidebarSwitcher = ({
                 aria-expanded={isDropdownOpen}
                 aria-haspopup="listbox"
                 aria-controls={isDropdownOpen ? listboxId : undefined}
-                aria-label={`Sélecteur de navigation : ${selectedItem?.name || 'Aucune sélection'}`}
+                aria-label={interpolate(labels.trigger, {
+                    selection: selectedItem?.name || labels.emptySelection,
+                })}
             >
                 {/* Logo */}
                 <Image
                     src={withBasePath(logoSrc)}
-                    alt="Logo"
+                    alt={labels.logoAlt}
                     width={32}
                     height={32}
                     className="sidebar-switcher-logo"
@@ -173,7 +179,7 @@ const SidebarSwitcher = ({
                 {sidebarIsOpen && (
                     <>
                         <span className="sidebar-switcher-title">
-                            {selectedItem?.name || 'Sélectionner'}
+                            {selectedItem?.name || labels.placeholder}
                         </span>
 
                         {/* Icône chevron */}

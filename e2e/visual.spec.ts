@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { setSiteTheme } from './helpers/theme';
+import fr from '../src/i18n/dictionaries/fr';
+import { DEFAULT_LOCALE } from '../src/i18n/config';
 import { playgroundFrame, toggleFrameTheme } from './helpers/previewFrame';
 
 // =================================================================
@@ -16,8 +18,14 @@ import { playgroundFrame, toggleFrameTheme } from './helpers/previewFrame';
 //   - TOPBAR : le playground de docs/content/features/header.mdx, qui ne passe pas
 //     navigationType et hérite donc du défaut 'topbar' ;
 //   - SIDEBAR : le VRAI chrome de l'application de démo (config/site.config.json
-//     déclare `navigation.type: "sidebar"`), sur sa page racine /demo — il n'existe
-//     aucun playground pour ce mode, Header.jsx ne l'expose pas comme un contrôle.
+//     déclare `navigation.type: "sidebar"`), sur sa page racine /demo/<langue> — il
+//     n'existe aucun playground pour ce mode, Header.jsx ne l'expose pas comme un
+//     contrôle.
+//
+// Les instantanés sont pris dans la LANGUE PAR DÉFAUT et dans elle seule : capturer
+// chaque langue doublerait le corpus d'images pour ne détecter que des différences de
+// longueur de texte, que ce filet n'a pas vocation à arbitrer. Ce qui protège les
+// autres langues, c'est e2e/i18n.spec.ts et `npm run check:i18n`.
 //     C'est la même logique de dogfooding que documentée dans le tableau de
 //     correspondance de P4.6 pour la navigation clavier/responsive du header.
 //
@@ -46,7 +54,9 @@ test.describe('Header — sidebar (chrome réel de la démo)', () => {
   for (const theme of ['light', 'dark'] as const) {
     test(theme, async ({ page }) => {
       await setSiteTheme(page, theme);
-      await page.goto('/demo');
+      // Langue explicite : /demo négocie et redirige, ce qui ferait dépendre
+      // l'instantané de la locale du navigateur d'exécution.
+      await page.goto(`/demo/${DEFAULT_LOCALE}`);
 
       await expect(page.locator('header.primary-header')).toHaveScreenshot(`header-sidebar-bar-${theme}.png`);
 
@@ -57,7 +67,9 @@ test.describe('Header — sidebar (chrome réel de la démo)', () => {
       // raison que toggleFrameTheme (cf. e2e/helpers/previewFrame.ts) : le chrome vient
       // tout juste de s'hydrater.
       const aside = page.locator('aside.navigation-sidebar');
-      const trigger = page.getByRole('button', { name: 'Basculer la navigation latérale' });
+      // Libellé lu dans le dictionnaire, pas recopié : une reformulation ne doit pas
+      // casser un test de régression VISUELLE.
+      const trigger = page.getByRole('button', { name: fr.header.toggleSidebar });
       await expect(async () => {
         await trigger.click();
         await expect(aside).toHaveClass(/navigation-sidebar--open/, { timeout: 500 });

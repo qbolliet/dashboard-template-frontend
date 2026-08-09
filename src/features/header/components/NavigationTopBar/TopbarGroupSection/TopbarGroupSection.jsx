@@ -3,6 +3,8 @@ import React from 'react';
 import Link from 'next/link';
 import ChevronDownIcon from '@/components/icons/ChevronDownIcon/ChevronDownIcon';
 import TopbarGroupItem from '../TopbarGroupItem/TopbarGroupItem';
+import { useNavigationLabels } from '@/features/header/providers/NavigationProvider';
+import { interpolate } from '@/utils/i18n/interpolate';
 
 /**
  * A group of links inside a dropdown (a header followed by a sub-list).
@@ -25,6 +27,8 @@ const TopbarGroupSection = ({
     onItemClick,
     isActivePath
 }) => {
+    // Libellés distribués par <Header> via NavigationProvider.
+    const labels = useNavigationLabels('topbar');
     // Les chemins de l'arbre sont déjà absolus (résolus une seule fois par
     // resolveNavigationTree, cf. src/app/layout.tsx) : plus rien à concaténer ici.
     // Le groupe n'affiche un chevron + une sous-liste que s'il a réellement des enfants
@@ -70,7 +74,10 @@ const TopbarGroupSection = ({
                         onToggle();
                     }}
                     aria-expanded={isExpanded}
-                    aria-label={`${isExpanded ? 'Réduire' : 'Développer'} le groupe ${group.name}`}
+                    aria-label={interpolate(
+                        isExpanded ? labels.collapseGroup : labels.expandGroup,
+                        { name: group.name },
+                    )}
                 >
                     <ChevronDownIcon width="12" height="12" />
                 </button>

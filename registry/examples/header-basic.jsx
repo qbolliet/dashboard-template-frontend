@@ -13,8 +13,16 @@
 import Header from '@/features/header/components/Header/Header';
 import { resolveNavigationTree } from '@/utils/navigation/resolveNavigationTree';
 import siteConfig from '@config/site.config.json';
+import { resolveLocalizedTree } from '@/utils/i18n/resolveLocalized';
+import { DEFAULT_LOCALE } from '@/i18n/config';
 
-const navigationData = resolveNavigationTree(siteConfig.navigation.tree);
+// Le manifeste porte des libellés traduits (`{ fr, en }`) depuis P5.4 :
+// `resolveLocalizedTree` les aplatit en chaînes avant que l'arbre n'atteigne le
+// composant. Le site de documentation étant monolingue, il résout dans la langue
+// par défaut.
+const navigationData = resolveNavigationTree(
+    resolveLocalizedTree(siteConfig.navigation.tree, DEFAULT_LOCALE, DEFAULT_LOCALE),
+);
 
 const HeaderBasic = () => <Header navigationData={navigationData} />;
 

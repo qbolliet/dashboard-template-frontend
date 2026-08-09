@@ -39,6 +39,7 @@ import { makeScale } from '../../utils/scales';
 import { exportSvg, exportPng } from '../../utils/exportImage';
 import { useSeriesHover } from '../../hooks/useSeriesHover';
 import { useChartGeometry } from '../../hooks/useChartGeometry';
+import { mergeLabels } from '@/utils/i18n/mergeLabels';
 import { useMinimapState, resolveMinimapsVisible } from '../../hooks/useMinimapState';
 import { useBrushZoom, zoomTransformOf } from '../../hooks/useBrushZoom';
 import { useFeatureState } from '../../hooks/useFeatureState';
@@ -315,6 +316,29 @@ function computeHoverTargets({
    dépendante de la LARGEUR (géométrie, échelles de position, marks, survol,
    overlays de features, barre d'outils, mini-vues) vit ici.
    ───────────────────────────────────────────────────────────────────────── */
+// =================================================================
+// LIBELLÉS D'INTERFACE — défauts français, surchargeables par la prop `uiLabels`
+// =================================================================
+// À NE PAS CONFONDRE avec la prop `labels` du composant, qui nomme les AXES et les
+// séries à partir des données. Les deux coexistent délibérément : `labels` est une API
+// publique historique, documentée et exercée par les exemples du registry.
+//
+// Les libellés des OUTILS de la barre (zoom, mini-vues, intervalles…) ne sont pas ici :
+// chaque fabrique de `toolbar-features/` accepte déjà un `config.label`, qui est leur
+// point de traduction — voir l'appel de <IndicatorExplorer>.
+const DEFAULT_UI_LABELS = {
+  toolbar: 'Outils du graphique',
+  title: 'Graphique',
+  value: 'Valeur',
+  projection: 'Projection',
+  voronoiHover: 'Hover proximité (Voronoï)',
+  pointTooltip: 'Tooltip sur points',
+  exportSvg: 'Exporter en SVG',
+  exportPng: 'Exporter en PNG',
+  expand: 'Agrandir (pleine largeur)',
+  collapse: 'Replier',
+};
+
 const ChartCanvas = ({
   width, height, data, x, y, z, xType, yType, zType, chartKind,
   channels, hueCols, fill, effFill, stack, format, labels, maxLabelLength, maxLines,
@@ -325,6 +349,7 @@ const ChartCanvas = ({
   tools, activeTools, featOn, featVal, toggleFeature, setFeatureValue,
   ciFeature, baFeature, normFactor, channelAssign, baReal,
   expanded, setExpanded, voronoiOn, setVoronoiOn, tooltipsOn, setTooltipsOn,
+  locale, uiLabels,
 }) => {
   // Modèle d'état des mini-vues, partagé avec <MultiChart> : interrupteur maître
   // (barre d'outils) + pli par axe (pastilles). Cf. useMinimapState. Persiste tant
@@ -342,6 +367,7 @@ const ChartCanvas = ({
     svgH, showXMinimap, showYMinimap, miniH, xMinimapY, xToggleY,
     yMinimapW, yMinimapX, yToggleW,
   } = useChartGeometry({
+    locale,
     chartKind, data, x, y, xType, yType, format, labels, maxLabelLength, maxLines,
     overlap, tickDensity, width, height, minimapsVisible, xMinimapOpen, yMinimapOpen,
   });
@@ -634,11 +660,11 @@ const ChartCanvas = ({
   if (active) {
     const is3D = chartKind === 'heatmap' || chartKind === 'density';
     const isProj = !!active.__isProjection;
-    const xFmt = resolveFormatter(format.x, xType);
-    const yFmt = resolveFormatter(format.y, yType);
-    const zFmt = z ? resolveFormatter(format.z, zType) : null;
+    const xFmt = resolveFormatter(format.x, xType, undefined, locale);
+    const yFmt = resolveFormatter(format.y, yType, undefined, locale);
+    const zFmt = z ? resolveFormatter(format.z, zType, undefined, locale) : null;
     const af = normFactor(seriesKey(active, channels)); // coeff. de normalisation
-    const projLabel = (baFeature && baFeature.config && baFeature.config.label) || 'Projection';
+    const projLabel = (baFeature && baFeature.config && baFeature.config.label) || uiLabels.projection;
     const valFmtMain = chartKind === 'bar-h' ? xFmt : yFmt;
     const title2 = isProj ? projLabel : (is3D ? (labels.z || z) : (labels.y || y));
     const hueRows = hueCols.map((c) => ({ label: labelForCol(c), value: active[c] }));
@@ -648,7 +674,7 @@ const ChartCanvas = ({
     if (isProj) {
       valueRows.push({ label: projLabel, value: valFmtMain(af * +active[valKey]) });
     } else {
-      valueRows.push({ label: 'Valeur', value: is3D ? zFmt(active[z]) : yFmt(active[y]) });
+      valueRows.push({ label: uiLabels.value, value: is3D ? zFmt(active[z]) : yFmt(active[y]) });
       if (z && !is3D) valueRows.push({ label: labels.z || z, value: zFmt(active[z]) });
     }
 
@@ -754,6 +780,7 @@ const ChartCanvas = ({
     <>
       {/* Barre d'outils — révélée au survol du frame (CSS pur). */}
       <ChartToolbar
+        labels={uiLabels}
         expanded={expanded} onExpand={() => setExpanded((e) => !e)}
         voronoi={voronoiOn} onVoronoi={() => setVoronoiOn((v) => !v)}
         tooltips={tooltipsOn} onTooltips={() => setTooltipsOn((t) => !t)}
@@ -772,17 +799,19 @@ const ChartCanvas = ({
         ref={svgRef} className={`chart-svg${zoomOn ? ' chart-svg--zoom' : ''}`}
         width={width} height={svgH} viewBox={`0 0 ${width} ${svgH}`}
       >
-        <title>{title || 'Graphique'}</title>
+        <title>{title || uiLabels.title}</title>
         <g transform={`translate(${margins.left}, ${margins.top})`}>
           {/* Axes sur les échelles COMMITTÉES : gelés pendant un geste de brush
               (aucun rendu React par frame), recalés au relâchement. */}
           <ChartAxisLeft
+            locale={locale}
             scale={yScale} type={yType} length={innerHeight} width={innerWidth}
             format={format.y} maxLabelLength={maxLabelLength.y} maxLines={maxLines.y || 2}
             overlap={overlap} tickDensity={tickDensity} label={labels.y}
             labelOffset={yTickW + 10}
           />
           <ChartAxisBottom
+            locale={locale}
             scale={xScale} type={xType} length={innerWidth} height={innerHeight}
             format={format.x} maxLabelLength={maxLabelLength.x} maxLines={maxLines.x || 2}
             overlap={overlap} tickDensity={tickDensity} label={labels.x}
@@ -968,6 +997,11 @@ const ChartCanvas = ({
  *   'beforeAfter', 'normalize', 'zoom', 'minimaps' + built-ins 'voronoi', 'tooltips',
  *   'expanded'). Overrides each feature's `defaultOn`.
  * @param {boolean} [props.initialMinimapOpen=true] - Minimap open by default.
+ * @param {string} [props.locale] - Site locale code. Drives the d3 number and date
+ *   formatters of the axes and legends — without it they fall back to the template's
+ *   default language, not to d3's en-US default.
+ * @param {Object} [props.uiLabels] - Interface wording (toolbar, tooltip, accessible
+ *   title). Distinct from `labels`, which names the axes from the data.
  * @returns {JSX.Element}
  */
 const Chart = ({
@@ -978,7 +1012,15 @@ const Chart = ({
   'categorical-x': categoricalX = false, 'categorical-y': categoricalY = false,
   title, height = 460,
   toolbar = [], defaults = {}, initialMinimapOpen = true,
+  locale,
+  uiLabels: uiLabelOverrides,
 }) => {
+  // Deux dictionnaires distincts, et le nom `labels` est déjà pris :
+  //   `labels`   — intitulés des AXES et des séries, dérivés des DONNéES (API publique
+  //                historique du composant, cf. les exemples du registry) ;
+  //   `uiLabels` — vocabulaire de l'INTERFACE (barre d'outils, tooltip, titre a11y).
+  // Les fondre casserait la signature publique et mélangerait deux natures de texte.
+  const uiLabels = mergeLabels(DEFAULT_UI_LABELS, uiLabelOverrides);
   // Hooks AVANT tout retour anticipé
   const { hovered, setHovered, voronoiRow, setVoronoiRow, ciHover, setCiHover } = useSeriesHover();
 
@@ -1184,7 +1226,7 @@ const Chart = ({
       )}
       {legendInline && isSequentialZ && (
         <div className="chart-legend-top">
-          <SequentialLegend scale={cScale} label={labels.z || z} orientation="horizontal" />
+          <SequentialLegend locale={locale} scale={cScale} label={labels.z || z} orientation="horizontal" />
         </div>
       )}
 
@@ -1195,6 +1237,8 @@ const Chart = ({
         {({ width }) => (
           width > 0 ? (
             <ChartCanvas
+              locale={locale}
+              uiLabels={uiLabels}
               width={Math.max(320, Math.floor(width))}
               height={height}
               data={typedData}
@@ -1233,7 +1277,7 @@ const Chart = ({
       )}
       {!legendInline && isSequentialZ && (
         <aside className="chart-legend-right">
-          <SequentialLegend scale={cScale} label={labels.z || z} orientation="vertical" />
+          <SequentialLegend locale={locale} scale={cScale} label={labels.z || z} orientation="vertical" />
         </aside>
       )}
     </figure>

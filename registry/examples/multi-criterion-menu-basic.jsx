@@ -16,6 +16,14 @@ import MultiCriterionMenu from '@/features/filter/components/MultiCriterionMenu/
 import { useVariableMetadata, metadataToVariables } from '@/features/filter/sources/useVariableMetadata';
 import { treeToSQL } from '@/features/filter/utils/filterEngine';
 import operations from '@config/filter/operations.json';
+import { resolveOperationLabels } from '@/features/filter/utils/filterTypes';
+import { DEFAULT_LOCALE } from '@/i18n/config';
+
+// Les libellés d'opérateurs de config/filter/operations.json acceptent la forme
+// `{ fr, en }` depuis P5.4 : on les aplatit avant de les passer au composant, qui
+// n'attend que des chaînes. Le site de documentation étant monolingue, il résout dans
+// la langue par défaut.
+const localizedOperations = resolveOperationLabels(operations, DEFAULT_LOCALE, DEFAULT_LOCALE);
 
 // Chaque feuille de l'arbre porte un drapeau `complete` : un critère auquel il
 // manque la variable, l'opération ou la valeur produit un « ? » dans le SQL.
@@ -36,7 +44,7 @@ const MultiCriterionMenuBasic = () => {
     <>
       <MultiCriterionMenu
         variables={variables}
-        operationsByType={operations}
+        operationsByType={localizedOperations}
         onChange={setResult}
         showLabels
         validate

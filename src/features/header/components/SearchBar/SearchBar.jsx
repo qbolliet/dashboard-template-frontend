@@ -1,18 +1,56 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import SearchIcon from '@/components/icons/SearchIcon/SearchIcon';
 import ClearIcon from '@/components/icons/ClearIcon/ClearIcon';
 import { useSearchIndex } from '../../hooks/useSearchIndex';
 import { findMatch } from '../../utils/searchMatch';
+import { mergeLabels } from '@/utils/i18n/mergeLabels';
+import { DEFAULT_LOCALE } from '@/i18n/config';
+import { interpolate } from '@/utils/i18n/interpolate';
 import './SearchBar.scss';
 
 // Seuil de longueur de requête en dessous duquel on n'affiche rien (évite
 // une liste de suggestions dès la première lettre tapée).
 const MIN_QUERY_LENGTH = 2;
 const MAX_SUGGESTIONS = 10;
+
+// Défauts français, surchargeables par la prop `labels`. Constante de MODULE pour que la
+// fusion partielle soit possible (cf. src/utils/i18n/mergeLabels.js).
+const DEFAULT_LABELS = {
+    form: "Rechercher dans l'application",
+    placeholder: 'Rechercher... ({shortcut})',
+    clear: 'Effacer la recherche',
+    suggestions: 'Suggestions de recherche',
+    noResults: 'Aucun résultat',
+};
+
+// Raccourci affiché par défaut, et celui que rend le SERVEUR. Il doit être le même des
+// deux côtés de l'hydratation : le HTML est écrit une fois au build, pour toutes les
+// plateformes à la fois.
+const FALLBACK_SHORTCUT = 'Ctrl+K';
+
+// Abonnement vide : `useSyncExternalStore` ne sert ici qu'à distinguer serveur et client,
+// pas à s'abonner à quoi que ce soit. Même motif que ThemeToggleButton.js.
+const emptySubscribe = () => () => {};
+
+/**
+ * Names the modifier key of the platform the visitor is on.
+ *
+ * The shortcut used to be written 'Ctrl+K' verbatim, on macOS included, where the
+ * listener actually fires on Command instead.
+ *
+ * @returns {string} The displayed shortcut, e.g. 'Ctrl+K' or '⌘K'.
+ */
+const platformShortcut = () => {
+    if (typeof navigator === 'undefined') return FALLBACK_SHORTCUT;
+
+    const platform = navigator.userAgentData?.platform ?? navigator.platform ?? '';
+
+    return /mac|iphone|ipad|ipod/i.test(platform) ? '⌘K' : FALLBACK_SHORTCUT;
+};
 
 /**
  * Filters the search index against a query, matching on title first, then
@@ -72,9 +110,16 @@ const renderHighlighted = (text, match) => {
  * Provides a search interface with suggestions and keyboard shortcuts,
  * backed by the static search index built from the site manifest.
  *
+ * @param {Object} [props] - Component props.
+ * @param {Object} [props.labels] - Wording overrides, merged over the French defaults.
+ *   Keys: `form`, `placeholder` (holds a `{shortcut}` placeholder), `clear`,
+ *   `suggestions`, `noResults`. Partial objects are fine.
+ * @param {string} [props.locale] - Site locale code, selecting which search index to
+ *   fetch. Suggestions carry both translated titles and locale-prefixed paths.
  * @returns {JSX.Element} The rendered search bar component
  */
-const SearchBar = () => {
+const SearchBar = ({ labels: labelOverrides, locale = DEFAULT_LOCALE }) => {
+    const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
     // États pour gérer la recherche
     const [searchValue, setSearchValue] = useState('');
     const [isFocused, setIsFocused] = useState(false);
@@ -86,7 +131,7 @@ const SearchBar = () => {
     const formRef = useRef(null);
 
     const router = useRouter();
-    const { index, ensureLoaded } = useSearchIndex();
+    const { index, ensureLoaded } = useSearchIndex(locale);
 
     /**
      * Closes the suggestions panel and resets its keyboard selection.
@@ -231,6 +276,18 @@ const SearchBar = () => {
 
     const isExpanded = suggestions.length > 0 && isFocused;
 
+    // Le raccourci dépend de la PLATEFORME, que le rendu statique ne connaît pas : le
+    // même HTML est servi à un Mac et à un PC. Résoudre `navigator` directement
+    // produirait donc une divergence d'hydratation sur Mac. On rend le raccourci de repli
+    // au premier passage, puis le vrai une fois monté — même garde que
+    // ThemeToggleButton.js, pour la même raison.
+    const shortcut = useSyncExternalStore(
+        emptySubscribe,
+        platformShortcut,        // snapshot client
+        () => FALLBACK_SHORTCUT, // snapshot serveur
+    );
+    const placeholder = interpolate(labels.placeholder, { shortcut });
+
     return (
         <div className={`search-container ${isFocused ? 'search-container--focused' : ''}`}>
             {/* Formulaire de recherche */}
@@ -239,7 +296,7 @@ const SearchBar = () => {
                 role="search"
                 className="search-form"
                 onSubmit={handleSubmit}
-                aria-label="Rechercher dans l'application"
+                aria-label={labels.form}
             >
                 {/* Icône de recherche */}
                 <SearchIcon />
@@ -250,7 +307,13 @@ const SearchBar = () => {
                     type="search"
                     name="search"
                     className="search-input"
-                    placeholder="Rechercher... (Ctrl+K)"
+                    placeholder={placeholder}
+                    /* Nom accessible propre au combobox, en plus du placeholder : celui-ci
+                       DISPARAÎT dès la première frappe, laissant le champ sans nom au moment
+                       précis où les suggestions s'ouvrent. Même libellé que le point de
+                       repère `role="search"` qui l'entoure : l'un est annoncé en navigation
+                       par régions, l'autre à la prise de focus. */
+                    aria-label={labels.form}
                     value={searchValue}
                     onChange={handleInputChange}
                     onFocus={handleFocus}
@@ -272,7 +335,7 @@ const SearchBar = () => {
                         type="button"
                         className="search-clear"
                         onClick={handleClear}
-                        aria-label="Effacer la recherche"
+                        aria-label={labels.clear}
                     >
                         <ClearIcon />
                     </button>
@@ -285,7 +348,7 @@ const SearchBar = () => {
                     id="search-suggestions"
                     className="search-suggestions"
                     role="listbox"
-                    aria-label="Suggestions de recherche"
+                    aria-label={labels.suggestions}
                 >
                     {suggestions.map((suggestion, position) => (
                         <Link

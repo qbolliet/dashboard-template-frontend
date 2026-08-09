@@ -22,7 +22,52 @@ import TableHeaderCell from './TableHeaderCell/TableHeaderCell';
 import TableChipRow from './TableChipRow/TableChipRow';
 import TableFooter from './TableFooter/TableFooter';
 import TableSnippetReveal from './TableSnippetReveal/TableSnippetReveal';
+import { mergeLabels } from '@/utils/i18n/mergeLabels';
+import { DEFAULT_LOCALE } from '@/i18n/config';
+import { intlLocaleFor } from '@/i18n/formats';
 import './Table.scss';
+
+// =================================================================
+// LIBELLÉS — défauts français, surchargeables par la prop `labels`
+// =================================================================
+// Un SEUL objet plat pour toute la feature, redistribué aux sous-composants par ce
+// fichier : ils sont de la présentation pure et ne sont jamais montés ailleurs qu'ici.
+// Les clés sont celles de l'espace de noms `table` du dictionnaire.
+const DEFAULT_LABELS = {
+  actions: 'Actions du tableau',
+  resetCaption: 'RESET',
+  reset: 'Réinitialiser',
+  resetTitle: 'Réinitialiser filtres, tri et colonnes supprimées',
+  exportCsv: 'Exporter en .csv (filtres + tri appliqués)',
+  exportParquet: 'Exporter en .parquet (filtres + tri appliqués)',
+  copyFetch: 'Copier la requête fetch (JavaScript)',
+  copyPython: 'Copier la requête Python (requests)',
+  copyCurl: 'Copier la commande cURL',
+  filtersLabel: 'Filtres',
+  removeFilter: 'Retirer le filtre {label}',
+  removeSort: 'Retirer le tri',
+  hiddenColumn: 'colonne masquée',
+  restore: 'Restaurer',
+  restoreColumn: 'Restaurer la colonne {label}',
+  clearAll: 'Tout effacer',
+  filterValues: 'Filtrer les valeurs…',
+  clearSearch: 'Effacer la recherche',
+  selectAll: 'Tout',
+  selectNone: 'Aucun',
+  noValue: 'Aucune valeur',
+  emptyRows: 'Aucune ligne ne correspond aux filtres.',
+  loadError: 'Erreur de chargement',
+  sortBy: 'Trier par {label}',
+  sortAsc: '{label} — croissant · cliquer pour décroissant',
+  sortDesc: '{label} — décroissant · cliquer pour désactiver',
+  removeColumn: 'Supprimer la colonne « {label} »',
+  removeColumnAria: 'Supprimer la colonne {label}',
+  filterColumn: 'Filtrer {label}',
+  filterByValues: 'Filtrer par valeurs',
+  copied: '{lang} · copié',
+  rowCount: { one: '{count} ligne', other: '{count} lignes' },
+  columnCount: { one: '{count} colonne', other: '{count} colonnes' },
+};
 
 /**
  * @typedef {object} ColumnDef
@@ -72,6 +117,12 @@ const SNIPPET_BUILDERS = { js: snippetFetch, py: snippetPython, curl: snippetCur
  *   fallback, like the prototype.
  * @param {string} [props.className]
  * @param {Object} [props.style]
+ * @param {string} [props.className] - Additional class(es) on the root section.
+ * @param {Object} [props.style] - Additional inline styles on the root section.
+ * @param {string} [props.locale] - Site locale code, driving number formatting and the
+ *   collation used to sort text columns.
+ * @param {Object} [props.labels] - Wording overrides, merged over the French defaults.
+ *   Redistributed to every sub-component; a partial object is fine.
  * @returns {JSX.Element}
  */
 const Table = ({
@@ -88,7 +139,11 @@ const Table = ({
   onExportParquet,
   className,
   style,
+  locale = DEFAULT_LOCALE,
+  labels: labelOverrides,
 }) => {
+  const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
+  const intlLocale = intlLocaleFor(locale);
   // ── Dérivation des colonnes ──
   // Métadonnées API → ColumnDef (type numérique si sql_type numérique ET non
   // catégoriel). La prop `columns`, si fournie, fixe l'ordre et surcharge par clé.
@@ -131,6 +186,7 @@ const Table = ({
     enableSort,
     enableFilter,
     enableColumnRemoval,
+    intlLocale,
   });
 
   // Slug de nom de fichier pour les exports (« Titre du tableau » → titre_du_tableau).
@@ -169,20 +225,20 @@ const Table = ({
       ? [{
           id: 'reset',
           icon: <ResetIcon />,
-          caption: 'RESET',
+          caption: labels.resetCaption,
           disabled: !canReset,
           onClick: resetAll,
-          label: 'Réinitialiser filtres, tri et colonnes supprimées',
+          label: labels.resetTitle,
         }]
       : [],
     [
-      { id: 'csv', icon: <DownloadIcon />, caption: 'CSV', done: copied === 'csv', onClick: onCsv, label: 'Exporter en .csv (filtres + tri appliqués)' },
-      { id: 'parquet', icon: <DownloadIcon />, caption: 'PARQUET', done: copied === 'parquet', onClick: onParquet, label: 'Exporter en .parquet (filtres + tri appliqués)' },
+      { id: 'csv', icon: <DownloadIcon />, caption: 'CSV', done: copied === 'csv', onClick: onCsv, label: labels.exportCsv },
+      { id: 'parquet', icon: <DownloadIcon />, caption: 'PARQUET', done: copied === 'parquet', onClick: onParquet, label: labels.exportParquet },
     ],
     [
-      { id: 'js', icon: <CopyIcon />, caption: 'JS', done: copied === 'js', onClick: () => onCopy('js'), label: 'Copier la requête fetch (JavaScript)' },
-      { id: 'py', icon: <CopyIcon />, caption: 'PY', done: copied === 'py', onClick: () => onCopy('py'), label: 'Copier la requête Python (requests)' },
-      { id: 'curl', icon: <CopyIcon />, caption: 'cURL', done: copied === 'curl', onClick: () => onCopy('curl'), label: 'Copier la commande cURL' },
+      { id: 'js', icon: <CopyIcon />, caption: 'JS', done: copied === 'js', onClick: () => onCopy('js'), label: labels.copyFetch },
+      { id: 'py', icon: <CopyIcon />, caption: 'PY', done: copied === 'py', onClick: () => onCopy('py'), label: labels.copyPython },
+      { id: 'curl', icon: <CopyIcon />, caption: 'cURL', done: copied === 'curl', onClick: () => onCopy('curl'), label: labels.copyCurl },
     ],
   ];
 
@@ -212,7 +268,7 @@ const Table = ({
         <p className="data-table-meta">{meta}</p>
       </header>
 
-      <HoverToolbar groups={toolbarGroups} label="Actions du tableau" />
+      <HoverToolbar groups={toolbarGroups} label={labels.actions} />
 
       {showChipRow && (
         <TableChipRow
@@ -224,6 +280,7 @@ const Table = ({
           onClearSort={clearSort}
           onRestoreColumn={restoreColumn}
           onResetAll={resetAll}
+          labels={labels}
         />
       )}
 
@@ -247,6 +304,7 @@ const Table = ({
                   enableFilter={enableFilter}
                   enableColumnRemoval={enableColumnRemoval && visibleColumns.length > 1}
                   onRemove={() => removeColumn(c.key)}
+                  labels={labels}
                 />
               ))}
             </tr>
@@ -255,9 +313,9 @@ const Table = ({
             {sortedRows.length === 0 && (
               <tr>
                 <td colSpan={visibleColumns.length} className="data-table-empty">
-                  Aucune ligne ne correspond aux filtres.
+                  {labels.emptyRows}
                   {canReset && (
-                    <button type="button" onClick={resetAll}>Réinitialiser</button>
+                    <button type="button" onClick={resetAll}>{labels.reset}</button>
                   )}
                 </td>
               </tr>
@@ -276,7 +334,7 @@ const Table = ({
                   ].filter(Boolean).join(' ');
                   return (
                     <td key={c.key} className={cls} title={String(v ?? '')}>
-                      {formatCell(v, c, r)}
+                      {formatCell(v, c, r, intlLocale)}
                     </td>
                   );
                 })}
@@ -286,9 +344,14 @@ const Table = ({
         </table>
       </article>
 
-      <TableFooter sqlHint={sqlHint} rowCount={sortedRows.length} columnCount={visibleColumns.length} />
+      <TableFooter
+        sqlHint={sqlHint}
+        rowCount={sortedRows.length}
+        columnCount={visibleColumns.length}
+        locale={locale}
+        labels={labels} />
 
-      {reveal && <TableSnippetReveal reveal={reveal} />}
+      {reveal && <TableSnippetReveal reveal={reveal} label={labels.copied} />}
     </section>
   );
 };

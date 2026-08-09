@@ -2,7 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { useNavigationRoute } from '@/features/header/providers/NavigationProvider';
+import { useNavigationRoute, useNavigationLabels } from '@/features/header/providers/NavigationProvider';
+import { interpolate } from '@/utils/i18n/interpolate';
 import TopbarToggleButton from '../TopbarToggleButton/TopbarToggleButton';
 import TopbarNode from '../TopbarNode/TopbarNode';
 import './TopbarGroup.scss';
@@ -25,6 +26,8 @@ const TopbarGroup = ({
     itemClassName = '',
     activeClassName = ''
 }) => {
+    // Libellés distribués par <Header> via NavigationProvider.
+    const labels = useNavigationLabels('topbar');
     // États locaux pour gérer l'ouverture des dropdowns
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [expandedGroups, setExpandedGroups] = useState(new Set());
@@ -144,7 +147,10 @@ const TopbarGroup = ({
                     onClick={toggleDropdown}
                     onKeyDown={handleKeyDown}
                     ariaControls={`dropdown-${index}`}
-                    ariaLabel={`${isDropdownOpen ? 'Fermer' : 'Ouvrir'} le sous-menu de ${item.name}`}
+                    ariaLabel={interpolate(
+                        isDropdownOpen ? labels.closeSubmenu : labels.openSubmenu,
+                        { name: item.name },
+                    )}
                 />
             )}
 

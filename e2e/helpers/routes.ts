@@ -19,8 +19,14 @@ import { DEMO_BASE_PATH } from '../../src/utils/navigation/basePaths';
 //     ferait courir le risque d'un fichier absent ou périmé au moment où Playwright
 //     charge ses specs.
 //   - demoRoutes() réutilise tel quel le même resolveNavigationTree/flattenNavigation
-//     que src/app/(site)/demo/[[...slug]]/page.jsx : c'est la garantie qu'un nœud
-//     ajouté au manifeste apparaît ici sans toucher au test.
+//     que src/app/(site)/demo/[locale]/[[...slug]]/page.jsx : c'est la garantie qu'un
+//     nœud ajouté au manifeste apparaît ici sans toucher au test.
+//
+// DEPUIS P5.4, demoRoutes() fait le PRODUIT CARTÉSIEN des langues et des nœuds, comme
+// le generateStaticParams de la route. Conséquence directe et voulue : ajouter une
+// langue à `site.locales` double la couverture du test de fumée sans qu'une ligne de
+// test ne bouge. Le site de DOCUMENTATION, lui, reste monolingue et sans segment de
+// langue — docsRoutes() est inchangée.
 
 const PROJECT_ROOT = path.join(__dirname, '..', '..');
 const CONTENT_DIR = path.join(PROJECT_ROOT, 'docs/content');
@@ -70,13 +76,34 @@ export function docsRoutes(): string[] {
     .sort();
 }
 
+/** Locale codes the site ships, read from the manifest like the application does. */
+export const locales: string[] = siteConfig.site.locales;
+
 /**
- * Every route generated from config/site.config.json, mounted under /demo — the
- * exact same resolver the real catch-all route runs at build time.
+ * Every route generated from config/site.config.json, in every shipped language — the
+ * exact same cross-product the real catch-all route runs at build time.
  *
- * @returns Absolute paths, /demo-prefixed, demo root included.
+ * @returns Absolute paths, /demo/<locale>-prefixed, each locale root included.
  */
 export function demoRoutes(): string[] {
-  const tree = resolveNavigationTree(siteConfig.navigation.tree, DEMO_BASE_PATH);
-  return flattenNavigation(tree).map((node) => node.path);
+  return locales.flatMap((locale) => {
+    const tree = resolveNavigationTree(
+      siteConfig.navigation.tree,
+      `${DEMO_BASE_PATH}/${locale}`,
+    );
+
+    return flattenNavigation(tree).map((node) => node.path);
+  });
+}
+
+/**
+ * The language-negotiating entry point, which belongs to no locale.
+ *
+ * Kept apart from `demoRoutes()`: it renders no content and immediately redirects, so a
+ * smoke test must expect a different final URL than the one it requested.
+ *
+ * @returns The bare /demo path.
+ */
+export function demoEntryRoute(): string {
+  return DEMO_BASE_PATH;
 }

@@ -8,9 +8,23 @@
 // `extraTools` issus de la prop `toolbar` (features configurables + mini-vues).
 
 // Importation des modules
+import { mergeLabels } from '@/utils/i18n/mergeLabels';
 import HoverToolbar from '@/components/toolbar/HoverToolbar/HoverToolbar';
 import { resetZoomTool } from '@/components/toolbar/tools';
 import ToolIcon from './ToolIcon/ToolIcon';
+
+// Défauts français, surchargeables par la prop `labels` (cf. src/utils/i18n/mergeLabels.js).
+// Les libellés des outils de `extraTools`, eux, viennent des fabriques de
+// toolbar-features/, qui acceptent chacune un `config.label`.
+const DEFAULT_LABELS = {
+  toolbar: 'Outils du graphique',
+  voronoiHover: 'Hover proximité (Voronoï)',
+  pointTooltip: 'Tooltip sur points',
+  exportSvg: 'Exporter en SVG',
+  exportPng: 'Exporter en PNG',
+  expand: 'Agrandir (pleine largeur)',
+  collapse: 'Replier',
+};
 
 /**
  * Hover-revealed toolbar. Feature/minimap buttons (`extraTools`) come first, then
@@ -29,12 +43,15 @@ import ToolIcon from './ToolIcon/ToolIcon';
  * @param {function(): void} props.onExportPng - Exports the chart to PNG.
  * @param {Array<{id: string, icon: string, label: string, on: boolean, onToggle: function(): void}>} [props.extraTools]
  *   Feature + minimap buttons (icon = ToolIcon key).
+ * @param {Object} [props.labels] - Wording overrides, merged over the French defaults.
  * @returns {JSX.Element}
  */
 const ChartToolbar = ({
   expanded, onExpand, voronoi, onVoronoi, tooltips, onTooltips,
   onReset, canReset, onExportSvg, onExportPng, extraTools = [],
+  labels: labelOverrides,
 }) => {
+  const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
   // Groupes séparés visuellement par la toolbar : features → interaction →
   // export → mise en page. Un groupe vide (extraTools absents) est ignoré.
   const groups = [
@@ -42,8 +59,8 @@ const ChartToolbar = ({
       id: t.id, icon: ToolIcon[t.icon], label: t.label, active: t.on, onClick: t.onToggle,
     })),
     [
-      { id: 'voronoi', icon: ToolIcon.Voronoi, label: 'Hover proximité (Voronoï)', active: voronoi, onClick: onVoronoi },
-      { id: 'tooltips', icon: ToolIcon.Tooltip, label: 'Tooltip sur points', active: tooltips, onClick: onTooltips },
+      { id: 'voronoi', icon: ToolIcon.Voronoi, label: labels.voronoiHover, active: voronoi, onClick: onVoronoi },
+      { id: 'tooltips', icon: ToolIcon.Tooltip, label: labels.pointTooltip, active: tooltips, onClick: onTooltips },
       // Sans zoom actif le bouton reste d'apparence normale mais inerte (pas
       // `disabled` : la réinitialisation n'est pas une capacité indisponible).
       // Factory partagée avec le globe ; `icon` conserve le pictogramme du
@@ -51,21 +68,21 @@ const ChartToolbar = ({
       resetZoomTool({ onClick: canReset ? onReset : undefined, icon: ToolIcon.Reset }),
     ],
     [
-      { id: 'svg', icon: ToolIcon.Svg, label: 'Exporter en SVG', onClick: onExportSvg },
-      { id: 'png', icon: ToolIcon.Png, label: 'Exporter en PNG', onClick: onExportPng },
+      { id: 'svg', icon: ToolIcon.Svg, label: labels.exportSvg, onClick: onExportSvg },
+      { id: 'png', icon: ToolIcon.Png, label: labels.exportPng, onClick: onExportPng },
     ],
     [
       {
         id: 'expand',
         icon: expanded ? ToolIcon.Compress : ToolIcon.Expand,
-        label: expanded ? 'Replier' : 'Agrandir (pleine largeur)',
+        label: expanded ? labels.collapse : labels.expand,
         active: expanded,
         onClick: onExpand,
       },
     ],
   ];
 
-  return <HoverToolbar groups={groups} label="Outils du graphique" />;
+  return <HoverToolbar groups={groups} label={labels.toolbar} />;
 };
 
 export default ChartToolbar;

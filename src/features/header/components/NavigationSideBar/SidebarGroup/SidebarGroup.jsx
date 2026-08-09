@@ -7,6 +7,7 @@ import { useSidebar } from '../NavigationSideBar/NavigationSideBar';
 import { AccessibleIcon } from '@/components/common';
 import { ChevronIcon } from '@/components/icons';
 import SidebarNode from '../SidebarNode/SidebarNode';
+import { useNavigationLabels } from '@/features/header/providers/NavigationProvider';
 import { withBasePath } from '@/utils/url/withBasePath';
 import './SidebarGroup.scss';
 
@@ -24,6 +25,9 @@ const SidebarGroup = ({
     onItemClick,
     level = 0
 }) => {
+    // Libellés distribués par <Header> via NavigationProvider.
+    const labels = useNavigationLabels('sidebar');
+
     // État pour gérer l'expansion du groupe
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -159,7 +163,7 @@ const SidebarGroup = ({
                     type="button"
                     className="nav-toggle sidebar-toggle"
                     onClick={handleChevronClick}
-                    aria-label={isExpanded ? 'Fermer le groupe' : 'Ouvrir le groupe'}
+                    aria-label={isExpanded ? labels.collapseGroup : labels.expandGroup}
                     aria-expanded={isExpanded}
                     aria-controls={contentId}
                 >
@@ -172,7 +176,7 @@ const SidebarGroup = ({
                                 height={16}
                             />
                         }
-                        label={isExpanded ? 'Fermer' : 'Ouvrir'}
+                        label={isExpanded ? labels.collapseIcon : labels.expandIcon}
                         decorative={true}
                     />
                 </button>

@@ -1,92 +1,318 @@
 {
-  "_comment": "Opérations de filtre proposées par CriterionMenu, indexées DIRECTEMENT par le sql_type de l'API GraphQL (getCatalogSchema.sql_type). La clé 'categorical' s'applique à tout champ is_categorical, quel que soit son sql_type. Résolution : filterTypes.resolveOperations().",
-
+  "_comment": "Opérations de filtre proposées par CriterionMenu, indexées DIRECTEMENT par le sql_type de l'API GraphQL (getCatalogSchema.sql_type). La clé 'categorical' s'applique à tout champ is_categorical, quel que soit son sql_type. Résolution : filterTypes.resolveOperations(). Les `label` acceptent une chaîne (identique dans toutes les langues — c'est le cas des symboles comme = ou ≥) ou un objet indexé par code de langue, même convention que config/site.config.json ; les `value`, elles, ne se traduisent JAMAIS, ce sont les identifiants sérialisés du filtre.",
   "categorical": [
-    { "value": "in", "label": "IN" },
-    { "value": "not_in", "label": "NOT IN" },
-    { "value": "eq", "label": "=" }
+    {
+      "value": "in",
+      "label": "IN"
+    },
+    {
+      "value": "not_in",
+      "label": "NOT IN"
+    },
+    {
+      "value": "eq",
+      "label": "="
+    }
   ],
-
   "integer": [
-    { "value": "eq", "label": "=" },
-    { "value": "gt", "label": ">" },
-    { "value": "gte", "label": "≥" },
-    { "value": "lt", "label": "<" },
-    { "value": "lte", "label": "≤" },
-    { "value": "between", "label": "Entre" }
+    {
+      "value": "eq",
+      "label": "="
+    },
+    {
+      "value": "gt",
+      "label": ">"
+    },
+    {
+      "value": "gte",
+      "label": "≥"
+    },
+    {
+      "value": "lt",
+      "label": "<"
+    },
+    {
+      "value": "lte",
+      "label": "≤"
+    },
+    {
+      "value": "between",
+      "label": {
+        "fr": "Entre",
+        "en": "Between"
+      }
+    }
   ],
   "bigint": [
-    { "value": "eq", "label": "=" },
-    { "value": "gt", "label": ">" },
-    { "value": "gte", "label": "≥" },
-    { "value": "lt", "label": "<" },
-    { "value": "lte", "label": "≤" },
-    { "value": "between", "label": "Entre" }
+    {
+      "value": "eq",
+      "label": "="
+    },
+    {
+      "value": "gt",
+      "label": ">"
+    },
+    {
+      "value": "gte",
+      "label": "≥"
+    },
+    {
+      "value": "lt",
+      "label": "<"
+    },
+    {
+      "value": "lte",
+      "label": "≤"
+    },
+    {
+      "value": "between",
+      "label": {
+        "fr": "Entre",
+        "en": "Between"
+      }
+    }
   ],
   "smallint": [
-    { "value": "eq", "label": "=" },
-    { "value": "gt", "label": ">" },
-    { "value": "gte", "label": "≥" },
-    { "value": "lt", "label": "<" },
-    { "value": "lte", "label": "≤" },
-    { "value": "between", "label": "Entre" }
+    {
+      "value": "eq",
+      "label": "="
+    },
+    {
+      "value": "gt",
+      "label": ">"
+    },
+    {
+      "value": "gte",
+      "label": "≥"
+    },
+    {
+      "value": "lt",
+      "label": "<"
+    },
+    {
+      "value": "lte",
+      "label": "≤"
+    },
+    {
+      "value": "between",
+      "label": {
+        "fr": "Entre",
+        "en": "Between"
+      }
+    }
   ],
   "numeric": [
-    { "value": "eq", "label": "=" },
-    { "value": "gt", "label": ">" },
-    { "value": "gte", "label": "≥" },
-    { "value": "lt", "label": "<" },
-    { "value": "lte", "label": "≤" },
-    { "value": "between", "label": "Entre" }
+    {
+      "value": "eq",
+      "label": "="
+    },
+    {
+      "value": "gt",
+      "label": ">"
+    },
+    {
+      "value": "gte",
+      "label": "≥"
+    },
+    {
+      "value": "lt",
+      "label": "<"
+    },
+    {
+      "value": "lte",
+      "label": "≤"
+    },
+    {
+      "value": "between",
+      "label": {
+        "fr": "Entre",
+        "en": "Between"
+      }
+    }
   ],
   "double precision": [
-    { "value": "eq", "label": "=" },
-    { "value": "gt", "label": ">" },
-    { "value": "gte", "label": "≥" },
-    { "value": "lt", "label": "<" },
-    { "value": "lte", "label": "≤" },
-    { "value": "between", "label": "Entre" }
+    {
+      "value": "eq",
+      "label": "="
+    },
+    {
+      "value": "gt",
+      "label": ">"
+    },
+    {
+      "value": "gte",
+      "label": "≥"
+    },
+    {
+      "value": "lt",
+      "label": "<"
+    },
+    {
+      "value": "lte",
+      "label": "≤"
+    },
+    {
+      "value": "between",
+      "label": {
+        "fr": "Entre",
+        "en": "Between"
+      }
+    }
   ],
   "real": [
-    { "value": "eq", "label": "=" },
-    { "value": "gt", "label": ">" },
-    { "value": "gte", "label": "≥" },
-    { "value": "lt", "label": "<" },
-    { "value": "lte", "label": "≤" },
-    { "value": "between", "label": "Entre" }
+    {
+      "value": "eq",
+      "label": "="
+    },
+    {
+      "value": "gt",
+      "label": ">"
+    },
+    {
+      "value": "gte",
+      "label": "≥"
+    },
+    {
+      "value": "lt",
+      "label": "<"
+    },
+    {
+      "value": "lte",
+      "label": "≤"
+    },
+    {
+      "value": "between",
+      "label": {
+        "fr": "Entre",
+        "en": "Between"
+      }
+    }
   ],
-
   "date": [
-    { "value": "eq", "label": "=" },
-    { "value": "before", "label": "Avant" },
-    { "value": "after", "label": "Après" },
-    { "value": "between", "label": "Entre" }
+    {
+      "value": "eq",
+      "label": "="
+    },
+    {
+      "value": "before",
+      "label": {
+        "fr": "Avant",
+        "en": "Before"
+      }
+    },
+    {
+      "value": "after",
+      "label": {
+        "fr": "Après",
+        "en": "After"
+      }
+    },
+    {
+      "value": "between",
+      "label": {
+        "fr": "Entre",
+        "en": "Between"
+      }
+    }
   ],
   "timestamp": [
-    { "value": "eq", "label": "=" },
-    { "value": "before", "label": "Avant" },
-    { "value": "after", "label": "Après" },
-    { "value": "between", "label": "Entre" }
+    {
+      "value": "eq",
+      "label": "="
+    },
+    {
+      "value": "before",
+      "label": {
+        "fr": "Avant",
+        "en": "Before"
+      }
+    },
+    {
+      "value": "after",
+      "label": {
+        "fr": "Après",
+        "en": "After"
+      }
+    },
+    {
+      "value": "between",
+      "label": {
+        "fr": "Entre",
+        "en": "Between"
+      }
+    }
   ],
   "timestamp without time zone": [
-    { "value": "eq", "label": "=" },
-    { "value": "before", "label": "Avant" },
-    { "value": "after", "label": "Après" },
-    { "value": "between", "label": "Entre" }
+    {
+      "value": "eq",
+      "label": "="
+    },
+    {
+      "value": "before",
+      "label": {
+        "fr": "Avant",
+        "en": "Before"
+      }
+    },
+    {
+      "value": "after",
+      "label": {
+        "fr": "Après",
+        "en": "After"
+      }
+    },
+    {
+      "value": "between",
+      "label": {
+        "fr": "Entre",
+        "en": "Between"
+      }
+    }
   ],
-
   "boolean": [
-    { "value": "eq", "label": "=" }
+    {
+      "value": "eq",
+      "label": "="
+    }
   ],
-
   "text": [
-    { "value": "eq", "label": "=" },
-    { "value": "contains", "label": "Contient" },
-    { "value": "starts", "label": "Commence par" }
+    {
+      "value": "eq",
+      "label": "="
+    },
+    {
+      "value": "contains",
+      "label": {
+        "fr": "Contient",
+        "en": "Contains"
+      }
+    },
+    {
+      "value": "starts",
+      "label": {
+        "fr": "Commence par",
+        "en": "Starts with"
+      }
+    }
   ],
   "character varying": [
-    { "value": "eq", "label": "=" },
-    { "value": "contains", "label": "Contient" },
-    { "value": "starts", "label": "Commence par" }
+    {
+      "value": "eq",
+      "label": "="
+    },
+    {
+      "value": "contains",
+      "label": {
+        "fr": "Contient",
+        "en": "Contains"
+      }
+    },
+    {
+      "value": "starts",
+      "label": {
+        "fr": "Commence par",
+        "en": "Starts with"
+      }
+    }
   ]
 }

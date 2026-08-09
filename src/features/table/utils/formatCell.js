@@ -3,12 +3,12 @@
 // =================================================================
 // Décide de l'alignement numérique d'une colonne puis formate une valeur brute selon
 // la ColumnDef.format : fonction libre, FormatSpec (Intl.NumberFormat), ou
-// défauts (nombre localisé fr-FR, chaîne brute, tiret pour vide/null).
+// défauts (nombre localisé selon la langue du site, chaîne brute, tiret pour vide/null).
 // Le formatage numérique lui-même vit dans la couche transverse src/utils/ : il est
 // partagé avec <StatCard>, qui ne peut pas importer depuis src/features/.
 
 import { formatNumber } from '@/utils/format/formatNumber';
-import { EMPTY_PLACEHOLDER } from '@/utils/format/constants';
+import { EMPTY_PLACEHOLDER, DEFAULT_INTL_LOCALE } from '@/utils/format/constants';
 
 // Ré-export : formatNumber fait partie de la surface publique de la feature
 // (cf. `export * from './utils/formatCell'` dans index.js), les consommateurs
@@ -63,18 +63,22 @@ export function isNumericCol(col) {
  * @param {*} value - Raw cell value (`row[col.key]`).
  * @param {ColumnDef} col - Column definition.
  * @param {Object} row - Full row, forwarded to `render`/`format` functions.
+ * @param {string} [intlLocale] - Full Intl tag (e.g. 'en-US') used by the column-level
+ *   default number formatting. A FormatSpec carrying its own `locale` still wins.
  * @returns {JSX.Element|string} Cell content.
  */
-export function formatCell(value, col, row) {
+export function formatCell(value, col, row, intlLocale = DEFAULT_INTL_LOCALE) {
   if (col.render) return col.render(value, row);
   if (value == null || value === '') return EMPTY_PLACEHOLDER;
   const f = col.format;
   if (typeof f === 'function') return f(value, row);
-  if (f && typeof f === 'object') return formatNumber(value, f);
+  // La locale de la table sert de défaut ; une FormatSpec qui déclare la sienne la
+  // conserve, c'est le point d'échappement pour une colonne en devise étrangère.
+  if (f && typeof f === 'object') return formatNumber(value, { locale: intlLocale, ...f });
   if (col.type === 'number') {
     const n = +value;
     if (Number.isNaN(n)) return String(value);
-    return n.toLocaleString('fr-FR');
+    return n.toLocaleString(intlLocale);
   }
   return String(value);
 }

@@ -12,3 +12,16 @@
  * @type {string}
  */
 export const EMPTY_PLACEHOLDER = '—';
+
+/**
+ * Fallback Intl locale for components rendered outside any locale context.
+ *
+ * This is the LIBRARY-level default, deliberately a literal rather than a read of
+ * `config/site.config.json`: `src/utils/` must stay free of configuration imports, and a
+ * component installed on its own from the registry has no manifest to read. The
+ * application overrides it by passing `locale` down — see `src/i18n/formats.js`, which is
+ * the single place that maps a site locale to its Intl tag.
+ *
+ * @type {string}
+ */
+export const DEFAULT_INTL_LOCALE = 'fr-FR';

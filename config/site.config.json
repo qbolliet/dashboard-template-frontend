@@ -2,8 +2,12 @@
   "$schema": "./schema/site.schema.json",
   "site": {
     "title": "Dashboard Template",
-    "description": "Template de tableau de bord pour visualiser des modèles statistiques et de prédiction.",
-    "locale": "fr"
+    "description": {
+      "fr": "Template de tableau de bord pour visualiser des modèles statistiques et de prédiction.",
+      "en": "Dashboard template for visualising statistical and prediction models."
+    },
+    "locales": ["fr", "en"],
+    "defaultLocale": "fr"
   },
   "navigation": {
     "type": "sidebar",
@@ -11,46 +15,52 @@
     "tree": [
       {
         "path": "/",
-        "name": "Accueil",
+        "name": { "fr": "Accueil", "en": "Home" },
         "type": "home",
-        "description": "Vue d'ensemble du tableau de bord et accès aux principaux indicateurs."
+        "description": {
+          "fr": "Vue d'ensemble du tableau de bord et accès aux principaux indicateurs.",
+          "en": "Dashboard overview and entry point to the main indicators."
+        }
       },
       {
         "path": "/comptabilite-nationale",
-        "name": "Comptabilité Nationale",
+        "name": { "fr": "Comptabilité Nationale", "en": "National Accounts" },
         "type": "indicator_group",
-        "description": "Agrégats de la comptabilité nationale, par pays.",
+        "description": {
+          "fr": "Agrégats de la comptabilité nationale, par pays.",
+          "en": "National accounts aggregates, by country."
+        },
         "children": [
           {
             "path": "/france",
-            "name": "France",
+            "name": { "fr": "France", "en": "France" },
             "type": "indicator_group",
             "children": [
               {
                 "path": "/pib",
-                "name": "PIB",
+                "name": { "fr": "PIB", "en": "GDP" },
                 "type": "indicator"
               },
               {
                 "path": "/consommation",
-                "name": "Consommation",
+                "name": { "fr": "Consommation", "en": "Consumption" },
                 "type": "indicator"
               }
             ]
           },
           {
             "path": "/allemagne",
-            "name": "Allemagne",
+            "name": { "fr": "Allemagne", "en": "Germany" },
             "type": "indicator_group",
             "children": [
               {
                 "path": "/pib",
-                "name": "PIB",
+                "name": { "fr": "PIB", "en": "GDP" },
                 "type": "indicator"
               },
               {
                 "path": "/consommation",
-                "name": "Consommation",
+                "name": { "fr": "Consommation", "en": "Consumption" },
                 "type": "indicator"
               }
             ]
@@ -59,27 +69,33 @@
       },
       {
         "path": "/finances-publiques",
-        "name": "Finances Publiques",
+        "name": { "fr": "Finances Publiques", "en": "Public Finances" },
         "type": "indicator_group",
-        "description": "Recettes et dépenses des administrations publiques.",
+        "description": {
+          "fr": "Recettes et dépenses des administrations publiques.",
+          "en": "General government revenue and expenditure."
+        },
         "children": [
           {
             "path": "/recettes-publiques",
-            "name": "Recettes Publiques",
+            "name": { "fr": "Recettes Publiques", "en": "Public Revenue" },
             "type": "indicator"
           },
           {
             "path": "/depenses-publiques",
-            "name": "Dépenses Publiques",
+            "name": { "fr": "Dépenses Publiques", "en": "Public Expenditure" },
             "type": "indicator"
           }
         ]
       },
       {
         "path": "/about",
-        "name": "À propos",
+        "name": { "fr": "À propos", "en": "About" },
         "type": "about",
-        "description": "Présentation du projet, sources des données et mentions légales."
+        "description": {
+          "fr": "Présentation du projet, sources des données et mentions légales.",
+          "en": "Project overview, data sources and legal notices."
+        }
       }
     ]
   }

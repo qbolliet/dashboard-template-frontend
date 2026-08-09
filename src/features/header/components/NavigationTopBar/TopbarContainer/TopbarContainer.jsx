@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigationUI } from '@/features/header/providers/NavigationProvider';
+import { useNavigationUI, useNavigationLabels } from '@/features/header/providers/NavigationProvider';
 import useResizable from '@/features/header/hooks/useResizable';
 import { NavTrigger } from '@/features/header/components/NavTrigger';
 import TopbarMenu from '../TopbarMenu/TopbarMenu';
@@ -28,9 +28,14 @@ const TopbarContainer = ({
     navigationData = [],
     onItemClick,
     className = '',
-    ariaLabel = 'Menu de navigation',
+    ariaLabel,
     role = 'navigation'
 }) => {
+    // Libellés distribués par <Header> via NavigationProvider. `ariaLabel` reste une
+    // prop : elle nomme CETTE instance de navigation, ce qui relève de l'appelant quand
+    // une page en rend plusieurs, alors que les autres libellés sont du vocabulaire.
+    const labels = useNavigationLabels('topbar');
+    const triggerLabels = useNavigationLabels('navTrigger');
     // Contexte UI de navigation (état partagé du menu mobile).
     const {
         isMobileMenuOpen,
@@ -86,7 +91,7 @@ const TopbarContainer = ({
             ref={containerRef}
             className={containerClasses}
             role={role}
-            aria-label={ariaLabel}
+            aria-label={ariaLabel ?? labels.nav}
             // Largeur personnalisée du tiroir (medium uniquement) : héritée par le tiroir
             // (.topbar-list) ET par le rail (calcul de sa position). Voir TopbarContainer.scss.
             style={isDrawerRange && drawerWidth != null
@@ -99,6 +104,7 @@ const TopbarContainer = ({
                 onToggle={toggleMobileMenu}
                 className="mobile-nav-toggle"
                 ariaControls="primary-navigation"
+                labels={triggerLabels}
             />
 
             {/* Menu de navigation principal */}
@@ -114,7 +120,7 @@ const TopbarContainer = ({
                     className="nav-rail topbar-rail"
                     role="separator"
                     aria-orientation="vertical"
-                    aria-label="Redimensionner le menu"
+                    aria-label={labels.resize}
                     aria-valuemin={200}
                     aria-valuemax={480}
                     tabIndex={0}

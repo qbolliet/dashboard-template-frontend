@@ -19,6 +19,14 @@
 import { useState } from 'react';
 import CriterionMenu from '@/features/filter/components/CriterionMenu/CriterionMenu';
 import operations from '@config/filter/operations.json';
+import { resolveOperationLabels } from '@/features/filter/utils/filterTypes';
+import { DEFAULT_LOCALE } from '@/i18n/config';
+
+// Les libellés d'opérateurs de config/filter/operations.json acceptent la forme
+// `{ fr, en }` depuis P5.4 : on les aplatit avant de les passer au composant, qui
+// n'attend que des chaînes. Le site de documentation étant monolingue, il résout dans
+// la langue par défaut.
+const localizedOperations = resolveOperationLabels(operations, DEFAULT_LOCALE, DEFAULT_LOCALE);
 
 // Variable catégorielle : la resolution des opérations passe par le bucket
 // "categorical", quel que soit son sql_type (cf. resolveOperations).
@@ -45,7 +53,7 @@ const CriterionMenuBrackets = () => {
         criterion={criterion}
         onChange={setCriterion}
         variables={VARIABLES}
-        operationsByType={operations}
+        operationsByType={localizedOperations}
         parentheses
         showLabels
       />

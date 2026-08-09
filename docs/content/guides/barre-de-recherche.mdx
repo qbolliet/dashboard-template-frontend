@@ -7,7 +7,8 @@ order: 3
 # Alimenter la barre de recherche
 
 La barre de recherche du header ne connaît aucune liste de suggestions. Elle consomme
-`public/search-index.json`, **dérivé de `config/site.config.json` au build** par
+`public/search-index.<langue>.json` — un fichier PAR LANGUE depuis l'ajout de
+l'internationalisation —, **dérivé de `config/site.config.json` au build** par
 `scripts/build-search-index.js`.
 
 C'est ce qui garantit qu'elle ne peut pas mentir : navigation et recherche sont produites à
@@ -102,7 +103,8 @@ const { pathToFileURL } = require('url');
 
 const PROJECT_ROOT = path.join(__dirname, '..');
 const CONFIG_PATH = path.join(PROJECT_ROOT, 'config/site.config.json');
-const OUTPUT_PATH = path.join(PROJECT_ROOT, 'public/search-index.json');
+const OUTPUT_DIR = path.join(PROJECT_ROOT, 'public');
+const outputName = (locale) => `search-index.${locale}.json`;
 
 const importEsm = (filePath) => import(pathToFileURL(filePath).href);
 
@@ -209,7 +211,7 @@ async function main() {
 
   fs.mkdirSync(path.dirname(OUTPUT_PATH), { recursive: true });
   fs.writeFileSync(OUTPUT_PATH, `${JSON.stringify(entries, null, 2)}\n`, 'utf8');
-  console.log(`build:search : index écrit — ${entries.length} entrée(s) → public/search-index.json`);
+  console.log(`build:search : ${indexes.length} index écrit(s)`);
 }
 
 main().catch((err) => {

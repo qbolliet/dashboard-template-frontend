@@ -18,7 +18,20 @@ export default defineConfig({
   globalSetup: './e2e/global-setup.ts',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  // Une reprise PARTOUT, y compris en local, et non plus en CI seulement.
+  //
+  // Raison : deux familles de tests sont sensibles à la famine CPU décrite sous `workers`
+  // — les captures de régression visuelle (une transition CSS pas tout à fait terminée
+  // donne ~3 % de pixels différents) et les tests WebGL du globe. Chacune passe
+  // systématiquement lancée seule ; dans la suite complète, une exécution sur deux voit
+  // UNE cible échouer, jamais la même. La suite ayant grossi avec l'internationalisation
+  // (le test de fumée couvre désormais chaque route dans chaque langue), le phénomène est
+  // devenu régulier.
+  //
+  // Playwright distingue « flaky » de « passed » dans son rapport : une vraie régression
+  // échoue à la reprise et reste donc visible. Ce réglage ne masque rien, il absorbe une
+  // instabilité d'ENVIRONNEMENT.
+  retries: process.env.CI ? 2 : 1,
   // Plafonné à 2 (jamais `undefined`/tous les cœurs) : le globe (WebGL) rend en LOGICIEL
   // dans ce genre d'environnement (headless, sans GPU) et est mesurablement lent — constaté
   // en pratique, une exécution à 4 workers fait timeouter des routes normalement rapides

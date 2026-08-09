@@ -7,20 +7,48 @@ import { useFocusTrap } from '@/hooks/accessibility';
 import { ariaAnnouncer } from '@/utils/accessibility/AriaAnnouncer';
 import { CalendarIcon, CheckIcon, InfoIcon } from '@/components/icons';
 import CalendarMonth from '../CalendarMonth/CalendarMonth';
-import { DATE_SINGLE_RE, DATE_RANGE_RE, formatDate, parseDate } from '../utils/dateParse';
+import {
+  DATE_SINGLE_RE,
+  DATE_RANGE_RE,
+  DEFAULT_DATE_ORDER,
+  formatDate,
+  parseDate,
+} from '../utils/dateParse';
+import { mergeLabels } from '@/utils/i18n/mergeLabels';
+import { interpolate } from '@/utils/i18n/interpolate';
+import { DEFAULT_INTL_LOCALE } from '@/utils/format/constants';
 import './TypeAwareInput.scss';
 
 // ── Configurations de saisie par type ────────────────────────────
-// Pilote le placeholder, l'inputMode (clavier mobile) et le type/step HTML.
+// Pilote l'inputMode (clavier mobile) et le type/step HTML. Les placeholders ne sont
+// PLUS ici : ceux du texte et de la date se traduisent (`labels`), ceux des nombres sont
+// des exemples de saisie universels et restent en dur ci-dessous.
 const TYPE_CONFIG = {
-  text: { placeholder: 'Texte libre…', inputMode: 'text', html: 'text', step: undefined },
+  text: { inputMode: 'text', html: 'text', step: undefined },
   integer: { placeholder: '0', inputMode: 'numeric', html: 'number', step: '1' },
   float: { placeholder: '0.00', inputMode: 'decimal', html: 'number', step: 'any' },
-  date: { placeholder: 'JJ/MM/AAAA', inputMode: 'text', html: 'text', step: undefined },
+  date: { inputMode: 'text', html: 'text', step: undefined },
 };
 
-// Suffixe affiché après le choix de la première borne d'une plage
-const RANGE_PENDING = ' → …';
+// ── Libellés ─────────────────────────────────────────────────────
+// ATTENTION : les messages de validation d'ici sont diffusés en région ARIA vive
+// (ariaAnnouncer, plus bas). Les traduire sans traduire leur déclencheur, ou l'inverse,
+// produirait une annonce dans une langue et un affichage dans l'autre.
+const DEFAULT_LABELS = {
+  textPlaceholder: 'Texte libre…',
+  // Le masque vient de la LOCALE et non de la traduction : voir `dateMask` dans
+  // src/i18n/formats.js. Le français écrit JJ/MM/AAAA, l'anglais MM/DD/YYYY.
+  datePlaceholder: '{mask}',
+  rangePending: ' → …',
+  integerRequired: 'Entier requis',
+  decimalRequired: 'Nombre décimal requis',
+  dateFormat: 'Format {mask}',
+  valid: 'Valide',
+  validRange: 'Plage valide',
+  validDate: 'Date valide',
+  openCalendar: 'Ouvrir le calendrier',
+  calendar: 'Calendrier',
+};
 
 /**
  * Type-adaptive input: text, integer, float or date (single/range).
@@ -52,6 +80,13 @@ const RANGE_PENDING = ' → …';
  * @param {string}   [forcedMessage] - Message shown alongside `forcedState`.
  * @param {string}   [className] - Additional class(es) merged on the root wrapper.
  * @param {Object}   [style]     - Additional inline styles merged on the root wrapper.
+ * @param {boolean}  [disabled] - Disables the input and the calendar trigger.
+ * @param {string}   [intlLocale] - Full Intl tag, driving number and date formatting.
+ * @param {string}   [dateMask] - Human-readable date mask shown as a placeholder.
+ * @param {string}   [dateOrder] - Permutation of 'D', 'M' and 'Y' telling how to read
+ *   a typed date. The mask is its display, this is its meaning.
+ * @param {number}   [firstDayOfWeek] - 0 for Sunday, 1 for Monday.
+ * @param {Object}   [labels] - Wording overrides, merged over the French defaults.
  * @returns {JSX.Element}
  */
 const TypeAwareInput = ({
@@ -70,9 +105,27 @@ const TypeAwareInput = ({
   forcedMessage,
   className = '',
   style,
+  intlLocale = DEFAULT_INTL_LOCALE,
+  dateMask = 'JJ/MM/AAAA',
+  dateOrder = DEFAULT_DATE_ORDER,
+  firstDayOfWeek = 1,
+  labels: labelOverrides,
 }) => {
+  const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
+
+  // Suffixe affiché après le choix de la première borne d'une plage.
+  const RANGE_PENDING = labels.rangePending;
+  const dateFormatMessage = interpolate(labels.dateFormat, { mask: dateMask });
   // Extraction de la configuration associé au type demandé
   const cfg = TYPE_CONFIG[inputType] || TYPE_CONFIG.text;
+
+  // Placeholder : traduit pour le texte et la date, littéral pour les nombres (un '0'
+  // ou un '0.00' n'a pas de version française).
+  const placeholder = inputType === 'date'
+    ? interpolate(labels.datePlaceholder, { mask: dateMask })
+    : inputType === 'text'
+      ? labels.textPlaceholder
+      : cfg.placeholder;
   // Extraction du type de l'entrée
   const isDate = inputType === 'date';
   const isNumber = inputType === 'integer' || inputType === 'float';
@@ -111,21 +164,21 @@ const TypeAwareInput = ({
 
     if (inputType === 'integer') {
       const n = Number(val);
-      if (!Number.isInteger(n)) { setState('error'); setMessage('Entier requis'); }
-      else { setState('success'); setMessage('Valide'); }
+      if (!Number.isInteger(n)) { setState('error'); setMessage(labels.integerRequired); }
+      else { setState('success'); setMessage(labels.valid); }
     } else if (inputType === 'float') {
       const n = parseFloat(val);
-      if (Number.isNaN(n)) { setState('error'); setMessage('Nombre décimal requis'); }
-      else { setState('success'); setMessage('Valide'); }
+      if (Number.isNaN(n)) { setState('error'); setMessage(labels.decimalRequired); }
+      else { setState('success'); setMessage(labels.valid); }
     } else if (inputType === 'date') {
       if (val.includes(' → ')) {
         const [a, b] = val.split(' → ');
-        if (parseDate(a) && parseDate(b)) { setState('success'); setMessage('Plage valide'); }
-        else { setState('error'); setMessage('Format JJ/MM/AAAA'); }
-      } else if (parseDate(val)) {
-        setState('success'); setMessage('Date valide');
+        if (parseDate(a, dateOrder) && parseDate(b, dateOrder)) { setState('success'); setMessage(labels.validRange); }
+        else { setState('error'); setMessage(dateFormatMessage); }
+      } else if (parseDate(val, dateOrder)) {
+        setState('success'); setMessage(labels.validDate);
       } else {
-        setState('error'); setMessage('Format JJ/MM/AAAA');
+        setState('error'); setMessage(dateFormatMessage);
       }
     } else {
       // text : non vide ⇒ succès
@@ -168,7 +221,7 @@ const TypeAwareInput = ({
     } else if (isDate && validate && value) {
       // Dates : on signale un format incomplet/erroné resté en l'état
       if (DATE_SINGLE_RE.test(value) || DATE_RANGE_RE.test(value)) validateValue(value);
-      else if (!value.endsWith(RANGE_PENDING)) { setState('error'); setMessage('Format JJ/MM/AAAA'); }
+      else if (!value.endsWith(RANGE_PENDING)) { setState('error'); setMessage(dateFormatMessage); }
     }
 
     // Valeur stabilisée : on laisse un parent amorti vider son émission en attente
@@ -181,9 +234,9 @@ const TypeAwareInput = ({
     if (disabled) return;
 
     if (dateMode === 'single') {
-      const str = formatDate(date);
+      const str = formatDate(date, dateOrder);
       onChange?.(str);
-      if (validate) { setState('success'); setMessage('Date valide'); }
+      if (validate) { setState('success'); setMessage(labels.validDate); }
       setCalOpen(false);
       return;
     }
@@ -193,7 +246,7 @@ const TypeAwareInput = ({
       setRangeStart(date);
       setRangeEnd(null);
       setHoverDate(null);
-      onChange?.(formatDate(date) + RANGE_PENDING);
+      onChange?.(formatDate(date, dateOrder) + RANGE_PENDING);
     } else {
       // Inversion automatique si le second clic précède le premier
       const lo = date < rangeStart ? date : rangeStart;
@@ -201,8 +254,8 @@ const TypeAwareInput = ({
       setRangeStart(lo);
       setRangeEnd(hi);
       setHoverDate(null);
-      onChange?.(`${formatDate(lo)} → ${formatDate(hi)}`);
-      if (validate) { setState('success'); setMessage('Plage valide'); }
+      onChange?.(`${formatDate(lo, dateOrder)} → ${formatDate(hi, dateOrder)}`);
+      if (validate) { setState('success'); setMessage(labels.validRange); }
       setCalOpen(false);
     }
   };
@@ -215,7 +268,7 @@ const TypeAwareInput = ({
   const seedCalDate = () => {
     // Première date de la valeur saisie (« A », « A → B » ou « A → … »)
     const firstTyped = (value || '').split('→')[0].trim();
-    const typed = DATE_SINGLE_RE.test(firstTyped) ? parseDate(firstTyped) : null;
+    const typed = DATE_SINGLE_RE.test(firstTyped) ? parseDate(firstTyped, dateOrder) : null;
     let base = typed ?? new Date();
     if (maxDate && base > maxDate) base = maxDate;
     if (minDate && base < minDate) base = minDate;
@@ -267,7 +320,7 @@ const TypeAwareInput = ({
 
   // Date sélectionnée transmise au calendrier (single) — dérivée de la valeur saisie
   const selectedDate = dateMode === 'single' && value && DATE_SINGLE_RE.test(value)
-    ? parseDate(value)
+    ? parseDate(value, dateOrder)
     : null;
 
   // État effectif affiché : un verdict de VALEUR externe (forcedState) prime sur
@@ -296,7 +349,7 @@ const TypeAwareInput = ({
           type={isNumber ? 'number' : 'text'}
           inputMode={cfg.inputMode}
           step={cfg.step}
-          placeholder={cfg.placeholder}
+          placeholder={placeholder}
           value={value}
           disabled={disabled}
           onChange={handleChange}
@@ -313,7 +366,7 @@ const TypeAwareInput = ({
             aria-expanded={calOpen}
             aria-controls={popoverId}>
             <CalendarIcon />
-            <VisuallyHidden>Ouvrir le calendrier</VisuallyHidden>
+            <VisuallyHidden>{labels.openCalendar}</VisuallyHidden>
           </button>
         )}
       </span>
@@ -330,10 +383,13 @@ const TypeAwareInput = ({
           ref={popoverRef}
           id={popoverId}
           role="dialog"
-          aria-label="Calendrier"
+          aria-label={labels.calendar}
           className={`calendar-popover ${dateMode === 'range' ? 'calendar-popover--range' : ''}`}
           onKeyDown={(e) => { if (e.key === 'Escape') setCalOpen(false); }}>
           <CalendarMonth
+            intlLocale={intlLocale}
+            firstDayOfWeek={firstDayOfWeek}
+            labels={labelOverrides}
             year={calYear}
             month={calMonth}
             onMonthChange={handleMonth1}
@@ -352,6 +408,9 @@ const TypeAwareInput = ({
 
           {dateMode === 'range' && (
             <CalendarMonth
+            intlLocale={intlLocale}
+            firstDayOfWeek={firstDayOfWeek}
+            labels={labelOverrides}
               year={calYear2}
               month={calMonth2}
               onMonthChange={setCalMonth2}

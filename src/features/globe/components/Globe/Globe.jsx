@@ -25,6 +25,34 @@ import './Globe.scss';
 // jamais incluses dans le bundle CSS de la page.
 import '../GlobeMarkers/GlobeMarkers.scss';
 import '../GlobeTooltip/GlobeTooltip.scss';
+import { mergeLabels } from '@/utils/i18n/mergeLabels';
+
+// Défauts français, surchargeables par la prop `labels` (cf. src/utils/i18n/mergeLabels.js).
+// Ils couvrent le globe ET sa barre d'outils : c'est <Globe> qui les fusionne une fois et
+// les redistribue, pour que la surcharge se fasse en un seul point.
+const DEFAULT_LABELS = {
+  label: 'Globe terrestre interactif',
+  toolbar: 'Outils du globe',
+  toFlatMap: 'Passer en planisphère',
+  toGlobe: 'Passer en globe',
+  pointsShown: 'Points affichés',
+  pointsHidden: 'Points masqués',
+  flowsShown: 'Flux affichés',
+  flowsHidden: 'Flux masqués',
+  flowsAnimated: 'Flux dynamiques',
+  flowsFrozen: 'Flux figés',
+  showFlowsToAnimate: 'Affichez les flux pour les animer',
+  noFlowToAnimate: 'Aucun flux à animer',
+  rotationOn: 'Rotation activée',
+  rotationOff: 'Rotation figée',
+  wheelZoomOn: 'Zoom molette activé',
+  wheelZoomOff: 'Zoom molette désactivé',
+  showLayersForTooltips: 'Affichez les points ou les flux pour activer les tooltips',
+  noDataToHover: 'Aucune donnée à survoler',
+  tooltipsOn: 'Tooltips activées',
+  tooltipsOff: 'Tooltips désactivées',
+  flowIntensity: 'Intensité du flux',
+};
 
 // Table des bascules : clé d'outil → champ d'état miroir + setter du moteur.
 // Les deux outils « one-shot » (mode, resetZoom) n'y figurent pas : ils ont
@@ -88,9 +116,12 @@ const TOGGLES = {
  * @param {string[]} [props.toolbar=TOOL_KEYS] - Exposed tool keys (order-insensitive:
  *   grouping is fixed). Empty array = no toolbar, no hover zone.
  * @param {number} [props.height=460] - Frame height in px (inline style).
- * @param {string} [props.ariaLabel='Globe terrestre interactif'] - Accessible name
+ * @param {Object} [props.labels] - Wording overrides, merged over the French defaults.
+ * @param {string} [props.ariaLabel] - Accessible name naming THIS globe; falls back to
+ *   `labels.label`, the generic wording
  *   of the WebGL stage.
  * @param {string} [props.className]
+ * @param {string} [props.className] - Additional class(es) on the root figure.
  * @returns {JSX.Element}
  */
 const Globe = ({
@@ -109,9 +140,11 @@ const Globe = ({
   defaultArcsDynamic = true,
   toolbar = TOOL_KEYS,
   height = 460,
-  ariaLabel = 'Globe terrestre interactif',
+  ariaLabel,
+  labels: labelOverrides,
   className,
 }) => {
+  const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
   const stageRef = useRef(null);
 
   // État unique des interrupteurs, initialisé depuis les seules props `default*`.
@@ -133,7 +166,7 @@ const Globe = ({
   // premier rendu. Les noms des champs d'état SONT ceux des options du moteur,
   // ce qui rend `applyOption` uniforme — c'est ce spread qui l'autorise.
   const { engineRef, applyOption } = useGlobeEngine(stageRef, {
-    points, arcs, iconFor, colorFor, sizeFor, tooltipFor, ...st,
+    points, arcs, iconFor, colorFor, sizeFor, tooltipFor, labels, ...st,
   });
 
   /**
@@ -235,7 +268,7 @@ const Globe = ({
           montage du moteur — un sous-arbre possédé par Three.js, que React ne
           réconcilie jamais. `role="img"` donne un équivalent textuel au canvas,
           invisible des technologies d'assistance. */}
-      <div className="globe-stage" ref={stageRef} role="img" aria-label={ariaLabel} />
+      <div className="globe-stage" ref={stageRef} role="img" aria-label={ariaLabel ?? labels.label} />
       {visibleTools.length > 0 && (
         // `hasPoints`/`hasArcs` sont dérivés au rendu et NON rangés dans `st` :
         // `st` est le miroir des options du moteur (il est spread tel quel dans
@@ -244,6 +277,7 @@ const Globe = ({
         // qui doit griser un outil quand il n'y a rien à manipuler — un
         // interrupteur resté ON sur une collection vide ne rend rien actionnable.
         <GlobeToolbar
+          labels={labels}
           tools={visibleTools}
           state={{ ...st, hasPoints: points.length > 0, hasArcs: arcs.length > 0 }}
           onAction={handleToolAction} />

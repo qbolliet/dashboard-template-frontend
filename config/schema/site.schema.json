@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/dashboard-template-frontend/config/schema/site.schema.json",
   "title": "Site manifest",
-  "description": "Manifeste unique du site : identité, navigation et arborescence des pages. Ce fichier est la seule source de configuration du template — le header le lit pour construire sa navigation, et il alimentera la génération des routes et l'index de recherche. Validé par `npm run validate:config`.",
+  "description": "Manifeste unique du site : identité, langues, navigation et arborescence des pages. Ce fichier est la seule source de configuration du template — le header le lit pour construire sa navigation, et il alimente la génération des routes et l'index de recherche. Validé par `npm run validate:config`.",
   "type": "object",
   "required": ["site", "navigation"],
   "additionalProperties": false,
@@ -20,27 +20,57 @@
     }
   },
   "$defs": {
+    "localeCode": {
+      "description": "Code de langue au format BCP 47 abrégé : `fr`, `en`, ou avec la région `fr-BE`, `en-US`.",
+      "type": "string",
+      "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+    },
+    "localizedString": {
+      "title": "Texte, éventuellement traduit",
+      "description": "Accepte DEUX formes. Une chaîne simple — le texte est identique dans toutes les langues, ce qui est la forme juste pour un sigle, un symbole ou un nom propre (`PIB`, `≥`, `France`). Ou un objet indexé par code de langue — `{ \"fr\": \"Accueil\", \"en\": \"Home\" }`. Sous la forme objet, la langue déclarée dans `site.defaultLocale` est OBLIGATOIRE : c'est le repli garanti quand une traduction manque. `npm run validate:config` le vérifie, et `npm run check:i18n` signale les langues déclarées mais non traduites.",
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[a-z]{2}(-[A-Z]{2})?$": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
     "site": {
       "title": "Identité du site",
       "description": "Métadonnées globales du site. Consommées par `src/app/layout.tsx` pour l'objet `metadata` de Next et l'attribut `lang` de la balise `<html>`.",
       "type": "object",
-      "required": ["title", "description", "locale"],
+      "required": ["title", "description", "locales", "defaultLocale"],
       "additionalProperties": false,
       "properties": {
         "title": {
-          "description": "Titre du site. Alimente `metadata.title` : c'est le texte affiché dans l'onglet du navigateur et repris par les moteurs de recherche.",
-          "type": "string",
-          "minLength": 1
+          "description": "Titre du site. Alimente `metadata.title` : c'est le texte affiché dans l'onglet du navigateur et repris par les moteurs de recherche. Un nom de marque se laisse en chaîne simple ; un titre descriptif se traduit.",
+          "$ref": "#/$defs/localizedString"
         },
         "description": {
           "description": "Description courte du site, en une ou deux phrases. Alimente `metadata.description`, donc la balise `<meta name=\"description\">` et l'extrait affiché dans les résultats de recherche.",
-          "type": "string",
-          "minLength": 1
+          "$ref": "#/$defs/localizedString"
         },
-        "locale": {
-          "description": "Langue principale du contenu, au format BCP 47 abrégé : `fr`, `en`, ou avec la région `fr-BE`, `en-US`. Posée sur `<html lang>`, elle détermine la prononciation par les lecteurs d'écran et la césure typographique du navigateur.",
-          "type": "string",
-          "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+        "locales": {
+          "description": "Langues servies par le site, dans l'ordre de préférence. Chacune donne un segment d'URL sous `/demo` (`/demo/fr/…`, `/demo/en/…`) et exige un dictionnaire d'interface dans `src/i18n/dictionaries/`. L'ORDRE compte : quand le navigateur demande une langue sans région (`pt`) et que plusieurs variantes existent (`pt-BR`, `pt-PT`), la première déclarée l'emporte. Ajouter une langue ici sans son dictionnaire fait échouer `npm run check:i18n`.",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/localeCode" }
+        },
+        "defaultLocale": {
+          "description": "Langue de repli du site. Doit figurer dans `locales`. C'est elle qui est servie quand la langue du visiteur n'est pas disponible, elle qui est posée sur `<html lang>` par le layout racine, et elle dont la valeur est utilisée quand une traduction manque — dans le manifeste comme dans les dictionnaires d'interface.",
+          "$ref": "#/$defs/localeCode"
         }
       }
     },
@@ -77,14 +107,13 @@
       "additionalProperties": false,
       "properties": {
         "path": {
-          "description": "Segment d'URL du nœud, **relatif à son parent** et précédé d'une barre oblique. Le chemin complet d'une page est la concaténation des `path` de ses ancêtres : un nœud `/pib` sous `/france` sous `/comptabilite-nationale` répond à `/comptabilite-nationale/france/pib`. N'écrivez donc pas le chemin complet ici. Format imposé : minuscules, chiffres et traits d'union (kebab-case), sans barre finale. La racine du site s'écrit `/`.",
+          "description": "Segment d'URL du nœud, **relatif à son parent** et précédé d'une barre oblique. Le chemin complet d'une page est la concaténation des `path` de ses ancêtres : un nœud `/pib` sous `/france` sous `/comptabilite-nationale` répond à `/comptabilite-nationale/france/pib`. N'écrivez donc pas le chemin complet ici. Format imposé : minuscules, chiffres et traits d'union (kebab-case), sans barre finale. La racine du site s'écrit `/`. Le chemin NE SE TRADUIT PAS : la langue est portée par un segment distinct, en amont (`/demo/en/comptabilite-nationale`), ce qui garde une seule arborescence à maintenir.",
           "type": "string",
           "pattern": "^/$|^(?:/[a-z0-9]+(?:-[a-z0-9]+)*)+$"
         },
         "name": {
-          "description": "Libellé lisible du nœud. Affiché tel quel dans la navigation, dans le fil d'Ariane du header et dans les résultats de recherche — mettez-y les accents et les majuscules voulus.",
-          "type": "string",
-          "minLength": 1
+          "description": "Libellé lisible du nœud. Affiché tel quel dans la navigation, dans le fil d'Ariane du header et dans les résultats de recherche — mettez-y les accents et les majuscules voulus. Traduisible : voir `localizedString`.",
+          "$ref": "#/$defs/localizedString"
         },
         "type": {
           "description": "Type de page, qui détermine le gabarit de rendu du nœud. `home` : page d'accueil. `indicator` : page d'un indicateur (graphique, tableau, filtres). `indicator_group` : regroupement d'indicateurs, qui liste ses sous-pages. `about` : page de contenu rédigé. Cette énumération doit rester le miroir exact du registre des gabarits, `src/config/pageTypes.js` : un type déclaré ici mais absent du registre produit une page introuvable.",
@@ -92,9 +121,8 @@
           "enum": ["home", "indicator", "indicator_group", "about"]
         },
         "description": {
-          "description": "Résumé d'une phrase de ce que contient la page. Facultatif. Sert à alimenter la recherche : le texte y est indexé au même titre que `name`, et affiché sous le titre dans la liste des suggestions.",
-          "type": "string",
-          "minLength": 1
+          "description": "Résumé d'une phrase de ce que contient la page. Facultatif. Sert à alimenter la recherche : le texte y est indexé au même titre que `name`, et affiché sous le titre dans la liste des suggestions. Traduisible : voir `localizedString`.",
+          "$ref": "#/$defs/localizedString"
         },
         "searchable": {
           "description": "Passez à `false` pour exclure la page de la recherche du site. Le nœud reste visible dans la navigation et reste navigable — seule son indexation est désactivée. Utile pour les pages techniques ou les bancs d'essai. Vaut `true` si la clé est absente.",

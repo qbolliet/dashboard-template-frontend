@@ -6,6 +6,27 @@ import { defaultValue, isComplete, resolveOperations, toSelectValue } from '@/fe
 import CriterionCard from './CriterionCard/CriterionCard';
 import CriterionRow from './CriterionRow/CriterionRow';
 import ValueField from './ValueField/ValueField';
+import { mergeLabels } from '@/utils/i18n/mergeLabels';
+
+// Défauts français, surchargeables par la prop `labels` (cf. src/utils/i18n/mergeLabels.js).
+const DEFAULT_LABELS = {
+  variable: 'Variable',
+  variableHint: 'Variable — champ à filtrer',
+  variablePlaceholder: 'Sélectionner une variable…',
+  operation: 'Opération',
+  operationHint: 'Opération — comparateur appliqué',
+  operationPlaceholder: 'Opération…',
+  value: 'Valeur',
+  valueHint: 'Valeur — valeur(s) comparée(s)',
+  valuesPlaceholder: 'Sélectionner des valeurs…',
+  valuePlaceholder: 'Sélectionner une valeur…',
+  addCriterion: 'Ajouter un critère',
+  removeCriterion: 'Supprimer le critère',
+  openBracket: 'Crochet ouvrant',
+  closeBracket: 'Crochet fermant',
+  and: 'ET',
+  or: 'OU',
+};
 
 /**
  * Controlled criterion card: three rows (variable, operation, value) whose SQL type
@@ -39,6 +60,12 @@ import ValueField from './ValueField/ValueField';
  * @param {boolean} [showSlider] - Numeric/date value field: render the slider bar.
  * @param {string} [className] - Additional class(es) merged on the card root.
  * @param {Object} [style] - Additional inline styles merged on the card root.
+ * @param {string}   [intlLocale] - Full Intl tag, driving number and date formatting.
+ * @param {string}   [dateMask] - Human-readable date mask shown as a placeholder.
+ * @param {string}   [dateOrder] - Permutation of 'D', 'M' and 'Y' telling how to read
+ *   a typed date. The mask is its display, this is its meaning.
+ * @param {number}   [firstDayOfWeek] - 0 for Sunday, 1 for Monday.
+ * @param {Object}   [labels] - Wording overrides, merged over the French defaults.
  * @returns {JSX.Element}
  */
 const CriterionMenu = ({
@@ -59,7 +86,13 @@ const CriterionMenu = ({
   showSlider = false,
   className = '',
   style,
+  labels: labelOverrides,
+  intlLocale,
+  dateMask,
+  dateOrder,
+  firstDayOfWeek,
 }) => {
+  const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
   // Méta de la variable sélectionnée → source du type SQL courant (catalogue autoritaire)
   const varMeta = variables.find((v) => v.value === criterion.variable) ?? null;
   const sqlType = varMeta?.sql_type ?? null;
@@ -123,6 +156,7 @@ const CriterionMenu = ({
 
   return (
     <CriterionCard
+      labels={labels}
       state={state}
       valid={valid}
       footer={footer && validate}
@@ -134,37 +168,42 @@ const CriterionMenu = ({
       className={className}
       style={style}>
 
-      <CriterionRow label="Variable" step={1} showLabel={showLabels}
+      <CriterionRow label={labels.variable} step={1} showLabel={showLabels}
         htmlFor={variableId}
-        tooltipText="Variable — champ à filtrer">
+        tooltipText={labels.variableHint}>
         <SelectMenu
           id={variableId}
           options={variables}
           value={variableSelVal}
           disabled={lockedVariable}
           validate={validate}
-          placeholder="Sélectionner une variable…"
+          placeholder={labels.variablePlaceholder}
           onChange={(items) => onVariable(items[0]?.value ?? null)} />
       </CriterionRow>
 
       {showOperation && (
-        <CriterionRow label="Opération" step={2} showLabel={showLabels}
+        <CriterionRow label={labels.operation} step={2} showLabel={showLabels}
           htmlFor={operationId}
-          tooltipText="Opération — comparateur appliqué">
+          tooltipText={labels.operationHint}>
           <SelectMenu
             id={operationId}
             options={ops}
             value={operationSelVal}
             disabled={!criterion.variable || lockedOperation}
             validate={validate}
-            placeholder="Opération…"
+            placeholder={labels.operationPlaceholder}
             onChange={(items) => onOperation(items[0]?.value ?? null)} />
         </CriterionRow>
       )}
 
-      <CriterionRow label="Valeur" step={showOperation ? 3 : 2} showLabel={showLabels}
-        tooltipText="Valeur — valeur(s) comparée(s)">
+      <CriterionRow label={labels.value} step={showOperation ? 3 : 2} showLabel={showLabels}
+        tooltipText={labels.valueHint}>
         <ValueField
+          labels={labels}
+          intlLocale={intlLocale}
+          dateMask={dateMask}
+          dateOrder={dateOrder}
+          firstDayOfWeek={firstDayOfWeek}
           sqlType={sqlType}
           isCategorical={isCategorical}
           operation={criterion.operation}

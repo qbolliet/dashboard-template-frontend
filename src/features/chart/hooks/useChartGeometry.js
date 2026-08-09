@@ -64,6 +64,7 @@ export function useChartGeometry({
   format = {}, labels = {}, maxLabelLength = {}, maxLines = {},
   overlap = 'auto', tickDensity = 'normal', width, height,
   minimapsVisible = true, xMinimapOpen = true, yMinimapOpen = true,
+  locale,
 }) {
   // ── Mini-vues applicables selon le type de graphique ──────────────────────
   // (× l'interrupteur maître : masquées, elles ne réservent plus rien.)
@@ -80,7 +81,7 @@ export function useChartGeometry({
   // ── Largeur réservée aux ticks d'ordonnée (catégoriel : mesuré ; sinon fixe) ──
   let yTickW = 44;
   if (yType === 'categorical') {
-    const fmt = resolveFormatter(format.y, 'categorical');
+    const fmt = resolveFormatter(format.y, 'categorical', undefined, locale);
     const dom = [...new Set(data.map((r) => r[y]).filter((v) => v != null))];
     const maxLen = maxLabelLength.y;
     let w = 0;
@@ -118,7 +119,7 @@ export function useChartGeometry({
   const desired = tickCountFor(innerWidth, tickDensity);
   const xScale = makeScale(xType, data, x, innerWidth, 'x', chartKind);
   const ticks = ticksFor(xScale, xType, desired);
-  const fmtX = resolveFormatter(format.x, xType, xType === 'date' ? xScale.domain() : null);
+  const fmtX = resolveFormatter(format.x, xType, xType === 'date' ? xScale.domain() : null, locale);
   const labelsArr = ticks.map((t) => String(fmtX(t)));
   const tickPx = xType === 'categorical'
     ? (xScale.bandwidth ? xScale.bandwidth() : innerWidth / Math.max(1, ticks.length))

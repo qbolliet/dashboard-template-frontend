@@ -6,7 +6,15 @@ import MultiCriterionMenu from '@/features/filter/components/MultiCriterionMenu/
 import { useVariableMetadata, metadataToVariables } from '@/features/filter/sources/useVariableMetadata';
 import { treeToSQL } from '@/features/filter/utils/filterEngine';
 import operations from '@config/filter/operations.json';
+import { resolveOperationLabels } from '@/features/filter/utils/filterTypes';
+import { DEFAULT_LOCALE } from '@/i18n/config';
 import { expr } from '@/features/docs/utils/serializeJsx';
+
+// Les libellés d'opérateurs de config/filter/operations.json acceptent la forme
+// `{ fr, en }` depuis P5.4 : on les aplatit avant de les passer au composant, qui
+// n'attend que des chaînes. Le site de documentation étant monolingue, il résout dans
+// la langue par défaut.
+const localizedOperations = resolveOperationLabels(operations, DEFAULT_LOCALE, DEFAULT_LOCALE);
 
 // =================================================================
 // PLAYGROUND — MultiCriterionMenu
@@ -81,7 +89,7 @@ const isComplete = (node) =>
  */
 export const toProps = ({ maxCriteria, ...rest }) => ({
     variables: expr('variables', undefined),
-    operationsByType: expr('operations', operations),
+    operationsByType: expr('operations', localizedOperations),
     onChange: expr('setResult', undefined),
     // 0 dans le contrôle = pas de plafond = `null` pour le composant.
     maxCriteria: maxCriteria > 0 ? maxCriteria : null,

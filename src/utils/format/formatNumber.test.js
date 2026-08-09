@@ -52,9 +52,20 @@ describe('formatNumber', () => {
       .toBe(new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'USD' }).format(5));
   });
 
-  it('formats style: "percent" as the raw number (no ×100) with a " %" suffix', () => {
+  // Le suffixe est DÉDUIT d'Intl, pas écrit en dur : le français veut une espace fine
+  // insécable (U+202F) avant le signe, l'anglais rien du tout. C'est ce qui évite de
+  // maintenir une table de conventions typographiques à la main.
+  it('formats style: "percent" as the raw number (no x100) with the locale percent suffix', () => {
+    const french = new Intl.NumberFormat('fr-FR', { style: 'percent' }).formatToParts(1);
+    const frenchSuffix = french.slice(french.findIndex((p) => p.type === 'percentSign') - 1)
+      .map((p) => p.value).join('');
+
     expect(formatNumber(50, { style: 'percent' }))
-      .toBe(`${new Intl.NumberFormat('fr-FR', {}).format(50)} %`);
+      .toBe(`${new Intl.NumberFormat('fr-FR', {}).format(50)}${frenchSuffix}`);
+  });
+
+  it('uses the English percent convention when asked for it', () => {
+    expect(formatNumber(50, { style: 'percent', locale: 'en-US' })).toBe('50%');
   });
 
   it('lets an explicit suffix override the implicit " %" on style: "percent"', () => {

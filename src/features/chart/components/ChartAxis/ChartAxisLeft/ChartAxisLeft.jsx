@@ -40,15 +40,17 @@ const SEP = String.fromCharCode(31);
  * @param {boolean} [props.showGrid=true] - Renders the horizontal grid lines.
  * @param {number} [props.labelOffset=50] - Distance between the axis and the
  *   rotated axis label.
+ * @param {string} [props.locale] - Site locale code, driving the tick formatter.
  * @returns {JSX.Element}
  */
 const ChartAxisLeft = ({
+  locale,
   scale, type, length, width, format, label,
   maxLabelLength, maxLines = 2, overlap = 'auto', tickDensity = 'normal', showGrid = true,
   labelOffset = 50,
 }) => {
   // Résolution du format
-  const fmt = resolveFormatter(format, type, type === 'date' ? scale.domain() : null);
+  const fmt = resolveFormatter(format, type, type === 'date' ? scale.domain() : null, locale);
   // Initialisation des ticks
   const desired = tickCountFor(length, tickDensity);
   let ticks = ticksFor(scale, type, desired);

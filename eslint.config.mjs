@@ -25,6 +25,12 @@ const eslintConfig = [
       // les analyse et remonte des milliers de problèmes qui masquent les vrais.
       "out/**",
       "tmp/**",
+      // Sorties de Playwright : le rapport HTML embarque un visualiseur de traces
+      // minié (~2 800 avertissements), et test-results/ les artefacts d'échec. Même
+      // raison que ci-dessus, et même piège : ils n'existent qu'APRÈS un run de tests,
+      // donc `npm run lint` reste propre tant qu'on n'en a pas lancé.
+      "playwright-report/**",
+      "test-results/**",
       "next-env.d.ts",
       "old_components/**",
       "old_src/**",

@@ -14,7 +14,7 @@
 // de colonnes), stable par nature.
 
 // Importation des modules
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
     Table,
     useFactTableWithMetadata,
@@ -25,14 +25,30 @@ import { Chart, ChartsFeatures as F } from '@/features/chart';
 import MultiCriterionMenu from '@/features/filter/components/MultiCriterionMenu/MultiCriterionMenu';
 import { CardGrid, StatCard } from '@/components/ui';
 import { formatNumber } from '@/utils/format/formatNumber';
+import { connectorsFrom } from '@/features/filter/utils/filterTypes';
+import { interpolate } from '@/utils/i18n/interpolate';
+import { resolveLocalized } from '@/utils/i18n/resolveLocalized';
+import { intlLocaleFor, formatsFor } from '@/i18n/formats';
+import { DEFAULT_LOCALE } from '@/i18n/config';
 import operations from '@config/filter/operations.json';
 import { deriveEncoding, restrictToColumns } from '../../utils/deriveEncoding';
 import './IndicatorExplorer.scss';
 
-// Barre d'outils du graphique, en portée MODULE : <Chart> exige une référence stable
-// (cf. sa JSDoc), sinon chaque frappe dans le menu de filtres reconstruit le tableau,
-// donc le graphique entier. Rien ici ne dépend du nœud, la portée module suffit.
-const INDICATOR_TOOLBAR = [F.zoom(), F.minimaps()];
+// Barre d'outils du graphique. Elle était en portée MODULE, ce qui n'est plus possible :
+// ses libellés dépendent de la langue. Or <Chart> exige une RÉFÉRENCE STABLE (cf. sa
+// JSDoc) — sans quoi chaque frappe dans le menu de filtres reconstruirait le tableau,
+// donc le graphique entier.
+//
+// C'est l'un des cas où CLAUDE.md autorise `useMemo` malgré le React Compiler :
+// l'identité stable est ici FONCTIONNELLEMENT requise, pas une optimisation. La
+// dépendance est le dictionnaire de la barre, qui ne change qu'au changement de langue.
+const useIndicatorToolbar = (chartLabels) => useMemo(
+    () => [
+        F.zoom({ label: chartLabels.wheelZoom }),
+        F.minimaps({ label: chartLabels.showMinimaps }),
+    ],
+    [chartLabels.wheelZoom, chartLabels.showMinimaps],
+);
 
 // Paramètres de la requête, repris tels quels dans les extraits GraphQL que la barre
 // d'outils du tableau propose de copier.
@@ -43,16 +59,18 @@ const QUERY_HINT = { operation: 'getFactTableWithMetadata', limit: 100 };
  *
  * @param {Array} [extent] - Two-element extent from `metadata.extents`.
  * @param {boolean} numeric - Whether to run the bounds through the number formatter.
+ * @param {string} intlLocale - Full Intl tag, driving the number conventions.
+ * @param {string} separator - Range separator, from the dictionary.
  * @returns {string|null} The formatted range, or `null` when the extent is missing.
  */
-const formatExtent = (extent, numeric) => {
+const formatExtent = (extent, numeric, intlLocale, separator) => {
     if (!Array.isArray(extent) || extent.length < 2) return null;
 
     const [min, max] = numeric
-        ? extent.map((v) => formatNumber(v, { decimals: 1 }))
+        ? extent.map((v) => formatNumber(v, { decimals: 1, locale: intlLocale }))
         : extent;
 
-    return `${min} → ${max}`;
+    return `${min}${separator}${max}`;
 };
 
 /**
@@ -64,10 +82,38 @@ const formatExtent = (extent, numeric) => {
  * @param {Array<Object>|null} props.columnsMetadata - Column schema resolved on the
  *   server and already restricted to the dataset's columns. `null` when the server
  *   call failed — the component then falls back on its own fetch.
+ * @param {string} props.locale - Current locale code.
+ * @param {Object} props.labels - `pages` namespace of the dictionary.
+ * @param {Object} props.dictionary - The full dictionary: this island composes four
+ *   features (chart, table, filter, cards), each with its own namespace.
  * @returns {JSX.Element} The rendered explorer.
  */
-const IndicatorExplorer = ({ name, columnsMetadata: serverColumnsMetadata }) => {
+const IndicatorExplorer = ({
+    name,
+    columnsMetadata: serverColumnsMetadata,
+    locale = DEFAULT_LOCALE,
+    labels,
+    dictionary,
+}) => {
     const [filter, setFilter] = useState(null);
+    const intlLocale = intlLocaleFor(locale);
+    const { dateMask, dateOrder, firstDayOfWeek } = formatsFor(locale);
+    const toolbar = useIndicatorToolbar(dictionary.chart);
+
+    // Les libellés d'opérateurs viennent de config/filter/operations.json, qui accepte
+    // depuis P5.4 la forme `{ fr, en }`. On les aplatit ici, à la frontière, pour que
+    // <MultiCriterionMenu> continue de recevoir des chaînes.
+    const localizedOperations = Object.fromEntries(
+        Object.entries(operations)
+            .filter(([key]) => !key.startsWith('_'))
+            .map(([sqlType, ops]) => [
+                sqlType,
+                ops.map((op) => ({
+                    ...op,
+                    label: resolveLocalized(op.label, locale, DEFAULT_LOCALE),
+                })),
+            ]),
+    );
     const { columns, data, metadata, columnsMetadata: fetched, loading, error } = useFactTableWithMetadata();
 
     // Schéma serveur si le prérendu a abouti, repli sur celui du hook sinon.
@@ -75,7 +121,10 @@ const IndicatorExplorer = ({ name, columnsMetadata: serverColumnsMetadata }) => 
         ? serverColumnsMetadata
         : restrictToColumns(columns, fetched);
 
-    const { x, y, hue, labels, format } = deriveEncoding(schema);
+    // `labels` de deriveEncoding nomme les AXES du graphique (une colonne → son
+    // intitulé) : rien à voir avec les libellés d'interface reçus en prop, d'où le
+    // renommage local.
+    const { x, y, hue, labels: axisLabels, format } = deriveEncoding(schema);
 
     // <Table> applique `defaultFilter` lui-même ; le graphique, lui, reçoit des lignes
     // brutes. On lui applique donc le MÊME filtre, avec le moteur du tableau plutôt
@@ -97,7 +146,7 @@ const IndicatorExplorer = ({ name, columnsMetadata: serverColumnsMetadata }) => 
     if (error) {
         return (
             <p className="indicator-explorer__status indicator-explorer__status--error" role="alert">
-                Données indisponibles : {String(error.message ?? error)}
+                {interpolate(labels.error, { message: String(error.message ?? error) })}
             </p>
         );
     }
@@ -109,23 +158,29 @@ const IndicatorExplorer = ({ name, columnsMetadata: serverColumnsMetadata }) => 
                 (chargement en cours) s'affiche en tiret cadratin via formatStatValue. */}
             <CardGrid perRow={3}>
                 <StatCard
-                    title="Observations"
+                    title={labels.observations}
                     value={metadata?.count}
-                    format={{ compact: true }}
-                    footerNote="Lignes renvoyées par la requête" />
+                    format={{ compact: true, locale: intlLocaleFor(locale) }}
+                    footerNote={labels.observationsNote} />
                 <StatCard
-                    title="Période couverte"
-                    value={formatExtent(metadata?.extents?.[x], false)}
-                    footerNote={labels.x} />
+                    title={labels.period}
+                    value={formatExtent(metadata?.extents?.[x], false, intlLocale, labels.rangeSeparator)}
+                    footerNote={axisLabels.x} />
                 <StatCard
-                    title="Amplitude observée"
-                    value={formatExtent(metadata?.extents?.[y], true)}
-                    footerNote={labels.y} />
+                    title={labels.amplitude}
+                    value={formatExtent(metadata?.extents?.[y], true, intlLocale, labels.rangeSeparator)}
+                    footerNote={axisLabels.y} />
             </CardGrid>
 
             <MultiCriterionMenu
                 variables={variables}
-                operationsByType={operations}
+                operationsByType={localizedOperations}
+                connectorOptions={connectorsFrom(dictionary.filter)}
+                labels={dictionary.filter}
+                intlLocale={intlLocale}
+                dateMask={dateMask}
+                dateOrder={dateOrder}
+                firstDayOfWeek={firstDayOfWeek}
                 onChange={setFilter} />
 
             {/* <Chart> exige un `y` : sans mesure continue dans le jeu, on l'omet plutôt
@@ -135,9 +190,11 @@ const IndicatorExplorer = ({ name, columnsMetadata: serverColumnsMetadata }) => 
                     data={chartData}
                     x={x} y={y} hue={hue}
                     format={format}
-                    labels={labels}
+                    labels={axisLabels}
                     title={name}
-                    toolbar={INDICATOR_TOOLBAR}
+                    toolbar={toolbar}
+                    locale={locale}
+                    uiLabels={dictionary.chart}
                     height={420} />
             )}
 
@@ -146,10 +203,12 @@ const IndicatorExplorer = ({ name, columnsMetadata: serverColumnsMetadata }) => 
                 data={data}
                 columnsMetadata={schema}
                 defaultFilter={filter}
+                locale={locale}
+                labels={dictionary.table}
                 queryHint={QUERY_HINT} />
 
             {loading && (
-                <p className="indicator-explorer__status">Chargement des données…</p>
+                <p className="indicator-explorer__status">{labels.loading}</p>
             )}
         </>
     );

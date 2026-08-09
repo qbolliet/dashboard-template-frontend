@@ -1,6 +1,6 @@
 // Importation des modules
 import { range } from 'd3-array';
-import { format as d3Format } from 'd3-format';
+import { d3LocaleFor } from '@/i18n/d3Locale';
 import './SequentialLegend.scss';
 
 // Nombre de paliers du dégradé — identique au prototype (barre lisse par
@@ -21,10 +21,15 @@ const GRADIENT_STOPS = 12;
  * @param {string} [props.format='.2~s'] - d3-format spec applied to the min/max readout.
  * @param {'horizontal'|'vertical'} [props.orientation='horizontal'] - Bar orientation;
  *   vertical reads bottom (min) to top (max).
+ * @param {string} [props.locale] - Site locale code. Omitted, the template's default
+ *   language applies — what a chart installed on its own from the registry needs.
  * @returns {JSX.Element}
  */
-const SequentialLegend = ({ scale, label, format = '.2~s', orientation = 'horizontal' }) => {
+const SequentialLegend = ({ scale, label, format = '.2~s', orientation = 'horizontal', locale }) => {
   const [lo, hi] = scale.domain();
+  // Formateur LIÉ à la langue : l'import nu de d3-format aurait imposé la locale en-US à
+  // la légende, alors que les axes du même graphique suivent celle du site.
+  const { format: d3Format } = d3LocaleFor(locale);
   const fmt = d3Format(format);
   const stops = range(GRADIENT_STOPS).map((i) => {
     const t = i / (GRADIENT_STOPS - 1);

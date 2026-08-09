@@ -62,6 +62,66 @@ function countNodes(nodes) {
 }
 
 /**
+ * Collects the cross-field locale rules that JSON Schema cannot express.
+ *
+ * Two invariants, both of which would otherwise fail at render time rather than at
+ * build time:
+ *
+ *   1. `site.defaultLocale` must be one of `site.locales`. Otherwise the fallback locale
+ *      has no dictionary and no route, and every page 404s.
+ *   2. every localized object must carry the default locale. `resolveLocalized` falls
+ *      back to it before anything else; a translation map that skips it is one missing
+ *      language away from displaying a node in an arbitrary tongue.
+ *
+ * @param {Object} config - The parsed manifest.
+ * @returns {string[]} One message per violation; empty when the manifest is sound.
+ */
+function collectLocaleProblems(config) {
+  const problems = [];
+  const { locales, defaultLocale } = config.site;
+
+  if (!locales.includes(defaultLocale)) {
+    problems.push(
+      `/site/defaultLocale "${defaultLocale}" ne figure pas dans /site/locales ` +
+        `(${locales.join(', ')})`
+    );
+  }
+
+  // Marche en profondeur sur tout le manifeste : la règle vaut pour `site.title` comme
+  // pour le `name` d'un nœud de troisième niveau, et une liste de chemins codée en dur
+  // se périmerait au premier champ traduisible ajouté.
+  const walk = (value, pointer) => {
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => walk(item, `${pointer}/${index}`));
+      return;
+    }
+    if (value === null || typeof value !== 'object') return;
+
+    const keys = Object.keys(value);
+    // Un objet dont TOUTES les clés sont des codes de langue est une carte de
+    // traduction ; tout autre objet est une structure du manifeste, qu'on traverse.
+    const isLocaleMap =
+      keys.length > 0 && keys.every((key) => /^[a-z]{2}(-[A-Z]{2})?$/.test(key));
+
+    if (isLocaleMap) {
+      if (!keys.includes(defaultLocale)) {
+        problems.push(
+          `${pointer} est traduit en ${keys.join(', ')} mais pas dans la langue par ` +
+            `défaut "${defaultLocale}", qui sert de repli`
+        );
+      }
+      return;
+    }
+
+    for (const key of keys) walk(value[key], `${pointer}/${key}`);
+  };
+
+  walk(config, '');
+
+  return problems;
+}
+
+/**
  * Turns one ajv error into a single actionable line: where, what, and the accepted
  * values when the schema enumerates them.
  *
@@ -113,8 +173,21 @@ function main() {
     process.exit(1);
   }
 
+  const localeProblems = collectLocaleProblems(config);
+  if (localeProblems.length > 0) {
+    console.error(
+      `validate:config: ${localeProblems.length} incohérence(s) de langue dans ` +
+        'config/site.config.json :\n'
+    );
+    for (const problem of localeProblems) console.error(`  - ${problem}`);
+    process.exit(1);
+  }
+
   const nodeCount = countNodes(config.navigation.tree);
-  console.log(`validate:config: manifeste valide — ${nodeCount} nœud(s) de navigation.`);
+  console.log(
+    `validate:config: manifeste valide — ${nodeCount} nœud(s) de navigation, ` +
+      `${config.site.locales.length} langue(s) (${config.site.locales.join(', ')}).`
+  );
 }
 
 main();

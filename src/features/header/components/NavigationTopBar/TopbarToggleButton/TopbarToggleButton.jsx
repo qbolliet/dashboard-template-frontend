@@ -2,6 +2,7 @@
 
 import React from 'react';
 import ChevronDownIcon from '@/components/icons/ChevronDownIcon/ChevronDownIcon';
+import { useNavigationLabels } from '@/features/header/providers/NavigationProvider';
 import './TopbarToggleButton.scss';
 
 /**
@@ -27,6 +28,8 @@ const TopbarToggleButton = React.forwardRef(({
     className = '',
     size = 12
 }, ref) => {
+    // Libellés distribués par <Header> via NavigationProvider.
+    const labels = useNavigationLabels('topbar');
     /**
      * Handle keyboard events with default behavior if no custom handler provided.
      *
@@ -64,7 +67,7 @@ const TopbarToggleButton = React.forwardRef(({
             onKeyDown={handleKeyDown}
             aria-expanded={isOpen}
             aria-controls={ariaControls}
-            aria-label={ariaLabel || `${isOpen ? 'Fermer' : 'Ouvrir'} le menu déroulant`}
+            aria-label={ariaLabel || (isOpen ? labels.closeDropdown : labels.openDropdown)}
             tabIndex={0}
         >
             {/* Icône chevron utilisant le composant centralisé */}
@@ -76,7 +79,10 @@ const TopbarToggleButton = React.forwardRef(({
 
             {/* Texte accessible pour les lecteurs d'écran */}
             <span className="sr-only">
-                {isOpen ? 'Réduire' : 'Développer'} le menu
+                {/* Une seule clé, et non « {verbe} le menu » recomposé en JSX :
+                    l'ordre des mots n'est pas universel, et un fragment isolé n'est pas
+                    traduisible. */}
+                {isOpen ? labels.collapseMenu : labels.expandMenu}
             </span>
         </button>
     );

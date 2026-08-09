@@ -18,6 +18,30 @@ import HoverToolbar from '@/components/toolbar/HoverToolbar/HoverToolbar';
 import { resetZoomTool } from '@/components/toolbar/tools';
 import GlobeToolIcon from './GlobeToolIcon/GlobeToolIcon';
 import './GlobeToolbar.scss';
+import { mergeLabels } from '@/utils/i18n/mergeLabels';
+
+// Défauts français, surchargeables par la prop `labels` (cf. src/utils/i18n/mergeLabels.js).
+const DEFAULT_LABELS = {
+  toolbar: 'Outils du globe',
+  toFlatMap: 'Passer en planisphère',
+  toGlobe: 'Passer en globe',
+  pointsShown: 'Points affichés',
+  pointsHidden: 'Points masqués',
+  flowsShown: 'Flux affichés',
+  flowsHidden: 'Flux masqués',
+  flowsAnimated: 'Flux dynamiques',
+  flowsFrozen: 'Flux figés',
+  showFlowsToAnimate: 'Affichez les flux pour les animer',
+  noFlowToAnimate: 'Aucun flux à animer',
+  rotationOn: 'Rotation activée',
+  rotationOff: 'Rotation figée',
+  wheelZoomOn: 'Zoom molette activé',
+  wheelZoomOff: 'Zoom molette désactivé',
+  showLayersForTooltips: 'Affichez les points ou les flux pour activer les tooltips',
+  noDataToHover: 'Aucune donnée à survoler',
+  tooltipsOn: 'Tooltips activées',
+  tooltipsOff: 'Tooltips désactivées',
+};
 
 // Clés d'outils reconnues (ordre d'affichage porté par `GROUPS`, pas par cette liste).
 const TOOL_KEYS = ['mode', 'points', 'arcs', 'arcsDynamic', 'rotate', 'wheelZoom', 'resetZoom', 'tooltips'];
@@ -42,9 +66,10 @@ const GROUPS = [
  * @param {object} state - Current globe state, augmented with the `hasPoints` /
  *   `hasArcs` content flags (see GlobeToolbar props).
  * @param {function(string): void} onAction - Receives the tool key on click.
+ * @param {Object} labels - Merged wording, provided by <Globe>.
  * @returns {import('@/components/toolbar/HoverToolbar/HoverToolbar').ToolSpec}
  */
-const buildTool = (key, state, onAction) => {
+const buildTool = (key, state, onAction, labels) => {
   const onClick = () => onAction(key);
 
   switch (key) {
@@ -53,7 +78,7 @@ const buildTool = (key, state, onAction) => {
       return {
         id: 'mode',
         icon: state.mode === 'globe' ? GlobeToolIcon.toPlane : GlobeToolIcon.toGlobe,
-        label: state.mode === 'globe' ? 'Passer en planisphère' : 'Passer en globe',
+        label: state.mode === 'globe' ? labels.toFlatMap : labels.toGlobe,
         onClick,
       };
     case 'resetZoom':
@@ -63,7 +88,7 @@ const buildTool = (key, state, onAction) => {
       return {
         id: 'points',
         icon: GlobeToolIcon.points,
-        label: state.showPoints ? 'Points affichés' : 'Points masqués',
+        label: state.showPoints ? labels.pointsShown : labels.pointsHidden,
         active: state.showPoints,
         onClick,
       };
@@ -71,7 +96,7 @@ const buildTool = (key, state, onAction) => {
       return {
         id: 'arcs',
         icon: GlobeToolIcon.arcs,
-        label: state.showArcs ? 'Flux affichés' : 'Flux masqués',
+        label: state.showArcs ? labels.flowsShown : labels.flowsHidden,
         active: state.showArcs,
         onClick,
       };
@@ -90,8 +115,8 @@ const buildTool = (key, state, onAction) => {
         // suffit de les réafficher, soit le globe n'en a reçu aucun et aucune
         // manipulation de la barre n'y changera rien.
         label: arcsOnScreen
-          ? (state.arcsDynamic ? 'Flux dynamiques' : 'Flux figés')
-          : (state.hasArcs ? 'Affichez les flux pour les animer' : 'Aucun flux à animer'),
+          ? (state.arcsDynamic ? labels.flowsAnimated : labels.flowsFrozen)
+          : (state.hasArcs ? labels.showFlowsToAnimate : labels.noFlowToAnimate),
         active: state.arcsDynamic && arcsOnScreen,
         disabled: !arcsOnScreen,
         onClick,
@@ -101,7 +126,7 @@ const buildTool = (key, state, onAction) => {
       return {
         id: 'rotate',
         icon: GlobeToolIcon.rotate,
-        label: state.autoRotate ? 'Rotation activée' : 'Rotation figée',
+        label: state.autoRotate ? labels.rotationOn : labels.rotationOff,
         active: state.autoRotate,
         onClick,
       };
@@ -109,7 +134,7 @@ const buildTool = (key, state, onAction) => {
       return {
         id: 'wheelZoom',
         icon: GlobeToolIcon.wheel,
-        label: state.wheelZoom ? 'Zoom molette activé' : 'Zoom molette désactivé',
+        label: state.wheelZoom ? labels.wheelZoomOn : labels.wheelZoomOff,
         active: state.wheelZoom,
         onClick,
       };
@@ -136,9 +161,9 @@ const buildTool = (key, state, onAction) => {
         // soit — inviter à « afficher les points » serait alors une impasse.
         label: nothingToHover
           ? (state.hasPoints || state.hasArcs
-            ? 'Affichez les points ou les flux pour activer les tooltips'
-            : 'Aucune donnée à survoler')
-          : (state.tooltips ? 'Tooltips activées' : 'Tooltips désactivées'),
+            ? labels.showLayersForTooltips
+            : labels.noDataToHover)
+          : (state.tooltips ? labels.tooltipsOn : labels.tooltipsOff),
         active: state.tooltips && !nothingToHover,
         disabled: nothingToHover,
         onClick,
@@ -168,9 +193,11 @@ const buildTool = (key, state, onAction) => {
  *   ON over empty data must not make a tool look actionable.
  * @param {function(string): void} props.onAction - Receives the tool key; the root
  *   component owns all state transitions and engine calls.
+ * @param {Object} [props.labels] - Wording overrides, merged over the French defaults.
  * @returns {JSX.Element}
  */
-const GlobeToolbar = ({ tools, state, onAction }) => {
+const GlobeToolbar = ({ tools, state, onAction, labels: labelOverrides }) => {
+  const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
   // Chaque famille est réduite aux outils demandés, puis aux ToolSpecs non nulles
   // (cf. la branche `default` de buildTool) ; les familles vidées par l'une ou
   // l'autre étape sont retirées pour ne pas laisser de séparateur orphelin —
@@ -178,14 +205,14 @@ const GlobeToolbar = ({ tools, state, onAction }) => {
   const groups = GROUPS
     .map((group) => group
       .filter((key) => tools.includes(key))
-      .map((key) => buildTool(key, state, onAction))
+      .map((key) => buildTool(key, state, onAction, labels))
       .filter(Boolean))
     .filter((group) => group.length > 0);
 
   return (
     <>
       <span className="globe-tool-zone" aria-hidden="true" />
-      <HoverToolbar groups={groups} label="Outils du globe" />
+      <HoverToolbar groups={groups} label={labels.toolbar} />
     </>
   );
 };

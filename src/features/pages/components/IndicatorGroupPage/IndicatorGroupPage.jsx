@@ -1,6 +1,7 @@
 // Importation des modules
 import Link from 'next/link';
 import { CardGrid } from '@/components/ui';
+import { interpolate } from '@/utils/i18n/interpolate';
 import PageBody from '../PageBody/PageBody';
 import PageHeader from '../PageHeader/PageHeader';
 import './IndicatorGroupPage.scss';
@@ -15,9 +16,10 @@ import './IndicatorGroupPage.scss';
  *
  * @param {Object} props - Component props.
  * @param {Object} props.node - Manifest node, with resolved absolute paths.
+ * @param {Object} props.labels - `pages` namespace of the dictionary.
  * @returns {JSX.Element} The rendered group page.
  */
-const IndicatorGroupPage = ({ node }) => {
+const IndicatorGroupPage = ({ node, labels }) => {
     const children = node.children ?? [];
 
     return (
@@ -27,7 +29,7 @@ const IndicatorGroupPage = ({ node }) => {
             {/* Un groupe sans enfants reste une page valide (nœud intermédiaire encore
                 vide) : on n'affiche alors ni la grille ni un message d'erreur. */}
             {children.length > 0 && (
-                <nav className="group-index" aria-label={`Sous-pages de ${node.name}`}>
+                <nav className="group-index" aria-label={interpolate(labels.subPagesOf, { name: node.name })}>
                     <CardGrid perRow={3}>
                         {children.map((child) => (
                             <Link key={child.path} href={child.path} className="group-index__card">

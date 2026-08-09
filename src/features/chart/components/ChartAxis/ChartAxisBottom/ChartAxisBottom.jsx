@@ -35,14 +35,16 @@ const SEP = String.fromCharCode(31);
  * @param {'auto'|'rotate'|'multiline'|'skip'} [props.overlap='auto'] - Anti-overlap strategy.
  * @param {'sparse'|'normal'|'dense'} [props.tickDensity='normal'] - Tick count preset.
  * @param {boolean} [props.showGrid=true] - Renders the vertical grid lines.
+ * @param {string} [props.locale] - Site locale code, driving the tick formatter.
  * @returns {JSX.Element}
  */
 const ChartAxisBottom = ({
+  locale,
   scale, type, length, height, format, label,
   maxLabelLength, maxLines = 2, overlap = 'auto', tickDensity = 'normal', showGrid = true,
 }) => {
   // Résolution du format
-  const fmt = resolveFormatter(format, type, type === 'date' ? scale.domain() : null);
+  const fmt = resolveFormatter(format, type, type === 'date' ? scale.domain() : null, locale);
   // Initialisation des ticks
   const desired = tickCountFor(length, tickDensity);
   let ticks = ticksFor(scale, type, desired);

@@ -1,22 +1,30 @@
 // =================================================================
 // FORMATTERS — mise en forme des valeurs d'axe (dates, nombres, texte)
 // =================================================================
-// Importation des modules
-// `format` est importé sous l'alias `d3Format` : le paramètre `format` de
-// resolveFormatter (spec utilisateur, string|Function) porte le même nom que
-// dans le prototype et masquerait sinon l'import.
+// CE QUE CE FICHIER CORRIGEAIT MAL AVANT P5.4, et qui était le défaut de cohérence le
+// plus visible du dépôt : il importait `format` et `utcFormat` DIRECTEMENT de d3, donc
+// dans la locale par défaut de d3, qui est en-US. Sur un même écran français, les axes
+// affichaient `1,234.5` et des mois `Jan`/`Feb`, pendant que le tableau et les StatCard
+// affichaient `1 234,5` via Intl. Aucun `formatDefaultLocale` n'était installé nulle part.
+//
+// Les formateurs sont désormais construits à partir de `d3LocaleFor(locale)`, qui renvoie
+// des fonctions LIÉES à une langue sans toucher à l'état global de d3 — indispensable au
+// build, où les pages françaises et anglaises sont rendues dans le même processus.
+// Voir src/i18n/d3Locale.js.
 
-import { format as d3Format } from 'd3-format';
-import { utcFormat } from 'd3-time-format';
+import { d3LocaleFor } from '@/i18n/d3Locale';
 
 /**
  * Builds the default formatter for a column type, given a representative sample.
  *
  * @param {'date'|'number'|'categorical'} type - Column type.
  * @param {Array<*>} [sample] - Sorted sample (used for dates to pick a sensible granularity).
+ * @param {string} [locale] - Site locale code driving month names and number separators.
  * @returns {(value: *) => string} Formatter function.
  */
-export function defaultFormat(type, sample) {
+export function defaultFormat(type, sample, locale) {
+  const { format: d3Format, utcFormat, siPrefixBillion } = d3LocaleFor(locale);
+
   if (type === 'date') {
     // Choisit un format adapté à l'étendue de la série (bornes du sample)
     if (Array.isArray(sample) && sample.length >= 2) {
@@ -35,7 +43,9 @@ export function defaultFormat(type, sample) {
     return (v) => {
       if (v == null || isNaN(v)) return '';
       const abs = Math.abs(v);
-      if (abs >= 1e9) return d3Format('.2~s')(v).replace('G', 'B');
+      // Le préfixe SI 'G' se dit « B » (billion) en anglais et reste 'G' en français :
+      // c'est une convention de locale, pas une traduction (cf. src/i18n/formats.js).
+      if (abs >= 1e9) return d3Format('.2~s')(v).replace('G', siPrefixBillion);
       if (abs >= 1e6) return d3Format('.2~s')(v);
       if (abs >= 1e3) return d3Format(',')(Math.round(v));
       if (abs >= 1) return d3Format('.3~f')(v);
@@ -53,13 +63,16 @@ export function defaultFormat(type, sample) {
  *   string, or a formatter function.
  * @param {'date'|'number'|'categorical'} type - Column type.
  * @param {Array<*>} [sample] - Sorted sample, forwarded to defaultFormat.
+ * @param {string} [locale] - Site locale code. A caller that omits it gets the template's
+ *   default language, which is what a chart installed on its own from the registry needs.
  * @returns {(value: *) => string} Resolved formatter function.
  */
-export function resolveFormatter(format, type, sample) {
+export function resolveFormatter(format, type, sample, locale) {
   if (typeof format === 'function') return format;
   if (typeof format === 'string' && format.length > 0) {
+    const { format: d3Format, utcFormat } = d3LocaleFor(locale);
     if (type === 'date') return utcFormat(format);
     if (type === 'number') return d3Format(format);
   }
-  return defaultFormat(type, sample);
+  return defaultFormat(type, sample, locale);
 }

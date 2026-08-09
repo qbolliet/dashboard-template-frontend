@@ -19,6 +19,7 @@
 
 // Importation des modules
 import { useMemo, useState } from 'react';
+import { DEFAULT_INTL_LOCALE } from '@/utils/format/constants';
 import { isNumericCol } from '../utils/formatCell';
 import { normalizeDefaultFilter, deriveFiltersFromDefault } from '../utils/defaultFilterEngine';
 
@@ -61,6 +62,7 @@ const useDataTableState = ({
   enableSort,
   enableFilter,
   enableColumnRemoval,
+  intlLocale = DEFAULT_INTL_LOCALE,
 }) => {
   // ── Tri : { key, dir } | null ──
   const [sort, setSort] = useState(null);
@@ -72,7 +74,8 @@ const useDataTableState = ({
   const hiddenColumns = columns.filter((c) => hidden.has(c.key));
 
   // ── Valeurs distinctes par colonne, calculées sur data BRUT ──
-  // Tri numérique si la colonne est numérique, sinon localeCompare français.
+  // Tri numérique si la colonne est numérique, sinon localeCompare dans la langue du
+  // site — l'ordre alphabétique n'est pas le même partout (le suédois classe å après z).
   const uniqueValues = {};
   const valueCounts = {};
   for (const c of columns) {
@@ -86,7 +89,7 @@ const useDataTableState = ({
       if (!seen.has(v)) { seen.add(v); arr.push(v); }
     }
     if (isNumericCol(c)) arr.sort((a, b) => (+a) - (+b));
-    else arr.sort((a, b) => String(a).localeCompare(String(b), 'fr'));
+    else arr.sort((a, b) => String(a).localeCompare(String(b), intlLocale));
     uniqueValues[c.key] = arr;
     valueCounts[c.key] = counts;
   }
@@ -146,7 +149,7 @@ const useDataTableState = ({
   });
 
   // Tri appliqué après le filtre (l'export respecte donc cet ordre). null en
-  // dernier ; comparaison numérique par valeur, sinon localeCompare français.
+  // dernier ; comparaison numérique par valeur, sinon localeCompare dans la langue du site.
   let sortedRows = filteredRows;
   if (sort) {
     const { key, dir } = sort;
@@ -159,7 +162,7 @@ const useDataTableState = ({
       if (vb == null) return -1;
       const cmp = (col && isNumericCol(col))
         ? (+va) - (+vb)
-        : String(va).localeCompare(String(vb), 'fr');
+        : String(va).localeCompare(String(vb), intlLocale);
       return dir === 'asc' ? cmp : -cmp;
     });
   }

@@ -1,9 +1,14 @@
 {
+  "_comment": "Contenu rédigé de la page d'accueil. Tout champ de texte accepte soit une chaîne (identique dans toutes les langues), soit un objet indexé par code de langue — même convention que config/site.config.json. Résolution : src/features/home/data/homeConfig.js.",
+
   "hero": {
-    "title": "Titre",
-    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+    "title": { "fr": "Titre", "en": "Title" },
+    "description": {
+      "fr": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
+      "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"
+    },
     "ctaButton": {
-      "text": "Découvrir",
+      "text": { "fr": "Découvrir", "en": "Explore" },
       "link": "/indicator"
     },
     "backgroundImage": "/images/hero/hero-background.svg"
@@ -12,49 +17,70 @@
     {
       "id": "card-1",
       "image": "/images/cards/geometric-pattern.svg",
-      "title": "Analytics Dashboard",
-      "description": "Visualisez vos données avec des graphiques interactifs et des métriques en temps réel pour prendre des décisions éclairées.",
+      "title": { "fr": "Tableau de bord analytique", "en": "Analytics Dashboard" },
+      "description": {
+        "fr": "Visualisez vos données avec des graphiques interactifs et des métriques en temps réel pour prendre des décisions éclairées.",
+        "en": "Visualise your data with interactive charts and real-time metrics to make informed decisions."
+      },
       "link": "/analytics"
     },
     {
-      "id": "card-2", 
+      "id": "card-2",
       "image": "/images/cards/data-visualization.svg",
-      "title": "Modèles Prédictifs",
-      "description": "Explorez nos modèles de machine learning pour anticiper les tendances et optimiser vos stratégies business.",
+      "title": { "fr": "Modèles Prédictifs", "en": "Predictive Models" },
+      "description": {
+        "fr": "Explorez nos modèles de machine learning pour anticiper les tendances et optimiser vos stratégies business.",
+        "en": "Explore our machine learning models to anticipate trends and refine your business strategies."
+      },
       "link": "/predictions"
     },
     {
       "id": "card-3",
-      "image": "/images/cards/network-nodes.svg", 
-      "title": "Analyse de Réseau",
-      "description": "Découvrez les connexions cachées dans vos données avec notre système d'analyse de réseau avancé.",
+      "image": "/images/cards/network-nodes.svg",
+      "title": { "fr": "Analyse de Réseau", "en": "Network Analysis" },
+      "description": {
+        "fr": "Découvrez les connexions cachées dans vos données avec notre système d'analyse de réseau avancé.",
+        "en": "Uncover the hidden connections in your data with our advanced network analysis system."
+      },
       "link": "/network"
     },
     {
       "id": "card-4",
       "image": "/images/cards/geometric-pattern.svg",
-      "title": "Tableaux de Bord",
-      "description": "Créez et personnalisez vos tableaux de bord pour suivre les KPIs qui comptent vraiment pour votre activité.", 
+      "title": { "fr": "Tableaux de Bord", "en": "Dashboards" },
+      "description": {
+        "fr": "Créez et personnalisez vos tableaux de bord pour suivre les KPIs qui comptent vraiment pour votre activité.",
+        "en": "Build and customise your dashboards to track the KPIs that actually matter to your business."
+      },
       "link": "/dashboards"
     },
     {
       "id": "card-5",
       "image": "/images/cards/data-visualization.svg",
-      "title": "Rapports Automatisés",
-      "description": "Générez automatiquement des rapports détaillés et partagez-les avec votre équipe en quelques clics.",
+      "title": { "fr": "Rapports Automatisés", "en": "Automated Reports" },
+      "description": {
+        "fr": "Générez automatiquement des rapports détaillés et partagez-les avec votre équipe en quelques clics.",
+        "en": "Generate detailed reports automatically and share them with your team in a few clicks."
+      },
       "link": "/reports"
     },
     {
       "id": "card-6",
       "image": "/images/cards/network-nodes.svg",
-      "title": "Intelligence Artificielle",
-      "description": "Intégrez l'IA dans vos processus métier pour automatiser les tâches complexes et gagner en efficacité.",
+      "title": { "fr": "Intelligence Artificielle", "en": "Artificial Intelligence" },
+      "description": {
+        "fr": "Intégrez l'IA dans vos processus métier pour automatiser les tâches complexes et gagner en efficacité.",
+        "en": "Embed AI into your business processes to automate complex tasks and gain efficiency."
+      },
       "link": "/ai"
     }
   ],
   "cardsSection": {
     "cardsPerRow": 3,
-    "title": "Nos Solutions",
-    "description": "Découvrez notre gamme complète d'outils d'analyse et de visualisation de données"
+    "title": { "fr": "Nos Solutions", "en": "Our Solutions" },
+    "description": {
+      "fr": "Découvrez notre gamme complète d'outils d'analyse et de visualisation de données",
+      "en": "Discover our full range of data analysis and visualisation tools"
+    }
   }
 }

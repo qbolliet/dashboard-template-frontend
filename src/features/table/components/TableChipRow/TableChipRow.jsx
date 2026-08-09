@@ -1,6 +1,19 @@
 // Importation des modules
 import { SortAscIcon, SortDescIcon, LayersIcon, PlusIcon, CloseIcon } from '@/components/icons';
+import { mergeLabels } from '@/utils/i18n/mergeLabels';
+import { interpolate } from '@/utils/i18n/interpolate';
 import './TableChipRow.scss';
+
+// Défauts français, surchargeables par la prop `labels` (cf. mergeLabels).
+const DEFAULT_LABELS = {
+  filtersLabel: 'Filtres',
+  removeFilter: 'Retirer le filtre {label}',
+  removeSort: 'Retirer le tri',
+  hiddenColumn: 'colonne masquée',
+  restore: 'Restaurer',
+  restoreColumn: 'Restaurer la colonne {label}',
+  clearAll: 'Tout effacer',
+};
 
 /**
  * Row summarizing the table's active state: applied value filters, the active
@@ -18,6 +31,7 @@ import './TableChipRow.scss';
  * @param {function(): void} props.onClearSort - Clears the active sort.
  * @param {function(string): void} props.onRestoreColumn - Restores a hidden column, by key.
  * @param {function(): void} props.onResetAll - Clears filters, sort and hidden columns at once.
+ * @param {Object} [props.labels] - Wording overrides, merged over the French defaults.
  * @returns {JSX.Element}
  */
 const TableChipRow = ({
@@ -29,9 +43,13 @@ const TableChipRow = ({
   onClearSort,
   onRestoreColumn,
   onResetAll,
-}) => (
+  labels: labelOverrides,
+}) => {
+  const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
+
+  return (
   <div className="data-table-chips">
-    {filterChips.length > 0 && <span className="data-table-chips-label">Filtres</span>}
+    {filterChips.length > 0 && <span className="data-table-chips-label">{labels.filtersLabel}</span>}
 
     {/* display: contents — la <ul> s'efface du rendu pour que les <li> participent
         directement au flex-wrap du conteneur, tout en gardant la sémantique de liste. */}
@@ -43,7 +61,7 @@ const TableChipRow = ({
           <button
             type="button"
             onClick={() => onClearFilter(chip.key)}
-            aria-label={`Retirer le filtre ${chip.label}`}
+            aria-label={interpolate(labels.removeFilter, { label: chip.label })}
           >
             <CloseIcon />
           </button>
@@ -57,7 +75,7 @@ const TableChipRow = ({
           </span>
           <span className="data-table-chip-key">{sortChip.label}</span>
           <span className="data-table-chip-dir">{sortChip.dir}</span>
-          <button type="button" onClick={onClearSort} aria-label="Retirer le tri">
+          <button type="button" onClick={onClearSort} aria-label={labels.removeSort}>
             <CloseIcon />
           </button>
         </li>
@@ -66,13 +84,13 @@ const TableChipRow = ({
       {hiddenColumns.map((col) => (
         <li className="data-table-chip data-table-chip--hidden" key={`h-${col.key}`}>
           <span className="data-table-chip-icon"><LayersIcon /></span>
-          <span className="data-table-chip-key">colonne masquée</span>
+          <span className="data-table-chip-key">{labels.hiddenColumn}</span>
           <span>{col.label || col.key}</span>
           <button
             type="button"
             onClick={() => onRestoreColumn(col.key)}
-            title="Restaurer"
-            aria-label={`Restaurer la colonne ${col.label || col.key}`}
+            title={labels.restore}
+            aria-label={interpolate(labels.restoreColumn, { label: col.label || col.key })}
           >
             <PlusIcon />
           </button>
@@ -83,10 +101,11 @@ const TableChipRow = ({
     {/* Calé à droite par margin-left: auto — frère de la <ul>, pas un élément de liste. */}
     {canReset && (
       <button type="button" className="data-table-chips-reset" onClick={onResetAll}>
-        Tout effacer
+        {labels.clearAll}
       </button>
     )}
   </div>
-);
+  );
+};
 
 export default TableChipRow;

@@ -23,11 +23,15 @@ const DAYS_FR = ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'];
  *
  * @param {number} year
  * @param {number} month - 0-indexed (January = 0).
+ * @param {number} [firstDayOfWeek=0] - 0 for Sunday, 1 for Monday. Drives which column
+ *   the week starts in: the grid used to be hardcoded Sunday-first, an American
+ *   convention that sat oddly under French day names.
  * @returns {Array<Array<{d: number, other: boolean, prev?: boolean, next?: boolean}>>}
  */
-function buildWeeks(year, month) {
-  // Jour de la semaine du 1er (0 = dimanche) et nombre de jours du mois courant/précédent
-  const firstWeekday = new Date(year, month, 1).getDay();
+function buildWeeks(year, month, firstDayOfWeek = 0) {
+  // Nombre de colonnes vides avant le 1er, compté depuis le premier jour de la semaine
+  // de la locale (et non depuis dimanche).
+  const firstWeekday = (new Date(year, month, 1).getDay() - firstDayOfWeek + 7) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const daysInPrev = new Date(year, month, 0).getDate();
 
@@ -70,6 +74,7 @@ const sameDay = (a, b) => a && b && a.toDateString() === b.toDateString();
  * `onSelect`/`onHover`. Day cells from adjacent months are shown but inert.
  *
  * @param {number}        year
+ * @param {number}        year          - Displayed year.
  * @param {number}        month         - 0-indexed (January = 0).
  * @param {Function}      onMonthChange - (newMonth: number) => void.
  * @param {Function}      onYearChange  - (newYear: number) => void.
@@ -85,6 +90,12 @@ const sameDay = (a, b) => a && b && a.toDateString() === b.toDateString();
  *   Also bounds the earliest year of the year selector.
  * @param {Date}          [maxDate]     - Latest selectable date; later days render inert.
  *   Also bounds the latest year of the year selector.
+ * @param {string}        [intlLocale]  - Full Intl tag driving month and weekday names
+ *   and the spoken date of each cell. Month and weekday names are READ FROM Intl, not
+ *   translated: they are locale data, not wording.
+ * @param {number}        [firstDayOfWeek] - 0 for Sunday, 1 for Monday.
+ * @param {Object}        [labels]      - Wording overrides, merged over the French
+ *   defaults. Keys: `previousMonth`, `nextMonth`, `month`, `year`.
  * @returns {JSX.Element}
  */
 const CalendarMonth = ({
@@ -102,11 +113,27 @@ const CalendarMonth = ({
   navRight = true,
   minDate = null,
   maxDate = null,
+  intlLocale = DEFAULT_INTL_LOCALE,
+  firstDayOfWeek = 1,
+  labels: labelOverrides,
 }) => {
+  const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
+  const { months: monthNames, weekdays } = namesFor(intlLocale);
+
+  // En-têtes de colonnes, tournés pour commencer au premier jour de la semaine de la
+  // locale tout en gardant `weekdays` indexé comme getDay().
+  const weekdayNames = Array.from(
+    { length: 7 },
+    (_, i) => weekdays[(i + firstDayOfWeek) % 7],
+  );
+
+  // Date complète lisible à haute voix, dans les conventions de la locale : l'ordre
+  // jour-mois-année était écrit en dur, or il s'inverse en anglais.
+  const cellDateFormat = new Intl.DateTimeFormat(intlLocale, { dateStyle: 'long' });
   // Initialisation de la date du jour
   const today = new Date();
   // Initialisation des semaines d'intérêt
-  const weeks = buildWeeks(year, month);
+  const weeks = buildWeeks(year, month, firstDayOfWeek);
 
   // ── Roving tabindex : un seul jour focusable à la fois ─────────────
   // Nombre de jours du mois affiché (borne le jour focalisable).
@@ -260,7 +287,7 @@ const CalendarMonth = ({
         {navLeft ? (
           <button type="button" className="calendar__nav" onClick={goPrev}>
             <ChevronIcon direction="left" />
-            <VisuallyHidden>Mois précédent</VisuallyHidden>
+            <VisuallyHidden>{labels.previousMonth}</VisuallyHidden>
           </button>
         ) : (
           <span className="calendar__nav-spacer" aria-hidden="true" />
@@ -271,15 +298,15 @@ const CalendarMonth = ({
             className="calendar__select"
             value={month}
             onChange={(e) => onMonthChange(Number(e.target.value))}
-            aria-label="Mois">
-            {MONTHS_FR.map((label, i) => <option key={label} value={i}>{label}</option>)}
+            aria-label={labels.month}>
+            {monthNames.map((label, i) => <option key={label} value={i}>{label}</option>)}
           </select>
           <select
             className="calendar__select"
             value={year}
             onChange={(e) => onYearChange(Number(e.target.value))}
             disabled={minY === maxY}
-            aria-label="Année">
+            aria-label={labels.year}>
             {years.map((y) => <option key={y} value={y}>{y}</option>)}
           </select>
         </span>
@@ -287,7 +314,7 @@ const CalendarMonth = ({
         {navRight ? (
           <button type="button" className="calendar__nav" onClick={goNext}>
             <ChevronIcon direction="right" />
-            <VisuallyHidden>Mois suivant</VisuallyHidden>
+            <VisuallyHidden>{labels.nextMonth}</VisuallyHidden>
           </button>
         ) : (
           <span className="calendar__nav-spacer" aria-hidden="true" />
@@ -297,7 +324,7 @@ const CalendarMonth = ({
       <table className="calendar__grid" role="grid" onKeyDown={handleGridKeyDown} ref={gridRef}>
         <thead>
           <tr>
-            {DAYS_FR.map((label) => <th key={label} scope="col" className="calendar__weekday">{label}</th>)}
+            {weekdayNames.map((label) => <th key={label} scope="col" className="calendar__weekday">{label}</th>)}
           </tr>
         </thead>
         <tbody>
@@ -323,7 +350,7 @@ const CalendarMonth = ({
                       type="button"
                       className={cls}
                       // Date complète lisible pour les lecteurs d'écran
-                      aria-label={`${cell.d} ${MONTHS_FR[month]} ${year}`}
+                      aria-label={cellDateFormat.format(date)}
                       // Bouton bascule : « pressé » = jour sélectionné / borne de plage
                       // (aria-pressed est valable sur un button, contrairement à aria-selected)
                       aria-pressed={isSelected}

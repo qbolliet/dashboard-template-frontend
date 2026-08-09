@@ -1,9 +1,19 @@
 // Importation des modules
 import { useState } from 'react';
 import { SearchIcon, CloseIcon, CheckIcon } from '@/components/icons';
+import { mergeLabels } from '@/utils/i18n/mergeLabels';
 import './TableFilterPopover.scss';
 
 // Normalisation pour la recherche interne (comparaison insensible à la casse).
+// Défauts français, surchargeables par la prop `labels` (cf. mergeLabels).
+const DEFAULT_LABELS = {
+  filterValues: 'Filtrer les valeurs…',
+  clearSearch: 'Effacer la recherche',
+  selectAll: 'Tout',
+  selectNone: 'Aucun',
+  noValue: 'Aucune valeur',
+};
+
 const norm = (v) => (v == null ? '' : String(v).toLowerCase());
 
 /**
@@ -18,9 +28,11 @@ const norm = (v) => (v == null ? '' : String(v).toLowerCase());
  * @param {function(?Array): void} props.onFilterChange - Re-checking every
  *   value normalizes the selection back to `null`.
  * @param {'left'|'right'} props.side - Anchor side of the popover.
+ * @param {Object} [props.labels] - Wording overrides, merged over the French defaults.
  * @returns {JSX.Element}
  */
-const TableFilterPopover = ({ uniqueValues, valueCounts, filter, onFilterChange, side }) => {
+const TableFilterPopover = ({ uniqueValues, valueCounts, filter, onFilterChange, side, labels: labelOverrides }) => {
+  const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
   // Filtre de recherche interne à la liste — seul état local du popover.
   const [search, setSearch] = useState('');
 
@@ -46,7 +58,7 @@ const TableFilterPopover = ({ uniqueValues, valueCounts, filter, onFilterChange,
           type="text"
           autoFocus
           value={search}
-          placeholder="Filtrer les valeurs…"
+          placeholder={labels.filterValues}
           onChange={(e) => setSearch(e.target.value)}
         />
         {search && (
@@ -63,8 +75,8 @@ const TableFilterPopover = ({ uniqueValues, valueCounts, filter, onFilterChange,
 
       <div className="data-table-pop-bar">
         <div className="data-table-pop-bar-actions">
-          <button type="button" onClick={() => onFilterChange(null)}>Tout</button>
-          <button type="button" onClick={() => onFilterChange([])}>Aucun</button>
+          <button type="button" onClick={() => onFilterChange(null)}>{labels.selectAll}</button>
+          <button type="button" onClick={() => onFilterChange([])}>{labels.selectNone}</button>
         </div>
         <span className="data-table-pop-bar-count">
           {allSelected
@@ -74,7 +86,7 @@ const TableFilterPopover = ({ uniqueValues, valueCounts, filter, onFilterChange,
       </div>
 
       {visibleValues.length === 0 ? (
-        <p className="data-table-pop-empty">Aucune valeur</p>
+        <p className="data-table-pop-empty">{labels.noValue}</p>
       ) : (
         <ul className="data-table-pop-list">
           {visibleValues.map((v) => {

@@ -5,6 +5,8 @@ import { useState } from 'react';
 import Header from '@/features/header/components/Header/Header';
 import { resolveNavigationTree } from '@/utils/navigation/resolveNavigationTree';
 import siteConfig from '@config/site.config.json';
+import { resolveLocalizedTree } from '@/utils/i18n/resolveLocalized';
+import { DEFAULT_LOCALE } from '@/i18n/config';
 import { expr } from '@/features/docs/utils/serializeJsx';
 
 // =================================================================
@@ -40,12 +42,18 @@ export const scaffold = {
         "import Header from '@/features/header/components/Header/Header';",
         "import { resolveNavigationTree } from '@/utils/navigation/resolveNavigationTree';",
         "import siteConfig from '@config/site.config.json';",
+        "import { resolveLocalizedTree } from '@/utils/i18n/resolveLocalized';",
+        "import { DEFAULT_LOCALE } from '@/i18n/config';",
     ],
     // `setLastClicked` doit être DÉCLARÉ dans l'extrait : la règle 2 du sérialiseur (code
     // autonome) interdit d'y référencer un identifiant qui n'existerait que dans ce
     // fichier de playground. Même raisonnement que `useState(initialCriterion)` dans
     // criterion-menu.jsx.
-    dataCode: `const navigationData = resolveNavigationTree(siteConfig.navigation.tree);
+    dataCode: `// Le manifeste porte des libellés traduits par langue depuis P5.4 :
+// resolveLocalizedTree les aplatit en chaînes avant que l'arbre n'atteigne le composant.
+const navigationData = resolveNavigationTree(
+    resolveLocalizedTree(siteConfig.navigation.tree, DEFAULT_LOCALE, DEFAULT_LOCALE),
+);
 const [lastClicked, setLastClicked] = useState(null);`,
     // Molette de démonstration : ne pilote aucune prop de <Header>.
     omit: ['logClicks'],
@@ -73,7 +81,12 @@ export const hint = (
  * @returns {Object} Props handed to both the preview and the serializer.
  */
 export const toProps = ({ logClicks }) => ({
-    navigationData: expr('navigationData', resolveNavigationTree(siteConfig.navigation.tree)),
+    navigationData: expr(
+        'navigationData',
+        resolveNavigationTree(
+            resolveLocalizedTree(siteConfig.navigation.tree, DEFAULT_LOCALE, DEFAULT_LOCALE),
+        ),
+    ),
     // expr() : le code doit lire une flèche vers `setLastClicked` (déclaré par
     // `dataCode` ci-dessus) ; l'aperçu (cf. HeaderPlayground plus bas) gère ce câblage
     // lui-même avec son PROPRE état local, la valeur réelle transmise ici n'a donc pas
@@ -98,7 +111,13 @@ export const toProps = ({ logClicks }) => ({
  */
 const HeaderPlayground = ({ logClicks }) => {
     const [lastClicked, setLastClicked] = useState(null);
-    const navigationData = resolveNavigationTree(siteConfig.navigation.tree);
+    // Le manifeste porte des libellés traduits (`{ fr, en }`) depuis P5.4 :
+// `resolveLocalizedTree` les aplatit en chaînes avant que l'arbre n'atteigne le
+// composant. Le site de documentation étant monolingue, il résout dans la langue
+// par défaut.
+const navigationData = resolveNavigationTree(
+    resolveLocalizedTree(siteConfig.navigation.tree, DEFAULT_LOCALE, DEFAULT_LOCALE),
+);
 
     return (
         <>

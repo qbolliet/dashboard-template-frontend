@@ -4,6 +4,11 @@ import StatBadge from './StatBadge/StatBadge';
 import StatCardIcon from './StatCardIcon/StatCardIcon';
 import { formatStatValue } from './utils/formatStatValue';
 import './StatCard.scss';
+import { interpolate } from '@/utils/i18n/interpolate';
+
+// Libellé unique : une prop simple suffit. L'espace fine avant le deux-points est une
+// convention FRANÇAISE, d'où sa place dans le gabarit et non dans le JSX.
+const DEFAULT_SUMMARY_LABEL = '{title} : {value}';
 
 /**
  * Metric card: small header, large formatted value with an optional icon,
@@ -45,9 +50,12 @@ import './StatCard.scss';
  *   the formatted value (only when `title` is a string); pass your own `aria-label` to override it.
  * @param {string} [props.className] - Additional CSS classes.
  * @param {Object} [props.style] - Inline style passthrough.
+ * @param {string} [props.summaryLabel] - Template of the accessible name used when the
+ *   card is clickable, holding `{title}` and `{value}` placeholders.
  * @returns {JSX.Element} The rendered stat card.
  */
 const StatCard = ({
+    summaryLabel = DEFAULT_SUMMARY_LABEL,
     value,
     format,
     icon,
@@ -104,7 +112,9 @@ const StatCard = ({
     // role="button" rend les enfants présentationnels (titre, pilule, footer aplatis) : sans
     // libellé, le nom accessible serait vide. {...rest} étant spread en dernier, un aria-label
     // fourni par le consommateur l'emporte naturellement sur celui-ci.
-    const fallbackLabel = typeof title === 'string' ? `${title} : ${formatted}` : undefined;
+    const fallbackLabel = typeof title === 'string'
+        ? interpolate(summaryLabel, { title, value: formatted })
+        : undefined;
 
     // Assemblage des classes : la teinte n'est posée qu'avec l'accent (elle ne pilote que la barre)
     const cls = [

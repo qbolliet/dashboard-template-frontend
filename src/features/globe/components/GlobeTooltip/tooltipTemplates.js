@@ -1,6 +1,13 @@
 // Importation des modules
 import { escapeHtml } from '@/utils/html/escapeHtml';
 
+// Ces gabarits produisent du HTML BRUT injecté par innerHTML : un libellé traduit y
+// passe donc par escapeHtml comme n'importe quelle donnée. C'est le seul endroit du
+// dépôt où un texte du dictionnaire n'atteint pas le DOM par JSX.
+const DEFAULT_LABELS = {
+  flowIntensity: 'Intensité du flux',
+};
+
 /**
  * Default point tooltip: label + optional sub + optional value.
  *
@@ -29,9 +36,10 @@ export const pointTooltipHtml = (point) =>
  * @param {{value?: number}} arc - Hovered flow; `value` ∈ [0,1], default 0.5.
  * @param {{label: string}} fromPoint - Origin point of the flow.
  * @param {{label: string}} toPoint - Destination point of the flow.
+ * @param {{flowIntensity: string}} [labels] - Wording; defaults to the French label.
  * @returns {string} HTML string injected in the engine tooltip.
  */
-export const arcTooltipHtml = (arc, fromPoint, toPoint) => {
+export const arcTooltipHtml = (arc, fromPoint, toPoint, labels = DEFAULT_LABELS) => {
   // Intensité ramenée sur une échelle 0-100, arrondie : lisible sans unité.
   // Math.round renvoie TOUJOURS un nombre (NaN au pire) : `v` ne peut pas porter
   // de balisage, il est donc le seul à ne pas passer par escapeHtml.
@@ -42,6 +50,6 @@ export const arcTooltipHtml = (arc, fromPoint, toPoint) => {
       `<span class="globe-tt-arrow">→</span>` +
       `<span class="globe-tt-node">${escapeHtml(toPoint.label)}</span>` +
     `</div>` +
-    `<div class="globe-tt-row"><span class="globe-tt-k">Intensité du flux</span><span class="globe-tt-v">${v}</span></div>`
+    `<div class="globe-tt-row"><span class="globe-tt-k">${escapeHtml(labels.flowIntensity)}</span><span class="globe-tt-v">${v}</span></div>`
   );
 };

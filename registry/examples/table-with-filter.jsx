@@ -17,6 +17,14 @@ import Table from '@/features/table/components/Table';
 import MultiCriterionMenu from '@/features/filter/components/MultiCriterionMenu/MultiCriterionMenu';
 import factTable from '@/lib/api/fixtures/factTable.json';
 import operations from '@config/filter/operations.json';
+import { resolveOperationLabels } from '@/features/filter/utils/filterTypes';
+import { DEFAULT_LOCALE } from '@/i18n/config';
+
+// Les libellés d'opérateurs de config/filter/operations.json acceptent la forme
+// `{ fr, en }` depuis P5.4 : on les aplatit avant de les passer au composant, qui
+// n'attend que des chaînes. Le site de documentation étant monolingue, il résout dans
+// la langue par défaut.
+const localizedOperations = resolveOperationLabels(operations, DEFAULT_LOCALE, DEFAULT_LOCALE);
 
 const { data: rows, columnsMetadata } = factTable;
 
@@ -35,7 +43,7 @@ const TableWithFilter = () => {
 
   return (
     <>
-      <MultiCriterionMenu variables={variables} operationsByType={operations} onChange={setFilter} />
+      <MultiCriterionMenu variables={variables} operationsByType={localizedOperations} onChange={setFilter} />
       <Table
         title="Indicateurs — filtre en direct"
         data={rows}
