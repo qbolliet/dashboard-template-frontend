@@ -1,0 +1,55 @@
+// =================================================================
+// LANGUAGEOPTION — une langue dans le panneau déroulant
+// =================================================================
+// Structure : li.lang-switch-option > FlagChip + span.lang-switch-option-name + [CheckIcon.lang-switch-check]
+//
+// Tokens : ./_tokens.scss, ../_tokens.scss. Couleurs : ./_colors.scss, ../_colors.scss.
+
+@use '../tokens' as *;   // Tokens partagés du groupe (--lang-switch-flag-size…)
+@use '../colors' as *;   // Couleurs partagées du groupe (non utilisées ici, cohérence de l'ordre)
+@use './tokens' as *;    // Tokens propres à l'option
+@use './colors' as *;    // Couleurs propres à l'option
+
+.lang-switch-option {
+  display: flex;
+  align-items: center;
+  gap: var(--lang-switch-option-gap);
+  padding: var(--lang-switch-option-padding-y) var(--lang-switch-option-padding-x);
+  border-radius: var(--lang-switch-option-radius);
+  font-size: var(--lang-switch-option-font-size);
+  color: hsl(var(--lang-switch-option-color));
+  cursor: pointer;
+  white-space: nowrap;
+
+  // Réduction du drapeau dans ce contexte : réassignation d'une propriété
+  // personnalisée sur un descendant, PAS une règle de dimension posée
+  // directement sur .lang-switch-flag. FlagChip n'a donc pas à connaître ses
+  // contextes d'usage — il reste piloté par le même token partout, seule sa
+  // valeur change ici.
+  .lang-switch-option-flag {
+    --lang-switch-flag-size: var(--lang-switch-option-flag-size);
+  }
+
+  &--active,
+  &:hover {
+    background-color: hsl(var(--lang-switch-option-hover-bg));
+    color: hsl(var(--lang-switch-option-hover-color));
+  }
+
+  &[aria-selected='true'] {
+    color: hsl(var(--lang-switch-option-selected-color));
+    font-weight: var(--lang-switch-option-font-weight-selected);
+  }
+}
+
+.lang-switch-option-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.lang-switch-check {
+  width: var(--lang-switch-check-size);
+  height: var(--lang-switch-check-size);
+  flex-shrink: 0;
+  color: hsl(var(--lang-switch-check-color));
+}

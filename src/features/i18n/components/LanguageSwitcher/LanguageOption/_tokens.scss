@@ -1,0 +1,19 @@
+// ===== TOKENS PROPRES À LANGUAGEOPTION =====
+// Tokens partagés du groupe : voir ../_tokens.scss (--lang-switch-flag-size…).
+
+:root {
+  // spacing-sm (8px) - spacing-px (1px) : reproduit le 7px du prototype sans
+  // introduire de palier d'échelle dédié à cette seule valeur.
+  --lang-switch-option-padding-y: calc(var(--spacing-sm) - var(--spacing-px));
+  --lang-switch-option-padding-x: var(--spacing-sm);
+  --lang-switch-option-gap: var(--spacing-sm);
+  --lang-switch-option-radius: var(--border-radius-md);
+  --lang-switch-option-font-size: var(--font-size-sm);
+  --lang-switch-option-font-weight-selected: 600;
+
+  // Diamètre réduit du drapeau dans ce contexte (réassigné sur .lang-switch-option-flag
+  // en LanguageOption.scss) : spacing-xl vaut 20px, la taille exacte du prototype.
+  --lang-switch-option-flag-size: var(--spacing-xl);
+
+  --lang-switch-check-size: var(--font-size-sm);
+}

@@ -1,0 +1,20 @@
+// ===== TOKENS PROPRES À LANGUAGEMENU =====
+// Aucune couleur propre : voir la note en tête de LanguageMenu.scss (le menu
+// réutilise --lang-switch-surface et --lang-switch-border du groupe).
+
+:root {
+  --lang-switch-menu-offset: var(--spacing-sm);
+
+  // ===== GABARIT =====
+  // Bornes de gabarit assumées en pixels, pas des grandeurs typographiques :
+  // largeur minimale sous laquelle un nom de langue ne serait plus lisible,
+  // hauteur au-delà de laquelle la liste défile. Même statut que
+  // --nav-drawer-width: 280px dans header/_tokens.scss.
+  --lang-switch-menu-min-width: 190px;
+  --lang-switch-menu-max-height: 280px;
+
+  --lang-switch-menu-padding: var(--spacing-xs);
+  --lang-switch-menu-radius: var(--border-radius-lg);
+  --lang-switch-menu-shadow: var(--shadow-lg);
+  --lang-switch-menu-z-index: var(--z-dropdown);
+}

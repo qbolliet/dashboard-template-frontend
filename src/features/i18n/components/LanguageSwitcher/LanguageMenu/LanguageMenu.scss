@@ -1,0 +1,49 @@
+// =================================================================
+// LANGUAGEMENU — panneau déroulant du sélecteur de langue
+// =================================================================
+// Structure : ul.lang-switch-menu > li.lang-switch-option (LanguageOption)
+//
+// Le <ul> EST le panneau : aucun conteneur intermédiaire. Voir LanguageMenu.jsx
+// pour le motif ARIA (listbox à focus fixe + aria-activedescendant).
+//
+// Pas de _colors.scss propre à ce dossier : le menu ne consomme que deux
+// couleurs, --lang-switch-surface et --lang-switch-border, déjà déclarées à la
+// racine du groupe (../_colors.scss) et partagées avec LanguageButton. Un
+// fichier de couleurs qui ne ferait que les redéclarer serait un doublon figé.
+//
+// Tokens : ./_tokens.scss, ../_tokens.scss.
+
+@use '../tokens' as *;   // Tokens partagés du groupe (--lang-switch-gap…)
+@use '../colors' as *;   // --lang-switch-surface, --lang-switch-border (seules couleurs utilisées ici)
+@use './tokens' as *;    // Tokens propres au panneau
+
+.lang-switch-menu {
+  position: absolute;
+  top: calc(100% + var(--lang-switch-menu-offset));
+  min-width: var(--lang-switch-menu-min-width);
+  max-height: var(--lang-switch-menu-max-height);
+  overflow-y: auto;
+  margin: 0;
+  padding: var(--lang-switch-menu-padding);
+  list-style: none;
+  background-color: hsl(var(--lang-switch-surface));
+  border: 1px solid hsl(var(--lang-switch-border));
+  border-radius: var(--lang-switch-menu-radius);
+  box-shadow: var(--lang-switch-menu-shadow);
+  // Échelle unique du dépôt : le `z-index: 50` du prototype devient le jeton
+  // partagé de superposition. La position relative aux autres calques ne
+  // change pas, seule la source de vérité passe de littéral à variable.
+  z-index: var(--lang-switch-menu-z-index);
+  // Le focus DOM se pose ici à l'ouverture (cf. LanguageMenu.jsx) : sans
+  // `outline: none`, le contour de focus natif du navigateur apparaîtrait
+  // autour de la liste entière en plus de l'`aria-activedescendant`.
+  outline: none;
+
+  &--left {
+    left: 0;
+  }
+
+  &--right {
+    right: 0;
+  }
+}

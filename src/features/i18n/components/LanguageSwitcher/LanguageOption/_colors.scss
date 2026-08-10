@@ -1,0 +1,18 @@
+// ===== COULEURS PROPRES À LANGUAGEOPTION =====
+// :root, [data-theme] et jamais :root seul — cf. la note de ../_colors.scss.
+
+:root, [data-theme] {
+  --lang-switch-option-color: var(--color-text-secondary);
+  --lang-switch-option-hover-bg: var(--color-gray-100);
+  --lang-switch-option-hover-color: var(--color-text-primary);
+  --lang-switch-option-selected-color: var(--color-text-primary);
+  --lang-switch-check-color: var(--color-primary-500);
+}
+
+// Pas de bloc [data-theme="dark"] : --color-gray-100 vaut 11 % de clarté en
+// sombre (primitives/colors.scss), et se détache correctement des 7 % de
+// --lang-switch-surface (= --color-surface = --color-gray-50 en sombre) sous
+// elle — le survol reste visible sans surcharge. Ne pas en ajouter « par
+// symétrie » avec LanguageButton/_colors.scss : ce dernier corrige un cas où
+// hover et repos coïncidaient EXACTEMENT (§5.2 de l'architecture), ce qui
+// n'est pas le cas ici.
