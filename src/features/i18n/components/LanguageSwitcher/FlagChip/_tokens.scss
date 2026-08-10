@@ -1,0 +1,18 @@
+// ===== TOKENS PROPRES À FLAGCHIP =====
+// Le diamètre lui-même n'est PAS ici : il vient de --lang-switch-flag-size
+// (racine du groupe), pilote unique de l'échelle sm/md/lg.
+
+:root {
+  // Cercle : la pastille est carrée (largeur = hauteur = --lang-switch-flag-size),
+  // --border-radius-full (50 %) est donc correct — contrairement au bouton, où la
+  // forme est rectangulaire et exige --border-radius-pill.
+  --lang-switch-flag-radius: var(--border-radius-full);
+
+  --lang-switch-flag-ring-width: 1px;
+
+  // Exception documentée à la règle « toujours un token de l'échelle typographique » :
+  // 8px est sous --font-size-xs (12px), aucun palier de l'échelle ne descend jusque-là.
+  // Même statut que --select-option-padding-y: 0.45rem dans SelectMenu/_tokens.scss.
+  --lang-switch-flag-fallback-font-size: 0.5rem;   // 8px
+  --lang-switch-flag-fallback-font-weight: 700;
+}

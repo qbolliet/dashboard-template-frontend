@@ -1,0 +1,48 @@
+// =================================================================
+// FLAGCHIP — pastille ronde de drapeau, avec repli textuel en CSS pur
+// =================================================================
+// Structure : span.lang-switch-flag > span.lang-switch-flag-fallback + [img]
+//
+// Le repli et l'image occupent la MÊME cellule de grille (`grid-area: 1 / 1`) :
+// c'est ce qui les superpose au lieu de les empiler, et donc ce qui fait
+// réapparaître le repli tout seul quand l'image échoue à charger (alt=""
+// décorative → non peinte par le navigateur). Aucun JS, aucun état.
+
+@use '../tokens' as *;   // --lang-switch-flag-size (pilote de l'échelle)
+@use '../colors' as *;   // --lang-switch-surface, etc. (non utilisées ici, cohérence de l'ordre)
+@use './tokens' as *;    // --lang-switch-flag-radius, --lang-switch-flag-fallback-*
+@use './colors' as *;    // --lang-switch-flag-bg, --lang-switch-flag-ring, --lang-switch-flag-fallback-color
+
+.lang-switch-flag {
+  display: inline-grid;
+  place-items: center;
+  width: var(--lang-switch-flag-size);
+  height: var(--lang-switch-flag-size);
+  flex-shrink: 0;
+  border-radius: var(--lang-switch-flag-radius);
+  overflow: hidden;
+  background: hsl(var(--lang-switch-flag-bg));
+  // Anneau interne discret, séparant la pastille du fond du bouton/menu.
+  box-shadow: inset 0 0 0 var(--lang-switch-flag-ring-width) hsl(var(--lang-switch-flag-ring) / 0.08);
+
+  // Superposition plutôt qu'empilement : les deux enfants occupent la même
+  // case de la grille 1×1 implicite, l'image (déclarée après en JSX) est donc
+  // peinte par-dessus le repli quand elle charge.
+  > * {
+    grid-area: 1 / 1;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.lang-switch-flag-fallback {
+  font-size: var(--lang-switch-flag-fallback-font-size);
+  font-weight: var(--lang-switch-flag-fallback-font-weight);
+  letter-spacing: 0.02em;
+  color: hsl(var(--lang-switch-flag-fallback-color));
+}

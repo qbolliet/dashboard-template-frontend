@@ -1,0 +1,16 @@
+// ===== COULEURS PROPRES À FLAGCHIP =====
+// :root, [data-theme] et jamais :root seul : cf. le commentaire de
+// ../_colors.scss (résolution de --color-gray-* sur l'élément qui déclare, pas
+// sur <html>, condition du thème local scopable).
+
+:root, [data-theme] {
+  --lang-switch-flag-bg: var(--color-gray-100);
+  --lang-switch-flag-ring: var(--color-gray-900);
+  --lang-switch-flag-fallback-color: var(--color-text-tertiary);
+}
+
+// Pas de bloc [data-theme="dark"] : --color-gray-900 s'INVERSE lui-même en
+// sombre dans primitives/colors.scss (220 39% 11% → 210 40% 96%), donc
+// l'anneau (posé à 8 % d'alpha en dessous) devient clair sans rien surcharger.
+// Ajouter une surcharge sombre ici referait cette inversion une seconde fois
+// et casserait l'anneau.
