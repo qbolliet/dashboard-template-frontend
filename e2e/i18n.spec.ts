@@ -78,7 +78,12 @@ test.describe('internationalisation', () => {
     const path = '/comptabilite-nationale/france/pib';
     await gotoLocale(page, 'fr', path);
 
-    await page.selectOption('#locale-switcher', 'en');
+    // Interaction en deux temps du motif listbox, ciblée par les RÔLES : un sélecteur
+    // d'id ou de classe casserait au premier renommage sans rien dire de la fonction
+    // testée, là où « un bouton nommé "Changer de langue", puis une option nommée
+    // "English" » est exactement ce qu'un lecteur d'écran expose.
+    await page.getByRole('button', { name: /Changer de langue/ }).click();
+    await page.getByRole('option', { name: 'English' }).click();
 
     await page.waitForURL(`**/demo/en${path}`);
     // L'attribut suit une navigation CLIENTE, que le script inline ne rejoue pas :

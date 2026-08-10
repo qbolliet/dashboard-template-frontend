@@ -114,6 +114,12 @@ const fr = {
 
     localeSwitcher: {
         label: 'Langue',
+        // Nom accessible du déclencheur : le bouton n'affiche qu'un drapeau et un code
+        // pays, donc rien qui nomme la fonction du contrôle. Le trou {language} y ajoute
+        // la langue courante, seule façon pour un lecteur d'écran d'apprendre l'état
+        // sans ouvrir le menu.
+        button: 'Changer de langue — {language}',
+        list: 'Langues disponibles',
         // Noms des langues dans LEUR PROPRE langue : un lecteur qui cherche l'anglais
         // cherche « English », pas « Anglais ». Convention universelle des sélecteurs.
         names: { fr: 'Français', en: 'English' },

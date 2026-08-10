@@ -92,6 +92,11 @@ const en = {
 
     localeSwitcher: {
         label: 'Language',
+        // Le trou {language} est celui de la référence française : `check:i18n` compare
+        // les gabarits d'une traduction à l'autre et échoue en --strict dès que l'un
+        // disparaît, la phrase mutilée ne se voyant sur aucune capture d'écran.
+        button: 'Change language — {language}',
+        list: 'Available languages',
         names: { fr: 'Français', en: 'English' },
     },
 

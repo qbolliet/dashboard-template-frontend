@@ -16,7 +16,11 @@
 //   3. une branche dans le `switch` de src/i18n/getDictionary.js — l'import doit
 //      rester LITTÉRAL, cf. l'en-tête de ce fichier ;
 //   4. une entrée dans FORMATS de src/i18n/formats.js ;
-//   5. `npm run check:i18n` liste ce qui manque encore.
+//   5. une entrée dans `site.localeCountries` — FACULTATIVE tant que le pays du drapeau
+//      se déduit du code (`fr` → `FR`, `pt-BR` → `BR`), OBLIGATOIRE dès que langue et
+//      pays divergent : `en` donnerait « EN », qui n'est pas un pays et n'a donc pas de
+//      drapeau ;
+//   6. `npm run check:i18n` liste ce qui manque encore.
 // Les routes, l'index de recherche et la suite Playwright se déduisent seuls.
 
 import siteConfig from '@config/site.config.json';
@@ -38,6 +42,43 @@ export const LOCALES = siteConfig.site.locales;
  * @type {string}
  */
 export const DEFAULT_LOCALE = siteConfig.site.defaultLocale;
+
+/**
+ * Flag countries declared for the shipped locales, keyed by locale code.
+ *
+ * Optional in the manifest — hence the fallback to an empty table rather than a guard at
+ * every call site.
+ *
+ * @type {Object<string, string>}
+ */
+export const LOCALE_COUNTRIES = siteConfig.site.localeCountries ?? {};
+
+/**
+ * Resolves the flag country of a locale code.
+ *
+ * A flag stands for a country, never for a language: the two only coincide by accident,
+ * which is why the manifest can override the deduction locale by locale.
+ *
+ * @param {string} code - Locale code, e.g. 'fr' or 'pt-BR'.
+ * @returns {string} ISO 3166-1 alpha-2 country code, upper-cased.
+ */
+export const countryForLocale = (code) => {
+    // Passe 1 — la déclaration explicite du manifeste prime sur toute déduction :
+    // c'est le seul recours quand langue et pays divergent (`en` → `GB`, `ja` → `JP`).
+    if (LOCALE_COUNTRIES[code]) return LOCALE_COUNTRIES[code];
+
+    // Passe 2 — sous-étiquette de région du code BCP 47 : `pt-BR` porte déjà son pays,
+    // et c'est LUI qui doit l'emporter sur la langue, faute de quoi le portugais du
+    // Brésil s'afficherait sous drapeau portugais.
+    const [language, region] = String(code).split('-');
+    if (region) return region.toUpperCase();
+
+    // Passe 3 — repli sur la langue en majuscules, exact pour la majorité des codes
+    // (`fr` → `FR`, `de` → `DE`) et faux pour les autres, que la passe 1 rattrape. Un
+    // pays inexistant ne casse rien de plus qu'un drapeau manquant : <FlagChip> retombe
+    // alors sur sa pastille textuelle.
+    return language.toUpperCase();
+};
 
 /**
  * Tells whether a value is one of the shipped locale codes.

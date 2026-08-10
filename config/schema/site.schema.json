@@ -92,6 +92,15 @@
         "defaultLocale": {
           "description": "Langue de repli du site. Doit figurer dans `locales`. C'est elle qui est servie quand la langue du visiteur n'est pas disponible, elle qui est posée sur `<html lang>` par le layout racine, et elle dont la valeur est utilisée quand une traduction manque — dans le manifeste comme dans les dictionnaires d'interface.",
           "$ref": "#/$defs/localeCode"
+        },
+        "localeCountries": {
+          "description": "Pays du DRAPEAU de chaque langue, en code ISO 3166-1 alpha-2 (`FR`, `GB`, `JP`) — un drapeau représente un pays, jamais une langue, et les deux ne coïncident pas toujours. Consommé par le sélecteur de langue du header, via `countryForLocale` de `src/i18n/config.js`. FACULTATIF, y compris langue par langue : à défaut d'entrée, le pays est déduit de la sous-étiquette de région quand elle existe (`pt-BR` → `BR`), sinon de la langue mise en majuscules (`fr` → `FR`). Une entrée devient NÉCESSAIRE dès que la langue et le pays divergent : `en` donnerait sinon `EN` et `ja` donnerait `JA`, qui ne sont pas des pays et n'ont donc pas de drapeau.",
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/localeCode" },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          }
         }
       }
     },

@@ -1,63 +1,81 @@
 'use client';
 
+// Importation des modules
+import { countryForLocale } from '@/i18n/config';
 import { useLocale } from '@/features/i18n/providers/LocaleProvider';
-import './LocaleSwitcher.scss';
+import { LanguageSwitcher } from '@/features/i18n/components/LanguageSwitcher';
 
 // =================================================================
-// LOCALE SWITCHER — bascule de langue, forme minimale assumée
+// LOCALE SWITCHER — l'adaptateur entre le site et le sélecteur de langue
 // =================================================================
-// CE COMPOSANT EST DÉLIBÉRÉMENT NON DESSINÉ. Il existe pour que l'infrastructure
-// d'internationalisation soit réellement exercée — par un humain comme par la suite
-// Playwright — et non pour être le sélecteur définitif du template. Un `<select>` natif,
-// deux règles de style, rien de plus.
+// Ce composant ne dessine RIEN et ne détient AUCUN état. Il fait une seule chose :
+// traduire l'internationalisation de l'application — langues servies, dictionnaire,
+// navigation qui préserve le chemin — dans les props que <LanguageSwitcher> attend.
+// C'est cette frontière qui permet d'installer le sélecteur seul depuis le registry :
+// la présentation ignore `src/i18n/`, et l'application ignore le motif ARIA.
 //
-// Ce qu'il faut conserver en le redessinant, et qui n'est pas du décor :
+// Les quatre invariants du sélecteur précédent sont tous conservés ; ce qui change est
+// ce qui les porte :
 //
-//   • le <label> associé. Un sélecteur de langue sans nom accessible est une liste de
-//     mots étrangers sans contexte pour un lecteur d'écran ;
-//   • les noms de langue dans LEUR PROPRE langue (« English », pas « Anglais »). Le
-//     dictionnaire les porte sous `localeSwitcher.names`, identiques dans tous les
-//     fichiers de traduction — c'est voulu, et c'est la convention universelle ;
-//   • l'attribut `lang` sur chaque <option>, qui fait prononcer chaque nom dans la
-//     bonne langue au lieu de le lire avec la phonétique de la page courante ;
-//   • le passage par `setLocale` du provider, qui préserve le chemin courant. Un
-//     sélecteur qui renvoie à l'accueil perd la page que le lecteur consultait.
+//   • le NOM ACCESSIBLE, hier un <label> associé au <select>, aujourd'hui l'aria-label
+//     du bouton, interpolé sur `localeSwitcher.button` avec la langue courante — un
+//     drapeau et un code pays ne nomment pas la fonction du contrôle ;
+//   • les NOMS DE LANGUE DANS LEUR PROPRE LANGUE (« English », pas « Anglais »), portés
+//     par `localeSwitcher.names`, identiques dans tous les dictionnaires — c'est voulu,
+//     et c'est la convention universelle ;
+//   • l'ATTRIBUT `lang` PAR OPTION, hier sur chaque <option>, aujourd'hui posé par
+//     <LanguageOption> sur son <li role="option"> : chaque nom est prononcé avec sa
+//     propre phonétique, et non avec celle de la page courante ;
+//   • le PASSAGE PAR `setLocale`, qui préserve le chemin courant. Un sélecteur qui
+//     renvoie à l'accueil perd la page que le lecteur consultait.
 //
-// Un <select> plutôt qu'une liste de boutons : au-delà de deux langues, la liste
-// déborde du header, et le <select> apporte gratuitement le clavier, le tactile et les
-// conventions de la plateforme.
+// Le clavier, le tactile et les conventions de plateforme, hier gratuits avec un
+// <select> natif, sont désormais à la charge de `useLanguageMenu` (motif listbox de
+// l'APG : flèches bornées, Début/Fin, Échap qui rend le focus au bouton).
 
 /**
- * Minimal, intentionally unstyled language switcher.
+ * Application-side language switcher: binds the presentational `<LanguageSwitcher>` to
+ * the site's locales, dictionary and locale-preserving navigation.
  *
+ * @param {Object} props - Component props.
+ * @param {'sm'|'md'|'lg'} [props.size='md'] - Flag diameter, from which the button
+ *   height derives.
+ * @param {boolean} [props.compact=false] - Round button showing the flag alone, without
+ *   the country badge nor the chevron.
+ * @param {'left'|'right'} [props.menuAlign='right'] - Button edge the menu aligns to.
  * @returns {JSX.Element} The rendered switcher.
  */
-const LocaleSwitcher = () => {
+const LocaleSwitcher = ({ size = 'md', compact = false, menuAlign = 'right' }) => {
     const { locale, locales, dictionary, setLocale } = useLocale();
     const labels = dictionary.localeSwitcher;
 
-    return (
-        <div className="locale-switcher">
-            <label className="locale-switcher__label" htmlFor="locale-switcher">
-                {labels.label}
-            </label>
+    // Descripteurs dérivés de la CONFIGURATION et non d'une liste tenue à la main :
+    // ajouter une langue à `site.locales` suffit à la faire apparaître ici. Repli sur le
+    // code brut quand le nom manque — la langue reste sélectionnable au lieu de
+    // disparaître du menu, et `npm run check:i18n` signale le trou.
+    const languages = locales.map((code) => ({
+        code,
+        country: countryForLocale(code),
+        name: labels.names[code] ?? code,
+    }));
 
-            <select
-                id="locale-switcher"
-                className="locale-switcher__select"
-                value={locale}
-                onChange={(event) => setLocale(event.target.value)}
-            >
-                {locales.map((code) => (
-                    // Repli sur le code brut : une langue ajoutée à `site.locales` sans
-                    // entrée dans `localeSwitcher.names` reste sélectionnable plutôt que
-                    // de disparaître de la liste. `npm run check:i18n` signale le manque.
-                    <option key={code} value={code} lang={code}>
-                        {labels.names[code] ?? code}
-                    </option>
-                ))}
-            </select>
-        </div>
+    return (
+        <LanguageSwitcher
+            languages={languages}
+            // Mode CONTRÔLÉ, jamais `defaultValue` : la langue courante est décidée par
+            // l'URL, pas par un état client. Un état interne divergerait dès la première
+            // navigation arrière du navigateur, qui change l'URL sans repasser par le
+            // menu.
+            value={locale}
+            onChange={setLocale}
+            size={size}
+            compact={compact}
+            // Défaut « right » là où le composant de présentation aligne à gauche : dans
+            // le header, le contrôle est le dernier de la barre d'actions, donc collé au
+            // bord droit de la fenêtre — un menu plus large que son bouton et aligné à
+            // gauche déborderait hors de l'écran.
+            menuAlign={menuAlign}
+            labels={{ button: labels.button, list: labels.list }} />
     );
 };
 

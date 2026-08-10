@@ -7,7 +7,8 @@
       "en": "Dashboard template for visualising statistical and prediction models."
     },
     "locales": ["fr", "en"],
-    "defaultLocale": "fr"
+    "defaultLocale": "fr",
+    "localeCountries": { "fr": "FR", "en": "GB" }
   },
   "navigation": {
     "type": "sidebar",
