@@ -1,0 +1,28 @@
+// ===== TOKENS PARTAGÉS DU GROUPE LANGUAGESWITCHER =====
+// Variables partagées par plusieurs sous-composants du groupe (LanguageButton,
+// LanguageMenu, LanguageOption, FlagChip).
+//
+// ⚠️ RÈGLE : Si une variable n'est utilisée que dans UN seul sous-composant, elle
+// va dans le _tokens.scss de son propre dossier, pas ici.
+
+:root {
+  // ===== DRAPEAU — ÉCHELLE =====
+  // Diamètres assumés en pixels (bornes de gabarit, comme --nav-drawer-width dans
+  // header/_tokens.scss) : ce sont des tailles d'icône fixes, pas des grandeurs
+  // typographiques dérivables de l'échelle rem.
+  --lang-switch-flag-size-sm: 18px;
+  --lang-switch-flag-size-md: 22px;
+  --lang-switch-flag-size-lg: 26px;
+
+  // PILOTE UNIQUE de l'échelle du groupe : la hauteur du bouton, sa largeur en
+  // mode compact et le diamètre de la pastille de drapeau en dérivent tous par
+  // calc(). Réassigné par les modificateurs de taille (--lang-switch--sm/lg) et,
+  // dans le menu, par le contexte « option » qui fixe toujours la taille sm.
+  --lang-switch-flag-size: var(--lang-switch-flag-size-md);
+
+  // ===== ESPACEMENT =====
+  --lang-switch-gap: calc(var(--spacing-xs) + var(--spacing-2px));  // 6px
+
+  // ===== TRANSITION =====
+  --lang-switch-transition: var(--transition-fast);
+}
