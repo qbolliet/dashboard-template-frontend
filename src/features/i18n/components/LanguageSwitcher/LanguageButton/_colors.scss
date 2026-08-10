@@ -1,0 +1,22 @@
+// ===== COULEURS — LanguageButton =====
+// Couleurs propres au bouton déclencheur. Couleurs partagées du groupe : voir
+// ../_colors.scss (--lang-switch-surface, --lang-switch-border, --lang-switch-focus).
+//
+// ⚠️ Sélecteur `:root, [data-theme]`, jamais `:root` seul — voir la note de
+// ../_colors.scss sur la résolution figée des propriétés personnalisées.
+
+:root, [data-theme] {
+  --lang-switch-btn-bg-hover: var(--color-gray-50);
+  --lang-switch-btn-border-hover: var(--color-border-hover);
+  --lang-switch-code-color: var(--color-text-primary);
+  --lang-switch-chevron-color: var(--color-text-tertiary);
+}
+
+// ===== THÈME SOMBRE =====
+// En sombre, --color-surface VAUT --color-gray-50 (le fond au repos du bouton) :
+// survoler avec --color-gray-50 serait donc rigoureusement identique au repos,
+// un survol invisible. Décalage d'un cran vers --color-gray-200, convention du
+// dépôt pour ce même piège (SelectMenu/_colors.scss, ThemeToggleButton/_colors.scss).
+[data-theme="dark"] {
+  --lang-switch-btn-bg-hover: var(--color-gray-200);
+}

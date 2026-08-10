@@ -1,0 +1,28 @@
+// ===== TOKENS — LanguageButton =====
+// Dimensions propres au bouton déclencheur. Tokens partagés du groupe : voir
+// ../_tokens.scss (--lang-switch-flag-size, --lang-switch-gap…).
+
+:root {
+  // ===== GABARIT =====
+  // Pilotée par --lang-switch-flag-size : la hauteur du bouton (et, en mode
+  // compact, sa largeur) suit l'échelle sm/md/lg sans variable dédiée par palier.
+  --lang-switch-btn-height: calc(var(--lang-switch-flag-size) + var(--spacing-md));
+  --lang-switch-btn-padding-x: calc(var(--spacing-xs) + var(--spacing-px));
+  --lang-switch-btn-border-width: 1px;
+  // --border-radius-pill (999px) et non --border-radius-full (50%) : le bouton
+  // non compact est plus large que haut, un pourcentage y produirait une
+  // ellipse (cf. le commentaire de typography.scss sur ces deux tokens).
+  --lang-switch-btn-radius: var(--border-radius-pill);
+
+  // ===== BADGE CODE LANGUE =====
+  --lang-switch-code-font-size: var(--font-size-xs);
+  --lang-switch-code-font-weight: 600;
+
+  // ===== CHEVRON =====
+  --lang-switch-chevron-size: calc(var(--spacing-md) + var(--spacing-px));
+  --lang-switch-chevron-rotation: 90deg;
+
+  // ===== FOCUS =====
+  --lang-switch-btn-focus-ring-width: 2px;
+  --lang-switch-btn-focus-ring-offset: 1px;
+}

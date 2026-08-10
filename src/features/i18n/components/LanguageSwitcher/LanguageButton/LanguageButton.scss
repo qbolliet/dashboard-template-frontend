@@ -1,0 +1,71 @@
+// =================================================================
+// LANGUAGEBUTTON — déclencheur du sélecteur de langue
+// =================================================================
+// Structure : <button.lang-switch-btn> > FlagChip + [data.lang-switch-code] + [ChevronIcon.lang-switch-chevron]
+//
+// Tokens : ./_tokens.scss, ../_tokens.scss. Couleurs : ./_colors.scss, ../_colors.scss.
+
+@use '../tokens' as *;   // Tokens partagés du groupe (--lang-switch-flag-size, --lang-switch-gap…)
+@use '../colors' as *;   // Couleurs partagées du groupe (--lang-switch-surface, --lang-switch-border…)
+@use './tokens' as *;    // Tokens propres au bouton
+@use './colors' as *;    // Couleurs propres au bouton
+
+.lang-switch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lang-switch-gap);
+  height: var(--lang-switch-btn-height);
+  padding: 0 var(--lang-switch-btn-padding-x);
+  background-color: hsl(var(--lang-switch-surface));
+  border: var(--lang-switch-btn-border-width) solid hsl(var(--lang-switch-border));
+  border-radius: var(--lang-switch-btn-radius);
+  cursor: pointer;
+  color: hsl(var(--color-text-secondary));
+  transition: border-color var(--lang-switch-transition) ease,
+              background-color var(--lang-switch-transition) ease;
+
+  &:hover {
+    border-color: hsl(var(--lang-switch-btn-border-hover));
+    background-color: hsl(var(--lang-switch-btn-bg-hover));
+  }
+
+  &:focus-visible {
+    outline: var(--lang-switch-btn-focus-ring-width) solid hsl(var(--lang-switch-focus) / 0.45);
+    outline-offset: var(--lang-switch-btn-focus-ring-offset);
+  }
+
+  // Variante compacte : largeur = hauteur → bouton rond, drapeau seul (code et
+  // chevron déjà absents du DOM côté JSX, pas seulement masqués en CSS).
+  .lang-switch--compact & {
+    width: var(--lang-switch-btn-height);
+    padding: 0;
+    justify-content: center;
+  }
+
+  // ⚠️ Règle volontairement absente : `.lang-switch[aria-expanded="true"] &`
+  // (changement de bordure à l'ouverture) existait dans le prototype mais ne
+  // s'appliquait JAMAIS — `aria-expanded` est porté par CE bouton, pas par la
+  // racine `.lang-switch`. Ne pas « corriger » cet oubli : l'apparence à
+  // reproduire est celle réellement rendue.
+}
+
+.lang-switch-code {
+  font-size: var(--lang-switch-code-font-size);
+  font-weight: var(--lang-switch-code-font-weight);
+  letter-spacing: 0.02em;
+  color: hsl(var(--lang-switch-code-color));
+}
+
+.lang-switch-chevron {
+  width: var(--lang-switch-chevron-size);
+  height: var(--lang-switch-chevron-size);
+  flex-shrink: 0;
+  color: hsl(var(--lang-switch-chevron-color));
+  transition: transform var(--lang-switch-transition) ease;
+
+  // Une seule propriété `transform` : Lightning CSS supprime silencieusement un
+  // `rotate:` autonome qui cohabiterait avec `transform:` dans la même règle.
+  .lang-switch-btn[aria-expanded='true'] & {
+    transform: rotate(var(--lang-switch-chevron-rotation));
+  }
+}
