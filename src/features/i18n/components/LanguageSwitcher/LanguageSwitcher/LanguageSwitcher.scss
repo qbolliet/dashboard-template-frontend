@@ -1,0 +1,42 @@
+// =================================================================
+// LANGUAGESWITCHER — racine du sélecteur de langue
+// =================================================================
+// Structure : section.lang-switch > button.lang-switch-btn (LanguageButton)
+//                                 + [ul.lang-switch-menu (LanguageMenu)]
+//
+// La racine ne peint rien : elle installe le contexte de positionnement du menu
+// et porte les paliers de taille du groupe. Tout le dessin est dans les
+// sous-composants.
+//
+// Pas de _tokens.scss ni de _colors.scss dans ce dossier : aucun token propre
+// (les paliers sm/md/lg sont partagés, donc déclarés dans ../_tokens.scss) et
+// aucune couleur consommée ici.
+//
+// Tokens : ../_tokens.scss.
+
+@use '../tokens' as *;   // --lang-switch-flag-size et ses trois paliers
+
+.lang-switch {
+  // Référentiel du `position: absolute` du menu : sans lui, le panneau se
+  // positionnerait par rapport au premier ancêtre positionné de la page, donc
+  // ailleurs selon le contexte d'insertion.
+  position: relative;
+  // inline-block et non block : le contrôle se pose dans une barre d'actions à
+  // côté d'autres boutons, et ne doit pas en occuper toute la largeur.
+  display: inline-block;
+
+  // Les modificateurs de taille RÉASSIGNENT le pilote unique de l'échelle plutôt
+  // que de redéclarer des dimensions : la hauteur du bouton, sa largeur en mode
+  // compact et le diamètre de la pastille en dérivent tous par calc() dans les
+  // sous-composants, qui n'ont donc aucun palier à connaître.
+  // `md` n'a volontairement pas de modificateur — c'est la valeur par défaut du
+  // token partagé (../_tokens.scss), et une classe qui la redéclarerait à
+  // l'identique deviendrait un second endroit à modifier.
+  &--sm {
+    --lang-switch-flag-size: var(--lang-switch-flag-size-sm);
+  }
+
+  &--lg {
+    --lang-switch-flag-size: var(--lang-switch-flag-size-lg);
+  }
+}
