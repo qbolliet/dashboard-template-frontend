@@ -26,6 +26,28 @@
   --color-border: var(--color-gray-200);
   --color-border-hover: var(--color-gray-300);
 
+  // ===== SURFACES NEUTRES DÉRIVÉES =====
+  // L'échelle de gris s'inverse entre thèmes (--color-gray-50 est le plus CLAIR en
+  // clair, le plus SOMBRE en sombre), mais PAS d'un décalage uniforme par rapport au
+  // fond ambiant : en clair `background` vaut gray-50 et `surface` du blanc, en sombre
+  // `background` vaut gray-100 et `surface` gray-50. « Un cran détaché de l'ambiant »
+  // n'est donc pas le même barreau selon le thème. Un composant qui écrit
+  // `var(--color-gray-100)` en dur doit être rattrapé par une surcharge sombre — c'est
+  // ce que ces deux tokens suppriment. Les consommer plutôt qu'une primitive.
+  --color-surface-muted: var(--color-gray-100);        // survol d'un élément interactif,
+                                                        // fond au repos d'un champ, panneau
+                                                        // secondaire (bloc de code, en-tête)
+  --color-surface-muted-hover: var(--color-gray-200);  // un cran plus marqué : survol/
+                                                        // sélection DANS une surface muted
+
+  // ===== SURFACE INVERSÉE (bulles d'aide, extraits de code sur fond contrasté) =====
+  // Une bulle d'aide doit rester une pastille CONTRASTÉE dans les deux thèmes : elle ne
+  // suit donc pas l'inversion de l'échelle de gris. `var(--color-gray-900)` seul ne
+  // convient pas — il s'inverse en 96 % de clarté en sombre et rend un texte blanc
+  // illisible (c'était le bug de components/filter/Tooltip).
+  --color-surface-inverted: var(--color-gray-900);
+  --color-text-inverted: var(--color-white);
+
   // Couleurs de fond spécifiques aux sections
   --color-hero-bg: 0 0% 99%;           // Gris très très clair en mode light
 
@@ -48,10 +70,25 @@
   // Texte posé SUR --color-primary. Distinct de --color-text-on-primary, qui n'est pas
   // redéfini en thème sombre et resterait blanc sur le bleu clair du mode sombre (≈ 1,9:1).
   --color-primary-contrast: var(--color-white);
+  // Fond TEINTÉ d'accent d'un élément sélectionné ou actif (lien de nav courant, ligne
+  // de suggestion retenue, pastille de version). Contrairement à l'échelle de gris, la
+  // rampe primaire n'est PAS inversée par le thème sombre — seul le palier 500 y est
+  // redéfini. `var(--color-primary-50)` resterait donc un bleu à 97 % de clarté en
+  // sombre : d'où un rôle dédié, dont la branche sombre est la seule valeur brute de ce
+  // fichier avec --color-hero-bg (aucun palier de la rampe ne la porte).
+  --color-primary-subtle: var(--color-primary-50);
 
   // ===== COULEURS D'INTERACTION =====
   --color-focus: var(--color-primary-500);
   --color-focus-shadow: var(--color-primary-200);
+
+  // ===== TRAITEMENT DES LOGOS =====
+  // Pas une couleur, mais un rôle qui bascule avec le thème et que TROIS features
+  // consomment (header, footer, docs).
+  // Les fichiers logo.svg sont sombres — on les inverse en clair,
+  // on les laisse intacts en sombre. S'utilise en `filter: var(--logo-filter)`, JAMAIS
+  // enveloppé dans hsl() : ce n'est pas un triplet HSL.
+  --logo-filter: invert(100%);
 }
 
 // ===== THÈME SOMBRE =====
@@ -61,6 +98,17 @@
   --color-surface: var(--color-gray-50);
   --color-border: var(--color-gray-300);
   --color-border-hover: var(--color-gray-400);
+
+  // ===== SURFACES NEUTRES DÉRIVÉES =====
+  // Décalage d'un cran : en sombre, gray-100 (11 %) vaut le fond de PAGE, s'en servir
+  // pour un survol le rendrait invisible. Voir la note du bloc de base.
+  --color-surface-muted: var(--color-gray-200);
+  --color-surface-muted-hover: var(--color-gray-300);
+
+  // La bulle reste sombre en thème sombre (elle ne s'inverse pas), simplement décollée
+  // du fond de page : gray-200 (17 %) sur un fond à 7-11 %, texte à 96 %.
+  --color-surface-inverted: var(--color-gray-200);
+  --color-text-inverted: var(--color-gray-900);
 
   // Couleurs de fond spécifiques aux sections en mode sombre
   --color-hero-bg: 0 0% 20%;           // Gris sombre neutre (sans bleu)
@@ -83,4 +131,10 @@
   --color-primary-contrast: var(--color-gray-50);
   // Le survol s'ÉCLAIRCIT ici, puisque le fond de départ est déjà clair.
   --color-primary-hover: var(--color-primary-200);
+  // Bleu sombre
+  --color-primary-subtle: 211 80% 20%;
+
+  // ===== TRAITEMENT DES LOGOS =====
+  // Les logo.svg sont déjà sombres : aucun filtre en thème sombre.
+  --logo-filter: none;
 }

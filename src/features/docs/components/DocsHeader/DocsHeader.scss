@@ -33,9 +33,9 @@
   width: auto;
   object-fit: contain;
   // Le logo source est sombre : inversé en thème clair, laissé tel quel en sombre.
-  // Même mécanisme que --logo-filter dans la feature header, redéclaré localement pour
-  // la même raison que les couleurs ci-dessous.
-  filter: var(--docs-header-logo-filter);
+  // --logo-filter est un rôle GLOBAL (semantic-colors.scss) depuis que trois features
+  // le consomment — header, footer et cette doc redéclaraient la même paire de valeurs.
+  filter: var(--logo-filter);
 }
 
 .docs-header__title {

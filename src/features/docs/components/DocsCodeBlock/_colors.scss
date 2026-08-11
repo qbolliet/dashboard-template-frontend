@@ -13,7 +13,7 @@
 // clair hache la lecture.
 
 :root, [data-theme] {
-  --docs-code-bg: var(--color-gray-100);
+  --docs-code-bg: var(--color-surface-muted);
   --docs-code-color: var(--color-text-primary);
 
   --docs-code-hl-k: 265 60% 45%;   // mot-clé
@@ -27,9 +27,8 @@
 // ===== THÈME SOMBRE =====
 // Teintes désaturées et éclaircies : les mêmes hues à 30-45 % de luminosité deviennent
 // illisibles sur un fond sombre.
+// (Le fond, lui, n'est plus rattrapé ici : --color-surface-muted bascule seul.)
 [data-theme="dark"] {
-  --docs-code-bg: var(--color-gray-200);
-
   --docs-code-hl-k: 265 80% 78%;
   --docs-code-hl-s: 145 55% 65%;
   --docs-code-hl-c: 218 11% 58%;

@@ -8,12 +8,14 @@
   // ===== NAVIGATION GÉNÉRALE =====
   --nav-link-color: var(--color-text-primary);
   --nav-link-hover-color: var(--color-text-primary);
-  --nav-link-hover-bg: var(--color-gray-100);
+  --nav-link-hover-bg: var(--color-surface-muted);
   --nav-link-focus-color: var(--color-primary-500);
   --nav-link-active-color: var(--color-primary-500);
-  --nav-link-active-bg: var(--color-primary-50);
+  --nav-link-active-bg: var(--color-primary-subtle);
   --nav-link-active-child-color: var(--color-primary-600);
-  --nav-link-active-child-bg: var(--color-primary-50);
+  // Même fond que le parent : la hiérarchie est portée par le retrait et la ligne
+  // verticale, pas par une seconde teinte de bleu (elle n'existait qu'en sombre).
+  --nav-link-active-child-bg: var(--color-primary-subtle);
 
   // ===== NAVIGATION MOBILE & OVERLAY =====
   // --topbar-drawer-bg / --topbar-drawer-shadow / --topbar-overlay-bg : spécifiques à la
@@ -26,7 +28,8 @@
 
   // ===== HAMBURGER MENU =====
   --nav-hamburger-color: var(--color-text-primary);
-  --nav-hamburger-bg-hover: var(--color-gray-100);
+  // Même survol que les liens de navigation : c'est un contrôle de la même barre.
+  --nav-hamburger-bg-hover: var(--color-surface-muted);
   --nav-hamburger-border-focus: var(--color-gray-400);
 
   // ===== DROPDOWN NAVIGATION =====
@@ -34,7 +37,7 @@
   --nav-dropdown-bg: var(--color-surface);
   --nav-dropdown-border: var(--color-border);
   --nav-dropdown-shadow: 0 0% 0%;  // Pour box-shadow avec alpha
-  --nav-dropdown-mobile-bg: var(--color-gray-50);
+  --nav-dropdown-mobile-bg: var(--color-surface-muted);
   --nav-dropdown-separator: var(--color-border);
 
   // ===== LIGNE DE HIÉRARCHIE (barre verticale des niveaux imbriqués) =====
@@ -44,72 +47,41 @@
   // ===== DROPDOWN - LIENS PRINCIPAUX =====
   --nav-dropdown-link-color: var(--color-text-tertiary);
   --nav-dropdown-link-hover-color: var(--color-text-secondary);
-  --nav-dropdown-link-hover-bg: var(--color-gray-50);
+  --nav-dropdown-link-hover-bg: var(--color-surface-muted);
   --nav-dropdown-link-active-color: var(--color-primary-500);
-  --nav-dropdown-link-active-bg: var(--color-primary-50);
+  --nav-dropdown-link-active-bg: var(--color-primary-subtle);
 
   // ===== DROPDOWN - GROUP HEADERS =====
   --nav-dropdown-group-header-color: var(--color-text-secondary);
   --nav-dropdown-group-header-hover-color: var(--color-text-secondary);
-  --nav-dropdown-group-header-hover-bg: var(--color-gray-50);
+  --nav-dropdown-group-header-hover-bg: var(--color-surface-muted);
   --nav-dropdown-group-header-active-color: var(--color-primary-500);
-  --nav-dropdown-group-header-active-bg: var(--color-primary-50);
+  --nav-dropdown-group-header-active-bg: var(--color-primary-subtle);
 
   // ===== DROPDOWN - SUBLINKS =====
   --nav-dropdown-sublink-color: var(--color-text-tertiary);
   --nav-dropdown-sublink-hover-color: var(--color-text-secondary);
-  --nav-dropdown-sublink-hover-bg: var(--color-gray-50);
+  --nav-dropdown-sublink-hover-bg: var(--color-surface-muted);
   --nav-dropdown-sublink-active-color: var(--color-primary-500);
-  --nav-dropdown-sublink-active-bg: var(--color-primary-50);
-
-  // ===== LOGO FILTER =====
-  // Invert en mode clair pour les logos sombres
-  --logo-filter: invert(100%);
+  --nav-dropdown-sublink-active-bg: var(--color-primary-subtle);
 }
 
 // ===== THÈME SOMBRE =====
+// Ne restent ici que les rôles dont le SENS change entre thèmes — ceux qu'aucun token
+// sémantique ne peut porter parce qu'ils n'ont qu'un consommateur. Tout le reste (fonds
+// de survol, fonds d'état actif, séparateurs, couleurs de texte) bascule via
+// --color-surface-muted / --color-primary-subtle / --color-border.
 [data-theme="dark"] {
-  // ===== NAVIGATION GÉNÉRALE =====
+  // La barre principale s'efface d'un cran : ses liens partent du texte secondaire et
+  // remontent au texte primaire au survol, au lieu d'être tous à pleine intensité.
   --nav-link-color: var(--color-text-secondary);
-  --nav-link-hover-color: var(--color-white);
-  --nav-link-hover-bg: var(--color-gray-200);
+  // Le lien courant de la barre principale est l'état le plus fort du header : il passe
+  // au blanc plein, là où les liens du dropdown gardent le bleu (--color-primary-500,
+  // qui reste lisible sur --color-primary-subtle, ≈ 5,8:1). Différence VOULUE de
+  // hiérarchie entre les deux niveaux, pas une contrainte de contraste.
   --nav-link-active-color: var(--color-white);
-  --nav-link-active-bg: 211 80% 20%;     // Bleu sombre pour l'état actif
-  --nav-link-active-child-bg: 211 80% 15%; // Encore plus sombre pour les enfants actifs
 
-  // ===== NAVIGATION MOBILE =====
-  --topbar-drawer-bg: var(--color-surface);
-  --nav-mobile-separator: var(--color-gray-300);
-  --nav-hamburger-color: var(--color-text-primary);
-  --nav-hamburger-bg-hover: var(--color-gray-300);
-
-  // ===== DROPDOWN NAVIGATION =====
-  --nav-dropdown-bg: var(--color-surface);
-  --nav-dropdown-border: var(--color-gray-300);
-  --nav-dropdown-mobile-bg: var(--color-gray-200);
-  --nav-dropdown-separator: var(--color-gray-300);
-  --nav-hierarchy-line-color: var(--color-gray-300);
-
-  // ===== DROPDOWN - LIENS =====
-  --nav-dropdown-link-color: var(--color-text-tertiary);
-  --nav-dropdown-link-hover-color: var(--color-text-secondary);
-  --nav-dropdown-link-hover-bg: var(--color-gray-200);
-  --nav-dropdown-link-active-bg: 211 80% 20%;
-
-  // ===== DROPDOWN - GROUP HEADERS =====
+  // Même logique d'un cran d'écart pour les en-têtes de groupe du dropdown.
   --nav-dropdown-group-header-color: var(--color-text-tertiary);
   --nav-dropdown-group-header-hover-color: var(--color-white);
-  --nav-dropdown-group-header-hover-bg: var(--color-gray-200);
-  --nav-dropdown-group-header-active-color: var(--color-gray-400);
-  --nav-dropdown-group-header-active-bg: var(--color-gray-200);
-
-  // ===== DROPDOWN - SUBLINKS =====
-  --nav-dropdown-sublink-color: var(--color-text-tertiary);
-  --nav-dropdown-sublink-hover-color: var(--color-text-secondary);
-  --nav-dropdown-sublink-hover-bg: var(--color-gray-200);
-  --nav-dropdown-sublink-active-bg: 211 80% 20%;
-
-  // ===== LOGO FILTER =====
-  // Pas de filtre en mode sombre
-  --logo-filter: none;
 }

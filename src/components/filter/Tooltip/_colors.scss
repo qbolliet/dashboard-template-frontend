@@ -3,6 +3,6 @@
 // du groupe filter, voir ../_colors.scss). Importées par Tooltip.scss.
 
 :root, [data-theme] {
-  --tooltip-bg:    var(--color-gray-800); // fond de la bulle (sombre invariant)
-  --tooltip-color: var(--color-white);    // texte de la bulle
+  --tooltip-bg:    var(--color-surface-inverted); // fond de la bulle (contrasté en clair ET en sombre)
+  --tooltip-color: var(--color-text-inverted);    // texte de la bulle
 }

@@ -10,10 +10,8 @@
   --docs-header-border: var(--color-border);
   --docs-header-link-color: var(--color-text-primary);
   --docs-header-link-hover-color: var(--color-primary-500);
-  --docs-header-badge-bg: var(--color-primary-50);
+  --docs-header-badge-bg: var(--color-primary-subtle);
   --docs-header-badge-color: var(--color-primary-500);
-  // Le fichier logo.svg est sombre : inversé en thème clair, intact en sombre.
-  --docs-header-logo-filter: invert(100%);
 
   // ===== SIDEBAR =====
   --docs-sidebar-bg: var(--color-background);
@@ -21,9 +19,9 @@
   --docs-sidebar-section-color: var(--color-text-primary);
   --docs-sidebar-link-color: var(--color-text-tertiary);
   --docs-sidebar-link-hover-color: var(--color-text-primary);
-  --docs-sidebar-link-hover-bg: var(--color-gray-100);
+  --docs-sidebar-link-hover-bg: var(--color-surface-muted);
   --docs-sidebar-link-active-color: var(--color-primary-500);
-  --docs-sidebar-link-active-bg: var(--color-primary-50);
+  --docs-sidebar-link-active-bg: var(--color-primary-subtle);
 
   // ===== SOMMAIRE =====
   --docs-toc-title-color: var(--color-text-secondary);
@@ -42,7 +40,7 @@
   --docs-prose-heading-color: var(--color-text-primary);
   --docs-prose-link-color: var(--color-primary-500);
   --docs-prose-border: var(--color-border);
-  --docs-prose-code-bg: var(--color-gray-100);
+  --docs-prose-code-bg: var(--color-surface-muted);
   --docs-prose-code-color: var(--color-text-primary);
   --docs-prose-muted-color: var(--color-text-tertiary);
 
@@ -64,13 +62,11 @@
 }
 
 // ===== THÈME SOMBRE =====
-// Seuls les rôles dont le contraste ne suit pas automatiquement sont redéfinis : les
-// autres héritent de la bascule des tokens sémantiques globaux.
+// Un seul rôle survit ici : celui dont le contraste ne suit pas automatiquement. Les
+// fonds (survol de la sidebar, bloc de code, pastille de version, lien courant) passent
+// par --color-surface-muted et --color-primary-subtle, qui basculent seuls — ce qui
+// rétablit au passage le contrat annoncé en tête de fichier, « aucune valeur brute »
+// (les deux `211 80% 20%` qui traînaient ici sont remontés au niveau 2).
 [data-theme="dark"] {
   --docs-header-link-hover-color: var(--color-white);
-  --docs-header-badge-bg: 211 80% 20%;
-  --docs-header-logo-filter: none;
-  --docs-sidebar-link-hover-bg: var(--color-gray-200);
-  --docs-sidebar-link-active-bg: 211 80% 20%;
-  --docs-prose-code-bg: var(--color-gray-200);
 }

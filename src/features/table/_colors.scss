@@ -10,7 +10,7 @@
 :root, [data-theme] {
   // ===== Bandes de fond partagées =====
   // Survol de ligne du corps du tableau — .tbl-grid tbody tr:hover td.
-  --table-row-hover-bg: var(--color-gray-50);
+  --table-row-hover-bg: var(--color-surface-muted);
   // Fond des bandes « chrome » (en-tête, pied, rangée de chips, méta) — .tbl-header,
   // .tbl-footer, .tbl-active-filters, .tbl-meta.
   --table-band-bg: var(--color-gray-50);

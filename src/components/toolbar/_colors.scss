@@ -15,11 +15,9 @@
   // Confirmation transitoire d'une action (libellé remplacé par « ✓ »).
   --toolbar-btn-done-color: var(--color-success-500);
 
-  --toolbar-tip-bg: var(--color-gray-900);
-  --toolbar-tip-color: var(--color-surface);
-}
-
-[data-theme='dark'] {
-  --toolbar-tip-bg: var(--color-gray-200);
-  --toolbar-tip-color: var(--color-gray-900);
+  // Bulle d'aide : même rôle global que components/filter/Tooltip et le panneau de
+  // TableSnippetReveal — une pastille contrastée qui ne suit pas l'inversion de
+  // l'échelle de gris.
+  --toolbar-tip-bg: var(--color-surface-inverted);
+  --toolbar-tip-color: var(--color-text-inverted);
 }

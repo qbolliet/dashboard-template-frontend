@@ -8,13 +8,15 @@
 
 :root, [data-theme] {
   // ===== SEARCHBAR - ÉTATS DE BASE =====
-  --search-bg: var(--color-gray-50);
-  --search-border: var(--color-gray-200);
+  // Champ légèrement en creux sur la barre : --color-surface-muted porte déjà le bon
+  // écart dans les deux thèmes, plus besoin de le rattraper en sombre.
+  --search-bg: var(--color-surface-muted);
+  --search-border: var(--color-border);
   --search-text: var(--color-text-primary);
   --search-placeholder: var(--color-text-tertiary);
 
   // ===== SEARCHBAR - ÉTATS INTERACTIFS =====
-  --search-border-hover: var(--color-gray-300);
+  --search-border-hover: var(--color-border-hover);
   --search-border-focus: var(--color-primary-500);
   --search-shadow-focus: var(--color-primary-200);
 
@@ -22,21 +24,21 @@
   --search-icon: var(--color-text-tertiary);
   --search-clear: var(--color-text-tertiary);
   --search-clear-hover: var(--color-text-secondary);
-  --search-clear-hover-bg: var(--color-gray-100);
+  --search-clear-hover-bg: var(--color-surface-muted);
 
   // ===== SUGGESTIONS DROPDOWN =====
-  --suggestions-bg: var(--color-white);
-  --suggestions-border: var(--color-gray-200);
+  --suggestions-bg: var(--color-surface);
+  --suggestions-border: var(--color-border);
 
   // ===== SUGGESTIONS - ITEMS =====
   --suggestion-text: var(--color-text-primary);
   --suggestion-description-text: var(--color-text-tertiary);
   --suggestion-icon: var(--color-text-tertiary);
-  --suggestion-separator: var(--color-gray-100);
+  --suggestion-separator: var(--color-border);
 
   // ===== SUGGESTIONS - ÉTATS INTERACTIFS =====
-  --suggestion-hover-bg: var(--color-gray-50);
-  --suggestion-selected-bg: var(--color-primary-50);
+  --suggestion-hover-bg: var(--color-surface-muted);
+  --suggestion-selected-bg: var(--color-primary-subtle);
 
   // ===== SUGGESTIONS - SURLIGNAGE DU FRAGMENT CORRESPONDANT =====
   --suggestion-highlight-bg: var(--color-primary-200);
@@ -44,29 +46,11 @@
 }
 
 // ===== THÈME SOMBRE =====
+// Seul le surlignage du fragment correspondant survit ici : c'est le seul rôle du
+// composant dont la paire de teintes s'INVERSE (fond clair/texte sombre en clair, fond
+// sombre/texte clair en sombre) sans qu'aucun token sémantique ne la porte — la rampe
+// primaire n'est pas inversée par le thème. Tout le reste passe par les rôles globaux.
 [data-theme="dark"] {
-  // ===== SEARCHBAR - ÉTATS DE BASE =====
-  --search-bg: var(--color-gray-200);
-  --search-border: var(--color-gray-300);
-  --search-text: var(--color-text-primary);
-  --search-placeholder: var(--color-text-tertiary);
-
-  // ===== SEARCHBAR - ÉTATS INTERACTIFS =====
-  --search-border-hover: var(--color-gray-400);
-
-  // ===== SEARCHBAR - ICÔNES =====
-  --search-clear-hover-bg: var(--color-gray-300);
-
-  // ===== SUGGESTIONS DROPDOWN =====
-  --suggestions-bg: var(--color-gray-50);
-  --suggestions-border: var(--color-gray-300);
-  --suggestion-separator: var(--color-gray-300);
-
-  // ===== SUGGESTIONS - ÉTATS INTERACTIFS =====
-  --suggestion-hover-bg: var(--color-gray-200);
-  --suggestion-selected-bg: 211 80% 20%;  // Bleu sombre pour la sélection
-
-  // ===== SUGGESTIONS - SURLIGNAGE DU FRAGMENT CORRESPONDANT =====
   --suggestion-highlight-bg: var(--color-primary-800);
   --suggestion-highlight-text: var(--color-primary-50);
 }

@@ -9,17 +9,11 @@
   --select-check-icon:      var(--color-white);         // ✓ et tiret indéterminé
 
   // ===== BOUTON CHEVRON =====
-  --select-toggle-color:    var(--color-text-tertiary); // couleur au repos
-  --select-toggle-hover-bg: var(--color-gray-100);      // fond au survol
+  --select-toggle-color:    var(--color-text-tertiary);      // couleur au repos
+  --select-toggle-hover-bg: var(--color-surface-muted);      // fond au survol
 
   // ===== EN-TÊTE DE GROUPE SURVOLÉ/ACTIF =====
-  --select-group-highlight-bg: var(--color-gray-200);   // fond au survol clavier/souris
-}
-
-// ===== THÈME SOMBRE =====
-// gray-100/200 s'assombrissent fortement en dark → on décale d'un cran les fonds
-// interactifs pour conserver un contraste lisible (cohérent avec ../_colors.scss).
-[data-theme="dark"] {
-  --select-toggle-hover-bg:    var(--color-gray-200);
-  --select-group-highlight-bg: var(--color-gray-300);
+  // Un cran AU-DESSUS du survol d'une option : cet en-tête se détache dans une liste
+  // dont les options sont déjà sur --color-surface-muted.
+  --select-group-highlight-bg: var(--color-surface-muted-hover); // survol clavier/souris
 }

@@ -92,7 +92,7 @@
   height: var(--sidebar-icon-size);
   flex-shrink: 0;
   object-fit: contain;
-  filter: hsl(var(--logo-filter));
+  filter: var(--logo-filter);
 
   .sidebar-item--sidebar-collapsed & {
     width: var(--sidebar-icon-size-collapsed);

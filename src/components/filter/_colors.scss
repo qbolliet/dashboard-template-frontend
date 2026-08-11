@@ -19,7 +19,7 @@
   --filter-surface: var(--color-surface);               // Fond des contrôles
 
   // ===== OPTIONS =====
-  --filter-option-hover-bg:       var(--color-gray-100);     // Fond au survol d'une option
+  --filter-option-hover-bg:       var(--color-surface-muted); // Fond au survol d'une option
   --filter-option-selected-color: var(--color-primary-500);  // Couleur texte option sélectionnée
 
   // ===== TAGS MULTI-SÉLECTION =====
@@ -27,7 +27,7 @@
   --filter-tag-color: var(--color-primary-500);  // Texte des tags
 
   // ===== EN-TÊTES DE GROUPE =====
-  --filter-group-header-bg: var(--color-gray-100);  // Fond des en-têtes de groupe
+  --filter-group-header-bg: var(--color-surface-muted);  // Fond des en-têtes de groupe
 
   // ===== PLACEHOLDER =====
   --filter-placeholder-color: var(--color-text-tertiary);
@@ -37,11 +37,3 @@
   --filter-error-shadow:   hsl(var(--color-error-500) / 0.12);
 }
 
-// ===== THÈME SOMBRE =====
-// On ne surcharge que ce qui change visuellement : les tokens qui référencent des
-// primitives sémantiques s'adaptent déjà via la cascade de [data-theme="dark"].
-[data-theme="dark"] {
-  // gray-100 devient très sombre en dark → utiliser gray-200 pour les fonds interactifs
-  --filter-option-hover-bg:  var(--color-gray-200);
-  --filter-group-header-bg:  var(--color-gray-200);
-}
