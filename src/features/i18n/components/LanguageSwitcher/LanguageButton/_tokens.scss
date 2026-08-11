@@ -4,9 +4,13 @@
 
 :root {
   // ===== GABARIT =====
-  // Pilotée par --lang-switch-flag-size : la hauteur du bouton (et, en mode
-  // compact, sa largeur) suit l'échelle sm/md/lg sans variable dédiée par palier.
-  --lang-switch-btn-height: calc(var(--lang-switch-flag-size) + var(--spacing-md));
+  // Pas de --lang-switch-btn-height ici : une propriété personnalisée héritée
+  // transmet sa valeur déjà calculée à l'élément qui la déclare (:root), pas
+  // son expression à réévaluer plus bas — un token dédié figerait donc la
+  // hauteur du bouton sur --lang-switch-flag-size tel que vu depuis :root
+  // (la valeur md), sourd aux réassignations sm/lg pourtant portées par un
+  // ANCÊTRE du bouton (.lang-switch--sm/--lg). Le calc() vit directement sur
+  // `height`/`width` dans LanguageButton.scss, où il se résout au bon élément.
   --lang-switch-btn-padding-x: calc(var(--spacing-xs) + var(--spacing-px));
   --lang-switch-btn-border-width: 1px;
   // --border-radius-pill (999px) et non --border-radius-full (50%) : le bouton

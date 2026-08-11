@@ -14,7 +14,18 @@
   display: inline-flex;
   align-items: center;
   gap: var(--lang-switch-gap);
-  height: var(--lang-switch-btn-height);
+  // calc() en ligne, et non var(--lang-switch-btn-height) : une propriété
+  // personnalisée héritée transmet sa valeur DÉJÀ CALCULÉE à l'élément où elle
+  // a été déclarée (ici :root), pas son expression à re-résoudre localement.
+  // Un --lang-switch-btn-height défini une seule fois sur :root figerait donc
+  // --lang-switch-flag-size à sa valeur md, sourd aux réassignations de
+  // .lang-switch--sm/--lg pourtant portées par un ANCÊTRE de ce bouton — même
+  // piège que celui déjà documenté pour les couleurs en ../_colors.scss, non
+  // rattrapable par un simple `:root, [data-theme]` puisqu'il n'y a pas de
+  // second sélecteur de thème à ajouter ici. Écrire le calc() directement sur
+  // la propriété consommée le fait résoudre à CET élément, où
+  // --lang-switch-flag-size porte la bonne valeur.
+  height: calc(var(--lang-switch-flag-size) + var(--spacing-md));
   padding: 0 var(--lang-switch-btn-padding-x);
   background-color: hsl(var(--lang-switch-surface));
   border: var(--lang-switch-btn-border-width) solid hsl(var(--lang-switch-border));
@@ -35,9 +46,11 @@
   }
 
   // Variante compacte : largeur = hauteur → bouton rond, drapeau seul (code et
-  // chevron déjà absents du DOM côté JSX, pas seulement masqués en CSS).
+  // chevron déjà absents du DOM côté JSX, pas seulement masqués en CSS). Même
+  // calc() en ligne que `height` ci-dessus, pour la même raison : résolu à CE
+  // bouton, il suit --lang-switch-flag-size quelle que soit la taille active.
   .lang-switch--compact & {
-    width: var(--lang-switch-btn-height);
+    width: calc(var(--lang-switch-flag-size) + var(--spacing-md));
     padding: 0;
     justify-content: center;
   }
