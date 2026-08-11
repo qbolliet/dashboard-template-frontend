@@ -166,6 +166,21 @@ const UNIT_DEFINITIONS = [
 
   { name: 'theme', type: 'feature', roots: ['src/features/theme'] },
   { name: 'footer', type: 'feature', roots: ['src/features/footer'] },
+
+  // Racines explicites, PAS 'src/features/i18n' entier : LocaleSwitcher,
+  // LocaleRedirect et LocaleProvider dépendent de src/i18n/ (dictionnaire +
+  // config du site), donc ne sont pas autonomes — seul le groupe de présentation
+  // pure <LanguageSwitcher> l'est (cf. §1 de LANGUAGE_SWITCHER_ARCHITECTURE.md).
+  // Le hook vit à la racine de la feature (hooks/), pas sous components/, d'où
+  // la seconde racine explicite.
+  {
+    name: 'language-switcher',
+    type: 'feature',
+    roots: [
+      'src/features/i18n/components/LanguageSwitcher',
+      'src/features/i18n/hooks/useLanguageMenu.js',
+    ],
+  },
   // Chrome du site de documentation. Déclarée pour que l'inventaire connaisse ces
   // fichiers (sinon ils remontent en `unownedFiles`), mais NON publiée : elle figure
   // dans EXCLUDED_UNITS de build-registry.js.
@@ -188,6 +203,11 @@ const UNIT_DEFINITIONS = [
   { name: 'utils-accessibility', type: 'lib', roots: ['src/utils/accessibility'] },
   { name: 'utils-format', type: 'lib', roots: ['src/utils/format'] },
   { name: 'utils-html', type: 'lib', roots: ['src/utils/html'] },
+  // Primitives pures consommées par language-switcher (interpolate, mergeLabels)
+  // ET par la couche src/i18n/ du dépôt (pluralize, negotiateLocale,
+  // resolveLocalized, localePath) : un seul dossier, comme les autres unités
+  // utils-*, pas un découpage par consommateur.
+  { name: 'utils-i18n', type: 'lib', roots: ['src/utils/i18n'] },
   { name: 'utils-math', type: 'lib', roots: ['src/utils/math'] },
   { name: 'utils-navigation', type: 'lib', roots: ['src/utils/navigation'] },
   // Préfixe de déploiement. Unité minuscule mais OBLIGATOIRE : globe, header et home
@@ -235,7 +255,10 @@ function listFiles(repoDir) {
       // Un .next/ égaré dans les sources ne doit jamais entrer dans l'inventaire.
       if (entry.name === '.next' || entry.name === 'node_modules') continue;
       collected.push(...listFiles(child));
-    } else if (SOURCE_EXTENSIONS.has(path.extname(entry.name))) {
+    } else if (SOURCE_EXTENSIONS.has(path.extname(entry.name)) && !/\.test\.[jt]sx?$/.test(entry.name)) {
+      // Suites Vitest colocalisées : jamais distribuables (un tiers installant un
+      // item via le registry ne doit recevoir ni le fichier de test, ni `vitest`
+      // comme dépendance npm — package.json ne le déclare qu'en devDependency).
       collected.push(child);
     }
   }

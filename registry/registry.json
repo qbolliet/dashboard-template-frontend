@@ -226,11 +226,9 @@
         "d3-array",
         "d3-color",
         "d3-contour",
-        "d3-format",
         "d3-geo",
         "d3-interpolate",
         "d3-shape",
-        "d3-time-format",
         "swr"
       ],
       "registryDependencies": [
@@ -240,7 +238,8 @@
         "hover-toolbar",
         "icons",
         "tokens-global",
-        "toolbar-tools"
+        "toolbar-tools",
+        "utils-i18n"
       ],
       "files": [
         {
@@ -734,6 +733,8 @@
         "filter-tokens",
         "tokens-global",
         "type-aware-input",
+        "utils-format",
+        "utils-i18n",
         "utils-math"
       ],
       "files": [
@@ -802,7 +803,8 @@
         "select-menu",
         "tokens-global",
         "tooltip",
-        "type-aware-input"
+        "type-aware-input",
+        "utils-i18n"
       ],
       "files": [
         {
@@ -954,6 +956,7 @@
       "dependencies": [],
       "registryDependencies": [
         "tokens-global",
+        "utils-i18n",
         "utils-url"
       ],
       "files": [
@@ -993,6 +996,7 @@
         "toolbar-tools",
         "utils-accessibility",
         "utils-html",
+        "utils-i18n",
         "utils-math",
         "utils-url"
       ],
@@ -1101,6 +1105,11 @@
           "path": "src/features/globe/index.js",
           "type": "registry:file",
           "target": "~/src/features/globe/index.js"
+        },
+        {
+          "path": "src/features/globe/sources/demoData.js",
+          "type": "registry:file",
+          "target": "~/src/features/globe/sources/demoData.js"
         }
       ],
       "docs": "Les trois textures de la Terre (`public/globe/earth-day.jpg`, `earth-night.png`, `earth-specular.jpg`) sont des binaires : le registry ne peut pas les transporter. Copie-les depuis le dépôt du template dans le `public/globe/` de ton projet. `three` (~600 kB) n'est chargé qu'à l'affichage du composant.",
@@ -1150,6 +1159,7 @@
         "icons",
         "theme",
         "tokens-global",
+        "utils-i18n",
         "utils-math",
         "utils-url"
       ],
@@ -1830,6 +1840,133 @@
       ]
     },
     {
+      "name": "language-switcher",
+      "type": "registry:block",
+      "title": "Sélecteur de langue",
+      "description": "Bouton drapeau + code pays ouvrant un menu déroulant des langues suivant le motif ARIA listbox, navigable au clavier, avec repli textuel quand le drapeau n'est pas joignable.",
+      "categories": [
+        "internationalisation"
+      ],
+      "dependencies": [],
+      "registryDependencies": [
+        "icons",
+        "tokens-global",
+        "utils-i18n"
+      ],
+      "files": [
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/_colors.scss"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/_tokens.scss"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/FlagChip/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/FlagChip/_colors.scss"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/FlagChip/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/FlagChip/_tokens.scss"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/FlagChip/FlagChip.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/FlagChip/FlagChip.jsx"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/FlagChip/FlagChip.scss",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/FlagChip/FlagChip.scss"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/index.js",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/index.js"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageButton/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/LanguageButton/_colors.scss"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageButton/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/LanguageButton/_tokens.scss"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageButton/LanguageButton.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/LanguageButton/LanguageButton.jsx"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageButton/LanguageButton.scss",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/LanguageButton/LanguageButton.scss"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageMenu/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/LanguageMenu/_tokens.scss"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageMenu/LanguageMenu.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/LanguageMenu/LanguageMenu.jsx"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageMenu/LanguageMenu.scss",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/LanguageMenu/LanguageMenu.scss"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageOption/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/LanguageOption/_colors.scss"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageOption/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/LanguageOption/_tokens.scss"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageOption/LanguageOption.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/LanguageOption/LanguageOption.jsx"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageOption/LanguageOption.scss",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/LanguageOption/LanguageOption.scss"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/languages.js",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/languages.js"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageSwitcher/LanguageSwitcher.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/LanguageSwitcher/LanguageSwitcher.jsx"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageSwitcher/LanguageSwitcher.scss",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/components/LanguageSwitcher/LanguageSwitcher/LanguageSwitcher.scss"
+        },
+        {
+          "path": "src/features/i18n/hooks/useLanguageMenu.js",
+          "type": "registry:file",
+          "target": "~/src/features/i18n/hooks/useLanguageMenu.js"
+        }
+      ]
+    },
+    {
       "name": "large-button",
       "type": "registry:ui",
       "title": "LargeButton",
@@ -1916,11 +2053,11 @@
         "api-client",
         "chart",
         "filter",
-        "hero",
         "table",
         "tokens-global",
         "ui",
-        "utils-format"
+        "utils-format",
+        "utils-i18n"
       ],
       "files": [
         {
@@ -1932,11 +2069,6 @@
           "path": "config/filter/operations.json",
           "type": "registry:file",
           "target": "~/config/filter/operations.json"
-        },
-        {
-          "path": "config/site.config.json",
-          "type": "registry:file",
-          "target": "~/config/site.config.json"
         },
         {
           "path": "src/page-templates/_tokens.scss",
@@ -2034,6 +2166,7 @@
         "hooks-floating",
         "icons",
         "tokens-global",
+        "utils-i18n",
         "visually-hidden"
       ],
       "files": [
@@ -2106,7 +2239,8 @@
       "registryDependencies": [
         "icons",
         "tokens-global",
-        "utils-format"
+        "utils-format",
+        "utils-i18n"
       ],
       "files": [
         {
@@ -2194,7 +2328,8 @@
         "icons",
         "table-tokens",
         "tokens-global",
-        "utils-format"
+        "utils-format",
+        "utils-i18n"
       ],
       "files": [
         {
@@ -2471,7 +2606,8 @@
       "dependencies": [],
       "registryDependencies": [
         "icons",
-        "tokens-global"
+        "tokens-global",
+        "utils-i18n"
       ],
       "files": [
         {
@@ -2662,6 +2798,8 @@
         "icons",
         "tokens-global",
         "utils-accessibility",
+        "utils-format",
+        "utils-i18n",
         "visually-hidden"
       ],
       "files": [
@@ -2783,6 +2921,53 @@
           "path": "src/utils/html/escapeHtml.js",
           "type": "registry:file",
           "target": "~/src/utils/html/escapeHtml.js"
+        }
+      ]
+    },
+    {
+      "name": "utils-i18n",
+      "type": "registry:lib",
+      "title": "Utilitaires d'internationalisation",
+      "description": "Gabarits de libellés à trous nommés (texte ou nœuds React), fusion filtrée d'un dictionnaire partiel, accord en nombre, lecture d'un champ de config traduisible et du segment de langue d'une URL.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/utils/i18n/interpolate.js",
+          "type": "registry:file",
+          "target": "~/src/utils/i18n/interpolate.js"
+        },
+        {
+          "path": "src/utils/i18n/interpolateNodes.jsx",
+          "type": "registry:file",
+          "target": "~/src/utils/i18n/interpolateNodes.jsx"
+        },
+        {
+          "path": "src/utils/i18n/localePath.js",
+          "type": "registry:file",
+          "target": "~/src/utils/i18n/localePath.js"
+        },
+        {
+          "path": "src/utils/i18n/mergeLabels.js",
+          "type": "registry:file",
+          "target": "~/src/utils/i18n/mergeLabels.js"
+        },
+        {
+          "path": "src/utils/i18n/negotiateLocale.js",
+          "type": "registry:file",
+          "target": "~/src/utils/i18n/negotiateLocale.js"
+        },
+        {
+          "path": "src/utils/i18n/pluralize.js",
+          "type": "registry:file",
+          "target": "~/src/utils/i18n/pluralize.js"
+        },
+        {
+          "path": "src/utils/i18n/resolveLocalized.js",
+          "type": "registry:file",
+          "target": "~/src/utils/i18n/resolveLocalized.js"
         }
       ]
     },

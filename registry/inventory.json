@@ -1,8 +1,8 @@
 {
   "$comment": "Généré par scripts/build-inventory.js — ne pas éditer à la main.",
-  "generatedAt": "2026-08-05T20:29:15.705Z",
-  "unitCount": 53,
-  "fileCount": 433,
+  "generatedAt": "2026-08-11T09:35:55.255Z",
+  "unitCount": 55,
+  "fileCount": 503,
   "fanoutThreshold": 3,
   "units": {
     "accessible-icon": {
@@ -622,11 +622,9 @@
         "d3-array",
         "d3-color",
         "d3-contour",
-        "d3-format",
         "d3-geo",
         "d3-interpolate",
         "d3-shape",
-        "d3-time-format",
         "swr"
       ],
       "npmAsyncOnly": [
@@ -649,14 +647,16 @@
         "hover-toolbar",
         "icons",
         "tokens-global",
-        "toolbar-tools"
+        "toolbar-tools",
+        "utils-i18n"
       ],
       "internalCode": [
         "api-client",
         "hooks-layout-effect",
         "hover-toolbar",
         "icons",
-        "toolbar-tools"
+        "toolbar-tools",
+        "utils-i18n"
       ],
       "internalTokens": [
         "chart-tokens",
@@ -671,7 +671,8 @@
         "tokens-global",
         "toolbar-button",
         "toolbar-tokens",
-        "toolbar-tools"
+        "toolbar-tools",
+        "utils-i18n"
       ],
       "styleGlobals": [],
       "assets": [],
@@ -829,11 +830,15 @@
         "filter-tokens",
         "tokens-global",
         "type-aware-input",
+        "utils-format",
+        "utils-i18n",
         "utils-math"
       ],
       "internalCode": [
         "date-parse",
         "type-aware-input",
+        "utils-format",
+        "utils-i18n",
         "utils-math"
       ],
       "internalTokens": [
@@ -849,6 +854,8 @@
         "tokens-global",
         "type-aware-input",
         "utils-accessibility",
+        "utils-format",
+        "utils-i18n",
         "utils-math",
         "visually-hidden"
       ],
@@ -890,7 +897,7 @@
         "src/features/docs"
       ],
       "clientBoundary": true,
-      "fileCount": 16,
+      "fileCount": 51,
       "files": [
         {
           "path": "src/features/docs/_colors.scss",
@@ -901,6 +908,38 @@
           "kind": "tokens"
         },
         {
+          "path": "src/features/docs/components/ComponentPlayground/ComponentPlayground.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/ComponentPlayground/ComponentPlayground.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/docs/components/ComponentPreview/ComponentPreview.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/ComponentPreview/ComponentPreview.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/docs/components/ComponentPreview/ComponentPreviewSource.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/CopyButton/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/docs/components/CopyButton/CopyButton.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/CopyButton/CopyButton.scss",
+          "kind": "style"
+        },
+        {
           "path": "src/features/docs/components/DocsBreadcrumb/DocsBreadcrumb.jsx",
           "kind": "component"
         },
@@ -909,11 +948,31 @@
           "kind": "style"
         },
         {
+          "path": "src/features/docs/components/DocsCodeBlock/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/docs/components/DocsCodeBlock/DocsCodeBlock.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/DocsCodeBlock/DocsCodeBlock.scss",
+          "kind": "style"
+        },
+        {
           "path": "src/features/docs/components/DocsHeader/DocsHeader.jsx",
           "kind": "component"
         },
         {
           "path": "src/features/docs/components/DocsHeader/DocsHeader.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/docs/components/DocsMissing/DocsMissing.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/DocsMissing/DocsMissing.scss",
           "kind": "style"
         },
         {
@@ -949,28 +1008,126 @@
           "kind": "style"
         },
         {
+          "path": "src/features/docs/components/PlaygroundControls/PlaygroundControlPanel.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/PlaygroundControls/PlaygroundControls.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/PlaygroundControls/PlaygroundControls.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/docs/components/PreviewFrame/PreviewFrame.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/PreviewFrame/PreviewFrame.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/docs/components/PropsTable/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/docs/components/PropsTable/PropsTable.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/PropsTable/PropsTable.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/docs/components/TokenCascade/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/docs/components/TokenCascade/TokenCascade.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/TokenCascade/TokenCascade.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/docs/components/TokenPlayground/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/docs/components/TokenPlayground/TokenPlayground.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/TokenPlayground/TokenPlayground.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/docs/components/TokenReference/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/docs/components/TokenReference/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/docs/components/TokenReference/TokenChain.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/TokenReference/TokenReference.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/docs/components/TokenReference/TokenReference.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/docs/components/TokenReference/TokenSwatch.jsx",
+          "kind": "component"
+        },
+        {
           "path": "src/features/docs/constants.js",
           "kind": "lib"
         },
         {
           "path": "src/features/docs/index.js",
           "kind": "barrel"
+        },
+        {
+          "path": "src/features/docs/utils/serializeJsx.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/docs/utils/tokenScope.js",
+          "kind": "util"
         }
       ],
       "npm": [],
       "npmAsyncOnly": [],
       "asyncOnlyFiles": [],
       "internal": [
+        "common",
+        "hooks-debounce",
+        "icons",
         "skip-link",
         "styles-app",
         "theme",
         "tokens-global",
+        "ui",
+        "utils-i18n",
         "utils-navigation",
         "utils-url"
       ],
       "internalCode": [
+        "common",
+        "hooks-debounce",
+        "icons",
         "skip-link",
         "theme",
+        "ui",
+        "utils-i18n",
         "utils-navigation",
         "utils-url"
       ],
@@ -979,13 +1136,29 @@
         "tokens-global"
       ],
       "internalResolved": [
+        "accessible-icon",
+        "badge",
+        "card-grid",
+        "common",
+        "hero",
+        "hooks-debounce",
+        "hooks-layout-effect",
         "icons",
+        "large-button",
+        "link-card",
+        "link-cards-section",
         "skip-link",
+        "stat-card",
         "styles-app",
+        "tabs",
         "theme",
         "tokens-global",
+        "ui",
+        "utils-format",
+        "utils-i18n",
         "utils-navigation",
-        "utils-url"
+        "utils-url",
+        "visually-hidden"
       ],
       "styleGlobals": [
         "src/styles/globals/typography.scss",
@@ -1101,7 +1274,8 @@
         "select-menu",
         "tokens-global",
         "tooltip",
-        "type-aware-input"
+        "type-aware-input",
+        "utils-i18n"
       ],
       "internalCode": [
         "api-client",
@@ -1111,7 +1285,8 @@
         "icons",
         "select-menu",
         "tooltip",
-        "type-aware-input"
+        "type-aware-input",
+        "utils-i18n"
       ],
       "internalTokens": [
         "filter-feature-tokens",
@@ -1134,6 +1309,8 @@
         "tooltip",
         "type-aware-input",
         "utils-accessibility",
+        "utils-format",
+        "utils-i18n",
         "utils-math",
         "visually-hidden"
       ],
@@ -1239,9 +1416,11 @@
       "asyncOnlyFiles": [],
       "internal": [
         "tokens-global",
+        "utils-i18n",
         "utils-url"
       ],
       "internalCode": [
+        "utils-i18n",
         "utils-url"
       ],
       "internalTokens": [
@@ -1249,6 +1428,7 @@
       ],
       "internalResolved": [
         "tokens-global",
+        "utils-i18n",
         "utils-url"
       ],
       "styleGlobals": [
@@ -1269,7 +1449,7 @@
         "src/features/globe"
       ],
       "clientBoundary": true,
-      "fileCount": 21,
+      "fileCount": 22,
       "files": [
         {
           "path": "src/features/globe/components/Globe/_colors.scss",
@@ -1354,6 +1534,10 @@
         {
           "path": "src/features/globe/index.js",
           "kind": "barrel"
+        },
+        {
+          "path": "src/features/globe/sources/demoData.js",
+          "kind": "fixture"
         }
       ],
       "npm": [
@@ -1377,6 +1561,7 @@
         "toolbar-tools",
         "utils-accessibility",
         "utils-html",
+        "utils-i18n",
         "utils-math",
         "utils-url"
       ],
@@ -1386,6 +1571,7 @@
         "toolbar-tools",
         "utils-accessibility",
         "utils-html",
+        "utils-i18n",
         "utils-math",
         "utils-url"
       ],
@@ -1404,6 +1590,7 @@
         "toolbar-tools",
         "utils-accessibility",
         "utils-html",
+        "utils-i18n",
         "utils-math",
         "utils-url"
       ],
@@ -1697,6 +1884,7 @@
         "icons",
         "theme",
         "tokens-global",
+        "utils-i18n",
         "utils-math",
         "utils-url"
       ],
@@ -1705,6 +1893,7 @@
         "hooks-accessibility",
         "icons",
         "theme",
+        "utils-i18n",
         "utils-math",
         "utils-url"
       ],
@@ -1722,6 +1911,7 @@
         "theme",
         "tokens-global",
         "utils-accessibility",
+        "utils-i18n",
         "utils-math",
         "utils-url",
         "visually-hidden"
@@ -2199,6 +2389,130 @@
       "externalConfig": [],
       "warnings": []
     },
+    "language-switcher": {
+      "type": "feature",
+      "distributable": true,
+      "roots": [
+        "src/features/i18n/components/LanguageSwitcher",
+        "src/features/i18n/hooks/useLanguageMenu.js"
+      ],
+      "clientBoundary": true,
+      "fileCount": 22,
+      "files": [
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/FlagChip/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/FlagChip/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/FlagChip/FlagChip.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/FlagChip/FlagChip.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/index.js",
+          "kind": "barrel"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageButton/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageButton/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageButton/LanguageButton.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageButton/LanguageButton.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageMenu/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageMenu/LanguageMenu.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageMenu/LanguageMenu.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageOption/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageOption/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageOption/LanguageOption.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageOption/LanguageOption.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/languages.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageSwitcher/LanguageSwitcher.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/i18n/components/LanguageSwitcher/LanguageSwitcher/LanguageSwitcher.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/i18n/hooks/useLanguageMenu.js",
+          "kind": "hook"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "icons",
+        "tokens-global",
+        "utils-i18n"
+      ],
+      "internalCode": [
+        "icons",
+        "utils-i18n"
+      ],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "icons",
+        "tokens-global",
+        "utils-i18n"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
     "large-button": {
       "type": "component",
       "distributable": true,
@@ -2412,20 +2726,20 @@
         "api-client",
         "chart",
         "filter",
-        "hero",
         "table",
         "tokens-global",
         "ui",
-        "utils-format"
+        "utils-format",
+        "utils-i18n"
       ],
       "internalCode": [
         "api-client",
         "chart",
         "filter",
-        "hero",
         "table",
         "ui",
-        "utils-format"
+        "utils-format",
+        "utils-i18n"
       ],
       "internalTokens": [
         "tokens-global"
@@ -2466,6 +2780,7 @@
         "ui",
         "utils-accessibility",
         "utils-format",
+        "utils-i18n",
         "utils-math",
         "utils-url",
         "visually-hidden"
@@ -2479,8 +2794,7 @@
       "assets": [],
       "externalConfig": [
         "config/content/home.json",
-        "config/filter/operations.json",
-        "config/site.config.json"
+        "config/filter/operations.json"
       ],
       "warnings": []
     },
@@ -2526,6 +2840,7 @@
         "hooks-floating",
         "icons",
         "tokens-global",
+        "utils-i18n",
         "visually-hidden"
       ],
       "internalCode": [
@@ -2533,6 +2848,7 @@
         "hooks-debounce",
         "hooks-floating",
         "icons",
+        "utils-i18n",
         "visually-hidden"
       ],
       "internalTokens": [
@@ -2547,6 +2863,7 @@
         "hooks-layout-effect",
         "icons",
         "tokens-global",
+        "utils-i18n",
         "visually-hidden"
       ],
       "styleGlobals": [],
@@ -2664,11 +2981,13 @@
       "internal": [
         "icons",
         "tokens-global",
-        "utils-format"
+        "utils-format",
+        "utils-i18n"
       ],
       "internalCode": [
         "icons",
-        "utils-format"
+        "utils-format",
+        "utils-i18n"
       ],
       "internalTokens": [
         "tokens-global"
@@ -2676,7 +2995,8 @@
       "internalResolved": [
         "icons",
         "tokens-global",
-        "utils-format"
+        "utils-format",
+        "utils-i18n"
       ],
       "styleGlobals": [
         "src/styles/globals/tokens/semantic-colors.scss"
@@ -2859,14 +3179,16 @@
         "icons",
         "table-tokens",
         "tokens-global",
-        "utils-format"
+        "utils-format",
+        "utils-i18n"
       ],
       "internalCode": [
         "api-client",
         "filter",
         "hover-toolbar",
         "icons",
-        "utils-format"
+        "utils-format",
+        "utils-i18n"
       ],
       "internalTokens": [
         "table-tokens",
@@ -2895,6 +3217,7 @@
         "type-aware-input",
         "utils-accessibility",
         "utils-format",
+        "utils-i18n",
         "utils-math",
         "visually-hidden"
       ],
@@ -3086,17 +3409,20 @@
       "asyncOnlyFiles": [],
       "internal": [
         "icons",
-        "tokens-global"
+        "tokens-global",
+        "utils-i18n"
       ],
       "internalCode": [
-        "icons"
+        "icons",
+        "utils-i18n"
       ],
       "internalTokens": [
         "tokens-global"
       ],
       "internalResolved": [
         "icons",
-        "tokens-global"
+        "tokens-global",
+        "utils-i18n"
       ],
       "styleGlobals": [
         "src/styles/utils/breakpoints.scss"
@@ -3346,6 +3672,8 @@
         "icons",
         "tokens-global",
         "utils-accessibility",
+        "utils-format",
+        "utils-i18n",
         "visually-hidden"
       ],
       "internalCode": [
@@ -3354,6 +3682,8 @@
         "hooks-accessibility",
         "icons",
         "utils-accessibility",
+        "utils-format",
+        "utils-i18n",
         "visually-hidden"
       ],
       "internalTokens": [
@@ -3368,6 +3698,8 @@
         "icons",
         "tokens-global",
         "utils-accessibility",
+        "utils-format",
+        "utils-i18n",
         "visually-hidden"
       ],
       "styleGlobals": [],
@@ -3405,6 +3737,7 @@
       "internalCode": [
         "badge",
         "card-grid",
+        "hero",
         "large-button",
         "link-card",
         "link-cards-section",
@@ -3415,6 +3748,7 @@
       "internalResolved": [
         "badge",
         "card-grid",
+        "hero",
         "hooks-layout-effect",
         "icons",
         "large-button",
@@ -3424,6 +3758,7 @@
         "tabs",
         "tokens-global",
         "utils-format",
+        "utils-i18n",
         "utils-url",
         "visually-hidden"
       ],
@@ -3511,6 +3846,56 @@
       "files": [
         {
           "path": "src/utils/html/escapeHtml.js",
+          "kind": "util"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [],
+      "internalCode": [],
+      "internalTokens": [],
+      "internalResolved": [],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "utils-i18n": {
+      "type": "lib",
+      "distributable": true,
+      "roots": [
+        "src/utils/i18n"
+      ],
+      "clientBoundary": false,
+      "fileCount": 7,
+      "files": [
+        {
+          "path": "src/utils/i18n/interpolate.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/i18n/interpolateNodes.jsx",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/i18n/localePath.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/i18n/mergeLabels.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/i18n/negotiateLocale.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/i18n/pluralize.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/i18n/resolveLocalized.js",
           "kind": "util"
         }
       ],
@@ -3667,8 +4052,23 @@
     "cycles": [],
     "highFanout": [
       {
+        "unit": "docs",
+        "count": 9,
+        "dependencies": [
+          "common",
+          "hooks-debounce",
+          "icons",
+          "skip-link",
+          "theme",
+          "ui",
+          "utils-i18n",
+          "utils-navigation",
+          "utils-url"
+        ]
+      },
+      {
         "unit": "filter",
-        "count": 8,
+        "count": 9,
         "dependencies": [
           "api-client",
           "constraint-field",
@@ -3677,18 +4077,61 @@
           "icons",
           "select-menu",
           "tooltip",
-          "type-aware-input"
+          "type-aware-input",
+          "utils-i18n"
         ]
       },
       {
         "unit": "globe",
-        "count": 7,
+        "count": 8,
         "dependencies": [
           "hover-toolbar",
           "theme",
           "toolbar-tools",
           "utils-accessibility",
           "utils-html",
+          "utils-i18n",
+          "utils-math",
+          "utils-url"
+        ]
+      },
+      {
+        "unit": "type-aware-input",
+        "count": 8,
+        "dependencies": [
+          "calendar-month",
+          "date-parse",
+          "hooks-accessibility",
+          "icons",
+          "utils-accessibility",
+          "utils-format",
+          "utils-i18n",
+          "visually-hidden"
+        ]
+      },
+      {
+        "unit": "ui",
+        "count": 8,
+        "dependencies": [
+          "badge",
+          "card-grid",
+          "hero",
+          "large-button",
+          "link-card",
+          "link-cards-section",
+          "stat-card",
+          "tabs"
+        ]
+      },
+      {
+        "unit": "header",
+        "count": 7,
+        "dependencies": [
+          "common",
+          "hooks-accessibility",
+          "icons",
+          "theme",
+          "utils-i18n",
           "utils-math",
           "utils-url"
         ]
@@ -3700,90 +4143,57 @@
           "api-client",
           "chart",
           "filter",
-          "hero",
           "table",
           "ui",
-          "utils-format"
-        ]
-      },
-      {
-        "unit": "ui",
-        "count": 7,
-        "dependencies": [
-          "badge",
-          "card-grid",
-          "large-button",
-          "link-card",
-          "link-cards-section",
-          "stat-card",
-          "tabs"
-        ]
-      },
-      {
-        "unit": "header",
-        "count": 6,
-        "dependencies": [
-          "common",
-          "hooks-accessibility",
-          "icons",
-          "theme",
-          "utils-math",
-          "utils-url"
-        ]
-      },
-      {
-        "unit": "type-aware-input",
-        "count": 6,
-        "dependencies": [
-          "calendar-month",
-          "date-parse",
-          "hooks-accessibility",
-          "icons",
-          "utils-accessibility",
-          "visually-hidden"
+          "utils-format",
+          "utils-i18n"
         ]
       },
       {
         "unit": "chart",
-        "count": 5,
+        "count": 6,
         "dependencies": [
           "api-client",
           "hooks-layout-effect",
           "hover-toolbar",
           "icons",
-          "toolbar-tools"
+          "toolbar-tools",
+          "utils-i18n"
         ]
       },
       {
         "unit": "select-menu",
-        "count": 5,
+        "count": 6,
         "dependencies": [
           "api-client",
           "hooks-debounce",
           "hooks-floating",
           "icons",
+          "utils-i18n",
           "visually-hidden"
         ]
       },
       {
         "unit": "table",
-        "count": 5,
+        "count": 6,
         "dependencies": [
           "api-client",
           "filter",
           "hover-toolbar",
           "icons",
-          "utils-format"
+          "utils-format",
+          "utils-i18n"
         ]
       },
       {
-        "unit": "docs",
-        "count": 4,
+        "unit": "constraint-field",
+        "count": 5,
         "dependencies": [
-          "skip-link",
-          "theme",
-          "utils-navigation",
-          "utils-url"
+          "date-parse",
+          "type-aware-input",
+          "utils-format",
+          "utils-i18n",
+          "utils-math"
         ]
       }
     ]
@@ -3811,6 +4221,8 @@
       "@next/mdx",
       "@visx/clip-path",
       "@visx/group",
+      "d3-format",
+      "d3-time-format",
       "graphql",
       "remark-frontmatter"
     ],
@@ -3818,6 +4230,10 @@
       {
         "unit": "chart",
         "path": "src/features/chart/sources/demoData.js"
+      },
+      {
+        "unit": "globe",
+        "path": "src/features/globe/sources/demoData.js"
       },
       {
         "unit": "api-client",
@@ -3841,15 +4257,16 @@
       },
       {
         "unit": "pages",
-        "file": "src/page-templates/components/AboutPage/AboutPage.jsx",
-        "target": "config/site.config.json"
-      },
-      {
-        "unit": "pages",
         "file": "src/page-templates/components/IndicatorExplorer/IndicatorExplorer.jsx",
         "target": "config/filter/operations.json"
       }
     ],
-    "unownedFiles": []
+    "unownedFiles": [
+      "src/features/i18n/components/LocaleRedirect/LocaleRedirect.jsx",
+      "src/features/i18n/components/LocaleSwitcher/LocaleSwitcher.jsx",
+      "src/features/i18n/providers/LocaleProvider.jsx",
+      "src/utils/clipboard/copyToClipboard.js",
+      "src/utils/highlight/highlight.js"
+    ]
   }
 }
