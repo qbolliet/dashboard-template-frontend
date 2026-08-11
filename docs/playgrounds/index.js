@@ -21,6 +21,7 @@ export const PLAYGROUND_MODULES = {
     'criterion-menu': () => import('./criterion-menu.jsx'),
     'globe': () => import('./globe.jsx'),
     'header': () => import('./header.jsx'),
+    'language-switcher': () => import('./language-switcher.jsx'),
     'multi-criterion-menu': () => import('./multi-criterion-menu.jsx'),
     'select-menu': () => import('./select-menu.jsx'),
     'stat-card': () => import('./stat-card.jsx'),

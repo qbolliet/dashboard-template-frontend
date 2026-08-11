@@ -1,0 +1,67 @@
+---
+title: LanguageSwitcher
+description: Bouton drapeau ouvrant un menu déroulant des langues, navigable au clavier.
+order: 3
+---
+
+# LanguageSwitcher
+
+`<LanguageSwitcher>` est un bouton drapeau qui ouvre un menu déroulant des langues,
+selon le motif ARIA *Collapsible Dropdown Listbox* : les flèches parcourent la liste,
+`Début` et `Fin` sautent aux extrémités, `Échap` referme le menu en rendant le focus au
+bouton. Il ignore tout de l'internationalisation du site — ni `src/i18n/`, ni le
+routage, ni `LocaleProvider` — et reçoit ses langues, sa valeur et ses libellés en
+props. C'est cette ignorance qui le rend installable seul depuis le registry, dans un
+projet qui n'a ni manifeste ni dictionnaire.
+
+Le header du template ne monte pas `<LanguageSwitcher>` directement, mais
+`<LocaleSwitcher>` : un adaptateur sans rendu propre qui traduit `site.locales`, le
+dictionnaire courant et une navigation qui préserve le chemin en props pour la
+présentation. Cette frontière — la présentation d'un côté, le branchement de l'autre —
+est ce qui permet de faire évoluer le routage sans toucher au composant, et de
+réutiliser le composant sans le routage.
+
+## Explorer les paramètres
+
+<ComponentPlayground name="language-switcher" />
+
+## Cas d'usage
+
+<ComponentPreview name="language-switcher-basic" />
+
+<ComponentPreview name="language-switcher-compact" />
+
+<ComponentPreview name="language-switcher-controlled" />
+
+<ComponentPreview name="language-switcher-custom" />
+
+<ComponentPreview name="language-switcher-local-flags" />
+
+## Ajouter ou retirer une langue
+
+En autonome, la liste est une prop : passez `languages` avec les langues voulues,
+chacune un `{ code, country, name }` — c'est ce que montre l'exemple *Liste
+personnalisée* ci-dessus.
+
+Branché sur le site via `<LocaleSwitcher>`, la liste vient de la configuration :
+ajoutez le code dans `site.locales` et son pays dans `site.localeCountries`
+(`config/site.config.json`), puis complétez le dictionnaire de la nouvelle langue sous
+`src/i18n/dictionaries/`. `npm run check:i18n` liste ce qu'il reste à faire — la
+procédure complète est dans [Internationalisation](/guides/internationalisation).
+
+## Drapeaux
+
+Chaque drapeau passe par une fonction `flagSrc`, qui résout un code pays en URL
+d'image ; le défaut interroge flagcdn.com, un CDN public de drapeaux SVG. Fournir une
+autre fonction — pointant vers des fichiers `public/flags/<iso2>.svg` par exemple —
+bascule sur des drapeaux auto-hébergés sans toucher au composant, comme le montre
+l'exemple *Drapeaux auto-hébergés* ci-dessus.
+
+Le repli n'est pas un cas d'erreur à gérer : c'est du CSS. Le code pays est toujours
+rendu en texte, empilé sous l'image ; si celle-ci échoue à charger — ou si `flagSrc`
+renvoie `null` — elle n'est simplement pas peinte, et le texte redevient visible tout
+seul, sans état ni re-rendu React.
+
+## Props
+
+<PropsTable name="LanguageSwitcher" />
