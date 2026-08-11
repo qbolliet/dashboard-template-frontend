@@ -37,7 +37,7 @@
 }
 
 .doc-code__lang {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: var(--docs-demo-font-size);
   color: hsl(var(--docs-demo-label-color));
   // Un chemin de fichier long ne doit pas pousser le bouton de copie hors du cadre.
@@ -57,7 +57,7 @@
   margin: 0;
   padding: var(--spacing-lg);
   overflow-x: auto;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-mono);
   font-size: var(--docs-demo-font-size);
   line-height: 1.7;
   color: hsl(var(--docs-code-color));

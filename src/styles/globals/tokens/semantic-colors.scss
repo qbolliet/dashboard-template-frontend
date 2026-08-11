@@ -36,6 +36,19 @@
   --color-text-disabled: var(--color-gray-400);
   --color-text-on-primary: var(--color-white);
 
+  // ===== COULEUR PRIMAIRE =====
+  // Alias sémantiques de l'échelle numérotée : c'est ce que consomment les composants
+  // (SkipLink, boutons d'action), jamais `--color-primary-500` en direct — la valeur du
+  // palier 500 change entre thèmes, celle de l'alias suit sans que le composant le sache.
+  --color-primary: var(--color-primary-500);
+  // ⚠️ L'échelle primaire n'est PAS monotone : le palier 500 (L 24%) est plus SOMBRE que
+  // les paliers 600 à 800. Le survol descend donc jusqu'au palier 900 (L 22%), seul palier
+  // réellement plus sombre que 500 — passer par 600 éclaircirait au survol.
+  --color-primary-hover: var(--color-primary-900);
+  // Texte posé SUR --color-primary. Distinct de --color-text-on-primary, qui n'est pas
+  // redéfini en thème sombre et resterait blanc sur le bleu clair du mode sombre (≈ 1,9:1).
+  --color-primary-contrast: var(--color-white);
+
   // ===== COULEURS D'INTERACTION =====
   --color-focus: var(--color-primary-500);
   --color-focus-shadow: var(--color-primary-200);
@@ -57,4 +70,17 @@
   --color-text-secondary: var(--color-gray-500);
   --color-text-tertiary: var(--color-gray-400);
   --color-text-disabled: var(--color-gray-300);
+
+  // ===== COULEUR PRIMAIRE =====
+  // `--color-primary` n'a pas à être redéclarée : le bloc de base la déclare AUSSI sur
+  // `[data-theme]`, donc `var(--color-primary-500)` s'y résout sur l'élément porteur du
+  // thème, où la primitive vaut déjà le bleu clair du mode sombre (cf. l'avertissement
+  // en tête de fichier). Seuls les deux tokens dépendant du SENS du contraste changent.
+  //
+  // Le fond primaire est clair en thème sombre : le texte posé dessus doit être sombre.
+  // L'échelle de gris est inversée par le thème, --color-gray-50 y vaut le neutre le plus
+  // sombre (222 20% 7%) — ce n'est pas une erreur de palier.
+  --color-primary-contrast: var(--color-gray-50);
+  // Le survol s'ÉCLAIRCIT ici, puisque le fond de départ est déjà clair.
+  --color-primary-hover: var(--color-primary-200);
 }

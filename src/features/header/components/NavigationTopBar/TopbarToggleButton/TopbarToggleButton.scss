@@ -6,6 +6,7 @@
 // surchargés dans TopbarGroup.scss.
 
 @use '@/styles/utils/breakpoints' as *;
+@use '@/styles/utils/visually-hidden' as a11y;
 @use './tokens' as *;
 
 .topbar-toggle {
@@ -64,15 +65,7 @@
 
 // ===== CLASSE UTILITAIRE POUR L'ACCESSIBILITÉ =====
 .sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  @include a11y.visually-hidden;
 }
 
 // ===== SUPPORT POUR REDUCED MOTION =====

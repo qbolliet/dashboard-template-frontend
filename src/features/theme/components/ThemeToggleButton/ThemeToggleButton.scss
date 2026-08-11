@@ -2,6 +2,7 @@
 @use './tokens' as *;
 @use './colors' as *;
 @use '@/styles/utils/breakpoints' as *;
+@use '@/styles/utils/visually-hidden' as a11y;
 
 // ===== BOUTON PRINCIPAL =====
 .theme-toggle {
@@ -100,4 +101,9 @@
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+// ===== CLASSE UTILITAIRE POUR L'ACCESSIBILITÉ =====
+.sr-only {
+    @include a11y.visually-hidden;
 }

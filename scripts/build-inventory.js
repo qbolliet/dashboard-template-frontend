@@ -63,6 +63,10 @@ const UNIT_DEFINITIONS = [
       'src/styles/globals/custom-properties.scss',
       'src/styles/utils/breakpoints.scss',
       'src/styles/utils/functions.scss',
+      // Mixin de masquage accessible. Rattaché ici, et non à `styles-app`, parce que
+      // `styles-app` n'est pas distribuable : les unités `theme` et `header` utilisent
+      // `.sr-only` et doivent pouvoir la reconstruire chez un tiers.
+      'src/styles/utils/visually-hidden.scss',
     ],
   },
   {
@@ -119,9 +123,10 @@ const UNIT_DEFINITIONS = [
   { name: 'stat-card', type: 'component', roots: ['src/components/ui/StatCard'] },
   { name: 'tabs', type: 'component', roots: ['src/components/ui/Tabs'] },
 
-  // Baril racine de src/components/ — dead code cassé, isolé ici pour que le
-  // diagnostic le désigne nommément (cf. diagnostics.brokenBarrels).
-  { name: 'components-index', type: 'component', roots: ['src/components/index.js'] },
+  // Pas de baril racine pour src/components/ : chaque sous-dossier expose le sien
+  // (common/, icons/, ui/…). L'ancien src/components/index.js réexportait un dossier
+  // ./navigation supprimé depuis, n'avait aucun importateur, et n'existait plus que
+  // pour alimenter diagnostics.brokenBarrels — il a été retiré.
 
   // ---- src/features --------------------------------------------------------
   {

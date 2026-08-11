@@ -1,0 +1,44 @@
+// ===== MASQUAGE VISUEL ACCESSIBLE =====
+// Source unique de la géométrie « visible des seuls lecteurs d'écran ».
+//
+// POURQUOI UN MIXIN ET NON UNE CLASSE GLOBALE
+// La classe `.sr-only` vit dans styles/globals/accessibility.scss, qui appartient à
+// l'unité `styles-app` — marquée `distributable: false`. Un tiers qui installe le seul
+// item `theme` depuis le registry n'en reçoit donc RIEN : le texte destiné aux lecteurs
+// d'écran s'affichait en clair à côté du bouton de thème. Ce fichier-ci appartient à
+// `tokens-global`, dont TOUT item du registry dépend (cf. build-registry.js, TOKENS_ITEM
+// ajouté d'office) : le mixin est le seul véhicule qui atteigne les unités distribuées.
+//
+// Il n'émet aucune règle seul — l'agréger coûte zéro octet à qui ne l'appelle pas, et les
+// quelques duplications de `.sr-only` dans le bundle applicatif sont des règles
+// identiques, que le navigateur applique sans conflit.
+//
+// `clip` est déprécié mais conservé : `clip-path` seul laisse d'anciens moteurs
+// restituer l'élément à sa taille réelle. Les deux se doublent volontairement.
+
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Annule le masquage — pour un élément focusable qui doit redevenir visible au focus
+// (un lien de saut, typiquement). Séparé du mixin principal : la majorité des usages
+// masquent du texte non focusable, qui n'a rien à révéler.
+@mixin visually-hidden-reveal {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  clip-path: none;
+  white-space: normal;
+}

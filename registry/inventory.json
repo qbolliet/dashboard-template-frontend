@@ -1,8 +1,8 @@
 {
   "$comment": "Généré par scripts/build-inventory.js — ne pas éditer à la main.",
-  "generatedAt": "2026-08-11T09:50:57.337Z",
-  "unitCount": 55,
-  "fileCount": 503,
+  "generatedAt": "2026-08-11T12:16:25.699Z",
+  "unitCount": 54,
+  "fileCount": 504,
   "fanoutThreshold": 3,
   "units": {
     "accessible-icon": {
@@ -754,41 +754,6 @@
       "assets": [],
       "externalConfig": [],
       "warnings": []
-    },
-    "components-index": {
-      "type": "component",
-      "distributable": true,
-      "roots": [
-        "src/components/index.js"
-      ],
-      "clientBoundary": false,
-      "fileCount": 1,
-      "files": [
-        {
-          "path": "src/components/index.js",
-          "kind": "barrel"
-        }
-      ],
-      "npm": [],
-      "npmAsyncOnly": [],
-      "asyncOnlyFiles": [],
-      "internal": [
-        "icons"
-      ],
-      "internalCode": [
-        "icons"
-      ],
-      "internalTokens": [],
-      "internalResolved": [
-        "icons",
-        "tokens-global"
-      ],
-      "styleGlobals": [],
-      "assets": [],
-      "externalConfig": [],
-      "warnings": [
-        "Import non résolu : './navigation'"
-      ]
     },
     "constraint-field": {
       "type": "component",
@@ -1919,7 +1884,8 @@
       "styleGlobals": [
         "src/styles/globals/tokens/semantic-colors.scss",
         "src/styles/globals/typography.scss",
-        "src/styles/utils/breakpoints.scss"
+        "src/styles/utils/breakpoints.scss",
+        "src/styles/utils/visually-hidden.scss"
       ],
       "assets": [
         "/logo.svg"
@@ -3043,7 +3009,8 @@
         "tokens-global"
       ],
       "styleGlobals": [
-        "src/styles/globals/custom-properties.scss"
+        "src/styles/globals/custom-properties.scss",
+        "src/styles/utils/visually-hidden.scss"
       ],
       "assets": [],
       "externalConfig": [],
@@ -3425,7 +3392,8 @@
         "utils-i18n"
       ],
       "styleGlobals": [
-        "src/styles/utils/breakpoints.scss"
+        "src/styles/utils/breakpoints.scss",
+        "src/styles/utils/visually-hidden.scss"
       ],
       "assets": [],
       "externalConfig": [],
@@ -3440,10 +3408,11 @@
         "src/styles/globals/typography.scss",
         "src/styles/globals/custom-properties.scss",
         "src/styles/utils/breakpoints.scss",
-        "src/styles/utils/functions.scss"
+        "src/styles/utils/functions.scss",
+        "src/styles/utils/visually-hidden.scss"
       ],
       "clientBoundary": false,
-      "fileCount": 6,
+      "fileCount": 7,
       "files": [
         {
           "path": "src/styles/globals/custom-properties.scss",
@@ -3467,6 +3436,10 @@
         },
         {
           "path": "src/styles/utils/functions.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/styles/utils/visually-hidden.scss",
           "kind": "style"
         }
       ],
@@ -3774,7 +3747,7 @@
         "src/utils/accessibility"
       ],
       "clientBoundary": false,
-      "fileCount": 3,
+      "fileCount": 4,
       "files": [
         {
           "path": "src/utils/accessibility/a11y.js",
@@ -3786,6 +3759,10 @@
         },
         {
           "path": "src/utils/accessibility/focusManagement.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/accessibility/visuallyHiddenStyle.js",
           "kind": "util"
         }
       ],
@@ -4042,7 +4019,9 @@
       "internalResolved": [
         "tokens-global"
       ],
-      "styleGlobals": [],
+      "styleGlobals": [
+        "src/styles/utils/visually-hidden.scss"
+      ],
       "assets": [],
       "externalConfig": [],
       "warnings": []
@@ -4200,20 +4179,8 @@
   },
   "diagnostics": {
     "layerViolations": [],
-    "unresolvedImports": [
-      {
-        "unit": "components-index",
-        "file": "src/components/index.js",
-        "specifier": "./navigation"
-      }
-    ],
-    "brokenBarrels": [
-      {
-        "unit": "components-index",
-        "file": "src/components/index.js",
-        "specifier": "./navigation"
-      }
-    ],
+    "unresolvedImports": [],
+    "brokenBarrels": [],
     "phantomDependencies": [],
     "orphanDependencies": [
       "@mdx-js/loader",

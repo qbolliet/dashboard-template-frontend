@@ -4,6 +4,8 @@
  * Fonctions helpers pour améliorer l'accessibilité
  */
 
+import { VISUALLY_HIDDEN_CSS_TEXT } from './visuallyHiddenStyle';
+
 /**
  * Génère un ID unique pour les attributs ARIA
  * Utile pour aria-labelledby, aria-describedby, aria-controls, etc.
@@ -94,18 +96,7 @@ export const announce = (message, priority = 'polite', timeout = 1000) => {
   liveRegion.setAttribute('role', priority === 'assertive' ? 'alert' : 'status');
   liveRegion.setAttribute('aria-live', priority);
   liveRegion.setAttribute('aria-atomic', 'true');
-  liveRegion.style.cssText = `
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    clip-path: inset(50%);
-    white-space: nowrap;
-    border: 0;
-  `;
+  liveRegion.style.cssText = VISUALLY_HIDDEN_CSS_TEXT;
 
   document.body.appendChild(liveRegion);
 

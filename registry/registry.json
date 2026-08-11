@@ -2682,6 +2682,11 @@
           "path": "src/styles/utils/functions.scss",
           "type": "registry:file",
           "target": "~/src/styles/utils/functions.scss"
+        },
+        {
+          "path": "src/styles/utils/visually-hidden.scss",
+          "type": "registry:file",
+          "target": "~/src/styles/utils/visually-hidden.scss"
         }
       ],
       "docs": "Importe le point d'entrée depuis ta feuille de styles globale, en chemin RELATIF : `@use '../styles/globals/custom-properties';` depuis src/app/globals.scss. Un import par alias (`@/styles/...`) casse la résolution des `@use` relatifs imbriqués dans le fichier cible. C'est le seul fichier de l'item qui émet quelque chose : les cinq autres sont des partiels. Ton projet doit par ailleurs exposer l'alias `@/` vers `src/`, dont dépendent les `@use` des composants."
@@ -2877,6 +2882,11 @@
           "path": "src/utils/accessibility/focusManagement.js",
           "type": "registry:file",
           "target": "~/src/utils/accessibility/focusManagement.js"
+        },
+        {
+          "path": "src/utils/accessibility/visuallyHiddenStyle.js",
+          "type": "registry:file",
+          "target": "~/src/utils/accessibility/visuallyHiddenStyle.js"
         }
       ]
     },

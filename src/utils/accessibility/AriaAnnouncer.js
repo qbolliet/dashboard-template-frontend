@@ -15,6 +15,8 @@
  * ariaAnnouncer.announce('Error occurred', 'assertive');
  */
 
+import { VISUALLY_HIDDEN_CSS_TEXT } from './visuallyHiddenStyle';
+
 class AriaAnnouncer {
   constructor() {
     this.initialized = false;
@@ -37,18 +39,7 @@ class AriaAnnouncer {
     // Création du conteneur pour les live regions
     const container = document.createElement('div');
     container.id = 'aria-announcer';
-    container.style.cssText = `
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      clip-path: inset(50%);
-      white-space: nowrap;
-      border: 0;
-    `;
+    container.style.cssText = VISUALLY_HIDDEN_CSS_TEXT;
 
     // Création de la live region "polite"
     this.politeRegion = document.createElement('div');

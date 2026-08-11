@@ -42,18 +42,6 @@ export const isNumericSqlType = (sqlType) => isIntegerSqlType(sqlType) || FLOAT_
 /** True for date/time families. */
 export const isDateSqlType = (sqlType) => DATE_SQL_TYPES.has(norm(sqlType));
 
-/**
- * Value type fed to TypeAwareInput/ConstraintField for a numeric/date SQL type.
- *
- * @param {string} sqlType - PostgreSQL sql_type from the API metadata.
- * @returns {"integer"|"float"|"date"} Field value type.
- */
-export const fieldValueType = (sqlType) => {
-  if (isDateSqlType(sqlType)) return 'date';
-  if (isIntegerSqlType(sqlType)) return 'integer';
-  return 'float';
-};
-
 // =================================================================
 // b) Résolution des opérations disponibles
 // =================================================================

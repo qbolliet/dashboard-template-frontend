@@ -57,7 +57,7 @@
   tbody tr:last-child td { border-bottom: none; }
 
   code {
-    font-family: var(--font-mono, monospace);
+    font-family: var(--font-mono);
     font-size: var(--font-size-xs); // arrondi depuis 11.5px
     color: hsl(var(--color-primary-500));
     background: hsl(var(--color-primary-500) / 0.08);
@@ -68,7 +68,7 @@
   // Colonne « type » : jamais coupée, quitte à déclencher le défilement du
   // conteneur — une signature repliée sur deux lignes se relit très mal.
   .api-typ {
-    font-family: var(--font-mono, monospace);
+    font-family: var(--font-mono);
     font-size: var(--font-size-xs); // arrondi depuis 11px
     color: hsl(var(--color-text-tertiary));
     white-space: nowrap;
