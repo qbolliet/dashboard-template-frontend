@@ -13,6 +13,9 @@ export const useNavigation = () => {
     // État pour gérer l'affichage du menu mobile
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+    // Ouverture de la sidebar.
+    const [isSidebarOpen, setSidebarOpen] = useState(false);
+
     // Breakpoint partagé, dérivé d'un unique listener resize (voir plus bas).
     // Initialisé à false pour garantir la cohérence SSR/hydratation : le premier
     // rendu client reproduit le rendu serveur, puis l'effet met à jour la valeur.
@@ -145,10 +148,12 @@ export const useNavigation = () => {
         currentPath: pathname,
         isMobileMenuOpen,
         isMobile,
+        isSidebarOpen,
 
         // Fonctions d'action
         toggleMobileMenu,
         closeMobileMenu,
+        setSidebarOpen,
 
         // Fonctions utilitaires
         isActivePath,

@@ -2,6 +2,7 @@
 
 import { createContext, useContext } from 'react';
 import { useNavigation } from '../hooks/useNavigation';
+import useAriaAnnounce from '@/hooks/accessibility/useAriaAnnounce';
 
 // Deux contextes distincts pour découpler l'état « route » de l'état « UI » :
 // - NavigationRouteContext : dérivé du pathname (change rarement).
@@ -51,9 +52,27 @@ const NavigationProvider = ({ labels, children }) => {
         hasActiveChildren,
         isMobileMenuOpen,
         isMobile,
+        isSidebarOpen,
         toggleMobileMenu,
-        closeMobileMenu
+        closeMobileMenu,
+        setSidebarOpen
     } = useNavigation();
+
+    const announce = useAriaAnnounce();
+
+    // Bascule de la sidebar. Composée ICI et non dans le hook parce qu'elle a besoin des
+    // libellés, et exposée par le contexte pour que le déclencheur du header et la sidebar
+    // elle-même empruntent le MÊME chemin : c'est ce qui garantit que l'annonce part quel
+    // que soit le bouton actionné.
+    //
+    // L'annonce est émise hors de l'updater de setState : un updater doit rester pur, et
+    // React l'invoque deux fois en mode strict — l'annonce y serait doublée. Dans un
+    // gestionnaire de clic, `isSidebarOpen` est à jour, la forme fonctionnelle n'apporte rien.
+    const toggleSidebar = () => {
+        const nextState = !isSidebarOpen;
+        setSidebarOpen(nextState);
+        announce(nextState ? labels?.sidebar?.opened : labels?.sidebar?.closed, 'polite');
+    };
 
     // Valeur « route » : ne dépend que du pathname. Le React Compiler mémoïse cet objet
     // et les fonctions qu'il contient sur `currentPath` ; un changement de `isMobileMenuOpen`
@@ -64,12 +83,14 @@ const NavigationProvider = ({ labels, children }) => {
         hasActiveChildren
     };
 
-    // Valeur « UI » : état du menu mobile + breakpoint partagé.
+    // Valeur « UI » : état du menu mobile, ouverture de la sidebar, breakpoint partagé.
     const uiValue = {
         isMobileMenuOpen,
         toggleMobileMenu,
         closeMobileMenu,
-        isMobile
+        isMobile,
+        isSidebarOpen,
+        toggleSidebar
     };
 
     return (
@@ -98,10 +119,14 @@ export const useNavigationRoute = () => {
 };
 
 /**
- * Access the UI navigation context (mobile menu state + responsive breakpoint).
+ * Access the UI navigation context (mobile menu state, sidebar state, breakpoint).
+ *
+ * `toggleSidebar` is the single entry point for opening or closing the sidebar: it both
+ * flips the state and announces the new one to screen readers. Never flip `isSidebarOpen`
+ * through another path, or the announcement is lost.
  *
  * @returns {{isMobileMenuOpen: boolean, toggleMobileMenu: Function, closeMobileMenu: Function,
- *   isMobile: boolean}} UI context.
+ *   isMobile: boolean, isSidebarOpen: boolean, toggleSidebar: Function}} UI context.
  * @throws {Error} If used outside of a NavigationProvider.
  */
 export const useNavigationUI = () => {

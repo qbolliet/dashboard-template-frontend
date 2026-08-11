@@ -6,7 +6,7 @@ import { useNavigationRoute, useNavigationUI, useNavigationLabels } from '@/feat
 import useResizable from '@/features/header/hooks/useResizable';
 import SidebarSwitcher from '../SidebarSwitcher/SidebarSwitcher';
 import SidebarMenu from '../SidebarMenu/SidebarMenu';
-import { useFocusTrap, useAriaAnnounce } from '@/hooks/accessibility';
+import { useFocusTrap } from '@/hooks/accessibility';
 import { hasIconsInNavigationData } from '@/features/header/utils/hasIconsInNavigationData';
 import { withBasePath } from '@/utils/url/withBasePath';
 import './NavigationSideBar.scss';
@@ -26,10 +26,15 @@ export const useSidebar = () => {
  * Main sidebar navigation component.
  * Provides collapsible sidebar with navigation menu and optional switcher.
  *
+ * The open/closed state is NOT owned here: it lives in `NavigationProvider`, so that the
+ * header trigger and the sidebar drive the very same state — and the very same screen
+ * reader announcement. There is deliberately no `defaultOpen` prop any more; a `defaultOpen`
+ * used to seed a local state that then had to be resynchronised on every change, and that
+ * second copy is exactly what let a toggle slip through without announcing itself.
+ *
  * @param {Array} navigationData - Array of navigation items to display
  * @param {Function} onItemClick - Optional callback when a navigation item is clicked
  * @param {boolean} useSwitcher - Whether to display a switcher for first-level navigation
- * @param {boolean} defaultOpen - Whether the sidebar is open by default
  * @param {string} [siteTitle] - Site name shown next to the logo. Comes from the manifest
  *   via `<Header>`; the component used to hardcode it.
  * @param {string} className - Optional additional CSS class for the sidebar
@@ -39,25 +44,21 @@ const NavigationSideBar = ({
     navigationData = [],
     onItemClick,
     useSwitcher = false,
-    defaultOpen = false,
     siteTitle,
     className = ''
 }) => {
     // Libellés distribués par <Header> via NavigationProvider.
     const labels = useNavigationLabels('sidebar');
-    // État pour gérer l'ouverture/fermeture de la sidebar
-    const [isOpen, setIsOpen] = useState(defaultOpen);
-
-    // Hook pour les annonces aux lecteurs d'écran
-    const announce = useAriaAnnounce();
 
     // useId garantit un ID stable entre le rendu SSR et l'hydratation client
     const sidebarId = `navigation-sidebar-${useId()}`;
 
     // Fonctions de route (pathname) et breakpoint mobile, fournis par le contexte partagé
     // du NavigationProvider — plus de listener resize propre à la sidebar (isMobile ≤639px).
+    // L'ouverture et sa bascule viennent de la même source : `toggleSidebar` porte
+    // l'annonce aux lecteurs d'écran, il n'y a plus de chemin qui puisse la contourner.
     const { isActivePath, hasActiveChildren } = useNavigationRoute();
-    const { isMobile } = useNavigationUI();
+    const { isMobile, isSidebarOpen: isOpen, toggleSidebar } = useNavigationUI();
 
     // Hook pour piéger le focus dans la sidebar en mode mobile
     const focusTrapRef = useFocusTrap({
@@ -93,13 +94,6 @@ const NavigationSideBar = ({
         cssProperty: '--sidebar-width-open',
     });
 
-    // Synchroniser l'état avec la prop defaultOpen quand elle change.
-    const [previousDefaultOpen, setPreviousDefaultOpen] = useState(defaultOpen);
-    if (defaultOpen !== previousDefaultOpen) {
-        setPreviousDefaultOpen(defaultOpen);
-        setIsOpen(defaultOpen);
-    }
-
     // Verrouiller le scroll de la page quand la sidebar est ouverte en mode mobile
     // (le tiroir occupe tout l'écran sous le header ; on évite que la page défile derrière).
     useEffect(() => {
@@ -128,19 +122,6 @@ const NavigationSideBar = ({
         // Sinon, vérifier dans toutes les données de navigation
         return hasIconsInNavigationData(navigationData);
     })();
-
-    // Toggle de la sidebar avec annonce aux lecteurs d'écran
-    const toggleSidebar = () => {
-        setIsOpen(prev => {
-            const newState = !prev;
-            // Annoncer le changement d'état aux lecteurs d'écran
-            announce(
-                newState ? labels.opened : labels.closed,
-                'polite'
-            );
-            return newState;
-        });
-    };
 
     // Gestion du changement d'item dans le switcher
     const handleSwitcherChange = (item) => {

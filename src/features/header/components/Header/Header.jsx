@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
@@ -13,7 +12,7 @@ import { NavTrigger } from '../NavTrigger';
 import SearchBar from '../SearchBar/SearchBar';
 import ThemeToggleButton from '@/features/theme/components/ThemeToggleButton/ThemeToggleButton';
 import { SkipLink } from '@/components/common';
-import NavigationProvider from '../../providers/NavigationProvider';
+import NavigationProvider, { useNavigationUI } from '../../providers/NavigationProvider';
 import { hasIconsInNavigationData } from '../../utils/hasIconsInNavigationData';
 import { withBasePath } from '@/utils/url/withBasePath';
 import { mergeLabels } from '@/utils/i18n/mergeLabels';
@@ -87,62 +86,36 @@ const DEFAULT_LABELS = {
 };
 
 /**
- * Main header component for the application.
- * Supports both topbar and sidebar navigation modes.
+ * Inner body of the header, rendered inside `NavigationProvider`.
  *
- * @param {Object} props - Component props
- * @param {Array} props.navigationData - Navigation items to display, with absolute paths
- *   (the manifest tree resolved by `resolveNavigationTree`)
- * @param {Function} [props.onNavigationItemClick] - Optional callback when a navigation item is clicked
- * @param {string} [props.navigationType='topbar'] - Type of navigation ('topbar' or 'sidebar')
- * @param {boolean} [props.useSwitcher=false] - Whether to use switcher in sidebar mode
- * @param {string} [props.currentPageTitle] - Title of current page (for sidebar breadcrumb)
- * @param {string} [props.siteTitle] - Site name shown in the sidebar brand. Comes from the
- *   manifest; the sidebar used to hardcode it.
- * @param {string} [props.locale] - Site locale code, forwarded to the search bar so it
- *   fetches the index of the right language.
- * @param {React.ReactNode} [props.actions] - Extra controls rendered next to the theme
- *   toggle, in the right-hand container. This is the slot a language switcher goes into;
- *   the header does not depend on one, so the item stays installable on its own.
- * @param {Object} [props.labels] - Wording overrides, merged per namespace over the
- *   French defaults. Namespaces: `header`, `searchBar`, `sidebar`, `sidebarSwitcher`,
- *   `topbar`, `navTrigger`. A partial object is fine — missing keys keep their default,
- *   and an empty or nullish override is ignored rather than blanking a label.
- * @param {string} [props.homeHref='/'] - Destination of the logo link. Defaults to the site
- *   root, which is what a third party installing this item from the registry expects; this
- *   repository mounts its demo application under /demo/<locale> and therefore passes that
- *   value from `src/app/(site)/demo/[locale]/layout.jsx`. Not to be confused with the
- *   deployment base path, which `next/link` adds on top of this value by itself.
- * @returns {JSX.Element} The rendered header component
+ * Split out of `<Header>` for one reason: the sidebar open state now lives in the
+ * provider, and a component cannot consume a context it renders itself. Everything that
+ * reads navigation state therefore sits here, one level below the provider.
+ *
+ * Private to this module — `<Header>` remains the public component.
+ *
+ * @param {Object} props - Same props as `<Header>`, plus the merged `labels`.
+ * @returns {JSX.Element} The header markup.
  */
-const Header = ({
-    navigationData = [],
+const HeaderContent = ({
+    navigationData,
     onNavigationItemClick,
-    navigationType = 'topbar',
-    useSwitcher = false,
+    navigationType,
+    useSwitcher,
     currentPageTitle,
     siteTitle,
     locale,
     actions,
-    labels: labelOverrides,
-    homeHref = '/'
+    labels,
+    labelOverrides,
+    homeHref
 }) => {
-    // État pour la sidebar (si mode sidebar)
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    // Source unique de l'ouverture de la sidebar : le NavigationProvider. `toggleSidebar`
+    // porte déjà l'annonce aux lecteurs d'écran, quel que soit le bouton qui l'actionne.
+    const { isSidebarOpen, toggleSidebar } = useNavigationUI();
 
     // Chemin courant, utilisé uniquement pour dériver le titre de la page (breadcrumb).
     const pathname = usePathname();
-
-    // Fusion par espace de noms. Une fusion à plat écraserait un espace de noms entier
-    // dès qu'une seule de ses clés serait traduite — d'où la boucle plutôt qu'un simple
-    // étalement. Pas de useMemo : le React Compiler s'en charge, et l'objet ne sert
-    // aucune identité stable.
-    const labels = Object.fromEntries(
-        Object.entries(DEFAULT_LABELS).map(([namespace, defaults]) => [
-            namespace,
-            mergeLabels(defaults, labelOverrides?.[namespace]),
-        ]),
-    );
 
     // Fonction pour générer le titre de la page courante
     const getCurrentPageTitle = () => {
@@ -169,11 +142,6 @@ const Header = ({
         return findTitleInNavigation(navigationData, pathname) || labels.header.pageFallback;
     };
 
-    // Toggle de la sidebar
-    const handleSidebarToggle = () => {
-        setSidebarOpen(prev => !prev);
-    };
-
     const isSidebarMode = navigationType === 'sidebar';
 
     // Détecter si des icônes sont présentes dans les données de navigation.
@@ -184,7 +152,7 @@ const Header = ({
         const classes = ['primary-header'];
         if (isSidebarMode) {
             classes.push('primary-header--sidebar-mode');
-            if (sidebarOpen) {
+            if (isSidebarOpen) {
                 classes.push('primary-header--sidebar-open');
             } else {
                 classes.push('primary-header--sidebar-collapsed');
@@ -197,25 +165,19 @@ const Header = ({
     };
 
     return (
-        // Provider unique de navigation : héberge l'instance partagée (un seul listener
-        // resize, un seul état de menu mobile) consommée par la topbar et la sidebar, et
-        // distribue les libellés fusionnés à toute la profondeur de l'arbre de navigation.
-        <NavigationProvider labels={labels}>
+        <>
             {/* Skip link pour l'accessibilité */}
             <SkipLink href="#main-content">
                 {labels.header.skipToContent}
             </SkipLink>
 
-            {/* Sidebar de navigation intégrée.
-                Pas de `key` liée à sidebarOpen : la sidebar se synchronise déjà sur son prop
-                `defaultOpen` (adjust state during render) et doit survivre au toggle (largeur
-                redimensionnée, groupes dépliés, focus). */}
+            {/* Sidebar de navigation intégrée. Elle lit son ouverture dans le contexte :
+                aucune prop d'état, donc aucune resynchronisation à faire. */}
             {isSidebarMode && (
                 <NavigationSideBar
                     navigationData={navigationData}
                     onItemClick={onNavigationItemClick}
                     useSwitcher={useSwitcher}
-                    defaultOpen={sidebarOpen}
                     siteTitle={siteTitle}
                 />
             )}
@@ -227,8 +189,8 @@ const Header = ({
                         <>
                             {/* Trigger pour ouvrir/fermer la sidebar (composant partagé) */}
                             <NavTrigger
-                                isOpen={sidebarOpen}
-                                onToggle={handleSidebarToggle}
+                                isOpen={isSidebarOpen}
+                                onToggle={toggleSidebar}
                                 className="sidebar-trigger"
                                 ariaLabel={labels.header.toggleSidebar}
                                 labels={labels.navTrigger}
@@ -270,6 +232,85 @@ const Header = ({
                     {actions}
                 </div>
             </header>
+        </>
+    );
+};
+
+/**
+ * Main header component for the application.
+ * Supports both topbar and sidebar navigation modes.
+ *
+ * @param {Object} props - Component props
+ * @param {Array} props.navigationData - Navigation items to display, with absolute paths
+ *   (the manifest tree resolved by `resolveNavigationTree`)
+ * @param {Function} [props.onNavigationItemClick] - Optional callback when a navigation item is clicked
+ * @param {string} [props.navigationType='topbar'] - Type of navigation ('topbar' or 'sidebar')
+ * @param {boolean} [props.useSwitcher=false] - Whether to use switcher in sidebar mode
+ * @param {string} [props.currentPageTitle] - Title of current page (for sidebar breadcrumb)
+ * @param {string} [props.siteTitle] - Site name shown in the sidebar brand. Comes from the
+ *   manifest; the sidebar used to hardcode it.
+ * @param {string} [props.locale] - Site locale code, forwarded to the search bar so it
+ *   fetches the index of the right language.
+ * @param {React.ReactNode} [props.actions] - Extra controls rendered next to the theme
+ *   toggle, in the right-hand container. This is the slot a language switcher goes into;
+ *   the header does not depend on one, so the item stays installable on its own.
+ * @param {Object} [props.labels] - Wording overrides, merged per namespace over the
+ *   French defaults. Namespaces: `header`, `searchBar`, `sidebar`, `sidebarSwitcher`,
+ *   `topbar`, `navTrigger`. A partial object is fine — missing keys keep their default,
+ *   and an empty or nullish override is ignored rather than blanking a label.
+ * @param {string} [props.homeHref='/'] - Destination of the logo link. Defaults to the site
+ *   root, which is what a third party installing this item from the registry expects; this
+ *   repository mounts its demo application under /demo/<locale> and therefore passes that
+ *   value from `src/app/(site)/demo/[locale]/layout.jsx`. Not to be confused with the
+ *   deployment base path, which `next/link` adds on top of this value by itself.
+ * @returns {JSX.Element} The rendered header component
+ */
+const Header = ({
+    navigationData = [],
+    onNavigationItemClick,
+    navigationType = 'topbar',
+    useSwitcher = false,
+    currentPageTitle,
+    siteTitle,
+    locale,
+    actions,
+    labels: labelOverrides,
+    homeHref = '/'
+}) => {
+    // Fusion par espace de noms. Une fusion à plat écraserait un espace de noms entier
+    // dès qu'une seule de ses clés serait traduite — d'où la boucle plutôt qu'un simple
+    // étalement. Pas de useMemo : le React Compiler s'en charge, et l'objet ne sert
+    // aucune identité stable.
+    const labels = Object.fromEntries(
+        Object.entries(DEFAULT_LABELS).map(([namespace, defaults]) => [
+            namespace,
+            mergeLabels(defaults, labelOverrides?.[namespace]),
+        ]),
+    );
+
+    return (
+        // Provider unique de navigation : héberge l'instance partagée (un seul listener
+        // resize, un seul état de menu mobile, une seule ouverture de sidebar) consommée
+        // par la topbar et la sidebar, et distribue les libellés fusionnés à toute la
+        // profondeur de l'arbre de navigation.
+        //
+        // <Header> se limite volontairement à ce montage : tout ce qui lit l'état de
+        // navigation vit dans <HeaderContent>, qui est rendu SOUS le provider et peut
+        // donc en consommer les contextes.
+        <NavigationProvider labels={labels}>
+            <HeaderContent
+                navigationData={navigationData}
+                onNavigationItemClick={onNavigationItemClick}
+                navigationType={navigationType}
+                useSwitcher={useSwitcher}
+                currentPageTitle={currentPageTitle}
+                siteTitle={siteTitle}
+                locale={locale}
+                actions={actions}
+                labels={labels}
+                labelOverrides={labelOverrides}
+                homeHref={homeHref}
+            />
         </NavigationProvider>
     );
 };
