@@ -13,8 +13,15 @@
 // (liens de sidebar, isActivePath, fil d'Ariane, generateStaticParams) travaille sur
 // des chemins absolus DÉJÀ préfixés et n'a rien à savoir.
 //
-// La valeur doit rester en phase avec le nom du dossier de route : /demo ↔
-// src/app/(site)/demo/. Les changer ensemble, ou pas du tout.
+// LA VALEUR EST LE POINT DE MONTAGE, et elle doit rester en phase avec le dossier de
+// route qui la matérialise : '/demo' ↔ src/app/(site)/demo/. Les changer ensemble, ou pas
+// du tout — basePaths.test.js vérifie mécaniquement que le dossier existe.
+//
+// C'est exactement ce que fait `npm run eject` : il déplace src/app/(site)/demo/[locale]/
+// vers src/app/(site)/[locale]/ et met cette constante à '' (chaîne vide = montage à la
+// racine). Tout l'aval suit sans modification, puisque tout en dérive. Les fonctions
+// concernées acceptent déjà un préfixe vide (cf. les cas de test « prefix: '' » de
+// src/utils/i18n/localePath.test.js).
 //
 // À NE PAS CONFONDRE avec le `basePath` de Next (src/utils/url/withBasePath.js) :
 // celui-là est le sous-chemin de DÉPLOIEMENT (/<dépôt> sur GitHub Pages), ajouté

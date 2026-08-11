@@ -294,12 +294,16 @@ complètent pour que la langue soit malgré tout juste : le layout de langue pos
 sa propre racine (WCAG 3.1.2), un script inline corrige `<html lang>` avant le premier
 paint, et `LocaleProvider` le maintient lors des navigations clientes.
 
-**Si vous supprimez la documentation, ce détour disparaît** : `[locale]` devient votre
-premier segment, son layout devient le layout racine, et vous écrivez simplement
+**`npm run eject` remonte `[locale]` en premier segment** (voir
+[Installation](/introduction/installation)). Le script inline continue de fonctionner tel
+quel — il calcule son préfixe depuis `DEMO_BASE_PATH`, qui devient vide —, mais rien ne
+vous oblige à le garder : votre layout de langue étant désormais juste sous la racine, vous
+pouvez promouvoir son contenu dans `src/app/layout.tsx` et écrire simplement
 `<html lang={locale}>`.
 
 Enfin, `src/features/chart/sources/demoData.js` reste en français : c'est un **jeu de
-démonstration**, pas de l'interface. Vous le remplacerez par vos données.
+démonstration**, pas de l'interface. Il ne sert qu'aux playgrounds et aux exemples du
+registry, et `npm run eject` le supprime avec eux.
 
 ## Exemple complet : passer le template en anglais seul
 

@@ -60,7 +60,33 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the result. In *this*
+repository, `/` serves the documentation and `/demo` the manifest-driven
+application — that split belongs to the template, not to your project.
+
+### If you started from *Use this template*: run `npm run eject` first
+
+```bash
+npm run eject
+```
+
+One command, run once, that flips the split for good: your application moves up
+to the root (`/fr/…` instead of `/demo/fr/…`) and the entire documentation
+surface is removed — `docs/`, `src/features/docs/`, the registry, four of the
+five generators, the MDX dependencies, the Pages deploy workflow. From then on
+`npm run dev` serves **your** site.
+
+To keep the documentation machinery and document your own dashboard with it, use
+`npm run eject -- --keep-docs`: the application still moves to the root, the docs
+move to `/docs`, and `docs/content/` is reduced to a two-page skeleton.
+
+Either way `config/site.config.json` is replaced with a minimal manifest and the
+demonstration tree kept as `config/site.config.example.json`.
+
+The operation **moves folders inside `src/app/`** — the only way to change URL
+shape, since the static export supports neither middleware nor rewrites — and the
+script deletes itself when done. It therefore requires a clean git tree: `git diff`
+is the only way back. Add `--dry-run` to see the plan without writing anything.
 
 ### Connecting to your data
 
@@ -123,11 +149,14 @@ src/
 └── app/            # Next.js App Router pages and layouts
 ```
 
-See `CLAUDE.md` and `DESIGN_SYSTEM.md` for the full architecture and design
-token conventions.
+See [Structure du projet](https://qbolliet.github.io/dashboard-template-frontend/introduction/structure-du-projet)
+and [Theming](https://qbolliet.github.io/dashboard-template-frontend/fondations/theming)
+for the full layer rules and design token conventions.
 
 ## Development commands
 
+- `npm run eject` — detach a copy of this template from the documentation site
+  (see [Getting started](#getting-started)); `--dry-run` previews it
 - `npm run dev` — start the development server (in-memory fixtures)
 - `npm run dev:mock` — start the dev server against a local mock GraphQL endpoint
 - `npm run dev:api` — start the dev server against `NEXT_PUBLIC_API_URL`
@@ -161,7 +190,7 @@ Two layers, colocated with what they exercise:
     light and dark, captured via their documentation playground frozen on its default
     values.
   - `edge-cases.spec.ts` — the limit cases inherited from the removed `/test-*` pages
-    (see `TEMPLATIZATION_PROMPTS.md`, P4.6): chart ISO-date coercion and
+    (the former `/test-*` smoke pages): chart ISO-date coercion and
     loading/error/success branching, the heatmap's two legend layouts, table
     loading/error/empty states, the globe's `prefers-reduced-motion` behavior and
     repeated-mount WebGL context handling, and the five Tabs limit cases (disabled,

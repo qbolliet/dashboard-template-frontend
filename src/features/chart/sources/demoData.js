@@ -4,6 +4,11 @@
 // Portés À L'IDENTIQUE de design-system/project/scripts/charts/data.jsx
 // (même RNG mulberry32, mêmes graines, mêmes formules) afin que la page de
 // fumée /test-chart soit directement comparable au prototype. Fonctions pures.
+//
+// SURFACE DE DÉMONSTRATION, PAS DE PRODUIT : ce module n'est importé que par les
+// playgrounds (docs/playgrounds/chart.jsx) et les exemples de registry
+// (registry/examples/chart-*.jsx) — aucune page de l'application ne s'en sert.
+// `npm run eject` le supprime avec le reste de la surface de documentation.
 
 const COUNTRIES = ['France', 'Allemagne', 'Italie', 'Espagne'];
 

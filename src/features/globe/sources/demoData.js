@@ -2,11 +2,13 @@
 // DEMO DATA — jeu de démonstration partagé de la feature Globe
 // =================================================================
 // Relocalisé depuis src/app/(site)/test-globe/globeDemoData.js (la page /test-globe est
-// vouée à disparaître) : ce jeu sert désormais à la fois à GlobeShowcase.jsx (le temps
-// qu'il existe encore), au playground docs/playgrounds/globe.jsx et aux exemples de
-// registry (registry/examples/globe-*.jsx). Mirroir de la convention
+// vouée à disparaître) : ce jeu sert désormais au playground docs/playgrounds/globe.jsx
+// et aux exemples de registry (registry/examples/globe-*.jsx). Mirroir de la convention
 // src/features/chart/sources/demoData.js — un fichier `sources/` par feature porte ses
 // jeux de démo, réutilisables par tout consommateur de la feature.
+//
+// SURFACE DE DÉMONSTRATION, PAS DE PRODUIT : aucune page de l'application ne l'importe.
+// `npm run eject` le supprime avec le reste de la surface de documentation.
 //
 // Porté À L'IDENTIQUE de design-system/project/scripts/globe/globe-data.jsx et
 // des accesseurs de démo de globe.html (lignes 98-108) : mêmes capitales/sources

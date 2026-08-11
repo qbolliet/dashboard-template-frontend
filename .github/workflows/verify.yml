@@ -50,3 +50,50 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  # =================================================================
+  # EJECT — le dépôt reste éjectable
+  # =================================================================
+  # scripts/eject.js déplace des dossiers et remplace des chaînes EXACTES : c'est ce qui
+  # le fait échouer bruyamment plutôt que de laisser passer un eject à moitié fait, mais
+  # c'est aussi ce qui le fait pourrir au premier renommage. Ce job est la barrière.
+  #
+  # Deux étages, du moins cher au plus cher :
+  #   • --dry-run, qui vérifie CHAQUE motif de remplacement sans rien écrire ;
+  #   • l'eject réel dans une copie, suivi d'un build complet — la seule preuve que le
+  #     résultat compile encore une fois la documentation retirée.
+  eject:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: ['', '--keep-docs']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Dry run
+        run: node scripts/eject.js ${{ matrix.mode }} --dry-run
+
+      # Copie hors de l'arbre de travail : le script se supprime lui-même et réécrit
+      # package.json, on ne veut pas de ça dans le dossier que les autres étapes lisent.
+      - name: Eject a copy
+        run: |
+          cp -r . ../ejected
+          cd ../ejected
+          node scripts/eject.js ${{ matrix.mode }} --yes --force
+
+      - name: Install, lint and build the ejected copy
+        working-directory: ../ejected
+        run: |
+          npm install --no-audit --no-fund
+          npm run lint
+          npm run test
+          npm run validate:config
+          npm run build

@@ -78,16 +78,23 @@ const themeInitScript = `(function(){try{var t=localStorage.getItem('theme');if(
 // LocaleProvider prend ensuite le relais pour les navigations CLIENTES, que ce script ne
 // rejoue pas.
 //
-// À NE PAS RECOPIER TEL QUEL dans un projet dérivé : ce détour n'existe que parce que ce
-// dépôt héberge deux surfaces. Un consommateur qui supprime le site de documentation
-// place [locale] en premier segment, son layout de langue DEVIENT le layout racine, et
-// `<html lang={locale}>` s'écrit directement. Voir le guide « Internationalisation ».
+// CE DÉTOUR N'EXISTE QUE PARCE QUE CE DÉPÔT HÉBERGE DEUX SURFACES. `npm run eject` met
+// DEMO_BASE_PATH à '' et remonte [locale] en premier segment ; le script ci-dessous
+// continue alors de fonctionner tel quel (voir le calcul du préfixe juste en dessous),
+// mais un consommateur peut aussi promouvoir son layout de langue en layout racine et
+// écrire `<html lang={locale}>` directement. Voir le guide « Internationalisation ».
 //
 // Le préfixe est calculé avec withBasePath : `location.pathname` porte le sous-chemin de
 // DÉPLOIEMENT (/<dépôt> sur GitHub Pages), que /demo seul ne reconnaîtrait pas. L'oubli
 // serait invisible en local, où le préfixe est vide — le mode de défaillance habituel de
 // l'export statique.
-const localePrefixSegments = withBasePath(DEMO_BASE_PATH).split('/').filter(Boolean);
+//
+// `|| '/'` N'EST PAS COSMÉTIQUE : withBasePath('') renvoie '' sans rien préfixer (c'est
+// son contrat pour les entrées non absolues), si bien qu'après un eject le sous-chemin
+// de déploiement disparaîtrait du calcul et le premier segment lu serait le nom du dépôt
+// au lieu de la langue. Passer '/' force le préfixage et donne [] en développement,
+// ['<dépôt>'] à l'export — les deux valeurs correctes.
+const localePrefixSegments = withBasePath(DEMO_BASE_PATH || '/').split('/').filter(Boolean);
 const localeInitScript = `(function(){try{var b=${JSON.stringify(localePrefixSegments)};var l=${JSON.stringify(siteConfig.site.locales)};var p=location.pathname.split('/').filter(Boolean);if(p.slice(0,b.length).join('/')!==b.join('/'))return;var c=p[b.length];if(l.indexOf(c)>-1){document.documentElement.lang=c;}}catch(e){}})();`;
 
 export default function RootLayout({
