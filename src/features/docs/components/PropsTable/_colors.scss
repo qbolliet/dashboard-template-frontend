@@ -15,5 +15,14 @@
   // sens du marqueur. Posée en teinte de texte sur un fond très dilué, elle reste une
   // annotation et non un avertissement.
   --props-table-required: var(--color-error-500);
+  // Texte de la pastille : le rouge 500 sur sa propre teinte à 10 % mesure 3,3:1 en clair
+  // (texte de 10 px) ; le palier 700 monte à 5,3:1.
+  --props-table-required-text: var(--color-error-700);
   --props-table-undocumented: var(--color-text-tertiary);
+}
+
+// En sombre le palier 500 mesure 4,3:1 sur la surface du tableau : on l'éclaircit
+// (5,4:1). Valeur propre à ce composant, aucun palier de la rampe d'erreur ne la porte.
+[data-theme="dark"] {
+  --props-table-required-text: 0 84% 66%;
 }

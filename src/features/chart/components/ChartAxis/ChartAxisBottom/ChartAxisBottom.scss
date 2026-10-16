@@ -19,7 +19,8 @@
   font-size: var(--chart-axis-tick-font-size);
   fill: hsl(var(--chart-axis-color) / var(--chart-axis-tick-label-opacity));
 }
-.visx-axis-bottom .chart-axis-label {
+// Même raison que ChartAxisLeft.scss : le nom d'axe est un frère de `.visx-axis-bottom`.
+.chart-axis-label {
   font-size: var(--font-size-xs);
   font-weight: 500;
   fill: hsl(var(--chart-axis-color) / var(--chart-axis-label-opacity));

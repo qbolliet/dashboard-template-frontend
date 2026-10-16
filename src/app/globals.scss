@@ -1,3 +1,14 @@
 @use "tailwindcss";
 @use "../styles/globals/resets.scss";
 @use "../styles/globals/accessibility.scss";
+
+// Fond et couleur de texte GLOBAUX de l'application. Sans eux, <body> reste transparent :
+// en thème sombre le canvas du navigateur est blanc, et le texte primaire (blanc) y est
+// illisible. Posés ici, sur <body>, plutôt que dans un layout : les deux surfaces du dépôt
+// ((docs) et (site)) ET les écrans sans layout intermédiaire (not-found racine, page de
+// transit /demo) en héritent. Les jetons sont résolus sur <html> (`:root, [data-theme]`)
+// puis hérités ; le fond de <body> est propagé au canvas par le navigateur.
+body {
+  background-color: hsl(var(--color-background));
+  color: hsl(var(--color-text-primary));
+}

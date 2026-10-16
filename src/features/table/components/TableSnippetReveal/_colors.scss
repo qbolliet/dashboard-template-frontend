@@ -5,9 +5,10 @@
 // consommateurs l'écrivaient auparavant chacun à sa manière (gray-800 sans branche
 // sombre, gray-900→gray-200, gray-100→gray-800), avec trois rendus différents.
 //
-// Les teintes de coloration syntaxique (.k .s .c) ont chacune une variante dark
-// explicite ; .n et .p n'en ont volontairement pas — le prototype ne les réajuste pas
-// non plus pour ce fond inversé.
+// Les teintes de coloration syntaxique (.k .s .n .p) valent pour les DEUX thèmes : la
+// surface inversée reste sombre dans les deux (gray-900 en clair, gray-200 en sombre),
+// donc des teintes claires y sont lisibles partout. Seule .c (commentaire) est éclaircie
+// en sombre, où sa valeur de base tombe à 4,1:1 sur le panneau (seuil AA : 4,5:1).
 
 :root, [data-theme] {
   --table-snippet-bg: var(--color-surface-inverted);
@@ -21,10 +22,10 @@
   --table-snippet-p: 218 11% 70%;
 }
 
-// Ne restent que les teintes de coloration syntaxique : le fond et le texte basculent
-// désormais seuls via --color-surface-inverted / --color-text-inverted.
+// Le fond et le texte basculent seuls via --color-surface-inverted / --color-text-inverted.
+// Les anciennes surcharges sombres de .k et .s (bleu et vert foncés) datent d'un panneau
+// clair en thème sombre : sur le panneau actuel (gray-200) elles mesuraient 2,0:1 et
+// 2,7:1, et ont été retirées.
 [data-theme='dark'] {
-  --table-snippet-k: 212 80% 35%;
-  --table-snippet-s: 138 60% 30%;
-  --table-snippet-c: 218 11% 50%;
+  --table-snippet-c: 218 11% 65%;
 }

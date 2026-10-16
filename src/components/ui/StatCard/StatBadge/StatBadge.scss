@@ -29,19 +29,19 @@
   }
 
   &--positive {
-    color: hsl(var(--stat-badge-positive));
+    color: hsl(var(--stat-badge-positive-text));
     background: hsl(var(--stat-badge-positive) / 0.10);
     border-color: hsl(var(--stat-badge-positive) / 0.22);
   }
 
   &--negative {
-    color: hsl(var(--stat-badge-negative));
+    color: hsl(var(--stat-badge-negative-text));
     background: hsl(var(--stat-badge-negative) / 0.10);
     border-color: hsl(var(--stat-badge-negative) / 0.22);
   }
 
   &--warning {
-    color: hsl(var(--stat-badge-warning));
+    color: hsl(var(--stat-badge-warning-text));
     background: hsl(var(--stat-badge-warning) / 0.12);
     border-color: hsl(var(--stat-badge-warning) / 0.26);
   }

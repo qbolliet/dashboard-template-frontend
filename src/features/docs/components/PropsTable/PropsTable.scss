@@ -45,7 +45,7 @@
   padding: 0 var(--spacing-xs);
   border-radius: var(--border-radius-sm);
   background: hsl(var(--props-table-required) / 0.10);
-  color: hsl(var(--props-table-required));
+  color: hsl(var(--props-table-required-text));
   font-family: var(--font-sans);
   // Un cran SOUS le plus petit token de la grille : la pastille est une annotation
   // posée dans la cellule du nom, elle ne doit pas peser autant que lui. Dérivée par

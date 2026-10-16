@@ -117,7 +117,16 @@
     border-color: hsl(var(--pg-ctrl-accent));
   }
 }
-.ctrl-text { width: var(--pg-ctrl-text-width); }
+.ctrl-text {
+  width: var(--pg-ctrl-text-width);
+
+  // Le placeholder par défaut du navigateur (gris moyen) mesure 3,4:1 sur la surface
+  // claire ; on le ramène au jeton de texte tertiaire, conforme dans les deux thèmes.
+  &::placeholder {
+    color: hsl(var(--color-text-tertiary));
+    opacity: 1;
+  }
+}
 .ctrl-number { width: var(--pg-ctrl-number-width); }
 .ctrl-color {
   width: var(--pg-ctrl-color-width);

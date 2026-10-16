@@ -14,7 +14,22 @@
   // ===== TEINTES =====
   // Seules ces trois teintes ont un style dédié ; une teinte inconnue (ex. 'neutral')
   // retombe visuellement sur la pilule de base — comportement voulu.
+  // Fond et bordure (teinte diluée) : le palier 500.
   --stat-badge-positive: var(--color-success-500);
   --stat-badge-negative: var(--color-error-500);
   --stat-badge-warning: var(--color-warning-500);
+
+  // TEXTE de la pastille. Le palier 500 posé sur sa propre teinte à 10 % mesure 1,9:1
+  // (vert), 3,3:1 (rouge) et 2,0:1 (orange) en clair : on prend le palier 700 (≥ 5:1).
+  --stat-badge-positive-text: var(--color-success-700);
+  --stat-badge-negative-text: var(--color-error-700);
+  --stat-badge-warning-text: var(--color-warning-700);
+}
+
+// En sombre la teinte diluée est posée sur un fond quasi noir : le palier 500 est déjà
+// conforme (8,1:1 / 4,6:1 / 7,4:1) et le 700 y serait illisible.
+[data-theme="dark"] {
+  --stat-badge-positive-text: var(--color-success-500);
+  --stat-badge-negative-text: var(--color-error-500);
+  --stat-badge-warning-text: var(--color-warning-500);
 }

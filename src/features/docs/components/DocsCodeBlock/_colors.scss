@@ -18,8 +18,10 @@
 
   --docs-code-hl-k: 265 60% 45%;   // mot-clé
   --docs-code-hl-s: 145 55% 30%;   // chaîne
-  --docs-code-hl-c: 218 11% 50%;   // commentaire
-  --docs-code-hl-n: 25 80% 40%;    // nombre / option
+  // c et n : 45 % / 36 % de clarté pour atteindre 4,5:1 sur --color-surface-muted
+  // (50 % / 40 % mesuraient 3,85:1 et 4,30:1).
+  --docs-code-hl-c: 218 11% 45%;   // commentaire
+  --docs-code-hl-n: 25 80% 36%;    // nombre / option
   --docs-code-hl-t: 205 75% 38%;   // balise de composant
   --docs-code-hl-a: 340 60% 45%;   // nom d'attribut
 }

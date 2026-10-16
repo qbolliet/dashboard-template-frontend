@@ -20,7 +20,10 @@
   font-size: var(--chart-axis-tick-font-size);
   fill: hsl(var(--chart-axis-color) / var(--chart-axis-tick-label-opacity));
 }
-.visx-axis-left .chart-axis-label {
+// Le nom d'axe est un <text> FRÈRE de l'axe visx (fragment dans ChartAxisLeft.jsx), pas
+// son descendant : le sélecteur `.visx-axis-left .chart-axis-label` ne le ciblait jamais
+// et le texte retombait sur le fill noir par défaut du SVG.
+.chart-axis-label {
   font-size: var(--font-size-xs);
   font-weight: 500;
   fill: hsl(var(--chart-axis-color) / var(--chart-axis-label-opacity));
