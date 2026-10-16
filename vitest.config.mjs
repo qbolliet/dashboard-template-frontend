@@ -8,14 +8,28 @@
 // doivent tourner sous le même environnement que le reste de la suite.
 
 import { defineConfig } from 'vitest/config';
+import { transformWithOxc } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Le dépôt écrit du JSX dans des fichiers `.js` (ThemeProvider.js, ThemeToggleButton.js…),
+// ce que Next compile mais que le transformateur de Vitest refuse pour une extension `.js`.
+// Ce plugin re-transforme ces fichiers comme du `.jsx`, uniquement pour les tests.
+const jsxInJs = {
+  name: 'jsx-in-js',
+  enforce: 'pre',
+  async transform(code, id) {
+    if (!/[\\/]src[\\/].*\.js$/.test(id) || !code.includes('react')) return null;
+    const result = await transformWithOxc(code, `${id}x`, { jsx: { runtime: 'automatic' } });
+    return { code: result.code, map: result.map };
+  },
+};
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [jsxInJs, react()],
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.mjs'],

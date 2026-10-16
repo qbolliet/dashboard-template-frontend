@@ -2639,6 +2639,11 @@
           "path": "src/features/theme/providers/ThemeProvider.js",
           "type": "registry:file",
           "target": "~/src/features/theme/providers/ThemeProvider.js"
+        },
+        {
+          "path": "src/features/theme/utils/themeStore.js",
+          "type": "registry:file",
+          "target": "~/src/features/theme/utils/themeStore.js"
         }
       ]
     },

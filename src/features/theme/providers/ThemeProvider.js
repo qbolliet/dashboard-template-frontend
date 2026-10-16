@@ -1,30 +1,36 @@
 'use client';
 
-import React, { createContext, useState, useContext, useEffect, useEffectEvent, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useEffectEvent, useRef, useSyncExternalStore } from 'react';
+import {
+    applyThemeAttribute,
+    THEME_MANUAL_KEY,
+    applyThemeColorMeta,
+    getServerTheme,
+    getSystemTheme,
+    persistTheme,
+    readTheme,
+    subscribeTheme,
+} from '@/features/theme/utils/themeStore';
 
 // Contexte pour le thème
 const ThemeContext = createContext();
 
-/**
- * Writes the `data-theme` attribute on `<html>`.
- *
- * Called twice on purpose, and the order matters. React flushes passive effects
- * CHILD-FIRST, so a descendant that reads a themed CSS token with
- * `getComputedStyle` inside its own effect would still see the PREVIOUS theme if
- * the attribute were only written by the provider's `[theme]` effect (that was
- * the globe's one-theme-behind WebGL palette bug). The gesture path therefore
- * writes the attribute SYNCHRONOUSLY, before the state update that triggers the
- * re-render; the `[theme]` effect rewrites the same value idempotently and stays
- * the source of truth for mount/restore and persistence.
- *
- * @param {string} nextTheme - Theme to apply ('light' or 'dark').
- * @returns {void}
- */
-const applyThemeAttribute = (nextTheme) => {
-    // Sur <html> (documentElement), au même niveau que les déclarations `:root { … }` —
-    // cf. le commentaire détaillé de l'effet [theme] plus bas.
-    document.documentElement.setAttribute('data-theme', nextTheme);
-};
+// =================================================================
+// SOURCE DE VÉRITÉ : l'attribut data-theme de <html>
+// =================================================================
+// Le thème N'EST PLUS un `useState`. Le script d'amorçage de src/app/layout.tsx pose
+// `data-theme` sur <html> avant le premier paint ; ce fournisseur le lit via
+// `useSyncExternalStore` (cf. utils/themeStore.js) avec un snapshot SERVEUR fixe à `light`.
+//
+// Pourquoi : le HTML statique est rendu en `light`. Un état initialisé depuis l'attribut
+// donnait `dark` dès le premier rendu client, donc une divergence d'hydratation que React
+// signale SANS la corriger (le DOM restait `light`, l'état était `dark` : premier clic
+// perdu sur les aperçus, C4). Avec useSyncExternalStore, l'hydratation rend `light` comme le
+// serveur, puis React re-rend aussitôt avec la valeur réelle, sans avertissement.
+//
+// Conséquence pour la persistance : elle ne peut PLUS vivre dans un effet `[theme]` — au
+// commit d'hydratation il tournerait avec la valeur serveur et écraserait localStorage
+// ET l'attribut. Elle est écrite sur le chemin du GESTE (runThemeTransition).
 
 /**
  * Provider pour la gestion des thèmes de l'application
@@ -33,29 +39,8 @@ const applyThemeAttribute = (nextTheme) => {
  * @param {Object} children - Les composants enfants
  */
 export const ThemeProvider = ({ children }) => {
-    // État du thème avec initialisation depuis localStorage ou système
-    const [theme, setTheme] = useState(() => {
-        // Vérifier si on est côté client (pour éviter les erreurs SSR)
-        if (typeof window === 'undefined') return 'light';
-
-        // Le script anti-FOUC du layout a déjà résolu et posé data-theme sur <html>
-        // avant hydratation ; on relit cette valeur pour rester la source unique de vérité
-        // et garantir la cohérence entre l'attribut DOM et l'état React.
-        const appliedTheme = document.documentElement.dataset.theme;
-        if (appliedTheme === 'light' || appliedTheme === 'dark') {
-            return appliedTheme;
-        }
-
-        // Repli défensif si le script inline n'a pas tourné : même logique d'init.
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'light' || savedTheme === 'dark') {
-            return savedTheme;
-        }
-
-        // Détecter la préférence système si aucun thème sauvegardé
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        return prefersDark ? 'dark' : 'light';
-    });
+    // Thème courant : lu depuis le DOM, jamais copié dans un état local.
+    const theme = useSyncExternalStore(subscribeTheme, readTheme, getServerTheme);
 
     // Minuteurs de la transition en cours (délai avant changement + retrait de la classe).
     // En refs (et non en state) : la classe `theme-transitioning` est purement visuelle
@@ -67,14 +52,19 @@ export const ThemeProvider = ({ children }) => {
     const themeChangeTimeoutsRef = useRef(new Set());
     const endTransitionTimeoutRef = useRef(null);
 
-    // Miroir hors rendu du dernier thème DEMANDÉ (et non du dernier thème commité).
-    // Remplace l'updater fonctionnel `setTheme(prev => …)` utilisé auparavant : la cible
-    // doit être connue AVANT le rendu pour pouvoir poser `data-theme` de façon synchrone
-    // (cf. applyThemeAttribute), et un updater doit rester pur — il est double-invoqué en
-    // StrictMode, donc on ne peut pas y toucher au DOM. Le ref est mis à jour au moment du
-    // GESTE : deux clics rapprochés calculent bien light → dark puis dark → light, même si
-    // le premier setTheme n'est pas encore commité.
-    const pendingThemeRef = useRef(theme);
+    // Dernier thème DEMANDÉ et pas encore appliqué (null = aucun basculement en vol).
+    // Deux clics rapprochés calculent bien light → dark puis dark → light même si le premier
+    // minuteur n'a pas encore posé l'attribut. Au repos, la cible se déduit du DOM
+    // (cf. requestedTheme) — et non d'un ref initialisé au rendu, qui vaudrait la valeur
+    // serveur `light` à l'hydratation et rendrait le premier clic inopérant.
+    const pendingThemeRef = useRef(null);
+
+    /**
+     * Returns the theme that is displayed, or about to be once in-flight toggles land.
+     *
+     * @returns {string} 'light' or 'dark'.
+     */
+    const requestedTheme = () => pendingThemeRef.current ?? readTheme();
 
     /**
      * Applies the transition class on <body>, switches to `nextTheme` after a short
@@ -84,8 +74,10 @@ export const ThemeProvider = ({ children }) => {
      * each still flip the theme (see below).
      *
      * @param {string} nextTheme - Theme to switch to ('light' or 'dark').
+     * @param {boolean} persist - Whether the choice is stored (true for a user gesture,
+     *   false when following the system preference).
      */
-    const runThemeTransition = (nextTheme) => {
+    const runThemeTransition = (nextTheme, persist) => {
         if (typeof window === 'undefined') return;
 
         // Seule la minuterie de FIN de transition (retrait de la classe CSS) est
@@ -103,12 +95,17 @@ export const ThemeProvider = ({ children }) => {
         // Délai court pour activer l'animation avant le changement de thème.
         const changeTimeout = setTimeout(() => {
             themeChangeTimeoutsRef.current.delete(changeTimeout);
-            // ORDRE CRITIQUE : l'attribut DOM d'abord, l'état React ensuite. Le rendu (et
-            // la purge des effets enfants, qui relisent les tokens CSS) n'a lieu qu'après
-            // ce callback : le DOM est donc déjà à jour quand un descendant appelle
-            // getComputedStyle depuis son propre effet.
+            // ORDRE CRITIQUE : l'attribut DOM d'abord, le rendu React ensuite. Le store
+            // (MutationObserver) ne notifie qu'APRÈS cette écriture, donc le rendu — et la
+            // purge des effets enfants, qui relisent les tokens CSS — voit déjà le DOM à
+            // jour quand un descendant appelle getComputedStyle depuis son propre effet.
             applyThemeAttribute(nextTheme);
-            setTheme(nextTheme);
+            applyThemeColorMeta(nextTheme);
+            if (persist) persistTheme(nextTheme);
+
+            // Plus aucun basculement en vol : le DOM reflète la dernière demande, la
+            // cible des gestes suivants se relit donc dessus.
+            if (themeChangeTimeoutsRef.current.size === 0) pendingThemeRef.current = null;
         }, 50);
         themeChangeTimeoutsRef.current.add(changeTimeout);
 
@@ -122,28 +119,29 @@ export const ThemeProvider = ({ children }) => {
      * Toggles between light and dark themes.
      */
     const toggleTheme = () => {
-        // Cible calculée sur le ref, pas sur le state : un second clic pendant qu'un
-        // basculement est en vol doit repartir du thème DEMANDÉ, pas du thème encore affiché.
-        const nextTheme = pendingThemeRef.current === 'light' ? 'dark' : 'light';
+        // Cible calculée sur le thème DEMANDÉ : un second clic pendant qu'un basculement
+        // est en vol doit repartir de lui, pas du thème encore affiché.
+        const nextTheme = requestedTheme() === 'light' ? 'dark' : 'light';
         pendingThemeRef.current = nextTheme;
-        runThemeTransition(nextTheme);
+        runThemeTransition(nextTheme, true);
     };
 
     /**
      * Définir un thème spécifique
      * @param {string} newTheme - Le nouveau thème ('light' ou 'dark')
+     * @param {boolean} [persist] - Mémoriser le choix (défaut : oui, c'est un choix explicite).
      */
-    const setSpecificTheme = (newTheme) => {
+    const setSpecificTheme = (newTheme, persist = true) => {
         if (newTheme !== 'light' && newTheme !== 'dark') {
             console.warn('Thème non valide. Utilisez "light" ou "dark".');
             return;
         }
 
-        // Comparaison au thème DEMANDÉ (ref) et non au thème commité (state) : sinon un appel
-        // pendant qu'un basculement est en vol relancerait une transition vers un thème déjà ciblé.
-        if (newTheme !== pendingThemeRef.current) {
+        // Comparaison au thème DEMANDÉ et non au thème affiché : sinon un appel pendant
+        // qu'un basculement est en vol relancerait une transition vers un thème déjà ciblé.
+        if (newTheme !== requestedTheme()) {
             pendingThemeRef.current = newTheme;
-            runThemeTransition(newTheme);
+            runThemeTransition(newTheme, persist);
         }
     };
 
@@ -168,50 +166,26 @@ export const ThemeProvider = ({ children }) => {
     const syncWithSystemTheme = () => {
         if (typeof window === 'undefined') return;
 
-        const hasManualTheme = localStorage.getItem('theme-manual');
-        if (!hasManualTheme) {
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const systemTheme = prefersDark ? 'dark' : 'light';
-
-            if (systemTheme !== theme) {
-                setSpecificTheme(systemTheme);
-            }
+        let hasManualTheme = null;
+        try {
+            hasManualTheme = localStorage.getItem(THEME_MANUAL_KEY);
+        } catch {
+            // Stockage inaccessible : aucun choix manuel mémorisable, on suit le système.
         }
+
+        // Suivre le système n'est PAS un choix de l'utilisateur : on n'enregistre rien.
+        if (!hasManualTheme) setSpecificTheme(getSystemTheme(), false);
     };
 
-    // Effet pour appliquer le thème au DOM et le sauvegarder
+    // Montage uniquement : si le script d'amorçage n'a pas posé `data-theme` (stockage
+    // bloqué, script absent), on matérialise la valeur résolue par readTheme() pour que le CSS
+    // et React s'accordent. On lit le DOM / le stockage, on ne recopie aucun état ; et on ne
+    // persiste rien ici (cf. l'en-tête : la valeur d'hydratation est celle du serveur).
     useEffect(() => {
-        if (typeof window === 'undefined') return;
-
-        // Appliquer le thème sur <html> (documentElement), au même niveau que les
-        // déclarations `:root { … }`. Indispensable : les tokens de feature du type
-        // `:root { --x: var(--color-surface) }` sont résolus à l'élément où ils sont
-        // déclarés (:root) puis hérités figés ; si l'override [data-theme="dark"]
-        // était posé sur <body> (un descendant), ces indirections resteraient gelées
-        // en light. Sur <html>, override et déclarations coïncident → réévaluation OK.
-        //
-        // Sur le chemin d'un GESTE utilisateur, runThemeTransition a déjà posé cette même
-        // valeur avant le rendu (obligatoire : les effets enfants lisent les tokens avant
-        // que celui du parent ne tourne). Cette réécriture est donc idempotente ; l'effet
-        // reste le chemin de restauration au montage et le filet de sécurité pour tout
-        // changement d'état qui ne passerait pas par runThemeTransition.
-        applyThemeAttribute(theme);
-        
-        // Sauvegarder le thème dans localStorage
-        localStorage.setItem('theme', theme);
-        
-        // Marquer que l'utilisateur a fait un choix manuel
-        localStorage.setItem('theme-manual', 'true');
-        
-        // Mettre à jour la meta tag pour la barre d'état sur mobile
-        const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-        if (metaThemeColor) {
-            metaThemeColor.setAttribute(
-                'content',
-                theme === 'dark' ? '#1a1a1a' : '#ffffff'
-            );
-        }
-    }, [theme]);
+        const resolved = readTheme();
+        if (!document.documentElement.dataset.theme) applyThemeAttribute(resolved);
+        applyThemeColorMeta(resolved);
+    }, []);
 
     // Effect Event : isole la logique non-réactive de l'écoute système.
     // Lit toujours le `theme` courant sans rendre l'effet d'abonnement réactif,
@@ -247,14 +221,11 @@ export const ThemeProvider = ({ children }) => {
         
         // Actions
         toggleTheme,
-        setTheme: setSpecificTheme,
+        setTheme: (newTheme) => setSpecificTheme(newTheme),
         syncWithSystemTheme,
         
         // Utilitaires
-        getSystemTheme: () => {
-            if (typeof window === 'undefined') return 'light';
-            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
+        getSystemTheme,
     };
 
     return (
