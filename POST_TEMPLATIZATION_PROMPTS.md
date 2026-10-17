@@ -434,7 +434,9 @@ test: stabilise the e2e suite and refresh the snapshots changed by the recette f
 
 ## G1 — Reliquats i18n et lint
 
-**Modèle : Sonnet.** Périmètre énuméré. **Plan : non.**
+**Modèle : Sonnet. Effort : medium. Plan : non.** Périmètre énuméré et vérifiable par
+`npm run lint` / `check:i18n` ; seul le tri « code mort ou fonctionnalité à moitié câblée »
+demande du jugement, il se traite cas par cas.
 
 ```text
 Contexte : npm run lint remonte 10 avertissements et quatre libellés français restent en
@@ -472,7 +474,7 @@ fix: externalise remaining French labels and remove dead code flagged by lint
 
 ## G2 — Hygiène documentaire et fusion dans `main`
 
-**Modèle : Sonnet.** **Plan : non.** À lancer après avoir tranché les décisions 1 à 3 de
+**Modèle : Sonnet. Effort : medium. Plan : non.** À lancer après avoir tranché les décisions 1 à 3 de
 `POST_TEMPLATIZATION_ARCHITECTURE.md` §4.
 
 ```text
@@ -501,7 +503,8 @@ docs: align project docs and changelog with the shipped templatization
 
 ## G3 — Guide « Partir du template »
 
-**Modèle : Sonnet.** **Plan : non.** Dépend du rapport G0 (étape 4).
+**Modèle : Sonnet. Effort : medium. Plan : non.** Dépend du rapport G0 (étape 4). Rédaction
+guidée par la sortie réelle de `--dry-run`, pas de diagnostic.
 
 ```text
 Contexte : l'eject est documenté en 25 lignes dans introduction/installation.mdx. Un
@@ -531,7 +534,8 @@ docs: add a guide for starting a project from the template
 
 ## API-0 — Fusion de la branche API et tag v0.3.0
 
-**Dépôt : `dashboard-template-api`.** Étape humaine guidée ; session courte.
+**Dépôt : `dashboard-template-api`. Modèle : Sonnet. Effort : low. Plan : non.** Étape humaine
+guidée ; session courte (exécution de commandes et compte rendu, aucune modification).
 
 ```text
 Contexte : les prompts A1 à A18 sont commités sur qb-schemav2-adaptation (HEAD a488629),
@@ -579,7 +583,8 @@ Précisions par prompt :
 
 ## F8 — Documentation, registry et version 0.x
 
-**Modèle : Sonnet.** **Plan : non.** Après F6.
+**Modèle : Sonnet. Effort : medium. Plan : non.** Après F6. Les pages à corriger sont déjà
+listées par les compléments de F1 à F6 ; le périmètre est donc énuméré.
 
 ```text
 Contexte : F1 à F6 ont changé le contrat de données (métadonnées camelCase, familles de
@@ -620,7 +625,7 @@ partie agrégats (une section de `chart.mdx` et un exemple de registry `chart-ag
 
 ## T1 — Conversion TypeScript
 
-**Modèle : Opus. Plan : oui.** À faire quand le contrat de données ne bouge plus (après F8).
+**Modèle : Opus. Effort : xhigh. Plan : oui.** À faire quand le contrat de données ne bouge plus (après F8).
 Utiliser la skill `js-to-ts-converter`. Un prompt par couche, dans cet ordre, chaque couche
 dans son propre commit :
 
