@@ -19,7 +19,8 @@
  * Flattens a navigation tree into a flat list of pages.
  *
  * Expects a tree whose paths are ALREADY absolute — run `resolveNavigationTree`
- * first. Passing a raw manifest tree silently yields relative paths.
+ * first. Passing a raw manifest tree silently yields relative paths. Nodes without
+ * `path` (folders) yield no entry of their own.
  *
  * @param {Array<Object>} tree - Resolved navigation tree.
  * @param {number} [depth=0] - Nesting level of the current branch, 0 at the root.
@@ -30,7 +31,10 @@
  */
 export const flattenNavigation = (tree = [], depth = 0, ancestors = []) =>
     tree.flatMap((node) => [
-        {
+        // Un dossier (nœud sans `path`) n'est pas une page : ni route, ni entrée de
+        // recherche. Il reste dans `depth` et `ancestors` de ses descendants, dont il
+        // porte le libellé dans le fil d'Ariane.
+        ...(typeof node.path === 'string' ? [{
             path: node.path,
             name: node.name,
             type: node.type,
@@ -45,6 +49,6 @@ export const flattenNavigation = (tree = [], depth = 0, ancestors = []) =>
             searchable: node.searchable !== false,
             depth,
             ancestors,
-        },
+        }] : []),
         ...flattenNavigation(node.children, depth + 1, [...ancestors, node.name]),
     ]);

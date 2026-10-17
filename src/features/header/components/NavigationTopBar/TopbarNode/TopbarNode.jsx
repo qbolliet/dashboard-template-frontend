@@ -32,6 +32,7 @@ const isGroupedStructure = (children) =>
  * @param {boolean} isOpen - Whether the dropdown is open (drives the --open modifier).
  * @param {Function} onItemClick - Click handler for links (closes the dropdown).
  * @param {Function} isActivePath - Tests whether a path matches the current page.
+ * @param {Function} isCurrentPath - Tests whether a path is exactly the current page.
  * @param {Set<number>} expandedGroups - Indices of expanded groups (mobile accordion).
  * @param {Function} toggleGroupExpansion - Toggles a group's expansion by index.
  * @returns {JSX.Element|null} The rendered dropdown content, or null if empty.
@@ -42,6 +43,7 @@ const TopbarNode = ({
     isOpen = false,
     onItemClick,
     isActivePath,
+    isCurrentPath,
     expandedGroups,
     toggleGroupExpansion
 }) => {
@@ -78,6 +80,7 @@ const TopbarNode = ({
                         onToggle={() => toggleGroupExpansion(groupIndex)}
                         onItemClick={onItemClick}
                         isActivePath={isActivePath}
+                        isCurrentPath={isCurrentPath}
                     />
                 ))}
             </ul>
@@ -96,7 +99,7 @@ const TopbarNode = ({
                     key={`child-${childIndex}`}
                     href={child.path}
                     name={child.name}
-                    isActive={isActivePath(child.path)}
+                    isActive={isCurrentPath(child.path)}
                     onItemClick={onItemClick}
                     itemClass="topbar-item"
                     linkClass="topbar-link"

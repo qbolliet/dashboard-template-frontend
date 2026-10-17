@@ -22,10 +22,10 @@ const TopbarItem = ({
     activeClassName = ''
 }) => {
     // Contexte de route : ne dépend que du pathname (stable au toggle du menu mobile).
-    const { isActivePath } = useNavigationRoute();
+    const { isCurrentPath } = useNavigationRoute();
 
     // Déterminer si le lien est actif
-    const isActive = isActivePath(item.path);
+    const isActive = isCurrentPath(item.path);
 
     // Gestion du clic
     const handleClick = () => {

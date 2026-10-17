@@ -47,6 +47,11 @@ const joinPath = (parentPath, childPath) => {
  * Returns a new tree with the same shape and the same keys — only `path` changes.
  * The input is left untouched.
  *
+ * A node WITHOUT `path` is a folder: it is not a page and adds no URL segment. It keeps
+ * no `path` in the result, and its children mount on the nearest ancestor that has one
+ * (`/france` + `/pib` under a pathless « Pays » node gives `/france/pib`, not
+ * `/pays/france/pib`).
+ *
  * @param {Array<Object>} tree - Navigation tree as declared in the site manifest.
  * @param {string} [parentPath='/'] - Absolute path inherited from the parent node. At the
  *   top level this doubles as the MOUNT POINT of the whole tree: passing `DEMO_BASE_PATH`
@@ -56,11 +61,15 @@ const joinPath = (parentPath, childPath) => {
  */
 export const resolveNavigationTree = (tree = [], parentPath = '/') =>
     tree.map((node) => {
-        const path = joinPath(parentPath, node.path);
+        // Dossier : pas de page, donc pas de segment. La clé `path` est omise (et non
+        // mise à `undefined`) pour que `'path' in node` reste un test fiable, et les
+        // enfants se montent sur le chemin hérité du parent.
+        const hasPath = typeof node.path === 'string';
+        const path = hasPath ? joinPath(parentPath, node.path) : parentPath;
 
         return {
             ...node,
-            path,
+            ...(hasPath && { path }),
             // `children` n'est recréée que si elle existe : le schéma impose d'omettre
             // la clé sur une feuille, et plusieurs composants testent sa présence.
             ...(node.children && { children: resolveNavigationTree(node.children, path) }),

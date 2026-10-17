@@ -66,3 +66,19 @@ describe('flattenNavigation', () => {
     expect(flattenNavigation()).toEqual([]);
   });
 });
+
+describe('flattenNavigation — dossiers (nœuds sans path)', () => {
+  const tree = [
+    { name: 'Pays', children: [{ path: '/france', name: 'France', type: 'indicator' }] },
+  ];
+
+  it('emits no entry for a folder, but its children', () => {
+    expect(flattenNavigation(tree).map((n) => n.path)).toEqual(['/france']);
+  });
+
+  it('keeps the folder in the depth and breadcrumb of its descendants', () => {
+    const [entry] = flattenNavigation(tree);
+    expect(entry.depth).toBe(1);
+    expect(entry.ancestors).toEqual(['Pays']);
+  });
+});

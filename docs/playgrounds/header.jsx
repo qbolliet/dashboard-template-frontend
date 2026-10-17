@@ -14,10 +14,10 @@ import { expr } from '@/features/docs/utils/serializeJsx';
 // =================================================================
 // Porté depuis /test-header.
 //
-// SURFACE DÉLIBÉRÉMENT ÉTROITE. `Header` choisit lui-même entre barre horizontale et
-// barre latérale selon la PROFONDEUR de l'arbre qu'on lui passe (cf. Header.jsx) — ce
-// n'est pas une prop pilotable, et un contrôle qui la simulerait produirait un code
-// généré mensonger. Le reste du comportement intéressant — repli responsive, suggestions
+// SURFACE DÉLIBÉRÉMENT ÉTROITE. Aucun contrôle pour `navigationType` (barre horizontale par
+// défaut ; `auto` la déduit de la PROFONDEUR de l'arbre) ni pour `linkedNodes` : l'aperçu
+// est un cadre étroit où la sidebar ne tient pas, et un contrôle qui la simulerait
+// produirait un code généré mensonger. Le reste du comportement intéressant — repli responsive, suggestions
 // de la barre de recherche, navigation clavier, bascule de thème — est soit automatique,
 // soit déjà exercé EN CONTINU par le chrome du site de documentation lui-même : chaque
 // page de ce site rend un vrai <Header>, dans son mode réel, avec de vraies interactions.

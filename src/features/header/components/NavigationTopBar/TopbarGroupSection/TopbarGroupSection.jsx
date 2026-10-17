@@ -17,6 +17,7 @@ import { interpolate } from '@/utils/i18n/interpolate';
  * @param {Function} onToggle - Toggles the group expansion (mobile).
  * @param {Function} onItemClick - Click handler for links (closes the dropdown).
  * @param {Function} isActivePath - Tests whether a path matches the current page.
+ * @param {Function} isCurrentPath - Tests whether a path is exactly the current page.
  * @returns {JSX.Element} The rendered dropdown group.
  */
 const TopbarGroupSection = ({
@@ -25,7 +26,8 @@ const TopbarGroupSection = ({
     isExpanded,
     onToggle,
     onItemClick,
-    isActivePath
+    isActivePath,
+    isCurrentPath
 }) => {
     // Libellés distribués par <Header> via NavigationProvider.
     const labels = useNavigationLabels('topbar');
@@ -57,12 +59,29 @@ const TopbarGroupSection = ({
     return (
         <li className={groupClasses}>
             {/* En-tête / lien principal du groupe */}
-            <Link href={group.path} className={headerClasses} onClick={onItemClick}>
-                <span className="nav-text topbar-text">{group.name}</span>
-            </Link>
+            {/* Dossier (sans chemin) : le libellé déplie le groupe, comme le chevron. */}
+            {group.path ? (
+                <Link
+                    href={group.path}
+                    className={headerClasses}
+                    onClick={onItemClick}
+                    aria-current={isCurrentPath(group.path) ? 'page' : undefined}
+                >
+                    <span className="nav-text topbar-text">{group.name}</span>
+                </Link>
+            ) : (
+                <button
+                    type="button"
+                    className={headerClasses}
+                    onClick={onToggle}
+                    aria-expanded={hasChildren ? isExpanded : undefined}
+                >
+                    <span className="nav-text topbar-text">{group.name}</span>
+                </button>
+            )}
 
             {/* Chevron pour déplier/replier le groupe — visible uniquement sur mobile (géré en CSS) */}
-            {hasChildren && (
+            {hasChildren && group.path && (
                 <button
                     type="button"
                     className={`nav-toggle topbar-toggle ${
@@ -95,7 +114,7 @@ const TopbarGroupSection = ({
                             key={`sub-${groupIndex}-${subIndex}`}
                             href={subChild.path}
                             name={subChild.name}
-                            isActive={isActivePath(subChild.path)}
+                            isActive={isCurrentPath(subChild.path)}
                             onItemClick={onItemClick}
                             itemClass="topbar-item"
                             linkClass="topbar-link"

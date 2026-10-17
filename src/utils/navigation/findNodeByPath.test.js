@@ -45,3 +45,19 @@ describe('findNodeByPath', () => {
     expect(findNodeByPath(undefined, '/x')).toBeUndefined();
   });
 });
+
+describe('findNodeByPath — dossiers (nœuds sans path)', () => {
+  const tree = [
+    { name: 'Pays', children: [{ path: '/france', name: 'France', children: [{ path: '/france/pib', name: 'PIB' }] }] },
+  ];
+
+  it('searches through a folder', () => {
+    expect(findNodeByPath(tree, '/france')?.name).toBe('France');
+    expect(findNodeByPath(tree, '/france/pib')?.name).toBe('PIB');
+  });
+
+  it('never matches the folder itself', () => {
+    expect(findNodeByPath(tree, undefined)).toBeUndefined();
+    expect(findNodeByPath(tree, '/pays')).toBeUndefined();
+  });
+});

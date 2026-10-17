@@ -21,6 +21,15 @@
 // =================================================================
 // Sélecteur volontairement à faible spécificité (0-1-0) : les classes préfixées et les
 // surcharges de niveau (couleur, graisse) priment naturellement.
+// Un déclencheur sans page (dossier de navigation) est un <button> : on lui retire l'allure
+// native sans toucher à la spécificité (:where), pour que les états ci-dessous l'emportent.
+:where(button).nav-link {
+  background-color: transparent;
+  font-family: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
 .nav-link {
   // === Reset ===
   text-decoration: none;

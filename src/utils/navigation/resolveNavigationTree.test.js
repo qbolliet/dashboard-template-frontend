@@ -54,3 +54,33 @@ describe('resolveNavigationTree', () => {
     expect(tree[0].path).toBe('/pib');
   });
 });
+
+describe('resolveNavigationTree — dossiers (nœuds sans path)', () => {
+  const tree = [
+    {
+      name: 'Pays',
+      children: [
+        { path: '/france', name: 'France', children: [{ path: '/pib', name: 'PIB' }] },
+        { path: '/allemagne', name: 'Allemagne' },
+      ],
+    },
+  ];
+
+  it('adds no URL segment for a folder', () => {
+    const resolved = resolveNavigationTree(tree, '/demo');
+    expect(resolved[0].children[0].path).toBe('/demo/france');
+    expect(resolved[0].children[0].children[0].path).toBe('/demo/france/pib');
+    expect(resolved[0].children[1].path).toBe('/demo/allemagne');
+  });
+
+  it('keeps the folder keyless and its name', () => {
+    const [folder] = resolveNavigationTree(tree);
+    expect('path' in folder).toBe(false);
+    expect(folder.name).toBe('Pays');
+  });
+
+  it('nests folders inside a linked node', () => {
+    const nested = [{ path: '/a', name: 'A', children: [{ name: 'Dossier', children: [{ path: '/x', name: 'X' }] }] }];
+    expect(resolveNavigationTree(nested)[0].children[0].children[0].path).toBe('/a/x');
+  });
+});

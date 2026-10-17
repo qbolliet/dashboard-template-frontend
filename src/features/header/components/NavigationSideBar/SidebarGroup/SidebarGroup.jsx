@@ -43,7 +43,7 @@ const SidebarGroup = ({
     }
 
     // Contexte de la sidebar
-    const { isOpen: sidebarIsOpen, hasIcons, isActivePath, hasActiveChildren } = useSidebar();
+    const { isOpen: sidebarIsOpen, hasIcons, isActivePath, isCurrentPath, hasActiveChildren, toggleSidebar } = useSidebar();
 
     // useId garantit un ID stable entre le rendu SSR et l'hydratation client
     const contentId = `sidebar-group-content-${useId()}`;
@@ -72,8 +72,15 @@ const SidebarGroup = ({
             return;
         }
 
-        // Sinon (placeholder / javascript:), empêcher la navigation et juste toggle l'expansion
+        // Sinon (dossier sans page, placeholder / javascript:), empêcher la navigation et
+        // juste toggle l'expansion. En rail les enfants ne sont pas montés : déplier sans
+        // ouvrir la sidebar ne montrerait rien, on l'ouvre donc d'abord.
         event.preventDefault();
+        if (!sidebarIsOpen) {
+            toggleSidebar();
+            setIsExpanded(true);
+            return;
+        }
         toggleExpanded();
     };
 
@@ -86,14 +93,9 @@ const SidebarGroup = ({
 
     // Gestion des raccourcis clavier
     const handleKeyDown = (event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            if (isLink) {
-                handleItemClick(event);
-            } else {
-                toggleExpanded();
-            }
-        }
+        // Entrée/Espace ne sont pas interceptés : un <a> suit son lien à Entrée et un <button>
+        // se déclenche à Entrée/Espace, tous deux par un `click` que handleItemClick traite.
+        // Les intercepter (preventDefault) empêchait un groupe-lien de naviguer au clavier.
         if (event.key === 'ArrowRight' && !isExpanded) {
             setIsExpanded(true);
         }
@@ -136,6 +138,9 @@ const SidebarGroup = ({
                 aria-expanded={isExpanded}
                 aria-controls={hasChildren ? contentId : undefined}
                 aria-label={item.name}
+                // Un ancêtre de la page courante n'est que stylisé (classe --active) : seul le lien
+                // vers la page elle-même est « page actuelle ».
+                aria-current={isLink && isCurrentPath(item.path) ? 'page' : undefined}
                 title={!sidebarIsOpen ? item.name : undefined} // Tooltip quand sidebar fermée
             >
                 {/* Icône de l'item (si disponible et si des icônes existent dans la navigation) */}

@@ -49,6 +49,7 @@ const NavigationProvider = ({ labels, children }) => {
     const {
         currentPath,
         isActivePath,
+        isCurrentPath,
         hasActiveChildren,
         isMobileMenuOpen,
         isMobile,
@@ -80,6 +81,7 @@ const NavigationProvider = ({ labels, children }) => {
     const routeValue = {
         pathname: currentPath,
         isActivePath,
+        isCurrentPath,
         hasActiveChildren
     };
 
@@ -107,7 +109,7 @@ const NavigationProvider = ({ labels, children }) => {
 /**
  * Access the route-derived navigation context (pathname + active-state helpers).
  *
- * @returns {{pathname: string, isActivePath: Function, hasActiveChildren: Function}} Route context.
+ * @returns {{pathname: string, isActivePath: Function, isCurrentPath: Function, hasActiveChildren: Function}} Route context.
  * @throws {Error} If used outside of a NavigationProvider.
  */
 export const useNavigationRoute = () => {

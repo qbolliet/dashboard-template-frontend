@@ -16,6 +16,7 @@ import NavigationProvider, { useNavigationUI } from '../../providers/NavigationP
 import { hasIconsInNavigationData } from '../../utils/hasIconsInNavigationData';
 import { withBasePath } from '@/utils/url/withBasePath';
 import { mergeLabels } from '@/utils/i18n/mergeLabels';
+import { applyLinkedNodes, resolveNavigationType } from '@/utils/navigation/navigationLayout';
 import './Header.scss';
 
 // =================================================================
@@ -25,8 +26,8 @@ import './Header.scss';
 // dictionnaire (src/i18n/dictionaries/fr.js). C'est cette identité qui permet à un
 // layout d'écrire `<Header labels={dictionary} />` sans adaptateur.
 //
-// Constantes de MODULE et non valeurs par défaut de props : c'est ce qui rend la fusion
-// PARTIELLE possible. Un appelant qui ne traduit que le placeholder de recherche garde
+// Constantes de module et non valeurs par défaut de props : c'est ce qui rend la fusion
+// partielle possible. Un appelant qui ne traduit que le placeholder de recherche garde
 // tous les autres libellés en français, au lieu de les perdre — et `mergeLabels` refuse
 // en outre toute surcharge vide, de sorte qu'aucun `aria-label` ne peut devenir muet.
 //
@@ -244,7 +245,12 @@ const HeaderContent = ({
  * @param {Array} props.navigationData - Navigation items to display, with absolute paths
  *   (the manifest tree resolved by `resolveNavigationTree`)
  * @param {Function} [props.onNavigationItemClick] - Optional callback when a navigation item is clicked
- * @param {string} [props.navigationType='topbar'] - Type of navigation ('topbar' or 'sidebar')
+ * @param {string} [props.navigationType='auto'] - Layout of the navigation: `topbar`,
+ *   `sidebar`, or `auto` to deduce it from the depth of `navigationData` (sidebar beyond
+ *   two levels, topbar otherwise).
+ * @param {string} [props.linkedNodes='auto'] - Which nodes of the tree are links: `leaves`
+ *   (internal nodes only open their children, even when they carry a `path`), `all`, or
+ *   `auto` (an internal node is a link if and only if it carries a `path`).
  * @param {boolean} [props.useSwitcher=false] - Whether to use switcher in sidebar mode
  * @param {string} [props.currentPageTitle] - Title of current page (for sidebar breadcrumb)
  * @param {string} [props.siteTitle] - Site name shown in the sidebar brand. Comes from the
@@ -268,7 +274,8 @@ const HeaderContent = ({
 const Header = ({
     navigationData = [],
     onNavigationItemClick,
-    navigationType = 'topbar',
+    navigationType = 'auto',
+    linkedNodes = 'auto',
     useSwitcher = false,
     currentPageTitle,
     siteTitle,
@@ -277,6 +284,12 @@ const Header = ({
     labels: labelOverrides,
     homeHref = '/'
 }) => {
+    // Les deux décisions de présentation sont prises ici, une fois, pour que la topbar et la
+    // sidebar reçoivent un arbre et une disposition déjà tranchés : ni l'une ni l'autre n'a à
+    // savoir ce que « auto » veut dire.
+    const resolvedType = resolveNavigationType(navigationType, navigationData);
+    const renderedTree = applyLinkedNodes(navigationData, linkedNodes);
+
     // Fusion par espace de noms. Une fusion à plat écraserait un espace de noms entier
     // dès qu'une seule de ses clés serait traduite — d'où la boucle plutôt qu'un simple
     // étalement. Pas de useMemo : le React Compiler s'en charge, et l'objet ne sert
@@ -299,9 +312,9 @@ const Header = ({
         // donc en consommer les contextes.
         <NavigationProvider labels={labels}>
             <HeaderContent
-                navigationData={navigationData}
+                navigationData={renderedTree}
                 onNavigationItemClick={onNavigationItemClick}
-                navigationType={navigationType}
+                navigationType={resolvedType}
                 useSwitcher={useSwitcher}
                 currentPageTitle={currentPageTitle}
                 siteTitle={siteTitle}

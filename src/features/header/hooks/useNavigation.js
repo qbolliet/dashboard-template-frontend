@@ -2,6 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import {
+    hasActiveDescendant,
+    isActivePath as matchActivePath,
+    isCurrentPath as matchCurrentPath,
+} from '@/utils/navigation/activePath';
 
 /**
  * Custom hook for managing navigation state and utilities.
@@ -50,23 +55,25 @@ export const useNavigation = () => {
     };
 
     /**
-     * Check if a path is currently active.
+     * Check if a path is on the active branch (current page or one of its ancestors).
      *
-     * A node is active on its own page and on any page below it. The comparison
-     * is segment-bounded: `/finances-publiques` must not light up on
-     * `/finances-publiques-locales`.
+     * Enables to style the groupes ; never use it for `aria-current`
+     * (see `isCurrentPath`).
      *
      * @param {string} path - The absolute path to check
-     * @returns {boolean} True if the path is active
+     * @returns {boolean} True if the path is the current page or an ancestor of it
      */
-    const isActivePath = (path) => {
-        if (path === '/') {
-            return pathname === '/';
-        }
-        // Le '/' final est ce qui borne le préfixe au segment d'URL : sans lui,
-        // startsWith() marquerait tout frère dont le nom commence pareil.
-        return pathname === path || pathname.startsWith(path + '/');
-    };
+    const isActivePath = (path) => matchActivePath(pathname, path);
+
+    /**
+     * Check if a path is exactly the current page.
+     *
+     * It is the only test that authorizes `aria-current="page"`.
+     *
+     * @param {string} path - The absolute path to check
+     * @returns {boolean} True only for the current page itself
+     */
+    const isCurrentPath = (path) => matchCurrentPath(pathname, path);
 
     /**
      * Check if an item has active children.
@@ -74,14 +81,11 @@ export const useNavigation = () => {
      * @param {Object} item - The navigation item to check
      * @returns {boolean} True if the item has active children
      */
-    const hasActiveChildren = (item) => {
-        // Les chemins des enfants sont absolus (resolveNavigationTree) : la même
-        // règle de bornage que ci-dessus s'applique, on la réutilise plutôt que de
-        // la redupliquer.
-        if (!Array.isArray(item.children)) return false;
-
-        return item.children.some(child => isActivePath(child.path));
-    };
+    const hasActiveChildren = (item) =>
+        // Les chemins des enfants sont absolus (resolveNavigationTree) : la même règle de
+        // bornage que ci-dessus s'applique. La descente traverse les dossiers (nœuds sans
+        // chemin), qui ne se testent pas eux-mêmes.
+        hasActiveDescendant(pathname, item);
 
     // Listener resize UNIQUE partagé par toute la navigation (monté une seule fois via
     // le NavigationProvider). Il recalcule le breakpoint et referme le menu mobile dès
@@ -157,6 +161,7 @@ export const useNavigation = () => {
 
         // Fonctions utilitaires
         isActivePath,
+        isCurrentPath,
         hasActiveChildren
     };
 };

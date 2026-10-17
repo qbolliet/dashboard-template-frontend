@@ -22,10 +22,10 @@ const SidebarItem = ({
     level = 0
 }) => {
     // Contexte de la sidebar
-    const { isOpen: sidebarIsOpen, hasIcons, isActivePath } = useSidebar();
+    const { isOpen: sidebarIsOpen, hasIcons, isCurrentPath } = useSidebar();
 
     // Vérifier si l'item est actif
-    const isActive = isActivePath(item.path);
+    const isActive = isCurrentPath(item.path);
 
     // Gestion du clic sur l'item
     const handleItemClick = (event) => {

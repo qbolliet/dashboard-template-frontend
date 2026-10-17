@@ -17,14 +17,18 @@
  * @returns {Object|undefined} The matching node, or `undefined` if none matches.
  */
 export const findNodeByPath = (tree = [], path) => {
+    // Sans chemin à chercher, rien ne peut correspondre (et un dossier n'en a pas non plus).
+    if (typeof path !== 'string') return undefined;
+
     for (const node of tree) {
-        if (node.path === path) return node;
+        if (node.path !== undefined && node.path === path) return node;
 
         // Descente uniquement dans les branches concernées : un chemin ne peut être
         // dans le sous-arbre d'un nœud que s'il en a le chemin pour préfixe. Le '/'
         // final évite qu'un frère nommé /finances-publiques-locales soit fouillé
         // depuis /finances-publiques.
-        if (node.children && (node.path === '/' || path.startsWith(node.path + '/'))) {
+        // Un dossier (sans `path`) n'a pas de préfixe à comparer : on le traverse toujours.
+        if (node.children && (node.path === undefined || node.path === '/' || path.startsWith(node.path + '/'))) {
             const found = findNodeByPath(node.children, path);
             if (found) return found;
         }

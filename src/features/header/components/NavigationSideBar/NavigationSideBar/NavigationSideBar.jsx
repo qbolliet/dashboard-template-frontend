@@ -57,7 +57,7 @@ const NavigationSideBar = ({
     // du NavigationProvider — plus de listener resize propre à la sidebar (isMobile ≤639px).
     // L'ouverture et sa bascule viennent de la même source : `toggleSidebar` porte
     // l'annonce aux lecteurs d'écran, il n'y a plus de chemin qui puisse la contourner.
-    const { isActivePath, hasActiveChildren } = useNavigationRoute();
+    const { isActivePath, isCurrentPath, hasActiveChildren } = useNavigationRoute();
     const { isMobile, isSidebarOpen: isOpen, toggleSidebar } = useNavigationUI();
 
     // Hook pour piéger le focus dans la sidebar en mode mobile
@@ -173,6 +173,7 @@ const NavigationSideBar = ({
         toggleSidebar,
         sidebarId, // Ajout de l'ID pour aria-controls
         isActivePath,
+        isCurrentPath,
         hasActiveChildren
     };
 

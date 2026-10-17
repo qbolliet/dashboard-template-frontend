@@ -39,7 +39,7 @@ const TopbarGroup = ({
     const toggleButtonRef = useRef(null);
 
     // Contexte de route : ne dépend que du pathname (stable au toggle du menu mobile).
-    const { isActivePath, hasActiveChildren } = useNavigationRoute();
+    const { isActivePath, isCurrentPath, hasActiveChildren } = useNavigationRoute();
 
     /**
      * Gère les clics à l'extérieur du dropdown pour le fermer.
@@ -108,6 +108,9 @@ const TopbarGroup = ({
     const isActive = isActivePath(item.path);
     const hasActiveChild = hasActiveChildren(item);
     const hasChildren = item.children && item.children !== null;
+    // Dossier : un nœud sans chemin n'a pas de page. Son libellé devient le déclencheur du
+    // menu (un <button>), et le chevron séparé, redondant, disparaît.
+    const isLink = Boolean(item.path);
 
     // Classes CSS dynamiques (rôle .nav-row + préfixe .topbar-group)
     const itemClasses = [
@@ -129,18 +132,31 @@ const TopbarGroup = ({
 
     return (
         <li className={itemClasses} ref={dropdownRef}>
-            {/* Lien principal */}
-            <Link
-                href={item.path}
-                className={linkClasses}
-                onClick={handleItemClick}
-                aria-current={isActive ? 'page' : undefined}
-            >
-                <span className="nav-text topbar-text">{item.name}</span>
-            </Link>
+            {/* Lien principal, ou bouton de dépliage pour un dossier */}
+            {isLink ? (
+                <Link
+                    href={item.path}
+                    className={linkClasses}
+                    onClick={handleItemClick}
+                    aria-current={isCurrentPath(item.path) ? 'page' : undefined}
+                >
+                    <span className="nav-text topbar-text">{item.name}</span>
+                </Link>
+            ) : (
+                <button
+                    type="button"
+                    className={linkClasses}
+                    onClick={toggleDropdown}
+                    onKeyDown={handleKeyDown}
+                    aria-expanded={isDropdownOpen}
+                    aria-controls={`dropdown-${index}`}
+                >
+                    <span className="nav-text topbar-text">{item.name}</span>
+                </button>
+            )}
 
-            {/* Bouton dropdown si l'élément a des enfants */}
-            {hasChildren && (
+            {/* Bouton dropdown si l'élément a des enfants (le libellé d'un dossier l'est déjà) */}
+            {hasChildren && isLink && (
                 <TopbarToggleButton
                     ref={toggleButtonRef}
                     isOpen={isDropdownOpen}
@@ -162,6 +178,7 @@ const TopbarGroup = ({
                     isOpen={isDropdownOpen}
                     onItemClick={handleItemClick}
                     isActivePath={isActivePath}
+                    isCurrentPath={isCurrentPath}
                     expandedGroups={expandedGroups}
                     toggleGroupExpansion={toggleGroupExpansion}
                 />
