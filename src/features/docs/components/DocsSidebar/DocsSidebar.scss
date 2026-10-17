@@ -79,4 +79,14 @@
   .docs-sidebar__list {
     display: none;
   }
+
+  // Chaque section garde sa largeur naturelle : sans cela le bandeau tente de les faire
+  // tenir toutes à l'écran (titres écrasés ou coupés) au lieu de défiler dans son cadre.
+  .docs-sidebar__section {
+    flex: none;
+  }
+
+  .docs-sidebar__section-title {
+    white-space: nowrap;
+  }
 }

@@ -46,6 +46,11 @@ body {
     // Permet de faire en sorte que les éléments occupent toute la hauteur de l'écran
     display: grid; 
     grid-template-rows: min-content 1fr; 
+    // Colonne unique bornée au viewport : la piste implicite par défaut est `auto`, donc
+    // elle grandit jusqu'au min-content du plus large enfant (tableau, graphique…) et
+    // entraîne avec elle le header et <main> au-delà de l'écran. `minmax(0, 1fr)` coupe
+    // cette propagation : un enfant trop large doit défiler dans SON propre conteneur.
+    grid-template-columns: minmax(0, 1fr);
     // Permet d'éviter la superposition des éléments avec la navigation qui apparait et disparait sur le côté
     overflow-x: hidden; 
 }

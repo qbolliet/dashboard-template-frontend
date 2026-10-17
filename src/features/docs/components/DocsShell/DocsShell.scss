@@ -121,6 +121,9 @@
     color: hsl(var(--docs-prose-code-color));
     font-family: var(--font-geist-mono), monospace;
     font-size: var(--font-size-sm);
+    // Un chemin ou une expression longue sans espace (var(--…), a/b/c) peut dépasser la
+    // colonne : on autorise la coupe en n'importe quel point, uniquement pour le code inline.
+    overflow-wrap: anywhere;
   }
 
   pre {
@@ -134,6 +137,8 @@
     code {
       padding: 0;
       background-color: transparent;
+      // Le bloc défile : on ne casse pas les lignes de code.
+      overflow-wrap: normal;
     }
   }
 

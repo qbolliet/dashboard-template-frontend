@@ -13,6 +13,8 @@
 // Les tokens globaux (--spacing-*, --font-size-*, --color-*) proviennent de
 // src/styles/globals, injectés pour toute l'application par app/globals.scss.
 
+@use '@/styles/utils/breakpoints' as *;
+
 // ── Tokens du module ──
 // Seul endroit où des valeurs littérales apparaissent : c'est la couche de
 // définition. Tout le reste de la feuille les consomme via var().
@@ -43,8 +45,12 @@
 }
 .ctrl-group {
   display: flex;
+  // Retour à la ligne : un groupe de boutons exclusifs plus large que l'écran doit se
+  // replier sur plusieurs lignes plutôt qu'élargir la page.
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--pg-ctrl-gap);
+  max-width: 100%;
 }
 .ctrl-label {
   font-size: var(--pg-ctrl-font-size);
@@ -78,6 +84,12 @@
     color var(--transition-fast) ease;
   font-family: inherit;
   white-space: nowrap;
+  // Un libellé isolé plus long que la ligne se replie au lieu de déborder.
+  max-width: 100%;
+
+  @include breakpoint-down('small') {
+    white-space: normal;
+  }
 
   &:hover {
     border-color: hsl(var(--color-text-tertiary));
