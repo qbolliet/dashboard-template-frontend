@@ -96,7 +96,8 @@ const LocaleLayout = async ({ children, params }) => {
                 ailleurs. */}
             <Header
                 navigationData={navigationTree}
-                navigationType={siteConfig.navigation.type}
+                navigationType={siteConfig.navigation.type ?? 'auto'}
+                linkedNodes={siteConfig.navigation.linkedNodes ?? 'auto'}
                 useSwitcher={siteConfig.navigation.useSwitcher}
                 homeHref={`${DEMO_BASE_PATH}/${locale}`}
                 siteTitle={siteTitle}

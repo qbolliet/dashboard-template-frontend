@@ -2,6 +2,7 @@
 import homeData from '@config/content/home.json';
 import { resolveLocalized } from '@/utils/i18n/resolveLocalized';
 import { DEFAULT_LOCALE } from '@/i18n/config';
+import { DEMO_BASE_PATH } from '@/utils/navigation/basePaths';
 
 // =================================================================
 // HOME CONFIG — lecture du contenu rédigé de la page d'accueil
@@ -12,9 +13,29 @@ import { DEFAULT_LOCALE } from '@/i18n/config';
 // (`Hero`, `LinkCardsSection`) continuent de recevoir des chaînes et n'ont rien appris
 // de l'internationalisation.
 //
-// Ce qui n'est PAS résolu, et ne doit pas l'être : `link`, `image`, `id`,
-// `cardsPerRow`. Un chemin d'URL ou une image ne se traduit pas — la langue est portée
-// par un segment distinct, en amont.
+// Ce qui n'est pas traduit, et ne doit pas l'être : `image`, `id`, `cardsPerRow`.
+//
+// Les `link` ne sont pas traduits non plus, mais ils sont PRÉFIXÉS : dans home.json ils
+// s'écrivent comme les chemins du manifeste (`/comptabilite-nationale/france/pib`), sans
+// langue ni point de montage, et `resolveLink` ajoute `${DEMO_BASE_PATH}/${locale}` — le
+// même préfixe que celui qu'applique resolveNavigationTree à l'arbre (cf. layout.jsx).
+// Un lien ne peut donc pas pointer vers la mauvaise langue, ni se périmer au déplacement
+// de l'application (eject), et validate:config vérifie qu'il désigne un nœud existant.
+
+/**
+ * Prefixes a manifest path with the mount point and the locale.
+ *
+ * Absolute URLs and anchors pass through untouched.
+ *
+ * @param {string} link - Path of a manifest node ('/' for the home node), or an external URL.
+ * @param {string} locale - Site locale code.
+ * @returns {string} The href to render.
+ */
+const resolveLink = (link, locale) => {
+  if (typeof link !== 'string' || !link.startsWith('/')) return link;
+  const prefix = `${DEMO_BASE_PATH}/${locale}`;
+  return link === '/' ? prefix : prefix + link;
+};
 
 /**
  * Resolves the localized fields of every card.
@@ -25,6 +46,7 @@ import { DEFAULT_LOCALE } from '@/i18n/config';
 const resolveCards = (locale) =>
   homeData.cards.map((card) => ({
     ...card,
+    link: resolveLink(card.link, locale),
     title: resolveLocalized(card.title, locale, DEFAULT_LOCALE),
     description: resolveLocalized(card.description, locale, DEFAULT_LOCALE),
   }));
@@ -66,6 +88,7 @@ export const getHeroConfig = (locale = DEFAULT_LOCALE) => ({
   description: resolveLocalized(homeData.hero.description, locale, DEFAULT_LOCALE),
   ctaButton: {
     ...homeData.hero.ctaButton,
+    link: resolveLink(homeData.hero.ctaButton.link, locale),
     text: resolveLocalized(homeData.hero.ctaButton.text, locale, DEFAULT_LOCALE),
   },
 });

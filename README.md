@@ -127,7 +127,9 @@ title, description and locale under `site`, and its page tree under
 `navigation`. Each node carries a `path` (a segment **relative to its parent**,
 concatenated down the tree), a `name`, a `type`, optional `children`, and the
 optional `description` and `searchable` fields that feed the search. Set
-`navigation.type` to `topbar` or `sidebar` to pick the header layout.
+`navigation.type` to `topbar`, `sidebar` or `auto` (the default: topbar up to two levels,
+sidebar beyond) to pick the header layout, and `navigation.linkedNodes` to choose whether
+internal nodes are links or only open their children.
 
 The manifest declares its own JSON Schema (`config/schema/site.schema.json`),
 so an editor that understands `$schema` — VS Code does out of the box — gives

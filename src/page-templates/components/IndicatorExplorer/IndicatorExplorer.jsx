@@ -32,6 +32,7 @@ import { intlLocaleFor, formatsFor } from '@/i18n/formats';
 import { DEFAULT_LOCALE } from '@/i18n/config';
 import operations from '@config/filter/operations.json';
 import { deriveEncoding, restrictToColumns } from '../../utils/deriveEncoding';
+import { rowsExtent } from '../../utils/rowsExtent';
 import './IndicatorExplorer.scss';
 
 // Barre d'outils du graphique. Elle était en portée MODULE, ce qui n'est plus possible :
@@ -132,6 +133,12 @@ const IndicatorExplorer = ({
     const filterTree = normalizeDefaultFilter(filter);
     const chartData = filterTree ? data.filter((row) => evalFilterNode(row, filterTree)) : data;
 
+    // Les cartes suivent le filtre. `isFiltered` vaut vrai dès qu'un arbre de filtre existe,
+    // même s'il laisse passer toutes les lignes : le total d'origine reste alors affiché,
+    // ce qui confirme au lecteur que son filtre a bien été pris en compte.
+    const isFiltered = Boolean(filterTree);
+    const extentOf = (column) => (isFiltered ? rowsExtent(chartData, column) : metadata?.extents?.[column]);
+
     // Variables du menu de filtres : toutes les colonnes du jeu sauf la clé primaire,
     // qui n'a pas de sens comme critère.
     const variables = schema
@@ -153,22 +160,28 @@ const IndicatorExplorer = ({
 
     return (
         <>
-            {/* Indicateurs de cadrage, dérivés de `metadata` — pas de recalcul côté
-                client : l'API renvoie déjà le compte et les étendues. Une valeur absente
-                (chargement en cours) s'affiche en tiret cadratin via formatStatValue. */}
+            {/* Indicateurs de cadrage. Sans filtre ils viennent de `metadata` (l'API renvoie
+                déjà le compte et les étendues) ; filtre actif, ils sont recalculés sur les
+                lignes retenues pour rester d'accord avec le graphique et le tableau, et le
+                total d'origine passe en note. Une valeur absente (chargement en cours)
+                s'affiche en tiret cadratin via formatStatValue. */}
             <CardGrid perRow={3}>
                 <StatCard
                     title={labels.observations}
-                    value={metadata?.count}
+                    value={isFiltered ? chartData.length : metadata?.count}
                     format={{ compact: true, locale: intlLocaleFor(locale) }}
-                    footerNote={labels.observationsNote} />
+                    footerNote={isFiltered
+                        ? interpolate(labels.observationsFilteredNote, {
+                            total: formatNumber(metadata?.count ?? data.length, { decimals: 0, locale: intlLocale }),
+                        })
+                        : labels.observationsNote} />
                 <StatCard
                     title={labels.period}
-                    value={formatExtent(metadata?.extents?.[x], false, intlLocale, labels.rangeSeparator)}
+                    value={formatExtent(extentOf(x), false, intlLocale, labels.rangeSeparator)}
                     footerNote={axisLabels.x} />
                 <StatCard
                     title={labels.amplitude}
-                    value={formatExtent(metadata?.extents?.[y], true, intlLocale, labels.rangeSeparator)}
+                    value={formatExtent(extentOf(y), true, intlLocale, labels.rangeSeparator)}
                     footerNote={axisLabels.y} />
             </CardGrid>
 

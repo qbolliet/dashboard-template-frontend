@@ -188,6 +188,7 @@ const CriterionMenu = ({
           <SelectMenu
             id={operationId}
             options={ops}
+            clearable={false}
             value={operationSelVal}
             disabled={!criterion.variable || lockedOperation}
             validate={validate}

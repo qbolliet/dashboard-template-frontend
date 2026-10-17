@@ -30,6 +30,10 @@ const jsxInJs = {
 
 export default defineConfig({
   plugins: [jsxInJs, react()],
+  // PostCSS inline et vide : postcss.config.mjs déclare le plugin Tailwind sous une forme que
+  // Vite ne sait pas charger, et les tests de composants importent des .scss. Aucun test
+  // n'a besoin de Tailwind ; le SCSS, lui, reste compilé par sass.
+  css: { postcss: { plugins: [] } },
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.mjs'],

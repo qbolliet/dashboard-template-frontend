@@ -351,6 +351,55 @@ const MINIMAL_SITE_CONFIG = {
     },
 };
 
+// Accueil minimal : mêmes sections que celui de la démonstration, mais dont chaque lien
+// désigne un nœud de MINIMAL_SITE_CONFIG (validate:config le vérifie). Sans cela, le site
+// éjecté afficherait les cartes de la démo, pointant vers des pages qui n'existent plus.
+const MINIMAL_HOME_CONTENT = {
+    _comment: "Contenu rédigé de la page d'accueil. Tout champ de texte accepte une chaîne ou un objet { fr, en }. Chaque `link` est un chemin du manifeste (config/site.config.json), sans préfixe de langue ; `npm run validate:config` échoue s'il ne désigne aucun nœud.",
+    hero: {
+        title: { fr: 'Mon tableau de bord', en: 'My dashboard' },
+        description: {
+            fr: "Présentez ici votre jeu de données et ce que le tableau de bord permet d'en tirer.",
+            en: 'Introduce your dataset here, and what the dashboard lets people learn from it.',
+        },
+        ctaButton: {
+            text: { fr: "Voir l'indicateur", en: 'View the indicator' },
+            link: '/indicateur',
+        },
+        backgroundImage: '/images/hero/hero-background.svg',
+    },
+    cards: [
+        {
+            id: 'indicateur',
+            image: '/images/cards/data-visualization.svg',
+            title: { fr: 'Indicateur', en: 'Indicator' },
+            description: {
+                fr: 'Un graphique, un tableau et des filtres sur votre premier indicateur.',
+                en: 'A chart, a table and filters on your first indicator.',
+            },
+            link: '/indicateur',
+        },
+        {
+            id: 'a-propos',
+            image: '/images/cards/network-nodes.svg',
+            title: { fr: 'À propos', en: 'About' },
+            description: {
+                fr: 'Le projet et les sources des données.',
+                en: 'The project and the data sources.',
+            },
+            link: '/a-propos',
+        },
+    ],
+    cardsSection: {
+        cardsPerRow: 2,
+        title: { fr: 'Par où commencer ?', en: 'Where to start?' },
+        description: {
+            fr: 'Les pages à personnaliser en premier',
+            en: 'The pages to customise first',
+        },
+    },
+};
+
 // e2e/helpers/routes.ts après eject : la moitié « documentation » du fichier disparaît,
 // il ne reste que la dérivation depuis le manifeste. Réécrit en entier plutôt que rogné
 // par remplacements successifs — le résultat est plus court que le diff qui y mènerait.
@@ -622,8 +671,9 @@ function resetManifest() {
     move('config/site.config.json', 'config/site.config.example.json');
     write('config/site.config.json', `${JSON.stringify(MINIMAL_SITE_CONFIG, null, 2)}\n`);
 
-    // config/content/home.json n'est PAS réinitialisé : son contenu est déjà générique
-    // (titres et lorem ipsum), c'est-à-dire exactement le point de départ voulu.
+    // L'accueil de la démo renvoie vers des nœuds de l'arbre de démo, absents du manifeste
+    // minimal : on le remplace par un accueil dont chaque lien résout.
+    write('config/content/home.json', `${JSON.stringify(MINIMAL_HOME_CONTENT, null, 2)}\n`);
 }
 
 /**
@@ -1034,4 +1084,8 @@ Relisez « git diff » avant de committer.
 `);
 }
 
-main();
+if (require.main === module) {
+    main();
+}
+
+module.exports = { MINIMAL_SITE_CONFIG, MINIMAL_HOME_CONTENT };

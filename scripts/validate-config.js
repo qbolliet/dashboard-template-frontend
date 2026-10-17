@@ -26,6 +26,7 @@ const addFormats = require('ajv-formats');
 
 const CONFIG_PATH = path.join(__dirname, '../config/site.config.json');
 const SCHEMA_PATH = path.join(__dirname, '../config/schema/site.schema.json');
+const HOME_PATH = path.join(__dirname, '../config/content/home.json');
 
 /**
  * Reads and parses a JSON file, exiting with a readable message on syntax errors.
@@ -149,6 +150,118 @@ function formatError(error) {
   return `${where} ${error.message}${suffix}`;
 }
 
+/**
+ * Lists the absolute paths of every node of the navigation tree.
+ *
+ * Les `path` du manifeste sont relatifs à leur parent : on les recompose comme le fait
+ * resolveNavigationTree (src/utils/navigation), dont ce script CommonJS ne peut pas
+ * importer le module ESM sans drapeau. Seul le cas utile ici est reproduit : le
+ * nœud racine '/' vaut '/', un enfant se concatène à son parent.
+ *
+ * @param {Array<Object>} nodes - Navigation nodes to walk.
+ * @param {string} [parent=''] - Absolute path of the parent ('' at the top level).
+ * @returns {string[]} Absolute paths, without locale prefix.
+ */
+function collectNodePaths(nodes, parent = '') {
+  return nodes.flatMap((node) => {
+    // Dossier (sans `path`) : ni page ni segment, ses enfants se montent sur le parent.
+    if (typeof node.path !== 'string') {
+      return collectNodePaths(node.children ?? [], parent);
+    }
+    const full = node.path === '/' ? parent || '/' : parent + node.path;
+    return [full, ...collectNodePaths(node.children ?? [], full === '/' ? '' : full)];
+  });
+}
+
+/**
+ * Reports the navigation problems that JSON Schema cannot express.
+ *
+ *   1. two pages resolving to the same URL — now easy to produce, since a folder adds no
+ *      segment (`/pays/france/pib` and `/pays/allemagne/pib` are fine, but the same
+ *      folders without `path` would both resolve to `/pib`);
+ *   2. `linkedNodes: "all"` with an internal node that has no `path`: there is nothing to
+ *      link to.
+ *
+ * @param {Object} config - The parsed manifest.
+ * @returns {string[]} One message per violation; empty when the tree is sound.
+ */
+function collectNavigationProblems(config) {
+  const problems = [];
+  const { tree, linkedNodes = 'auto' } = config.navigation;
+
+  const seen = new Map();
+  for (const full of collectNodePaths(tree)) {
+    seen.set(full, (seen.get(full) ?? 0) + 1);
+  }
+  for (const [full, count] of seen) {
+    if (count > 1) {
+      problems.push(
+        `${count} nœuds résolvent vers la même URL "${full}" : donnez un \`path\` à un ` +
+          'dossier pour séparer ses enfants, ou renommez un segment'
+      );
+    }
+  }
+
+  if (linkedNodes === 'all') {
+    const walk = (nodes, pointer) =>
+      nodes.forEach((node, index) => {
+        const here = `${pointer}/${index}`;
+        if (Array.isArray(node.children) && typeof node.path !== 'string') {
+          problems.push(
+            `${here} a des enfants mais pas de \`path\` alors que /navigation/linkedNodes ` +
+              'vaut "all" : tous les nœuds internes doivent être des liens'
+          );
+        }
+        walk(node.children ?? [], `${here}/children`);
+      });
+    walk(tree, '/navigation/tree');
+  }
+
+  return problems;
+}
+
+/**
+ * Collects every `link` of the home page content, with its location.
+ *
+ * @param {Object} home - The parsed config/content/home.json.
+ * @returns {Array<{pointer: string, link: string}>} The links found.
+ */
+function collectHomeLinks(home) {
+  const links = [];
+  if (home?.hero?.ctaButton?.link !== undefined) {
+    links.push({ pointer: '/hero/ctaButton/link', link: home.hero.ctaButton.link });
+  }
+  (home?.cards ?? []).forEach((card, index) => {
+    links.push({ pointer: `/cards/${index}/link`, link: card.link });
+  });
+  return links;
+}
+
+/**
+ * Reports the home page links that point to no manifest node.
+ *
+ * Un lien de home.json s'écrit comme un chemin du manifeste, sans langue ni point de
+ * montage (homeConfig.js y ajoute le préfixe). Une URL externe, une ancre ou un lien
+ * mailto/tel sortent du périmètre et sont acceptés tels quels.
+ *
+ * @param {Object} config - The parsed manifest.
+ * @param {Object} home - The parsed home page content.
+ * @returns {string[]} One message per dead link; empty when all of them resolve.
+ */
+function collectHomeLinkProblems(config, home) {
+  const known = new Set(collectNodePaths(config.navigation.tree));
+  return collectHomeLinks(home).flatMap(({ pointer, link }) => {
+    if (typeof link !== 'string' || link === '') {
+      return [`${pointer} est vide : une carte ou un bouton sans destination`];
+    }
+    if (!link.startsWith('/')) return [];
+    const normalised = link.length > 1 ? link.replace(/\/+$/, '') : link;
+    return known.has(normalised)
+      ? []
+      : [`${pointer} pointe vers "${link}", qui n'est pas un nœud du manifeste`];
+  });
+}
+
 function main() {
   const schema = readJson(SCHEMA_PATH, 'Le schéma');
   const config = readJson(CONFIG_PATH, 'Le manifeste');
@@ -183,6 +296,26 @@ function main() {
     process.exit(1);
   }
 
+  const navigationProblems = collectNavigationProblems(config);
+  if (navigationProblems.length > 0) {
+    console.error(
+      `validate:config: ${navigationProblems.length} incohérence(s) de navigation dans ` +
+        'config/site.config.json :\n'
+    );
+    for (const problem of navigationProblems) console.error(`  - ${problem}`);
+    process.exit(1);
+  }
+
+  const home = readJson(HOME_PATH, "Le contenu de l'accueil");
+  const homeProblems = collectHomeLinkProblems(config, home);
+  if (homeProblems.length > 0) {
+    console.error(
+      `validate:config: ${homeProblems.length} lien(s) mort(s) dans config/content/home.json :\n`
+    );
+    for (const problem of homeProblems) console.error(`  - ${problem}`);
+    process.exit(1);
+  }
+
   const nodeCount = countNodes(config.navigation.tree);
   console.log(
     `validate:config: manifeste valide — ${nodeCount} nœud(s) de navigation, ` +
@@ -190,4 +323,8 @@ function main() {
   );
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = { collectNodePaths, collectNavigationProblems, collectHomeLinkProblems };

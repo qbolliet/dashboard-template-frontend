@@ -108,13 +108,20 @@
       "title": "Navigation",
       "description": "Disposition du header et arborescence des pages du site.",
       "type": "object",
-      "required": ["type", "tree"],
+      "required": ["tree"],
       "additionalProperties": false,
       "properties": {
         "type": {
-          "description": "Disposition de la navigation. `topbar` déroule l'arbre en menus horizontaux dans le header — adapté aux arbres larges et peu profonds. `sidebar` l'affiche dans un panneau latéral repliable — adapté aux arbres profonds ou comptant de nombreuses entrées.",
+          "description": "Disposition de la navigation. `topbar` déroule l'arbre en menus horizontaux dans le header — adapté aux arbres larges et peu profonds. `sidebar` l'affiche dans un panneau latéral repliable — adapté aux arbres profonds ou comptant de nombreuses entrées. `auto` (valeur par défaut si la clé est absente) choisit pour vous d'après la profondeur de l'arbre : `topbar` jusqu'à deux niveaux (des entrées, puis un menu déroulant), `sidebar` au-delà. Un nœud sans `path` compte comme un niveau.",
           "type": "string",
-          "enum": ["topbar", "sidebar"]
+          "enum": ["auto", "topbar", "sidebar"],
+          "default": "auto"
+        },
+        "linkedNodes": {
+          "description": "Quels nœuds de l'arbre sont des liens dans la navigation. `leaves` : seules les feuilles mènent à une page ; un nœud interne ne fait qu'ouvrir ses enfants, même s'il porte un `path` (sa page existe toujours : atteignable par son URL et par la recherche, simplement non liée depuis le menu). `all` : les nœuds internes sont aussi des liens ; chacun doit donc porter un `path`, ce que `npm run validate:config` vérifie. `auto` (valeur par défaut) : un nœud interne est un lien si, et seulement si, il porte un `path`. En mode `sidebar`, le libellé d'un nœud interne lien est cliquable et mène à sa page, le chevron voisin ne servant qu'à déplier ; en mode `topbar`, c'est l'en-tête du menu déroulant.",
+          "type": "string",
+          "enum": ["auto", "leaves", "all"],
+          "default": "auto"
         },
         "useSwitcher": {
           "description": "En mode `sidebar` uniquement : si `true`, les nœuds de premier niveau ne sont pas listés dans le panneau mais proposés dans un sélecteur en tête de sidebar, qui n'affiche que la sous-arborescence choisie. Utile quand le site se divise en quelques grands espaces indépendants (par exemple « Synthèse » et « Détail »). Sans effet en mode `topbar`.",
@@ -133,11 +140,18 @@
       "title": "Nœud de navigation",
       "description": "Une page du site, et éventuellement ses sous-pages.",
       "type": "object",
-      "required": ["path", "name", "type"],
+      "required": ["name"],
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": { "required": ["path"], "properties": { "path": true } },
+          "then": { "required": ["type"], "properties": { "type": true } },
+          "else": { "required": ["children"], "properties": { "children": true, "type": false } }
+        }
+      ],
       "properties": {
         "path": {
-          "description": "Segment d'URL du nœud, **relatif à son parent** et précédé d'une barre oblique. Le chemin complet d'une page est la concaténation des `path` de ses ancêtres : un nœud `/pib` sous `/france` sous `/comptabilite-nationale` répond à `/comptabilite-nationale/france/pib`. N'écrivez donc pas le chemin complet ici. Format imposé : minuscules, chiffres et traits d'union (kebab-case), sans barre finale. La racine du site s'écrit `/`. Le chemin NE SE TRADUIT PAS : la langue est portée par un segment distinct, en amont (`/demo/en/comptabilite-nationale`), ce qui garde une seule arborescence à maintenir.",
+          "description": "Facultatif sur un nœud qui a des `children`. Segment d'URL du nœud, **relatif à son parent** et précédé d'une barre oblique. Le chemin complet d'une page est la concaténation des `path` de ses ancêtres : un nœud `/pib` sous `/france` sous `/comptabilite-nationale` répond à `/comptabilite-nationale/france/pib`. N'écrivez donc pas le chemin complet ici. Format imposé : minuscules, chiffres et traits d'union (kebab-case), sans barre finale. La racine du site s'écrit `/`. Le chemin NE SE TRADUIT PAS : la langue est portée par un segment distinct, en amont (`/demo/en/comptabilite-nationale`), ce qui garde une seule arborescence à maintenir. SANS `path`, le nœud est un simple dossier : ni page, ni `type`, ni segment d'URL — ses enfants se montent sur le plus proche ancêtre qui en a un (`/france` + `/pib` sous un dossier « Pays » donne `/france/pib`). Il faut alors des `children`, et les chemins qui en résultent doivent rester uniques.",
           "type": "string",
           "pattern": "^/$|^(?:/[a-z0-9]+(?:-[a-z0-9]+)*)+$"
         },
@@ -146,7 +160,7 @@
           "$ref": "#/$defs/localizedString"
         },
         "type": {
-          "description": "Type de page, qui détermine le gabarit de rendu du nœud. `home` : page d'accueil. `indicator` : page d'un indicateur (graphique, tableau, filtres). `indicator_group` : regroupement d'indicateurs, qui liste ses sous-pages. `about` : page de contenu rédigé. Cette énumération doit rester le miroir exact du registre des gabarits, `src/config/pageTypes.js` : un type déclaré ici mais absent du registre produit une page introuvable.",
+          "description": "Obligatoire si le nœud a un `path`, interdit sinon. Type de page, qui détermine le gabarit de rendu du nœud. `home` : page d'accueil. `indicator` : page d'un indicateur (graphique, tableau, filtres). `indicator_group` : regroupement d'indicateurs, qui liste ses sous-pages. `about` : page de contenu rédigé. Cette énumération doit rester le miroir exact du registre des gabarits, `src/config/pageTypes.js` : un type déclaré ici mais absent du registre produit une page introuvable.",
           "type": "string",
           "enum": ["home", "indicator", "indicator_group", "about"]
         },

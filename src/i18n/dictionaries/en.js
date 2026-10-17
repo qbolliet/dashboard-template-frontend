@@ -109,6 +109,7 @@ const en = {
         subPagesOf: 'Sub-pages of {name}',
         observations: 'Observations',
         observationsNote: 'Rows returned by the query',
+        observationsFilteredNote: 'After filtering, out of {total} in total',
         period: 'Period covered',
         amplitude: 'Observed range',
         rangeSeparator: ' → ',

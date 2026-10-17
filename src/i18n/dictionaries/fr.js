@@ -1,12 +1,12 @@
 // =================================================================
 // DICTIONNAIRE FRANÇAIS — langue de référence du template
 // =================================================================
-// Ce fichier est la RÉFÉRENCE : `npm run check:i18n` compare tous les autres
+// Ce fichier est la référence : `npm run check:i18n` compare tous les autres
 // dictionnaires à celui-ci et signale, par langue, les clés manquantes et les clés en
 // trop. Une clé ajoutée ici sans traduction ailleurs n'est donc jamais silencieuse.
 //
 // STRUCTURE — un espace de noms par unité distribuable, et les clés d'un espace de noms
-// sont EXACTEMENT celles de la constante `DEFAULT_LABELS` du composant correspondant.
+// sont exactement celles de la constante `DEFAULT_LABELS` du composant correspondant.
 // Cette correspondance n'est pas une convention de confort : c'est ce qui permet à un
 // layout d'écrire `<Header labels={dict.header} />` sans adaptateur, et à check-i18n de
 // vérifier les deux côtés l'un contre l'autre.
@@ -134,6 +134,7 @@ const fr = {
         subPagesOf: 'Sous-pages de {name}',
         observations: 'Observations',
         observationsNote: 'Lignes renvoyées par la requête',
+        observationsFilteredNote: 'Après filtre, sur {total} au total',
         period: 'Période couverte',
         amplitude: 'Amplitude observée',
         rangeSeparator: ' → ',

@@ -11,7 +11,7 @@
     "localeCountries": { "fr": "FR", "en": "GB" }
   },
   "navigation": {
-    "type": "sidebar",
+    "type": "auto",
     "useSwitcher": false,
     "tree": [
       {

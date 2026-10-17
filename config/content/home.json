@@ -1,86 +1,89 @@
 {
-  "_comment": "Contenu rédigé de la page d'accueil. Tout champ de texte accepte soit une chaîne (identique dans toutes les langues), soit un objet indexé par code de langue — même convention que config/site.config.json. Résolution : src/page-templates/components/HomePage/homeConfig.js.",
+  "_comment": "Contenu rédigé de la page d'accueil. Tout champ de texte accepte soit une chaîne (identique dans toutes les langues), soit un objet indexé par code de langue — même convention que config/site.config.json. Chaque `link` est un chemin du MANIFESTE (nœuds de config/site.config.json, avec leurs parents), sans préfixe de langue : homeConfig.js ajoute le préfixe de la langue courante. `npm run validate:config` échoue si un lien ne désigne aucun nœud. Résolution : src/page-templates/components/HomePage/homeConfig.js.",
 
   "hero": {
-    "title": { "fr": "Titre", "en": "Title" },
+    "title": {
+      "fr": "Comprendre l'économie française en un coup d'œil",
+      "en": "The French economy at a glance"
+    },
     "description": {
-      "fr": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum",
-      "en": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"
+      "fr": "Comptes nationaux et finances publiques réunis dans un tableau de bord unique : parcourez les séries, filtrez-les selon vos critères et comparez-les sur un même graphique. Les données affichées sont des données de démonstration.",
+      "en": "National accounts and public finances in a single dashboard: browse the series, filter them to your needs and compare them on one chart. The figures shown are demonstration data."
     },
     "ctaButton": {
-      "text": { "fr": "Découvrir", "en": "Explore" },
-      "link": "/indicator"
+      "text": { "fr": "Explorer le PIB", "en": "Explore GDP" },
+      "link": "/comptabilite-nationale/france/pib"
     },
     "backgroundImage": "/images/hero/hero-background.svg"
   },
   "cards": [
     {
-      "id": "card-1",
-      "image": "/images/cards/geometric-pattern.svg",
-      "title": { "fr": "Tableau de bord analytique", "en": "Analytics Dashboard" },
-      "description": {
-        "fr": "Visualisez vos données avec des graphiques interactifs et des métriques en temps réel pour prendre des décisions éclairées.",
-        "en": "Visualise your data with interactive charts and real-time metrics to make informed decisions."
-      },
-      "link": "/analytics"
-    },
-    {
-      "id": "card-2",
+      "id": "pib-france",
       "image": "/images/cards/data-visualization.svg",
-      "title": { "fr": "Modèles Prédictifs", "en": "Predictive Models" },
+      "title": { "fr": "PIB de la France", "en": "French GDP" },
       "description": {
-        "fr": "Explorez nos modèles de machine learning pour anticiper les tendances et optimiser vos stratégies business.",
-        "en": "Explore our machine learning models to anticipate trends and refine your business strategies."
+        "fr": "L'évolution de la richesse produite, à consulter sous forme de graphique et de tableau, avec des filtres sur la période et les variables.",
+        "en": "How the wealth produced has evolved, as a chart and a table, with filters on period and variables."
       },
-      "link": "/predictions"
+      "link": "/comptabilite-nationale/france/pib"
     },
     {
-      "id": "card-3",
-      "image": "/images/cards/network-nodes.svg",
-      "title": { "fr": "Analyse de Réseau", "en": "Network Analysis" },
-      "description": {
-        "fr": "Découvrez les connexions cachées dans vos données avec notre système d'analyse de réseau avancé.",
-        "en": "Uncover the hidden connections in your data with our advanced network analysis system."
-      },
-      "link": "/network"
-    },
-    {
-      "id": "card-4",
+      "id": "consommation-france",
       "image": "/images/cards/geometric-pattern.svg",
-      "title": { "fr": "Tableaux de Bord", "en": "Dashboards" },
+      "title": { "fr": "Consommation des ménages", "en": "Household consumption" },
       "description": {
-        "fr": "Créez et personnalisez vos tableaux de bord pour suivre les KPIs qui comptent vraiment pour votre activité.",
-        "en": "Build and customise your dashboards to track the KPIs that actually matter to your business."
+        "fr": "Les dépenses de consommation françaises, pour mesurer la demande intérieure et suivre son rythme.",
+        "en": "French consumption expenditure, to gauge domestic demand and follow its pace."
       },
-      "link": "/dashboards"
+      "link": "/comptabilite-nationale/france/consommation"
     },
     {
-      "id": "card-5",
-      "image": "/images/cards/data-visualization.svg",
-      "title": { "fr": "Rapports Automatisés", "en": "Automated Reports" },
-      "description": {
-        "fr": "Générez automatiquement des rapports détaillés et partagez-les avec votre équipe en quelques clics.",
-        "en": "Generate detailed reports automatically and share them with your team in a few clicks."
-      },
-      "link": "/reports"
-    },
-    {
-      "id": "card-6",
+      "id": "pib-allemagne",
       "image": "/images/cards/network-nodes.svg",
-      "title": { "fr": "Intelligence Artificielle", "en": "Artificial Intelligence" },
+      "title": { "fr": "PIB de l'Allemagne", "en": "German GDP" },
       "description": {
-        "fr": "Intégrez l'IA dans vos processus métier pour automatiser les tâches complexes et gagner en efficacité.",
-        "en": "Embed AI into your business processes to automate complex tasks and gain efficiency."
+        "fr": "La même série pour l'Allemagne, afin de situer la France par rapport à son premier partenaire commercial.",
+        "en": "The same series for Germany, to place France against its largest trading partner."
       },
-      "link": "/ai"
+      "link": "/comptabilite-nationale/allemagne/pib"
+    },
+    {
+      "id": "recettes-publiques",
+      "image": "/images/cards/geometric-pattern.svg",
+      "title": { "fr": "Recettes publiques", "en": "Public revenue" },
+      "description": {
+        "fr": "Impôts, cotisations et autres ressources des administrations publiques.",
+        "en": "Taxes, contributions and other resources of general government."
+      },
+      "link": "/finances-publiques/recettes-publiques"
+    },
+    {
+      "id": "depenses-publiques",
+      "image": "/images/cards/data-visualization.svg",
+      "title": { "fr": "Dépenses publiques", "en": "Public expenditure" },
+      "description": {
+        "fr": "Où va l'argent public : l'ensemble des dépenses des administrations, année après année.",
+        "en": "Where public money goes: total government expenditure, year after year."
+      },
+      "link": "/finances-publiques/depenses-publiques"
+    },
+    {
+      "id": "a-propos",
+      "image": "/images/cards/network-nodes.svg",
+      "title": { "fr": "À propos", "en": "About" },
+      "description": {
+        "fr": "Le projet, ses sources de données et la manière dont les séries sont construites.",
+        "en": "The project, its data sources and how the series are built."
+      },
+      "link": "/about"
     }
   ],
   "cardsSection": {
     "cardsPerRow": 3,
-    "title": { "fr": "Nos Solutions", "en": "Our Solutions" },
+    "title": { "fr": "Par où commencer ?", "en": "Where to start?" },
     "description": {
-      "fr": "Découvrez notre gamme complète d'outils d'analyse et de visualisation de données",
-      "en": "Discover our full range of data analysis and visualisation tools"
+      "fr": "Les indicateurs les plus consultés, et les clés pour les lire",
+      "en": "The most viewed indicators, and the keys to reading them"
     }
   }
 }

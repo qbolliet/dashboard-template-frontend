@@ -41,7 +41,22 @@ typographique.
 
 **`navigation.type`** choisit la disposition du header : `topbar` déroule l'arbre en menus
 horizontaux (arbres larges et peu profonds), `sidebar` l'affiche dans un panneau latéral
-repliable (arbres profonds ou nombreux). C'est une valeur à changer, pas du code.
+repliable (arbres profonds ou nombreux), et `auto` — la valeur par défaut quand la clé est
+absente — décide d'après la profondeur de l'arbre : barre haute jusqu'à deux niveaux (des
+entrées, puis un menu déroulant), sidebar au-delà. C'est une valeur à changer, pas du code.
+
+**`navigation.linkedNodes`** dit quels nœuds sont des liens. `leaves` : seules les feuilles
+mènent à une page, un nœud interne ne fait qu'ouvrir ses enfants (sa page, si elle existe,
+reste atteignable par son URL et par la recherche). `all` : les nœuds internes sont aussi
+des liens, et `npm run validate:config` exige un `path` à chacun. `auto` — le défaut — :
+un nœud interne est un lien si, et seulement si, il porte un `path`. Dans la sidebar, le
+libellé d'un nœud interne-lien mène à sa page et le chevron voisin ne sert qu'à déplier ;
+dans la barre haute, c'est l'en-tête du menu déroulant.
+
+**Un dossier** est un nœud interne sans `path` : ni page, ni `type`, ni segment d'URL. Ses
+enfants se montent sur l'ancêtre le plus proche qui a un chemin — un dossier « Pays » qui
+contient `/france` et `/allemagne` donne `/france` et `/allemagne`, pas `/pays/france`. Deux
+pages ne peuvent pas résoudre vers la même URL : `validate:config` le vérifie.
 
 **`navigation.useSwitcher`**, en mode `sidebar` uniquement : les nœuds de premier niveau ne
 sont plus listés dans le panneau mais proposés dans un sélecteur en tête, qui n'affiche que
@@ -306,7 +321,7 @@ un nœud marqué pour l'injection.
     "defaultLocale": "fr"
   },
   "navigation": {
-    "type": "sidebar",
+    "type": "auto",
     "useSwitcher": false,
     "tree": [
       { "path": "/", "name": "Accueil", "type": "home" },

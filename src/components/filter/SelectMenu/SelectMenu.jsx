@@ -33,6 +33,9 @@ const DEFAULT_LABELS = {
  * @param {string}   fieldName    - Nom du champ API (ex: "country").
  * @param {string}   [catalog]    - Catalogue API (ex: "macroeconomics").
  * @param {boolean}  [allowMulti] - Active la sélection multiple.
+ * @param {boolean}  [clearable]  - Single uniquement : reclicker l'option déjà choisie la
+ *   désélectionne (défaut). À `false`, la valeur reste choisie : pour un champ qui doit
+ *   toujours porter une valeur (ex. l'opération d'un critère de filtre).
  * @param {string}   [groupField] - Champ de groupe ; sa présence active le mode groupé.
  * @param {{value: string, label: string}[]} [options] - Liste statique d'options ;
  *   si fournie, court-circuite useSelectOptions (filtrage client uniquement, groupé non supporté).
@@ -56,6 +59,7 @@ const SelectMenu = ({
   fieldName,
   catalog,
   allowMulti = false,
+  clearable = true,
   groupField,
   options,
   value = [],
@@ -166,7 +170,12 @@ const SelectMenu = ({
     const isSelected = selectedSet.has(opt.value);
     const next = allowMulti
       ? isSelected ? value.filter((v) => v.value !== opt.value) : [...value, opt]
-      : isSelected ? [] : [opt];
+      : isSelected && clearable ? [] : [opt];
+    // Re-sélection d'une valeur non effaçable : rien à émettre, on referme seulement.
+    if (!allowMulti && isSelected && !clearable) {
+      setOpen(false);
+      return;
+    }
     onChange?.(next);
     // En single, la sélection ferme le dropdown
     if (!allowMulti) setOpen(false);
@@ -269,8 +278,27 @@ const SelectMenu = ({
   // Le curseur clavier est réinitialisé pour repartir du haut de la liste.
   const openAndFocus = () => {
     setHighlighted(-1);
-    setOpen((o) => !o);
+    setOpen(true);
     setTimeout(() => filterRef.current?.focus(), 50);
+  };
+
+  // Chevron et zone du champ hors input : bascule. La fermeture ne redonne pas le focus
+  // à l'input — son onFocus rouvrirait aussitôt la liste.
+  const toggleList = () => {
+    if (open) setOpen(false);
+    else openAndFocus();
+  };
+
+  // Clic dans le champ. Sur l'input lui-même, le focus (mousedown) a DÉJÀ ouvert la liste
+  // via onFocus : basculer ici la refermerait dans la foulée, d'où un champ qui semblait
+  // ne jamais s'ouvrir au clic. On ouvre donc sans basculer.
+  const handleFieldClick = (e) => {
+    if (e.target === filterRef.current) {
+      setHighlighted(-1);
+      setOpen(true);
+      return;
+    }
+    toggleList();
   };
 
   // Identifiant du listbox, exposé via aria-controls sur le combobox. L'`id` externe
@@ -385,7 +413,7 @@ const SelectMenu = ({
       {/* Zone champ : tags (multi) ou valeur unique (single) + input de filtre */}
       <div
         className={`select-field ${isSingleSelected ? 'select-field--centered' : ''}`}
-        onClick={openAndFocus}>
+        onClick={handleFieldClick}>
 
         {/* Multi : liste de tags supprimables */}
         {allowMulti && value.length > 0 && (
@@ -428,7 +456,7 @@ const SelectMenu = ({
       </div>
 
       {/* Bouton chevron — non atteignable au Tab (le champ porte déjà le focus) */}
-      <button type="button" className="select-toggle" onClick={openAndFocus} tabIndex={-1}>
+      <button type="button" className="select-toggle" onClick={toggleList} tabIndex={-1}>
         <ChevronIcon direction={open ? 'up' : 'down'} />
         <VisuallyHidden>{open ? labels.closeList : labels.openList}</VisuallyHidden>
       </button>
