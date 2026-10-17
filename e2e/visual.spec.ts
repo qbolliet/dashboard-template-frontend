@@ -2,7 +2,11 @@ import { test, expect } from '@playwright/test';
 import { setSiteTheme } from './helpers/theme';
 import fr from '../src/i18n/dictionaries/fr';
 import { DEFAULT_LOCALE } from '../src/i18n/config';
-import { playgroundFrame, toggleFrameTheme } from './helpers/previewFrame';
+import { expectStyled, playgroundFrame, toggleFrameTheme } from './helpers/previewFrame';
+import path from 'node:path';
+
+// Masque le bandeau collant de la doc dans les captures de playground — cf. le fichier CSS.
+const STICKY_HEADER_CSS = path.join(__dirname, 'helpers', 'screenshot.css');
 
 // =================================================================
 // RÉGRESSION VISUELLE — composants clés, clair et sombre
@@ -84,14 +88,14 @@ test.describe('Chart (playground)', () => {
   test('clair', async ({ page }) => {
     await page.goto('/features/chart');
     const frame = playgroundFrame(page, 'Chart');
-    await expect(frame).toHaveScreenshot('chart-playground-light.png');
+    await expect(frame).toHaveScreenshot('chart-playground-light.png', { stylePath: STICKY_HEADER_CSS });
   });
 
   test('sombre', async ({ page }) => {
     await page.goto('/features/chart');
     const frame = playgroundFrame(page, 'Chart');
     await toggleFrameTheme(frame);
-    await expect(frame).toHaveScreenshot('chart-playground-dark.png');
+    await expect(frame).toHaveScreenshot('chart-playground-dark.png', { stylePath: STICKY_HEADER_CSS });
   });
 });
 
@@ -99,14 +103,16 @@ test.describe('Table (playground)', () => {
   test('clair', async ({ page }) => {
     await page.goto('/features/table');
     const frame = playgroundFrame(page, 'Table');
-    await expect(frame).toHaveScreenshot('table-playground-light.png');
+    await expectStyled(frame, '.data-table', 'position', 'relative');
+    await expect(frame).toHaveScreenshot('table-playground-light.png', { stylePath: STICKY_HEADER_CSS });
   });
 
   test('sombre', async ({ page }) => {
     await page.goto('/features/table');
     const frame = playgroundFrame(page, 'Table');
+    await expectStyled(frame, '.data-table', 'position', 'relative');
     await toggleFrameTheme(frame);
-    await expect(frame).toHaveScreenshot('table-playground-dark.png');
+    await expect(frame).toHaveScreenshot('table-playground-dark.png', { stylePath: STICKY_HEADER_CSS });
   });
 });
 
@@ -114,14 +120,14 @@ test.describe('StatCard (playground)', () => {
   test('clair', async ({ page }) => {
     await page.goto('/composants/stat-card');
     const frame = playgroundFrame(page, 'StatCard');
-    await expect(frame).toHaveScreenshot('stat-card-playground-light.png');
+    await expect(frame).toHaveScreenshot('stat-card-playground-light.png', { stylePath: STICKY_HEADER_CSS });
   });
 
   test('sombre', async ({ page }) => {
     await page.goto('/composants/stat-card');
     const frame = playgroundFrame(page, 'StatCard');
     await toggleFrameTheme(frame);
-    await expect(frame).toHaveScreenshot('stat-card-playground-dark.png');
+    await expect(frame).toHaveScreenshot('stat-card-playground-dark.png', { stylePath: STICKY_HEADER_CSS });
   });
 });
 
@@ -129,13 +135,13 @@ test.describe('CriterionMenu (playground)', () => {
   test('clair', async ({ page }) => {
     await page.goto('/features/filter');
     const frame = playgroundFrame(page, 'CriterionMenu');
-    await expect(frame).toHaveScreenshot('criterion-menu-playground-light.png');
+    await expect(frame).toHaveScreenshot('criterion-menu-playground-light.png', { stylePath: STICKY_HEADER_CSS });
   });
 
   test('sombre', async ({ page }) => {
     await page.goto('/features/filter');
     const frame = playgroundFrame(page, 'CriterionMenu');
     await toggleFrameTheme(frame);
-    await expect(frame).toHaveScreenshot('criterion-menu-playground-dark.png');
+    await expect(frame).toHaveScreenshot('criterion-menu-playground-dark.png', { stylePath: STICKY_HEADER_CSS });
   });
 });

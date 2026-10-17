@@ -80,3 +80,33 @@ export async function clickTab(frame: Locator, tabName: string): Promise<void> {
   const tab = frame.getByRole('tab', { name: tabName });
   await clickUntil(tab, () => expect(tab).toHaveAttribute('aria-selected', 'true', { timeout: 1_000 }));
 }
+
+/**
+ * Waits until a component's own stylesheet is actually applied inside a frame.
+ *
+ * Le CSS d'un composant chargé paresseusement peut arriver APRÈS son balisage : le cadre
+ * passe alors par un état « balisage nu » (sur `Table` : 1593 px de haut, `position:
+ * static`) pendant 1 à 3 s sous charge, puis bascule d'un coup dans son état final
+ * (640 px, `position: relative`). Cet état intermédiaire est lui-même stable, donc l'attente
+ * intégrée à `toHaveScreenshot` ne l'écarte pas et peut le photographier. On attend un style
+ * calculé qui ne peut venir QUE de la feuille du composant — un état observable, pas un délai.
+ *
+ * @param frame - Frame locator, as returned by `playgroundFrame`/`previewFrame`.
+ * @param selector - Element inside the frame carrying the component's own styles.
+ * @param property - Computed-style property that only the component stylesheet sets.
+ * @param expected - Value that property takes once the stylesheet is applied.
+ */
+export async function expectStyled(
+  frame: Locator,
+  selector: string,
+  property: string,
+  expected: string,
+): Promise<void> {
+  const target = frame.locator(selector).first();
+  await expect
+    .poll(() => target.evaluate((el, prop) => getComputedStyle(el).getPropertyValue(prop), property), {
+      message: `${selector} doit porter ${property}: ${expected} (feuille de style du composant appliquée)`,
+      timeout: 20_000,
+    })
+    .toBe(expected);
+}

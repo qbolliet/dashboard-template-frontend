@@ -52,6 +52,46 @@ jobs:
         run: npm run build
 
   # =================================================================
+  # E2E — Playwright sur Chromium
+  # =================================================================
+  # 1 worker (cf. playwright.config.ts : le globe WebGL rend en logiciel et affame le CPU).
+  # La régression visuelle est écartée (E2E_SKIP_VISUAL) : les instantanés sont win32.
+  # Le rapport HTML et les traces sont conservés même en cas d'échec.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      E2E_SKIP_VISUAL: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run e2e tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+
+  # =================================================================
   # EJECT — le dépôt reste éjectable
   # =================================================================
   # scripts/eject.js déplace des dossiers et remplace des chaînes EXACTES : c'est ce qui

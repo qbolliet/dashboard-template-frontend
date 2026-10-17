@@ -22,6 +22,13 @@ const nextConfig: NextConfig = {
   // (callback refs, handlers d'événements add/removeEventListener).
   reactCompiler: true,
 
+  // Pastille de développement Next (« N » / « 1 Issue ») masquée pendant les tests e2e :
+  // fixée en bas à gauche, elle recouvre la sidebar et entre dans les captures de
+  // régression visuelle, avec un contenu qui varie d'une exécution à l'autre (nombre
+  // d'« issues » de dev). `PLAYWRIGHT` est posé par le webServer de playwright.config.ts ;
+  // le développement ordinaire garde la pastille.
+  ...(process.env.PLAYWRIGHT === "1" && { devIndicators: false as const }),
+
   // Volontairement SANS 'mdx' : le contenu de la documentation vit dans docs/content/**
   // et est importé par la route attrape-tout de src/app/(docs)/, jamais posé comme
   // fichier de route. Élargir pageExtensions n'apporterait rien et ferait balayer

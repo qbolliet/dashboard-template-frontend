@@ -25,6 +25,8 @@ test.describe('Chart — coercition ISO et branchement loading/error/success', (
 });
 
 test.describe('Chart — heatmap, deux layouts de légende', () => {
+  // Instantanés win32 uniquement — cf. `testIgnore` dans playwright.config.ts.
+  test.skip(!!process.env.E2E_SKIP_VISUAL, 'régression visuelle désactivée sur cet OS');
   // chart-heatmap.jsx : la légende séquentielle (z) bascule entre une disposition
   // verticale repliée et une disposition horizontale pleine largeur selon l'espace
   // disponible — signalé comme « régression visuelle candidate » dans le constat
@@ -39,7 +41,14 @@ test.describe('Chart — heatmap, deux layouts de légende', () => {
       // selon la largeur) se stabiliser avant le cliché : sous charge CPU (suite complète
       // exécutée en parallèle), la mise en page peut ne pas être encore retombée au moment
       // où le <svg> devient visible, malgré l'attente de stabilité intégrée à Playwright.
-      await page.waitForTimeout(300);
+      // Attente d'états observables plutôt que d'un délai : polices chargées (la largeur du
+      // texte pilote le positionnement) puis deux frames d'animation (mise en page retombée).
+      await page.evaluate(
+        () =>
+          document.fonts.ready.then(
+            () => new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))),
+          ),
+      );
       // Tolérance plus large que le défaut du projet (0,02) : ce SVG est dense en texte
       // (étiquettes de mois/pays, valeurs de légende) et sensible, sous charge CPU
       // partagée, à des écarts de rastérisation sous-pixel des polices — constaté en
@@ -163,11 +172,17 @@ test.describe.serial('Globe', () => {
       // fin de l'hydratation (même course que clickTab, cf. e2e/helpers/previewFrame.ts)
       // laisserait le cycle dériver vers d'autres pages de la doc plutôt que de réellement
       // alterner header ⇄ globe, ce qui invaliderait le compte de montages/démontages.
+      //
+      // Le délai d'URL est LONG (25 s) : une navigation cliente depuis/vers le globe peut
+      // prendre ~18 s sous rendu logiciel. Avec un délai court, la boucle recliquait
+      // pendant que la navigation était en cours et l'annulait à chaque tentative, sans
+      // jamais aboutir sous charge. Le reclic ne sert qu'au cas « clic sans effet avant
+      // hydratation », où l'URL ne bouge pas du tout.
       const followAndExpect = async (link: Locator, path: string) => {
         await expect(async () => {
           await link.click();
-          await expect(page).toHaveURL(new RegExp(`${path}$`), { timeout: 3_000 });
-        }).toPass({ timeout: 60_000 });
+          await expect(page).toHaveURL(new RegExp(`${path}$`), { timeout: 25_000 });
+        }).toPass({ timeout: 90_000, intervals: [0] });
       };
 
       for (let i = 0; i < 5; i += 1) {

@@ -13,6 +13,11 @@ const BASE_URL = `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: './e2e',
+  // Les instantanés ne sont versionnés que pour `win32` (suffixe -chromium-win32) : sous
+  // Linux ils n'existent pas, et les générer sur un autre OS que celui de la CI donnerait
+  // des diffs de rastérisation de police. E2E_SKIP_VISUAL=1 (posé par le job `e2e` de
+  // verify.yml) écarte donc la régression visuelle ; elle reste jouée en local.
+  testIgnore: process.env.E2E_SKIP_VISUAL ? ['**/visual.spec.ts'] : [],
   // Réchauffe toutes les routes séquentiellement avant le run parallèle — cf. le
   // commentaire de tête de e2e/global-setup.ts (course de compilation de `next dev`).
   globalSetup: './e2e/global-setup.ts',
@@ -28,6 +33,13 @@ export default defineConfig({
   // (le test de fumée couvre désormais chaque route dans chaque langue), le phénomène est
   // devenu régulier.
   //
+  // ÉTAT MESURÉ (17/10/2026, win32, 2 workers) : après stabilisation des tests — capture du
+  // bandeau collant masquée, attente du CSS paresseux de `Table`, navigation du globe non
+  // annulée par ses propres reclics, pastille de dev Next masquée — deux exécutions complètes
+  // consécutives avec `--retries=0` donnent 250/250, soit 0 reprise nécessaire. La reprise
+  // reste donc un filet d'ENVIRONNEMENT, pas une dépendance : une reprise observée dans un
+  // rapport (« flaky ») est un test à corriger, pas à tolérer.
+  //
   // Playwright distingue « flaky » de « passed » dans son rapport : une vraie régression
   // échoue à la reprise et reste donc visible. Ce réglage ne masque rien, il absorbe une
   // instabilité d'ENVIRONNEMENT.
@@ -38,7 +50,8 @@ export default defineConfig({
   // (/features/filter, /features/globe) par simple famine CPU pendant que les tests du
   // globe tournent. e2e/edge-cases.spec.ts isole déjà SES propres tests Globe entre eux
   // (`test.describe.serial`) ; ce plafond global les isole aussi des AUTRES fichiers.
-  workers: 2,
+  // 1 en CI (runners à 2 cœurs partagés, mêmes raisons) ; 2 en local.
+  workers: process.env.CI ? 1 : 2,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'html',
   // Généreux (défaut Playwright : 30 s) pour la même raison que `workers` ci-dessus.
   timeout: 60_000,
@@ -67,7 +80,12 @@ export default defineConfig({
   expect: {
     // Tolérance globale : anti-aliasing/rendu sous-pixel, pas motif de faux positif.
     // Le globe (WebGL) est exclu de la comparaison pixel — cf. e2e/edge-cases.spec.ts.
-    toHaveScreenshot: { maxDiffPixelRatio: 0.02 },
+    //
+    // `caret: 'initial'` : par défaut Playwright pose `caret-color: transparent` sur le DOM
+    // le temps du cliché, ce que React voit comme un écart d'hydratation (style inline
+    // inattendu sur les <input>) si la capture tombe pendant l'hydratation — d'où un
+    // avertissement en développement, sans rapport avec l'application.
+    toHaveScreenshot: { maxDiffPixelRatio: 0.02, caret: 'initial' },
   },
 
   projects: [
@@ -87,6 +105,6 @@ export default defineConfig({
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
-    env: { PORT: String(PORT) },
+    env: { PORT: String(PORT), PLAYWRIGHT: '1' },
   },
 });

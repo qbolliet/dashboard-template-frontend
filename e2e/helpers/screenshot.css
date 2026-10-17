@@ -1,0 +1,8 @@
+/* Injecté dans les captures de cadres de playground (option `stylePath` de toHaveScreenshot).
+   Le bandeau de la documentation est collant (position: sticky) : un cadre plus haut que la
+   fenêtre est photographié après un défilement dont la position exacte dépend de la mise
+   en page au moment du tir, et le bandeau en recouvre alors une hauteur variable. `visibility`
+   (et non `display`) le masque SANS le sortir du flux, donc sans déplacer le reste. */
+.docs-header {
+  visibility: hidden !important;
+}
