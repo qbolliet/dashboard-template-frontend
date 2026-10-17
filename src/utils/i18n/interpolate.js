@@ -21,7 +21,7 @@
 
 // Un trou = {nom}, en lettres, chiffres et tirets bas. La forme est volontairement
 // stricte : elle ne peut pas entrer en collision avec une accolade littérale d'un
-// libellé décrivant du code (les pages de documentation en affichent).
+// libellé décrivant du code (une page de documentation ou un panneau de code en affiche).
 const PLACEHOLDER_RE = /\{([A-Za-z0-9_]+)\}/g;
 
 /**

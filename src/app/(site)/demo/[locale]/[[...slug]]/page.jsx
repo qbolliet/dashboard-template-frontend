@@ -19,8 +19,9 @@ import { PAGE_TYPES } from '@/config/pageTypes';
 //
 // DEUX PRÉFIXES successifs mènent à ce fichier, et ils n'ont PAS la même nature :
 //
-//   /demo            segment statique — la racine du déploiement appartient au site de
-//                    DOCUMENTATION (src/app/(docs)/), l'application vit dessous (P4.2).
+//   /demo            segment statique — présent tant que la racine du déploiement
+//                    appartient à une surface de DOCUMENTATION (dépôt template) ; un
+//                    dépôt éjecté monte l'application à la racine, sans ce segment.
 //   /demo/<langue>   segment dynamique [locale] — la dimension ajoutée par P5.4.
 //
 // Le manifeste ignore complètement les deux : ses `path` restent relatifs à leur parent,
@@ -32,8 +33,9 @@ import { PAGE_TYPES } from '@/config/pageTypes';
 // ses libellés dépendent tous deux de la langue. C'est le seul changement de structure
 // du fichier.
 //
-// Un segment statique l'emporte toujours sur un segment dynamique : cette route gagne
-// donc sur (docs)/[[...slug]] pour tout ce qui commence par /demo.
+// Un segment statique l'emporte toujours sur un segment dynamique : dans le dépôt
+// template, cette route gagne donc sur (docs)/[[...slug]] pour tout ce qui commence par
+// /demo.
 
 /**
  * Builds the manifest tree as it exists in one language.

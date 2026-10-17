@@ -3,11 +3,11 @@
 // =================================================================
 // Promue depuis src/features/table/utils/exporters.js, où elle servait aux trois boutons
 // de copie de requête de la table. Second consommateur non lié : le bouton de copie des
-// blocs de code de la documentation (src/features/docs/components/CopyButton/), qui copie
-// du JSX généré et n'a rien à voir avec l'export d'un tableau de données.
+// blocs de code de la documentation du template, qui copie du JSX généré et n'a rien à
+// voir avec l'export d'un tableau de données.
 //
-// Une feature ne peut pas importer une autre feature : sans cette promotion, `docs`
-// devrait dépendre de `table` pour trois lignes de presse-papiers.
+// Une feature ne peut pas importer une autre feature : sans cette promotion, la
+// documentation devrait dépendre de `table` pour trois lignes de presse-papiers.
 //
 // POURQUOI LE REPLI <textarea> : navigator.clipboard n'est exposé qu'en contexte
 // sécurisé (https ou localhost). Un template installé chez un tiers et servi en http sur

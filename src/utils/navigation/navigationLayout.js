@@ -9,7 +9,7 @@
 //      liens, ou les nœuds internes aussi.
 //
 // Aucune dépendance et aucun import aliasé : comme resolveNavigationTree, ce module est
-// importé par le Header (publié par le registry) et doit rester autonome.
+// importé par le Header (installable seul, hors de ce dépôt) et doit rester autonome.
 
 /**
  * Deepest level a topbar renders: a top-level entry, then ONE dropdown level.

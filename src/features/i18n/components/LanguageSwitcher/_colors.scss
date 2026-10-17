@@ -10,8 +10,7 @@
 // descendant qui redéfinit la primitive ne la change PLUS. Le second sélecteur fait
 // redéclarer tout le bloc sur n'importe quel élément portant `data-theme`, qui le
 // résout alors sur LUI-MÊME. C'est ce qui rend un thème local réellement scopable
-// (cf. §4.4 niveau C de TEMPLATIZATION_ARCHITECTURE.md, et le cadre d'aperçu de la
-// documentation : src/features/docs/components/PreviewFrame/).
+// (un cadre d'aperçu, par exemple, peut porter son propre thème).
 // Le bloc `[data-theme="dark"]` plus bas garde la même spécificité (0,1,0) et vient
 // après dans la source : il l'emporte toujours sur le bloc de base.
 

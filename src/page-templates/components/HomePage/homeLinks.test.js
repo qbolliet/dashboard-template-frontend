@@ -4,20 +4,18 @@ import homeData from '@config/content/home.json';
 import siteConfig from '@config/site.config.json';
 import { resolveNavigationTree } from '@/utils/navigation/resolveNavigationTree';
 import { flattenNavigation } from '@/utils/navigation/flattenNavigation';
+import { DEMO_BASE_PATH } from '@/utils/navigation/basePaths';
 import { getHomeConfig } from './homeConfig';
 
 // Les scripts sont en CommonJS : on les charge tels quels, sans les dupliquer ici.
+// Ce fichier ne dépend QUE de ce qui survit à `npm run eject` : les vérifications qui
+// lisent scripts/eject.js vivent dans homeLinks.eject.test.js, que l'eject supprime avec lui.
 const require = createRequire(import.meta.url);
 const { collectHomeLinkProblems, collectNodePaths } = require('../../../../scripts/validate-config.js');
-const { MINIMAL_SITE_CONFIG, MINIMAL_HOME_CONTENT } = require('../../../../scripts/eject.js');
 
 describe('liens de config/content/home.json', () => {
   it('all point to a node of config/site.config.json', () => {
     expect(collectHomeLinkProblems(siteConfig, homeData)).toEqual([]);
-  });
-
-  it('all point to a node of the minimal manifest written by eject', () => {
-    expect(collectHomeLinkProblems(MINIMAL_SITE_CONFIG, MINIMAL_HOME_CONTENT)).toEqual([]);
   });
 
   it('would fail on a dead link', () => {
@@ -25,10 +23,6 @@ describe('liens de config/content/home.json', () => {
     const problems = collectHomeLinkProblems(siteConfig, broken);
     expect(problems).toHaveLength(1);
     expect(problems[0]).toContain('/analytics');
-  });
-
-  it('does not accept the demo home against the minimal manifest', () => {
-    expect(collectHomeLinkProblems(MINIMAL_SITE_CONFIG, homeData).length).toBeGreaterThan(0);
   });
 
   it('agrees with resolveNavigationTree on node paths', () => {
@@ -40,18 +34,21 @@ describe('liens de config/content/home.json', () => {
 
 describe('getHomeConfig — résolution des liens', () => {
   it('prefixes every link with the locale and resolves to a rendered route', () => {
+    // Le point de montage vaut '/demo' dans le dépôt template et '' une fois éjecté :
+    // on le lit plutôt que de le figer, pour que ce test reste vrai dans les deux états.
+    const prefix = `${DEMO_BASE_PATH}/en`;
     const routes = new Set(
-      flattenNavigation(resolveNavigationTree(siteConfig.navigation.tree, '/demo/en')).map((n) => n.path),
+      flattenNavigation(resolveNavigationTree(siteConfig.navigation.tree, prefix)).map((n) => n.path),
     );
     const { hero, cards } = getHomeConfig('en');
     for (const { link } of [hero.ctaButton, ...cards]) {
-      expect(link.startsWith('/demo/en/')).toBe(true);
+      expect(link.startsWith(`${prefix}/`)).toBe(true);
       expect(routes.has(link)).toBe(true);
     }
   });
 
   it('follows the requested locale', () => {
-    expect(getHomeConfig('fr').hero.ctaButton.link.startsWith('/demo/fr/')).toBe(true);
+    expect(getHomeConfig('fr').hero.ctaButton.link.startsWith(`${DEMO_BASE_PATH}/fr/`)).toBe(true);
   });
 });
 

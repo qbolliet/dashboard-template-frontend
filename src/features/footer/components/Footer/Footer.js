@@ -15,7 +15,7 @@ const DEFAULT_LABELS = {
  * @param {Object} props - Component props.
  * @param {string} [props.copyrightText='© Copyright'] - Copyright line.
  * @param {string} [props.homeHref='/'] - Destination of the logo link. Defaults to the
- *   site root, which is what a third party installing this item from the registry
+ *   site root, which is what a third party installing this item on its own
  *   expects; this repository mounts its demo application under /demo/<locale> and
  *   therefore passes that value from `src/app/(site)/demo/[locale]/layout.jsx`.
  * @param {Object} [props.labels] - Wording overrides, merged over the French defaults.

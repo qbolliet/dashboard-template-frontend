@@ -1,12 +1,13 @@
 // =================================================================
-// BASE PATHS — préfixes d'URL des deux surfaces du dépôt
+// BASE PATHS — point de montage de l'application pilotée par le manifeste
 // =================================================================
-// Depuis P4.2 le dépôt sert DEUX choses à des racines différentes :
-//   • la DOCUMENTATION, à la racine du déploiement ('/'), rendue par src/app/(docs)/ ;
-//   • l'APPLICATION de démonstration pilotée par config/site.config.json, montée sous
-//     /demo et rendue par src/app/(site)/demo/[[...slug]]/.
+// L'application décrite par config/site.config.json est montée sous DEMO_BASE_PATH.
+// Dans le dépôt template elle vit sous '/demo' (src/app/(site)/demo/), parce que la
+// racine du déploiement y est occupée par une surface de documentation ; un dépôt
+// éjecté la monte à la racine, et la constante vaut alors ''. Le nom DEMO_* est
+// conservé pour que les deux états partagent exactement le même code.
 //
-// Le manifeste ignore complètement ce déplacement : ses `path` restent relatifs à leur
+// Le manifeste ignore complètement ce montage : ses `path` restent relatifs à leur
 // parent, et c'est `resolveNavigationTree(tree, DEMO_BASE_PATH)` qui monte tout
 // l'arbre sous /demo — à deux endroits seulement (src/app/(site)/layout.jsx et la
 // route attrape-tout de la démo), plus scripts/build-search-index.js. Tout le reste
@@ -17,9 +18,10 @@
 // route qui la matérialise : '/demo' ↔ src/app/(site)/demo/. Les changer ensemble, ou pas
 // du tout — basePaths.test.js vérifie mécaniquement que le dossier existe.
 //
-// C'est exactement ce que fait `npm run eject` : il déplace src/app/(site)/demo/[locale]/
-// vers src/app/(site)/[locale]/ et met cette constante à '' (chaîne vide = montage à la
-// racine). Tout l'aval suit sans modification, puisque tout en dérive. Les fonctions
+// C'est le geste de l'éjection du template (scripts/eject.js, supprimé une fois exécuté) :
+// elle déplace src/app/(site)/demo/[locale]/ vers src/app/(site)/[locale]/ et met cette
+// constante à '' (chaîne vide = montage à la racine). Tout l'aval suit sans
+// modification, puisque tout en dérive. Les fonctions
 // concernées acceptent déjà un préfixe vide (cf. les cas de test « prefix: '' » de
 // src/utils/i18n/localePath.test.js).
 //

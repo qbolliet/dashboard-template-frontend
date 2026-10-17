@@ -10,20 +10,21 @@ import { withBasePath } from '@/utils/url/withBasePath';
 import SWRProvider from './providers';
 
 // =================================================================
-// LAYOUT RACINE — coquille commune aux DEUX surfaces du dépôt
+// LAYOUT RACINE — coquille commune à toutes les surfaces du dépôt
 // =================================================================
-// Depuis P4.2 le dépôt sert deux choses à des racines différentes, et ce layout ne
-// contient donc plus que ce qu'elles partagent réellement : le document, les polices,
-// les scripts d'amorçage et les providers.
+// Ce layout ne contient que ce que les surfaces partagent réellement : le document, les
+// polices, les scripts d'amorçage et les providers. Le dépôt template en sert deux, à
+// des racines différentes (depuis P4.2) ; un dépôt éjecté n'a plus que la seconde.
 //
 //   src/app/(docs)/  → le site de DOCUMENTATION, à la racine ('/'), avec son propre
 //                      chrome (barre supérieure, sidebar de sections, sommaire).
 //                      MONOLINGUE, en français : c'est la documentation du template,
 //                      pas un livrable du consommateur (décision de P5.4).
-//   src/app/(site)/  → l'APPLICATION de démonstration, sous /demo/<langue>, avec
-//                      <Header> et <Footer> — qui vivent dans demo/[locale]/layout.jsx.
+//   src/app/(site)/  → l'APPLICATION pilotée par le manifeste, sous /demo/<langue> dans
+//                      le dépôt template (à la racine une fois éjecté), avec <Header> et
+//                      <Footer> — qui vivent dans le layout du segment [locale].
 //
-// Aucun <main> ici : chaque branche pose le sien (cf. les en-têtes des deux layouts).
+// Aucun <main> ici : chaque branche pose le sien (cf. les en-têtes des layouts).
 
 const DEFAULT_LOCALE = siteConfig.site.defaultLocale;
 
@@ -78,9 +79,9 @@ const themeInitScript = `(function(){try{var t=localStorage.getItem('theme');if(
 // LocaleProvider prend ensuite le relais pour les navigations CLIENTES, que ce script ne
 // rejoue pas.
 //
-// CE DÉTOUR N'EXISTE QUE PARCE QUE CE DÉPÔT HÉBERGE DEUX SURFACES. `npm run eject` met
-// DEMO_BASE_PATH à '' et remonte [locale] en premier segment ; le script ci-dessous
-// continue alors de fonctionner tel quel (voir le calcul du préfixe juste en dessous),
+// CE DÉTOUR N'EXISTE QUE PARCE QUE LE DÉPÔT TEMPLATE HÉBERGE DEUX SURFACES. L'éjection
+// (scripts/eject.js) met DEMO_BASE_PATH à '' et remonte [locale] en premier segment ; le
+// script ci-dessous continue alors de fonctionner tel quel (voir le calcul du préfixe juste en dessous),
 // mais un consommateur peut aussi promouvoir son layout de langue en layout racine et
 // écrire `<html lang={locale}>` directement. Voir le guide « Internationalisation ».
 //

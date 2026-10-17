@@ -64,7 +64,7 @@ export function defaultFormat(type, sample, locale) {
  * @param {'date'|'number'|'categorical'} type - Column type.
  * @param {Array<*>} [sample] - Sorted sample, forwarded to defaultFormat.
  * @param {string} [locale] - Site locale code. A caller that omits it gets the template's
- *   default language, which is what a chart installed on its own from the registry needs.
+ *   default language, which is what a chart installed on its own in another project needs.
  * @returns {(value: *) => string} Resolved formatter function.
  */
 export function resolveFormatter(format, type, sample, locale) {

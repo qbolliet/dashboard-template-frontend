@@ -9,10 +9,8 @@ import type { Page } from '@playwright/test';
 // exactement ce chemin — déterministe, sans dépendre du bouton de bascule ni de sa
 // transition (classe `theme-transitioning`, cf. ThemeProvider.js).
 //
-// Ne sert PAS pour les cadres de <ComponentPlayground>/<ComponentPreview> : ceux-là
-// portent leur PROPRE bascule locale (`.doc-preview-frame__theme`, cf.
-// PreviewFrame.jsx) et doivent être basculés en cliquant ce bouton — voir
-// e2e/helpers/previewFrame.ts.
+// Ne sert PAS pour un cadre qui porte son PROPRE thème local (les cadres d'aperçu de la
+// documentation du template, par exemple) : celui-là se bascule en cliquant son bouton.
 
 /**
  * Seeds the site-wide theme before the page's first paint.

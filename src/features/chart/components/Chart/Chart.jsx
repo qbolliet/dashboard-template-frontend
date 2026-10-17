@@ -321,7 +321,7 @@ function computeHoverTargets({
 // =================================================================
 // À NE PAS CONFONDRE avec la prop `labels` du composant, qui nomme les AXES et les
 // séries à partir des données. Les deux coexistent délibérément : `labels` est une API
-// publique historique, documentée et exercée par les exemples du registry.
+// publique historique, documentée et exercée par les consommateurs existants du composant.
 //
 // Les libellés des OUTILS de la barre (zoom, mini-vues, intervalles…) ne sont pas ici :
 // chaque fabrique de `toolbar-features/` accepte déjà un `config.label`, qui est leur
@@ -1016,8 +1016,8 @@ const Chart = ({
   uiLabels: uiLabelOverrides,
 }) => {
   // Deux dictionnaires distincts, et le nom `labels` est déjà pris :
-  //   `labels`   — intitulés des AXES et des séries, dérivés des DONNéES (API publique
-  //                historique du composant, cf. les exemples du registry) ;
+  //   `labels`   — intitulés des AXES et des séries, dérivés des données (API publique
+  //                historique du composant, cf. les consommateurs existants) ;
   //   `uiLabels` — vocabulaire de l'INTERFACE (barre d'outils, tooltip, titre a11y).
   // Les fondre casserait la signature publique et mélangerait deux natures de texte.
   const uiLabels = mergeLabels(DEFAULT_UI_LABELS, uiLabelOverrides);

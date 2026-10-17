@@ -9,8 +9,7 @@
 //   1. `import()` à chemin LITTÉRAL, une branche par langue. Un
 //      `import(`./dictionaries/${locale}`)` n'est pas analysable statiquement par
 //      Turbopack, qui se rabattrait sur un bundle du dossier entier — toutes les langues
-//      livrées à tous les visiteurs. Même contrainte, même remède que
-//      docs/__docs-pages__.js.
+//      livrées à tous les visiteurs.
 //   2. FUSION PROFONDE sur le français, et non substitution. Une traduction incomplète
 //      est l'état NORMAL d'un dictionnaire en cours d'écriture ; sans fusion, chaque clé
 //      manquante rendrait `undefined`, donc un aria-label vide. Avec fusion, elle rend

@@ -8,8 +8,8 @@ import './not-found.scss';
 // =================================================================
 // 404 — la frontière qui rend RÉELLEMENT, hors de toute enveloppe
 // =================================================================
-// C'est celle-ci qui s'affiche pour toute URL n'appariant aucune route, sur les DEUX
-// surfaces du dépôt : /inconnu comme /demo/inconnu. Les deux routes attrape-tout
+// C'est celle-ci qui s'affiche pour toute URL n'appariant aucune route, sur TOUTES les
+// surfaces du dépôt : /inconnu comme /demo/inconnu dans le dépôt template. Les routes attrape-tout
 // déclarent `dynamicParams = false`, donc un chemin absent de leur generateStaticParams
 // n'entre jamais dans leur segment — le 404 de groupe qui s'y trouverait n'est pas
 // atteint, seul le 404 RACINE l'est. Vérifié en développement, et c'est aussi le
@@ -18,14 +18,14 @@ import './not-found.scss';
 //
 // Corollaire à connaître : src/app/(site)/not-found.jsx existe toujours mais n'est
 // atteint que par un appel EXPLICITE à notFound() depuis une page du groupe (le cas
-// « type de nœud absent de PAGE_TYPES »). Il n'y a délibérément pas d'équivalent dans
-// (docs) : la route de documentation n'appelle notFound() que si DOCS_MODULES et
-// DOCS_PATHS divergeaient, ce que le générateur unique rend impossible.
+// « type de nœud absent de PAGE_TYPES »). Il n'y a délibérément pas d'équivalent pour une
+// surface de documentation : sa route n'appelle notFound() que si le module des pages et
+// la liste des chemins divergeaient, ce que le générateur unique rend impossible.
 //
 // N'ayant aucun layout intermédiaire, cette page apporte elle-même son lien
 // d'évitement, son <main> et sa bascule de thème. Elle ne peut pas afficher la sidebar
-// de documentation — il n'y a pas de page courante à situer — et offre à la place les
-// deux points d'entrée du site.
+// — il n'y a pas de page courante à situer — et offre à la place le ou les points
+// d'entrée du site.
 
 export const metadata = {
     title: 'Page introuvable',

@@ -164,5 +164,5 @@ export function snippetCurl(vars, queryHint = {}) {
 
 // NOTE : `highlight()` vivait ici. Elle est promue dans src/utils/highlight/highlight.js
 // depuis qu'un second consommateur non lié existe (les blocs de code de la
-// documentation), et y a été corrigée : coloration en une seule passe, au lieu de
+// documentation du template), et y a été corrigée : coloration en une seule passe, au lieu de
 // `replace` enchaînés dont la regex de chaînes rematchait le balisage déjà injecté.

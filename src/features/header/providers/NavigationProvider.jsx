@@ -19,7 +19,7 @@ const NavigationUIContext = createContext(null);
 // traverserait des composants qui n'en affichent aucun, et chaque ajout de libellé
 // toucherait toute la chaîne.
 //
-// Pourquoi cela ne casse PAS l'isolation du registry : ce provider fait partie de
+// Pourquoi cela ne casse pas l'isolation de l'unité : ce provider fait partie de
 // l'unité `header`, il est installé avec elle. Un composant qui l'utilise n'acquiert
 // aucune dépendance nouvelle — contrairement à ce qu'un provider d'i18n global
 // imposerait. La règle du template reste entière : chaque unité distribuable porte ses

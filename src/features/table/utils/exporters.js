@@ -55,7 +55,3 @@ export function downloadBlob(content, filename, mime) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-
-// NOTE : `copyToClipboard()` vivait ici. Elle est promue dans
-// src/utils/clipboard/copyToClipboard.js — le bouton de copie de la documentation
-// en est un second consommateur, et une feature ne peut pas en importer une autre.

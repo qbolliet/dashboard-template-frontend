@@ -79,6 +79,20 @@ script se supprime lui-même à la fin. Elle exige donc un arbre git propre : `g
 le seul moyen de revenir en arrière. Ajoutez `--dry-run` pour voir le plan sans rien
 écrire.
 
+Le script retire aussi ce qui ne concerne que le dépôt modèle — `CHANGELOG.md` et
+`CONTRIBUTING.md`, les notes de chantier à la racine, le dossier `assets/` (après avoir
+vérifié que rien ne le référence), les entrées de `.gitignore` devenues sans objet — et
+retire de `.github/workflows/verify.yml` le job `eject`, qui appellerait un script disparu.
+Le workflow exécute alors `npm run verify`, la barrière complète du dépôt. En mode
+`--keep-docs`, un `CHANGELOG.md` d'une ligne remplace celui du modèle.
+
+Deux garanties tiennent à la façon dont il procède. **Il ne laisse jamais un dépôt à moitié
+éjecté** : toute l'opération est d'abord déroulée à blanc, motifs de remplacement compris, et
+un motif périmé arrête le script avant la première écriture. **Il est insensible aux fins de
+ligne** : un clone Windows (`core.autocrlf=true`) écrit des CRLF, le script les normalise
+pour comparer et restitue l'EOL d'origine de chaque fichier. Le `.gitattributes` du dépôt
+(`eol=lf`) évite d'ailleurs ce cas pour les clones faits après son ajout.
+
 Les trois gestes qui suivent, dans l'ordre où ils se posent :
 
 1. **Décrivez vos pages** dans `config/site.config.json` — c'est le manifeste dont l'arbre

@@ -1,0 +1,22 @@
+# Fins de ligne : LF dans l'index ET dans la copie de travail, quel que soit
+# `core.autocrlf` du poste. Sans cela, un clone Windows par défaut écrit des CRLF et tout
+# outil qui compare du texte multi-lignes (scripts/eject.js, par exemple) les voit.
+* text=auto eol=lf
+
+# Binaires explicites : jamais convertis, jamais diffés comme du texte.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+*.pdf binary
+*.zip binary
+*.mp4 binary
+*.webm binary

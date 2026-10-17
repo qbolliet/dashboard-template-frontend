@@ -21,7 +21,7 @@ describe('readLocaleFromPath', () => {
     expect(readLocaleFromPath('/demo/', OPTIONS)).toBeNull();
   });
 
-  it('returns null outside the prefix — the documentation site has no locale segment', () => {
+  it('returns null outside the prefix — such a surface has no locale segment', () => {
     expect(readLocaleFromPath('/', OPTIONS)).toBeNull();
     expect(readLocaleFromPath('/guides/api-graphql', OPTIONS)).toBeNull();
     expect(readLocaleFromPath('/en/guides', OPTIONS)).toBeNull();
@@ -39,7 +39,7 @@ describe('readLocaleFromPath', () => {
   it('honours a custom prefix', () => {
     expect(readLocaleFromPath('/app/en/pib', { ...OPTIONS, prefix: '/app' })).toBe('en');
     // Préfixe vide : la locale est le premier segment. C'est la forme qu'obtient un
-    // consommateur qui supprime le site de documentation.
+    // dépôt éjecté, dont l'application est montée à la racine.
     expect(readLocaleFromPath('/en/pib', { ...OPTIONS, prefix: '' })).toBe('en');
   });
 

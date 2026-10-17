@@ -17,7 +17,7 @@
   // `--font-geist-mono` est déclarée sur <html> par next/font (src/app/layout.tsx) ;
   // ce token n'est que l'alias stable que consomme le SCSS, pour ne pas coder en dur
   // le nom de la police dans 29 fichiers. Le repli interne `ui-monospace` est
-  // INDISPENSABLE : installé depuis le registry, un composant peut atterrir dans un
+  // indispensable : installé seul, un composant peut atterrir dans un
   // projet sans next/font — sans lui, `var(--font-geist-mono)` non résolue rendrait
   // toute la déclaration invalide à l'instant du calcul et la police retomberait sur
   // la sans-serif héritée (exactement le bug que ce token corrige).

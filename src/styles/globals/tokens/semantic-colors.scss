@@ -11,8 +11,7 @@
 // descendant qui redéfinit la primitive ne la change PLUS. Le second sélecteur fait
 // redéclarer tout le bloc sur n'importe quel élément portant `data-theme`, qui le
 // résout alors sur LUI-MÊME. C'est ce qui rend un thème local réellement scopable
-// (cf. §4.4 niveau C de TEMPLATIZATION_ARCHITECTURE.md, et le cadre d'aperçu de la
-// documentation : src/features/docs/components/PreviewFrame/).
+// (un cadre d'aperçu, par exemple, peut porter son propre thème).
 // Le bloc `[data-theme="dark"]` plus bas garde la même spécificité (0,1,0) et vient
 // après dans la source : il l'emporte toujours sur le bloc de base.
 
@@ -83,8 +82,8 @@
   --color-focus-shadow: var(--color-primary-200);
 
   // ===== TRAITEMENT DES LOGOS =====
-  // Pas une couleur, mais un rôle qui bascule avec le thème et que TROIS features
-  // consomment (header, footer, docs).
+  // Pas une couleur, mais un rôle qui bascule avec le thème et que plusieurs features
+  // consomment (header, footer…).
   // Les fichiers logo.svg sont sombres — on les inverse en clair,
   // on les laisse intacts en sombre. S'utilise en `filter: var(--logo-filter)`, JAMAIS
   // enveloppé dans hsl() : ce n'est pas un triplet HSL.

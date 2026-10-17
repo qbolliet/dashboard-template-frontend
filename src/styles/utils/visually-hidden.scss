@@ -4,10 +4,10 @@
 // POURQUOI UN MIXIN ET NON UNE CLASSE GLOBALE
 // La classe `.sr-only` vit dans styles/globals/accessibility.scss, qui appartient à
 // l'unité `styles-app` — marquée `distributable: false`. Un tiers qui installe le seul
-// item `theme` depuis le registry n'en reçoit donc RIEN : le texte destiné aux lecteurs
+// item `theme` hors de ce dépôt n'en reçoit donc RIEN : le texte destiné aux lecteurs
 // d'écran s'affichait en clair à côté du bouton de thème. Ce fichier-ci appartient à
-// `tokens-global`, dont TOUT item du registry dépend (cf. build-registry.js, TOKENS_ITEM
-// ajouté d'office) : le mixin est le seul véhicule qui atteigne les unités distribuées.
+// `tokens-global`, dont TOUT item installé séparément dépend (il est ajouté d'office
+// à toute installation) : le mixin est le seul véhicule qui atteigne les unités distribuées.
 //
 // Il n'émet aucune règle seul — l'agréger coûte zéro octet à qui ne l'appelle pas, et les
 // quelques duplications de `.sr-only` dans le bundle applicatif sont des règles

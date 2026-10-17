@@ -34,7 +34,7 @@ const joinPath = (parentPath, childPath) => {
     // Le nœud racine du manifeste HÉRITE du chemin de son parent — c'est ce qui permet
     // de monter tout l'arbre sous un préfixe (/demo) en ne changeant qu'un argument à
     // l'appel. Renvoyer '/' en dur avalait ce préfixe pour le seul nœud d'accueil, et
-    // le laissait donc en collision avec la racine du site de documentation.
+    // le laissait donc en collision avec la racine du déploiement.
     // Quand parentPath vaut '/' (cas historique), le résultat est inchangé.
     if (childPath === '/') return parentPath;
     // Racine traitée à part, sinon '/' + '/pib' donnerait '//pib'.

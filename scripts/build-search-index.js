@@ -84,8 +84,9 @@ async function main() {
   );
 
   // Même point de montage que le layout de langue et la route attrape-tout de la démo :
-  // depuis P4.2 la racine du déploiement appartient au site de documentation, et
-  // l'application vit sous /demo ; depuis P5.4 elle vit sous /demo/<langue>. Omettre
+  // dans le dépôt template la racine du déploiement appartient à une surface de
+  // documentation et l'application vit sous /demo ; depuis P5.4 elle vit sous
+  // <point de montage>/<langue>. Omettre
   // l'un ou l'autre préfixe produirait un index dont chaque suggestion mène à un 404.
   //
   // Les deux transformations sont appliquées dans le MÊME ORDRE qu'à l'exécution :

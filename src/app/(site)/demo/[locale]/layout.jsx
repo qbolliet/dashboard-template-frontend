@@ -89,7 +89,7 @@ const LocaleLayout = async ({ children, params }) => {
                 conteneur supplémentaire casserait le positionnement du header. */}
             <div lang={locale} style={{ display: 'contents' }}>
             {/* `homeHref` est une prop et non une valeur en dur dans <Header> : ce
-                composant est publié par le registry, y graver /demo/<langue> livrerait
+                composant s'installe seul, y graver /demo/<langue> livrerait
                 un lien cassé à un tiers.
                 `siteTitle` remplace le « Mon Site » qui était codé en dur dans
                 NavigationSideBar — le nom du site vient du manifeste, comme partout

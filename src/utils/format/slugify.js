@@ -2,11 +2,12 @@
 // SLUGIFY — texte → identifiant d'ancre stable
 // =================================================================
 // Fonction PARTAGÉE par deux consommateurs qui doivent tomber d'accord au caractère
-// près, sans quoi le sommaire d'une page de documentation pointe sur des ancres
-// inexistantes :
-//   • src/mdx-components.jsx, qui pose l'attribut `id` sur les titres au rendu ;
-//   • scripts/build-docs-index.js, qui relève les titres dans le texte brut des .mdx
-//     au build pour construire le sommaire.
+// près, sans quoi le sommaire d'une page pointe sur des ancres inexistantes :
+//   • le rendu des titres, qui pose l'attribut `id` ;
+//   • le script de build qui relève les titres dans le texte brut des pages pour
+//     construire le sommaire.
+// Dans le dépôt template ce sont src/mdx-components.jsx et scripts/build-docs-index.js ;
+// ils disparaissent à l'éjection complète, la fonction reste.
 //
 // C'est tout le contrat qui remplace un greffon rehype-slug : rien ne traverse la
 // frontière Turbopack, et la liste des titres est disponible AU BUILD — ce qu'un

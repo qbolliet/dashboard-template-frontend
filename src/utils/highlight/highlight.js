@@ -2,15 +2,15 @@
 // HIGHLIGHT — coloration syntaxique sans dépendance, au runtime
 // =================================================================
 // Promue depuis src/features/table/utils/querySnippets.js, où elle ne servait qu'au
-// panneau de code de la table. Second consommateur non lié : les blocs de code du site
-// de documentation (src/features/docs/components/DocsCodeBlock/). La règle de promotion
+// panneau de code de la table. Second consommateur non lié : les blocs de code de la
+// documentation du template. La règle de promotion
 // de CLAUDE.md s'applique, et `src/components/` ne peut de toute façon pas dépendre de
 // `src/features/`.
 //
-// POURQUOI PAS shiki (ni prism, ni highlight.js) : le code du playground n'existe PAS au
-// build — il est sérialisé à partir de l'état courant des contrôles. Il faut donc un
+// POURQUOI PAS shiki (ni prism, ni highlight.js) : le code à colorier n'existe pas toujours au
+// build — un extrait de requête est sérialisé à partir de l'état courant des critères. Il faut donc un
 // coloriseur qui tourne dans le navigateur. Introduire shiki ne couvrirait que le cas
-// figé (les exemples du registry) et ferait coexister DEUX coloriseurs aux rendus
+// figé (le code écrit à l'avance) et ferait coexister DEUX coloriseurs aux rendus
 // différents dans la même page. Celui-ci est volontairement approximatif : il colore des
 // extraits courts que nous produisons nous-mêmes, ce n'est pas un analyseur syntaxique.
 //
@@ -142,8 +142,8 @@ const LANG_ALIASES = {
 };
 
 // Les scanners sont construits une fois par langage puis mémorisés : une regex à
-// alternation coûte cher à compiler, et le playground rappelle highlight() à CHAQUE
-// changement de contrôle.
+// alternation coûte cher à compiler, et les panneaux de code rappellent highlight() à CHAQUE
+// changement de l'état qu'ils reflètent.
 const SCANNERS = new Map();
 
 /**

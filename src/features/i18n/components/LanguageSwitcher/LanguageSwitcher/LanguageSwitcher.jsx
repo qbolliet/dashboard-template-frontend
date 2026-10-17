@@ -28,7 +28,7 @@ const DEFAULT_LABELS = {
  *
  * Works either uncontrolled (`defaultValue`) or controlled (`value` + `onChange`),
  * and knows nothing about the site's i18n layer — it receives its languages, its
- * value and its labels as props, so it can be installed on its own from the registry.
+ * value and its labels as props, so it can be installed on its own in another project.
  *
  * @param {Object} props - Component props.
  * @param {Array<{code: string, country: string, name: string}>} [props.languages=DEFAULT_LANGUAGES] -

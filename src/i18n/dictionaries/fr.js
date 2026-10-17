@@ -25,7 +25,7 @@
 //   • des NOMBRES ou des DATES mis en forme. Ils dépendent de la locale mais pas de la
 //     traduction : ils vivent dans src/i18n/formats.js.
 //   • du CONTENU. Les titres de pages, la prose d'accueil et les libellés d'opérateurs
-//     sont dans config/ — voir docs/content/guides/internationalisation.mdx.
+//     sont dans config/ — voir le guide d'internationalisation de la documentation en ligne du template.
 //
 // TYPOGRAPHIE — les conventions françaises (espace fine avant « : », guillemets « »)
 // s'écrivent DANS les libellés d'ici, jamais dans le JSX. C'est ce qui permet à la

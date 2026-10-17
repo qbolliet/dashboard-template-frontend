@@ -92,8 +92,8 @@ export const connectorsFrom = (labels) => [
  *
  * `config/filter/operations.json` accepts either a plain string (`=`, `≥` — identical in
  * every language) or a `{ fr, en }` map. The filter components only ever receive
- * strings: this is the single boundary where the map collapses, shared by the
- * application and by the documentation playgrounds so the two cannot diverge.
+ * strings: this is the single boundary where the map collapses, shared by every
+ * consumer of the filter components so they cannot diverge.
  *
  * Keys starting with `_` are dropped — the file carries a `_comment`.
  *

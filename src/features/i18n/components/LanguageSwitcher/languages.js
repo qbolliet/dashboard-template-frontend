@@ -1,8 +1,7 @@
 // Source des langues par défaut du groupe LanguageSwitcher + résolution de
 // l'URL des drapeaux. Aucun React, aucun effet de bord : ce module doit pouvoir
 // être importé aussi bien par un composant client (LanguageSwitcher) que par un
-// script de build ou un test, sans traîner de dépendance à `src/i18n/` (cf. D2 de
-// LANGUAGE_SWITCHER_ARCHITECTURE.md — la présentation ne lit jamais le dictionnaire).
+// script de build ou un test, sans traîner de dépendance à `src/i18n/` — la présentation ne lit jamais le dictionnaire.
 
 /**
  * @typedef {Object} Language

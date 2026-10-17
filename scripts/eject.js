@@ -28,6 +28,15 @@
 // et ÉCHOUE BRUYAMMENT si elle a disparu. Un script d'eject qui « fait de son mieux » en
 // silence pourrit sans qu'on le sache ; celui-ci casse la CI (cf. le job `eject` de
 // .github/workflows/verify.yml) au premier renommage qui le concerne.
+//
+// ÉCHEC SANS DÉGÂT : toute la suite d'opérations est d'abord déroulée À BLANC, motifs
+// compris, avant la première écriture. Un motif périmé arrête donc le script avec l'arbre
+// intact, jamais au milieu d'un dépôt à moitié éjecté.
+//
+// FINS DE LIGNE : un clone Windows (`core.autocrlf=true`) écrit des CRLF, et les motifs
+// contiennent des `\n`. Le script lit tout en LF, compare en LF et restitue l'EOL
+// d'origine de chaque fichier à l'écriture. Le .gitattributes du dépôt (`eol=lf`) évite
+// déjà la situation ; cette tolérance couvre les copies qui l'ont précédé.
 
 const fs = require('fs');
 const path = require('path');
@@ -53,15 +62,19 @@ Usage : node scripts/eject.js [options]
 
 Détache ce dépôt de la documentation du template : l'application remonte à la racine
 (/<langue>/… au lieu de /demo/<langue>/…) et la surface de documentation est retirée.
-Opération unique et irréversible — le script se supprime lui-même à la fin.
+Opération unique et irréversible — le script se supprime lui-même à la fin. Il retire
+aussi ce qui ne concerne que le template : CHANGELOG et CONTRIBUTING, notes de chantier
+(TEMPLATIZATION_*, RECETTE_*…), dossier assets/ s'il n'est référencé nulle part, entrées
+de .gitignore devenues sans objet, et le job \`eject\` de la CI.
 
 Options
   --keep-docs   Conserve la machinerie de documentation (MDX, playgrounds, tables de
                 props, registry) pour documenter votre propre dashboard. La doc est
                 remontée sous /docs et docs/content/ réduit à un squelette.
   --dry-run     Déroule l'opération complète sans rien écrire : tous les motifs de
-                remplacement sont vérifiés. C'est la forme utilisée en CI pour
-                détecter qu'un renommage a désynchronisé ce script.
+                remplacement sont vérifiés et chaque suppression est listée. C'est la
+                forme utilisée en CI pour détecter qu'un renommage a désynchronisé ce
+                script. (Une exécution réelle commence toujours par cette passe à blanc.)
   -y, --yes     N'attend pas de confirmation.
   --force       N'exige pas un arbre git propre.
   -h, --help    Affiche cette aide.
@@ -70,23 +83,66 @@ Options
 // =================================================================
 // Journal et opérations de fichiers
 // =================================================================
+// Toutes les opérations passent par cette couche, qui sert DEUX passes identiques :
+//   • une passe « à blanc » (`simulating`), qui ne touche pas au disque : elle tient à
+//     jour un état virtuel (déplacements, contenus réécrits, suppressions) et vérifie
+//     chaque motif contre cet état. C'est ce qu'exécute `--dry-run`, et c'est aussi le
+//     CONTRÔLE PRÉALABLE de toute exécution réelle : un motif périmé fait échouer le
+//     script avant la première écriture, jamais au milieu d'un arbre à moitié éjecté ;
+//   • la passe réelle, qui exécute les mêmes appels pour de bon.
+// Une seule suite d'opérations pour les deux : la simulation ne peut donc pas diverger de
+// ce que la passe réelle fera.
 
 const performed = [];
+
+// Vrai pendant la passe à blanc : plus rien n'est écrit, tout est consigné en mémoire.
+let simulating = options.dryRun;
+
+// Vrai pendant le contrôle préalable d'une exécution réelle : les lignes du journal sont
+// comptées mais pas affichées (elles le seront à la passe réelle).
+let quiet = false;
+
+// Fin de ligne des fichiers CRÉÉS par le script, fixée une fois pour toutes dans main()
+// d'après package.json : un dépôt en CRLF ne reçoit pas de fichiers en LF, et réciproquement.
+let projectEol = '\n';
+
+// Renommages EN ATTENTE (destination → source). Sans eux, la passe à blanc échouerait sur
+// le premier fichier qu'une opération précédente aurait dû déplacer.
+const virtualMoves = new Map();
+
+// Contenus déjà réécrits ou créés, par chemin relatif exprimé APRÈS les déplacements.
+// Sans eux, un motif qui s'applique au RÉSULTAT d'un remplacement précédent (deux `patch`
+// sur le même fichier) serait vérifié contre l'original, et la simulation mentirait.
+const virtualFiles = new Map();
+
+// Chemins relatifs supprimés pendant la passe à blanc (fichiers ou dossiers).
+const virtualRemoved = [];
+
+// Chemins relatifs supprimés pendant la passe en cours, quelle qu'elle soit : le contrôle
+// des références (cf. removeAssetsIfUnreferenced) n'a pas à lire ce qui n'existera plus.
+const removedPaths = [];
+
+// Avertissements non bloquants, rappelés à la fin de l'exécution.
+const warnings = [];
 
 /** Prints a step line. */
 const log = (verb, detail) => {
     performed.push(`${verb} ${detail}`);
-    console.log(`  ${verb.padEnd(11)} ${detail}`);
+    if (!quiet) console.log(`  ${verb.padEnd(11)} ${detail}`);
 };
 
 /** Absolute path of a project-relative path. */
 const abs = (relative) => path.join(PROJECT_ROOT, relative);
 
-// Renommages EN ATTENTE, alimentés uniquement en simulation (destination → source).
-// Sans eux, `--dry-run` échouerait sur le premier fichier qu'une opération précédente
-// aurait dû déplacer, et ne pourrait donc pas vérifier les motifs de `patch` — ce qui est
-// précisément ce qu'on lui demande (cf. le job `eject` de la CI, qui simule à chaque PR).
-const virtualMoves = new Map();
+/**
+ * Tells whether a project-relative path lies under (or is) one of the given prefixes.
+ *
+ * @param {string} relative - Project-relative path, with forward slashes.
+ * @param {string[]} prefixes - Project-relative files or directories.
+ * @returns {boolean} True when `relative` equals a prefix or sits below one.
+ */
+const isUnder = (relative, prefixes) =>
+    prefixes.some((prefix) => relative === prefix || relative.startsWith(`${prefix}/`));
 
 /**
  * Absolute path of a project-relative path, resolved through the pending renames.
@@ -95,7 +151,7 @@ const virtualMoves = new Map();
  * @returns {string} The absolute path where the file actually sits right now.
  */
 function locate(relative) {
-    if (!options.dryRun) return abs(relative);
+    if (!simulating) return abs(relative);
 
     for (const [to, from] of virtualMoves) {
         if (relative === to) return abs(from);
@@ -103,6 +159,35 @@ function locate(relative) {
     }
 
     return abs(relative);
+}
+
+/**
+ * Maps a path as it sits on disk to the path it will have once the pending renames apply.
+ *
+ * @param {string} relative - Project-relative path on disk.
+ * @returns {string} The same path after the moves (identity outside the simulation).
+ */
+function afterMoves(relative) {
+    for (const [to, from] of virtualMoves) {
+        if (relative === from) return to;
+        if (relative.startsWith(`${from}/`)) return to + relative.slice(from.length);
+    }
+
+    return relative;
+}
+
+/**
+ * Tells whether a project-relative path exists, simulation included.
+ *
+ * @param {string} relative - Project-relative path, expressed AFTER the moves.
+ * @returns {boolean} True when the file or directory is (or will be) there.
+ */
+function exists(relative) {
+    if (!simulating) return fs.existsSync(abs(relative));
+    if (virtualFiles.has(relative)) return true;
+    if (isUnder(relative, virtualRemoved)) return false;
+
+    return fs.existsSync(locate(relative));
 }
 
 /**
@@ -116,16 +201,67 @@ function fail(message) {
 }
 
 /**
+ * Detects the dominant line ending of a text.
+ *
+ * @param {string} raw - Raw file content.
+ * @returns {'\r\n' | '\n'} CRLF when it outnumbers bare LF, LF otherwise.
+ */
+function detectEol(raw) {
+    const crlf = (raw.match(/\r\n/g) || []).length;
+    const lf = (raw.match(/\n/g) || []).length - crlf;
+
+    return crlf > lf ? '\r\n' : '\n';
+}
+
+/**
+ * Reads a text file, normalised to LF.
+ *
+ * Tout le script raisonne en LF : les motifs sont écrits avec des `\n`, et un clone
+ * Windows (`core.autocrlf=true`) pose des `\r\n` dans les fichiers. On normalise donc à la
+ * lecture et on RESTITUE la fin de ligne d'origine à l'écriture (cf. writeText) — le diff
+ * git ne contient ainsi que les lignes réellement modifiées. Un fichier à fins de ligne
+ * mélangées est ramené à son EOL majoritaire.
+ *
+ * @param {string} relative - Project-relative path, expressed AFTER the moves.
+ * @returns {{ text: string, eol: '\r\n' | '\n' }} The LF-normalised content and its original EOL.
+ */
+function readText(relative) {
+    const virtual = virtualFiles.get(relative);
+    if (virtual) return virtual;
+
+    const raw = fs.readFileSync(locate(relative), 'utf8');
+
+    return { text: raw.replace(/\r\n/g, '\n'), eol: detectEol(raw) };
+}
+
+/**
+ * Writes an LF-normalised text with the given line ending, creating parent directories.
+ *
+ * @param {string} relative - Project-relative path, expressed AFTER the moves.
+ * @param {string} text - Content, with `\n` line endings.
+ * @param {'\r\n' | '\n'} eol - Line ending to put back on disk.
+ */
+function writeText(relative, text, eol) {
+    if (simulating) {
+        virtualFiles.set(relative, { text, eol });
+        return;
+    }
+
+    fs.mkdirSync(path.dirname(abs(relative)), { recursive: true });
+    fs.writeFileSync(abs(relative), eol === '\r\n' ? text.replace(/\n/g, '\r\n') : text, 'utf8');
+}
+
+/**
  * Moves a file or directory, creating the destination's parent as needed.
  *
  * @param {string} from - Project-relative source path.
  * @param {string} to - Project-relative destination path.
  */
 function move(from, to) {
-    if (!fs.existsSync(locate(from))) fail(`${from} est introuvable — le dépôt a-t-il déjà été éjecté ?`);
+    if (!exists(from)) fail(`${from} est introuvable — le dépôt a-t-il déjà été éjecté ?`);
     log('déplacé', `${from} → ${to}`);
 
-    if (options.dryRun) {
+    if (simulating) {
         virtualMoves.set(to, from);
         return;
     }
@@ -141,25 +277,52 @@ function move(from, to) {
  * @param {string} target - Project-relative path.
  */
 function remove(target) {
-    if (!fs.existsSync(locate(target))) return;
+    if (!exists(target)) return;
     log('supprimé', target);
-    if (options.dryRun) return;
+    removedPaths.push(target);
+
+    if (simulating) {
+        virtualRemoved.push(target);
+        for (const key of [...virtualFiles.keys()]) {
+            if (isUnder(key, [target])) virtualFiles.delete(key);
+        }
+        return;
+    }
 
     fs.rmSync(abs(target), { recursive: true, force: true });
 }
 
 /**
- * Writes a file, creating its parent directory as needed.
+ * Writes a new file (or replaces one), creating its parent directory as needed.
  *
  * @param {string} target - Project-relative path.
- * @param {string} content - Full file content.
+ * @param {string} content - Full file content, in LF — le script le convertit à l'EOL du dépôt.
  */
 function write(target, content) {
     log('écrit', target);
-    if (options.dryRun) return;
+    writeText(target, content.replace(/\r\n/g, '\n'), projectEol);
+}
 
-    fs.mkdirSync(path.dirname(abs(target)), { recursive: true });
-    fs.writeFileSync(abs(target), content, 'utf8');
+/**
+ * Builds the error message of a replacement whose search string is gone.
+ *
+ * @param {string} target - Project-relative path.
+ * @param {string} search - The missing literal.
+ * @param {'\r\n' | '\n'} eol - Original line ending of the file.
+ * @returns {string} The message, which names CRLF when the file uses it.
+ */
+function patternMissing(target, search, eol) {
+    const crlf =
+        eol === '\r\n'
+            ? `\nCe fichier est en CRLF (fins de ligne Windows) : le script les normalise en LF ` +
+              `avant de comparer, ce n'est donc PAS la cause — le contenu a réellement changé.\n`
+            : '';
+
+    return (
+        `motif introuvable dans ${target} :\n\n${search}\n${crlf}\n` +
+        'Le fichier a changé depuis la dernière mise à jour de scripts/eject.js. ' +
+        'Corrigez le script plutôt que de contourner ce message.'
+    );
 }
 
 /**
@@ -167,31 +330,41 @@ function write(target, content) {
  *
  * Chaque remplacement est VÉRIFIÉ : si la chaîne recherchée est absente, le script
  * s'arrête. C'est la garantie qu'un renommage en amont ne laisse pas passer un eject
- * silencieusement incomplet.
+ * silencieusement incomplet. La comparaison se fait en LF quelle que soit la fin de ligne
+ * du fichier, qui est restituée à l'écriture.
  *
  * @param {string} target - Project-relative path.
  * @param {Array<[string, string]>} replacements - Pairs of exact search and replacement.
  */
 function patch(target, replacements) {
-    if (!fs.existsSync(locate(target))) fail(`${target} est introuvable.`);
+    if (!exists(target)) fail(`${target} est introuvable.`);
 
-    let content = fs.readFileSync(locate(target), 'utf8');
+    const { text, eol } = readText(target);
+    let content = text;
 
     for (const [search, replacement] of replacements) {
-        if (!content.includes(search)) {
-            fail(
-                `motif introuvable dans ${target} :\n\n${search}\n\n` +
-                'Le fichier a changé depuis la dernière mise à jour de scripts/eject.js. ' +
-                'Corrigez le script plutôt que de contourner ce message.',
-            );
-        }
+        if (!content.includes(search)) fail(patternMissing(target, search, eol));
         content = content.split(search).join(replacement);
     }
 
     log('modifié', target);
-    if (options.dryRun) return;
+    writeText(target, content, eol);
+}
 
-    fs.writeFileSync(abs(target), content, 'utf8');
+/**
+ * Applies a custom transformation to a file, for the rare edit that no literal can express.
+ *
+ * @param {string} target - Project-relative path.
+ * @param {(text: string, eol: '\r\n' | '\n') => string} transform - Receives the LF-normalised
+ *   content and must call `fail()` itself when its expectations are not met.
+ */
+function patchWith(target, transform) {
+    if (!exists(target)) fail(`${target} est introuvable.`);
+
+    const { text, eol } = readText(target);
+
+    log('modifié', target);
+    writeText(target, transform(text, eol), eol);
 }
 
 /**
@@ -205,17 +378,15 @@ function patch(target, replacements) {
  * @param {string} target - Project-relative path.
  */
 function unprefixDemoPaths(target) {
-    if (!fs.existsSync(locate(target))) fail(`${target} est introuvable.`);
+    if (!exists(target)) fail(`${target} est introuvable.`);
 
-    const content = fs.readFileSync(locate(target), 'utf8');
-    const next = content.split('/demo/').join('/').split('/demo').join('/');
+    const { text, eol } = readText(target);
+    const next = text.split('/demo/').join('/').split('/demo').join('/');
 
-    if (next === content) fail(`aucune occurrence de '/demo' dans ${target}.`);
+    if (next === text) fail(`aucune occurrence de '/demo' dans ${target}.`);
 
     log('modifié', target);
-    if (options.dryRun) return;
-
-    fs.writeFileSync(abs(target), next, 'utf8');
+    writeText(target, next, eol);
 }
 
 /**
@@ -225,14 +396,19 @@ function unprefixDemoPaths(target) {
  * @param {(value: Object) => Object} transform - Pure transformation of the parsed value.
  */
 function patchJson(target, transform) {
-    if (!fs.existsSync(locate(target))) fail(`${target} est introuvable.`);
+    if (!exists(target)) fail(`${target} est introuvable.`);
 
-    const value = JSON.parse(fs.readFileSync(locate(target), 'utf8'));
+    const { text, eol } = readText(target);
+
+    let next;
+    try {
+        next = transform(JSON.parse(text));
+    } catch (error) {
+        fail(`${target} n'a pas la structure attendue : ${error.message}`);
+    }
 
     log('modifié', target);
-    if (options.dryRun) return;
-
-    fs.writeFileSync(abs(target), `${JSON.stringify(transform(value), null, 2)}\n`, 'utf8');
+    writeText(target, `${JSON.stringify(next, null, 2)}\n`, eol);
 }
 
 // =================================================================
@@ -704,10 +880,9 @@ function removeDocsSurface() {
     remove('src/features/chart/sources/demoData.js');
     remove('src/features/globe/sources/demoData.js');
 
-    // Déploiement et prose propres au dépôt template.
+    // Déploiement de la documentation du template. La prose propre au template
+    // (CHANGELOG, CONTRIBUTING…) est traitée à part, car elle part dans les DEUX modes.
     remove('.github/workflows/docs.yml');
-    remove('CONTRIBUTING.md');
-    remove('CHANGELOG.md');
 
     // Alias devenus morts, dans les deux fichiers qui les déclarent.
     patchJson('tsconfig.json', (config) => {
@@ -947,6 +1122,12 @@ const isStaticExport = process.env.STATIC_EXPORT === "1";`,
  * capturaient DANS l'iframe du playground : leurs cibles disparaissent dans les deux
  * modes (le squelette de --keep-docs ne les contient pas davantage). Elles sont donc
  * retirées plutôt que réécrites au jugé — un consommateur les rebâtira sur SES pages.
+ * Même sort pour la suite d'hydratation du thème (qui ne parcourt que des pages de
+ * documentation) et celle du sélecteur de langue (qui pilote les playgrounds).
+ *
+ * Ce n'est pas cosmétique : `next build` type-vérifie e2e/, et une spec qui importe un
+ * helper retiré (previewFrame, docsRoutes, demoRoutes) fait échouer le build du dépôt
+ * éjecté, comme `npx playwright test`, qui ne charge alors plus aucun test.
  */
 function rewriteE2E() {
     remove('e2e/visual.spec.ts');
@@ -954,6 +1135,8 @@ function rewriteE2E() {
     remove('e2e/edge-cases.spec.ts');
     remove('e2e/edge-cases.spec.ts-snapshots');
     remove('e2e/helpers/previewFrame.ts');
+    remove('e2e/theme-hydration.spec.ts');
+    remove('e2e/language-switcher.spec.ts');
 
     write('e2e/helpers/routes.ts', ROUTES_HELPER);
 
@@ -1012,12 +1195,390 @@ const ROUTES = appRoutes().map((path) => ({ path, surface: 'app' }));`,
             `import { appRoutes } from './helpers/routes';`,
         ],
         [`  const routes = [...docsRoutes(), ...demoRoutes()];`, `  const routes = appRoutes();`],
+        [
+            `  // Une page de chaque surface (documentation, démo), ouverte dans un vrai navigateur.
+  await assertDevServerHealthy(baseURL, [docsRoutes()[0], demoRoutes()[0]], startedAt);`,
+            `  // Une page de l'application, ouverte dans un vrai navigateur.
+  await assertDevServerHealthy(baseURL, [appRoutes()[0]], startedAt);`,
+        ],
+    ]);
+
+    // Les deux suites qui parcouraient les routes de l'application (et, pour la seconde,
+    // celles de la documentation) n'en gardent que la moitié applicative.
+    patch('e2e/navigation.spec.ts', [
+        [`import { demoRoutes } from './helpers/routes';`, `import { appRoutes } from './helpers/routes';`],
+        [`for (const path of demoRoutes()) {`, `for (const path of appRoutes()) {`],
+    ]);
+    patch('e2e/responsive.spec.ts', [
+        [
+            `import { docsRoutes, demoRoutes } from './helpers/routes';`,
+            `import { appRoutes } from './helpers/routes';`,
+        ],
+        [
+            `const ROUTES = [
+  ...docsRoutes().map((path) => ({ path, surface: 'docs' })),
+  ...demoRoutes().map((path) => ({ path, surface: 'demo' })),
+];`,
+            `const ROUTES = appRoutes().map((path) => ({ path, surface: 'app' }));`,
+        ],
+    ]);
+
+    // Le test de contraste visait une page de la démo et trois pages de documentation :
+    // il ne garde qu'une page de l'application, présente dans le manifeste minimal.
+    patch('e2e/a11y-contrast.spec.ts', [
+        [
+            `const PAGES = [
+  { label: 'démo — PIB (graphique)', path: \`/demo/\${DEFAULT_LOCALE}/comptabilite-nationale/france/pib\`, ready: 'svg text' },
+  { label: 'doc — StatCard (pastilles, props, code)', path: '/composants/stat-card', ready: 'main' },
+  { label: 'doc — Chart (playground, code)', path: '/features/chart', ready: 'main' },
+  { label: 'doc — Thème sombre', path: '/fondations/theme-sombre', ready: 'main' },
+];`,
+            `const PAGES = [
+  { label: 'indicateur (graphique)', path: \`/\${DEFAULT_LOCALE}/indicateur\`, ready: 'svg text' },
+];`,
+        ],
     ]);
 
     // Les chemins littéraux '/demo/…' des tests suivent le déplacement de l'application.
     for (const spec of ['e2e/i18n.spec.ts', 'e2e/helpers/locale.ts', 'e2e/global-setup.ts']) {
         unprefixDemoPaths(spec);
     }
+}
+
+// Bandeau de la section de .env.example consacrée à l'export statique : elle court de là
+// jusqu'à la fin du fichier et est réécrite en bloc. Le texte d'origine décrit
+// `npm run build:docs` et trois variables posées ensemble, ce qui n'est vrai nulle part
+// après l'eject (`build:static` ne pose que STATIC_EXPORT, le sous-chemin est à la charge
+// du consommateur).
+const ENV_STATIC_EXPORT_BANNER = `# =================================================================
+# DOCUMENTATION — export statique vers GitHub Pages
+# =================================================================
+`;
+
+/**
+ * Builds the static-export section of .env.example for the ejected repository.
+ *
+ * @param {boolean} keepDocs - Whether the documentation machinery (and its registry) was kept.
+ * @returns {string} The section, from its banner to the end of the file.
+ */
+function envStaticExportSection(keepDocs) {
+    const derivation = keepDocs
+        ? `Le sous-chemin VAUT donc le nom du dépôt, et
+# l'URL du registry vaut l'URL complète des Pages. Les deux doivent rester en phase :
+# le registry est publié dans le même déploiement, sous /r/.`
+        : 'Le sous-chemin VAUT donc le nom du dépôt.';
+
+    const registry = keepDocs
+        ? `
+# REGISTRY_BASE_URL=https://<compte>.github.io/<dépôt>
+# URL publique du registry, gravée dans les \`registryDependencies\` de public/r/*.json
+# par scripts/build-registry.js. Une valeur fausse produit un registry qui s'installe
+# sans erreur mais télécharge ses dépendances depuis localhost.
+`
+        : '';
+
+    return `# =================================================================
+# EXPORT STATIQUE — hébergement sans serveur Node (GitHub Pages et consorts)
+# =================================================================
+# Ces variables ne servent qu'à \`npm run build:static\` : ni \`npm run dev\` ni
+# \`npm run build\` ne les lisent, et l'application se comporte donc exactement comme avant
+# en leur absence.
+#
+# Règle de dérivation : GitHub Pages sert un dépôt de projet sous
+# https://<compte>.github.io/<dépôt>/. ${derivation}
+
+# STATIC_EXPORT=1
+# Active output:'export' + basePath + assetPrefix + images.unoptimized dans
+# next.config.ts. Sans elle, aucun de ces réglages n'est appliqué. Posée par
+# \`npm run build:static\` : inutile de la renseigner à la main.
+
+# NEXT_PUBLIC_BASE_PATH=/mon-depot
+# Sous-chemin de déploiement, sans barre oblique finale. Préfixe NEXT_PUBLIC_ requis :
+# la valeur doit être visible côté navigateur pour src/utils/url/withBasePath.js, qui
+# l'ajoute aux URL absolues que Next ne réécrit pas lui-même (fetch, textures WebGL,
+# url() en style inline). next/link et next/image, eux, la prennent en compte seuls.
+${registry}`;
+}
+
+/**
+ * Rewrites the configuration files that describe the machinery the eject removed or renamed.
+ *
+ * .env.example et eslint.config.mjs nomment le script `build:docs`, le registry et les
+ * modules générés de la documentation. Réécritures LITTÉRALES et ciblées — pas de
+ * substitution générique, qui laisserait passer des phrases devenues fausses en ne
+ * changeant qu'un mot.
+ *
+ * @param {boolean} keepDocs - Whether the documentation machinery was kept.
+ */
+function rewriteConfigFiles(keepDocs) {
+    patchWith('.env.example', (text, eol) => {
+        const start = text.indexOf(ENV_STATIC_EXPORT_BANNER);
+        if (start === -1) fail(patternMissing('.env.example', ENV_STATIC_EXPORT_BANNER, eol));
+
+        return text.slice(0, start) + envStaticExportSection(keepDocs);
+    });
+
+    const replacements = [
+        ['out/ est le site généré par `npm run build:docs`', 'out/ est le site généré par `npm run build:static`'],
+    ];
+
+    if (!keepDocs) {
+        replacements.push([
+            `      // Module généré par scripts/build-registry.js : sa forme est décidée par
+      // le script, pas par le lint. registry/examples/ reste linté, lui — ce
+      // sont des composants React distribués, ils doivent tenir la même barre.
+      "registry/__registry__.js",
+      // Idem pour les deux modules générés par scripts/build-docs-index.js.
+      // docs/content/**.mdx n'est pas concerné : ESLint ne lint pas le MDX.
+      "docs/__docs__.js",
+      "docs/__docs-pages__.js",
+`,
+            '',
+        ]);
+    }
+
+    patch('eslint.config.mjs', replacements);
+}
+
+/**
+ * Rewrites the CI workflows so that they stay true in the ejected repository.
+ *
+ * Deux défauts, tous deux invisibles tant qu'on reste dans le dépôt template :
+ *   • verify.yml garde le job `eject`, qui appelle un script que cette opération supprime :
+ *     la CI du dépôt éjecté échouerait au premier push ;
+ *   • il enchaîne des commandes isolées au lieu de `npm run verify`, et laisse donc passer
+ *     tout ce que la barrière complète vérifie (ex. `check:i18n --strict`).
+ *
+ * @param {boolean} keepDocs - Whether the documentation machinery was kept.
+ */
+function rewriteWorkflows(keepDocs) {
+    patch('.github/workflows/verify.yml', [
+        [
+            `      - name: Lint
+        run: npm run lint
+
+      - name: Check palette sync
+        run: npm run check:palette
+
+      - name: Validate site config
+        run: npm run validate:config
+
+      - name: Check GraphQL documents
+        run: npm run check:gql
+
+      - name: Unit tests
+        run: npm run test
+
+`,
+            `      # \`npm run verify\` est la barrière unique du dépôt (cf. package.json) : la CI ne
+      # tient pas sa propre liste de commandes, qui divergerait.
+      - name: Verify
+        run: npm run verify
+
+`,
+        ],
+    ]);
+
+    // Le job `eject` est le DERNIER du fichier, introduit par un bandeau de commentaire :
+    // on retire tout depuis ce bandeau. Le contrôle structurel garantit qu'aucun autre job
+    // n'a été ajouté après lui — il partirait avec, en silence.
+    const EJECT_JOB_BANNER = `  # =================================================================
+  # EJECT — le dépôt reste éjectable
+`;
+    patchWith('.github/workflows/verify.yml', (text, eol) => {
+        const start = text.indexOf(EJECT_JOB_BANNER);
+        if (start === -1) fail(patternMissing('.github/workflows/verify.yml', EJECT_JOB_BANNER, eol));
+
+        const tail = text.slice(start);
+        const jobs = tail.match(/^ {2}[A-Za-z0-9_-]+:[ \t]*$/gm) ?? [];
+        if (jobs.length !== 1 || jobs[0].trim() !== 'eject:') {
+            fail(
+                `.github/workflows/verify.yml : le bandeau EJECT doit introduire UN SEUL job, \`eject\`, ` +
+                `dernier du fichier (trouvé : ${jobs.map((job) => job.trim()).join(', ') || 'aucun'}). ` +
+                'Adaptez rewriteWorkflows() dans scripts/eject.js.',
+            );
+        }
+
+        return `${text.slice(0, start).trimEnd()}\n`;
+    });
+
+    // Le déploiement de la doc survit à l'eject en mode --keep-docs, mais `build:docs` y a
+    // été renommé `build:static` (cf. rewritePackageJson) : sans ceci le workflow échoue.
+    if (keepDocs) {
+        patch('.github/workflows/docs.yml', [['run: npm run build:docs', 'run: npm run build:static']]);
+    }
+}
+
+// Fichiers de prose du dépôt template qui traînent à la racine : notes d'architecture et
+// prompts des chantiers, recette. Ils décrivent le travail SUR le template, jamais le
+// dashboard du consommateur. Selon l'époque ils sont suivis par git ou seulement présents
+// dans la copie locale de l'auteur (ignorés) — d'où un motif plutôt qu'une liste figée.
+const TEMPLATE_PROSE = /^(RECETTE_\w+|(POST_)?TEMPLATIZATION_\w+|LANGUAGE_SWITCHER_\w+)\.md$/;
+
+// Un dossier interne unique qui accueillerait ces notes (cf. chantier G2 de la recette).
+const TEMPLATE_PROSE_DIR = 'docs-internal';
+
+/**
+ * Removes the template's own prose and changelog, in both modes.
+ *
+ * CONTRIBUTING.md se présente comme « pour qui travaille sur le template lui-même » et
+ * renvoie à un CLAUDE.md ignoré par git ; CHANGELOG.md raconte l'histoire du template. Ni
+ * l'un ni l'autre n'est celui du consommateur. En mode --keep-docs, un CHANGELOG d'une
+ * ligne prend la place du premier : le dépôt éjecté repart d'un journal vide.
+ *
+ * @param {boolean} keepDocs - Whether the documentation machinery was kept.
+ */
+function removeTemplateProse(keepDocs) {
+    remove('CONTRIBUTING.md');
+
+    if (keepDocs) {
+        write('CHANGELOG.md', '# Changelog — tenez ici le journal des changements notables de votre projet.\n');
+    } else {
+        remove('CHANGELOG.md');
+    }
+
+    const prose = fs.readdirSync(PROJECT_ROOT).filter((name) => TEMPLATE_PROSE.test(name));
+    for (const name of prose.sort()) remove(name);
+
+    remove(TEMPLATE_PROSE_DIR);
+}
+
+/**
+ * Removes the .gitignore entries whose target no longer exists after the eject.
+ *
+ * Seules les entrées dont l'objet disparaît sont retirées : les artefacts générés par le
+ * registry, l'index de documentation et les tables de props partent avec leurs
+ * générateurs en mode complet, mais restent indispensables en --keep-docs ; les notes de
+ * chantier partent dans les deux modes. Les entrées d'ordre personnel (CLAUDE.md,
+ * .claude/…, TODO…) ne concernent pas le template et sont laissées telles quelles.
+ *
+ * @param {boolean} keepDocs - Whether the documentation machinery was kept.
+ */
+function cleanGitignore(keepDocs) {
+    const replacements = [
+        [
+            `TEMPLATIZATION_ARCHITECTURE.md
+TEMPLATIZATION_PROMPTS.md
+
+LANGUAGE_SWITCHER_ARCHITECTURE.md
+LANGUAGE_SWITCHER_PROMPTS.md
+
+`,
+            '',
+        ],
+        // Le script `build:docs` est renommé `build:static` dans les deux modes.
+        ['(cf. npm run build:docs)', '(cf. npm run build:static)'],
+    ];
+
+    if (!keepDocs) {
+        replacements.unshift(
+            [
+                `# registry (généré par scripts/build-registry.js, cf. scripts dev / prebuild)
+/public/r/
+/registry/__registry__.js
+
+# documentation (généré par scripts/build-docs-index.js, cf. scripts dev / prebuild)
+/docs/__docs__.js
+/docs/__docs-pages__.js
+
+# tables de props (généré par scripts/build-props-doc.js, cf. scripts dev / prebuild)
+/docs/__props__.json
+
+`,
+                '',
+            ],
+        );
+    }
+
+    patch('.gitignore', replacements);
+}
+
+// Dossiers jamais explorés par le contrôle des références : dépendances, caches de build et
+// rapports de test, qui contiennent des chemins `assets/` sans rapport avec ce dossier.
+const REFERENCE_SCAN_SKIP_DIRS = new Set([
+    'node_modules', '.git', '.next', 'out', 'test-results', 'playwright-report', 'coverage', '.claude',
+]);
+const REFERENCE_SCAN_SKIP_FILES = new Set(['package-lock.json']);
+const REFERENCE_SCAN_BINARY = /\.(png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot|pdf|mp4|webm|zip)$|\.tsbuildinfo$/i;
+
+// `assets/` ou `assets\` en tête d'un chemin : précédé du début de ligne ou d'un caractère
+// qui ne peut pas faire partie d'un nom (donc pas `public/assets/`… sauf via le `/`, ce qui
+// ne fait que rendre le contrôle PLUS prudent : un faux positif conserve le dossier).
+const ASSETS_REFERENCE = /(^|[^\w.-])assets[\\/]/;
+
+/**
+ * Lists the files that will still exist at the end of the operation, with their content.
+ *
+ * Lit l'arbre tel qu'il sera, pas tel qu'il est : en simulation, les fichiers supprimés ou
+ * déplacés plus tôt sont écartés ou rebaptisés, et les contenus réécrits ou créés sont
+ * lus depuis l'état virtuel. C'est ce qui rend le contrôle de `--dry-run` identique à
+ * celui de l'exécution réelle.
+ *
+ * @returns {Array<{ file: string, text: string }>} Project-relative path and LF content.
+ */
+function survivingTextFiles() {
+    const files = [];
+    const seen = new Set();
+
+    const walk = (directory) => {
+        for (const entry of fs.readdirSync(abs(directory), { withFileTypes: true })) {
+            const onDisk = directory === '.' ? entry.name : `${directory}/${entry.name}`;
+            const relative = afterMoves(onDisk);
+
+            // Ni lien symbolique ni fichier spécial : on ne lit que ce qu'on peut lire.
+            if (!entry.isDirectory() && !entry.isFile()) continue;
+
+            if (entry.isDirectory()) {
+                if (REFERENCE_SCAN_SKIP_DIRS.has(entry.name)) continue;
+                if (isUnder(relative, removedPaths)) continue;
+                walk(onDisk);
+                continue;
+            }
+
+            if (isUnder(relative, removedPaths)) continue;
+            if (REFERENCE_SCAN_SKIP_FILES.has(entry.name) || REFERENCE_SCAN_BINARY.test(entry.name)) continue;
+
+            seen.add(relative);
+            files.push({ file: relative, text: readText(relative).text });
+        }
+    };
+    walk('.');
+
+    // Fichiers que la simulation vient de créer et qui n'existent pas encore sur disque.
+    for (const [relative, { text }] of virtualFiles) {
+        if (!seen.has(relative) && !isUnder(relative, removedPaths)) files.push({ file: relative, text });
+    }
+
+    return files;
+}
+
+/**
+ * Removes the root `assets/` folder, after checking that nothing refers to it.
+ *
+ * Ce dossier d'icônes ne figure dans aucun import, alias ni configuration du dépôt ; il
+ * est resté d'une époque antérieure. La suppression n'est pourtant PAS présumée sûre : le
+ * contrôle lit tous les fichiers texte qui survivront à l'eject et conserve le dossier,
+ * avec un avertissement, au premier qui le cite. Doit s'exécuter EN DERNIER, une fois les
+ * autres suppressions et réécritures faites, sans quoi il verrait des fichiers qui ne
+ * seront plus là (le script lui-même, la prose du template…).
+ */
+function removeAssetsIfUnreferenced() {
+    if (!exists('assets')) return;
+
+    const referrers = survivingTextFiles()
+        .filter(({ file, text }) => !isUnder(file, ['assets']) && ASSETS_REFERENCE.test(text))
+        .map(({ file }) => file);
+
+    if (referrers.length === 0) {
+        remove('assets');
+        return;
+    }
+
+    warnings.push(
+        `assets/ est conservé : il est cité par ${referrers.slice(0, 5).join(', ')}` +
+        `${referrers.length > 5 ? `… (+${referrers.length - 5})` : ''}. Supprimez-le à la main s'il est inutile.`,
+    );
+    log('conservé', `assets/ (référencé par ${referrers.length} fichier${referrers.length > 1 ? 's' : ''})`);
 }
 
 /**
@@ -1028,11 +1589,50 @@ const ROUTES = appRoutes().map((path) => ({ path, surface: 'app' }));`,
 function finalise(keepDocs) {
     write('README.md', starterReadme(keepDocs));
     remove('scripts/eject.js');
+
+    // Ce test lit les constantes exportées par le script : il ne survit pas à sa suppression.
+    remove('src/page-templates/components/HomePage/homeLinks.eject.test.js');
 }
 
 // =================================================================
 // Point d'entrée
 // =================================================================
+
+/**
+ * Runs every operation of the eject, in order.
+ *
+ * Appelée deux fois pour une exécution réelle — à blanc d'abord, pour de bon ensuite —
+ * et une seule pour `--dry-run`. L'ordre compte : le contrôle des références à `assets/`
+ * passe en dernier, une fois toutes les suppressions faites (cf. removeAssetsIfUnreferenced).
+ */
+function runOperations() {
+    mountAppAtRoot();
+    resetManifest();
+
+    if (options.keepDocs) mountDocsUnderSlashDocs();
+    else removeDocsSurface();
+
+    removeTemplateProse(options.keepDocs);
+    cleanGitignore(options.keepDocs);
+    rewritePackageJson(options.keepDocs);
+    rewriteWorkflows(options.keepDocs);
+    rewriteConfigFiles(options.keepDocs);
+    rewriteE2E();
+    finalise(options.keepDocs);
+    removeAssetsIfUnreferenced();
+}
+
+/**
+ * Forgets everything the dry pass recorded, before the real pass starts from scratch.
+ */
+function resetState() {
+    performed.length = 0;
+    virtualMoves.clear();
+    virtualFiles.clear();
+    virtualRemoved.length = 0;
+    removedPaths.length = 0;
+    warnings.length = 0;
+}
 
 function main() {
     if (options.help) {
@@ -1042,6 +1642,23 @@ function main() {
 
     assertNotEjected();
     assertCleanTree();
+
+    // Fin de ligne des fichiers que le script CRÉE : celle du dépôt, lue sur package.json.
+    projectEol = detectEol(fs.readFileSync(abs('package.json'), 'utf8'));
+
+    // CONTRÔLE PRÉALABLE : toute la suite d'opérations est déroulée à blanc, motifs compris,
+    // AVANT la première écriture. Un motif périmé (ou un fichier manquant) arrête le script
+    // ici, l'arbre intact — pas après le déplacement de src/app/(site)/demo/.
+    if (!options.dryRun) {
+        simulating = true;
+        quiet = true;
+        runOperations();
+        const checked = performed.length;
+        resetState();
+        simulating = false;
+        quiet = false;
+        console.log(`\nContrôle préalable : ${checked} opérations vérifiées à blanc, arbre intact.`);
+    }
 
     console.log(`\neject — mode ${options.keepDocs ? '--keep-docs' : 'complet'}${options.dryRun ? ' (simulation)' : ''}`);
     console.log(
@@ -1054,17 +1671,22 @@ function main() {
     confirm();
     console.log('');
 
-    mountAppAtRoot();
-    resetManifest();
-
-    if (options.keepDocs) mountDocsUnderSlashDocs();
-    else removeDocsSurface();
-
-    rewritePackageJson(options.keepDocs);
-    rewriteE2E();
-    finalise(options.keepDocs);
+    try {
+        runOperations();
+    } catch (error) {
+        // Les motifs ont tous été vérifiés : ce qui échoue ici est le système de fichiers
+        // (droits, fichier verrouillé par un éditeur ou un antivirus sous Windows).
+        console.error(`\neject : erreur système en cours d'exécution — ${error.message}`);
+        console.error(
+            "L'arbre est à moitié éjecté. Revenez en arrière avec `git checkout . && git clean -fd`, " +
+            'puis relancez (fermez les programmes qui ouvrent le dépôt).\n',
+        );
+        process.exit(1);
+    }
 
     console.log(`\n${performed.length} opérations${options.dryRun ? ' simulées' : ''}.`);
+
+    for (const warning of warnings) console.warn(`\nAvertissement : ${warning}`);
 
     if (options.dryRun) {
         console.log('\nSimulation : rien n\'a été écrit.\n');

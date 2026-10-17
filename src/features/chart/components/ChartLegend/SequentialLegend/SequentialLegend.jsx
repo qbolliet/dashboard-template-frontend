@@ -22,7 +22,7 @@ const GRADIENT_STOPS = 12;
  * @param {'horizontal'|'vertical'} [props.orientation='horizontal'] - Bar orientation;
  *   vertical reads bottom (min) to top (max).
  * @param {string} [props.locale] - Site locale code. Omitted, the template's default
- *   language applies — what a chart installed on its own from the registry needs.
+ *   language applies — what a chart installed on its own in another project needs.
  * @returns {JSX.Element}
  */
 const SequentialLegend = ({ scale, label, format = '.2~s', orientation = 'horizontal', locale }) => {

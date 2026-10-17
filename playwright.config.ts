@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 // =================================================================
-// PLAYWRIGHT — fumée + régression visuelle (P5.2 de TEMPLATIZATION_PROMPTS.md)
+// PLAYWRIGHT — fumée, parcours et régression visuelle
 // =================================================================
 // Un seul navigateur (Chromium) : la régression visuelle compare des captures
 // d'écran, et faire varier le moteur de rendu entre exécutions ajouterait une
@@ -77,9 +77,9 @@ export default defineConfig({
     },
   ],
 
-  // `npm run dev` fait tourner tout le pipeline de préconstruction (recherche, registry,
-  // props, index de doc, tokens) avant next dev — donc les deux nouveaux exemples et pages
-  // de composants/ sont déjà résolus quand le serveur répond. `reuseExistingServer` en
+  // `npm run dev` fait tourner tout le pipeline de préconstruction (cf. le script `dev` de
+  // package.json) avant next dev — donc les artefacts générés sont déjà résolus quand le
+  // serveur répond. `reuseExistingServer` en
   // local évite de relancer un serveur déjà démarré à la main pendant le développement des
   // tests ; en CI, toujours un serveur frais.
   webServer: {

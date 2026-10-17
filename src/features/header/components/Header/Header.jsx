@@ -227,8 +227,8 @@ const HeaderContent = ({
                     <ThemeToggleButton labels={labelOverrides?.theme} />
 
                     {/* Emplacement d'extension : le sélecteur de langue de l'application
-                        s'y insère. Une prop et non un import : <Header> est publié par le
-                        registry, y câbler le LocaleProvider du dépôt y traînerait toute
+                        s'y insère. Une prop et non un import : <Header> s'installe
+                        seul, y câbler le LocaleProvider du dépôt y traînerait toute
                         l'infrastructure d'internationalisation. */}
                     {actions}
                 </div>
@@ -265,7 +265,7 @@ const HeaderContent = ({
  *   `topbar`, `navTrigger`. A partial object is fine — missing keys keep their default,
  *   and an empty or nullish override is ignored rather than blanking a label.
  * @param {string} [props.homeHref='/'] - Destination of the logo link. Defaults to the site
- *   root, which is what a third party installing this item from the registry expects; this
+ *   root, which is what a third party installing this item on its own expects; this
  *   repository mounts its demo application under /demo/<locale> and therefore passes that
  *   value from `src/app/(site)/demo/[locale]/layout.jsx`. Not to be confused with the
  *   deployment base path, which `next/link` adds on top of this value by itself.

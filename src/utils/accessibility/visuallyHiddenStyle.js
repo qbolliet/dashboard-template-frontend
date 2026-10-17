@@ -9,7 +9,7 @@
 // POURQUOI DU CSS EN LIGNE ET NON LA CLASSE `.sr-only`
 // Les live regions sont créées par du JS impératif (document.createElement) qui peut
 // s'exécuter avant — ou sans — que la feuille de styles globale soit chargée : chez un
-// tiers ayant installé le seul item `utils-accessibility` depuis le registry, `.sr-only`
+// tiers ayant installé le seul item `utils-accessibility` hors de ce dépôt, `.sr-only`
 // n'existe tout simplement pas. Une live region rendue visible afficherait en clair, au
 // milieu de la page, chaque message destiné aux lecteurs d'écran. Le style en ligne est
 // donc le choix correct, pas un raccourci.

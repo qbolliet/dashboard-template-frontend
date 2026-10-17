@@ -36,9 +36,9 @@ import enTime from 'd3-time-format/locale/en-US';
 
 import { formatsFor } from './formats';
 
-// Table à imports LITTÉRAUX : un `import()` construit dynamiquement depuis
+// Table à imports littéraux : un `import()` construit dynamiquement depuis
 // `formats.d3Locale` ne serait pas analysable par Turbopack, qui embarquerait alors les
-// ~200 fichiers de locale des deux paquets. Même contrainte que docs/__docs-pages__.js.
+// ~200 fichiers de locale des deux paquets.
 // AJOUTER UNE LANGUE : deux lignes d'import et deux entrées ici.
 const DEFINITIONS = {
     'fr-FR': { format: frFormat, time: frTime },

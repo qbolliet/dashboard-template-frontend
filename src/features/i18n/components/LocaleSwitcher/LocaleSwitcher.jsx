@@ -11,7 +11,7 @@ import { LanguageSwitcher } from '@/features/i18n/components/LanguageSwitcher';
 // Ce composant ne dessine RIEN et ne détient AUCUN état. Il fait une seule chose :
 // traduire l'internationalisation de l'application — langues servies, dictionnaire,
 // navigation qui préserve le chemin — dans les props que <LanguageSwitcher> attend.
-// C'est cette frontière qui permet d'installer le sélecteur seul depuis le registry :
+// C'est cette frontière qui permet d'installer le sélecteur seul, hors de ce dépôt :
 // la présentation ignore `src/i18n/`, et l'application ignore le motif ARIA.
 //
 // Les quatre invariants du sélecteur précédent sont tous conservés ; ce qui change est

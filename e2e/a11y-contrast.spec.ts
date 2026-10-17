@@ -7,7 +7,7 @@ import { DEFAULT_LOCALE } from '../src/i18n/config';
 // =================================================================
 // Filet contre les régressions de C2 (fond de page / couleur de texte absents en
 // sombre, titres d'axe noirs sur carte sombre), C10 (`--color-text-tertiary` sombre
-// sous 4,5:1) et C11 (quatre couleurs claires sous AA) de RECETTE_G0.md.
+// sous 4,5:1) et C11 (quatre couleurs claires sous AA) de la recette d'origine du template.
 //
 // MÉTHODE. Pour chaque nœud texte visible : la couleur d'avant-plan CALCULÉE (`color`
 // en HTML, `fill` en SVG, alpha et opacités d'ancêtres compris) est composée sur le

@@ -89,11 +89,12 @@ jobs:
           cd ../ejected
           node scripts/eject.js ${{ matrix.mode }} --yes --force
 
-      - name: Install, lint and build the ejected copy
+      # `npm run verify` est la commande que le workflow du dépôt ÉJECTÉ exécutera (l'eject
+      # le réécrit en ce sens) : la lancer ici prouve que ce workflow sera vert, lint,
+      # tests, config, i18n strict et — en --keep-docs — générateurs compris.
+      - name: Install, verify and build the ejected copy
         working-directory: ../ejected
         run: |
           npm install --no-audit --no-fund
-          npm run lint
-          npm run test
-          npm run validate:config
+          npm run verify
           npm run build

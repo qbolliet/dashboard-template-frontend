@@ -18,7 +18,7 @@ export const DATE_SINGLE_RE = /^\d{2}\/\d{2}\/\d{4}$/;
 export const DATE_RANGE_RE = /^\d{2}\/\d{2}\/\d{4} → \d{2}\/\d{2}\/\d{4}$/;
 
 // Ordre par défaut : celui de la langue par défaut du template. Un composant installé
-// seul depuis le registry n'a pas de manifeste à lire, il lui faut un défaut littéral.
+// seul dans un autre projet n'a pas de manifeste à lire, il lui faut un défaut littéral.
 export const DEFAULT_DATE_ORDER = 'DMY';
 
 // Séparateur affiché entre les deux bornes d'une plage de dates

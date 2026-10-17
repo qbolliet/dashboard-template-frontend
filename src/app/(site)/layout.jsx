@@ -2,7 +2,8 @@
 // LAYOUT (site) — enveloppe de l'APPLICATION de démonstration
 // =================================================================
 // Le groupe (site) n'ajoute AUCUN segment d'URL : il ne sert qu'à séparer les routes de
-// l'application de celles du site de documentation, qui a son propre chrome dans (docs).
+// l'application de celles d'une éventuelle surface de documentation, qui a son propre
+// chrome dans (docs) tant qu'elle est présente.
 //
 // CE LAYOUT EST VOLONTAIREMENT VIDE depuis P5.4. Le <Header> et le <Footer> qu'il rendait
 // sont descendus dans demo/[locale]/layout.jsx, parce qu'ils affichent du texte et

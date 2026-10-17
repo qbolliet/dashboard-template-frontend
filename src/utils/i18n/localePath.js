@@ -14,9 +14,10 @@
 //      │   └── le segment de langue, TOUJOURS immédiatement après le préfixe
 //      └────── DEMO_BASE_PATH (cf. src/utils/navigation/basePaths.js)
 //
-// Le site de documentation, lui, vit à la racine et n'a PAS de segment de langue : il
-// reste en français (décision de P5.4). Ces fonctions ne s'appliquent donc qu'aux
-// chemins de /demo, et renvoient le chemin inchangé ailleurs.
+// Une surface hors préfixe — le site de documentation du template, qui vit à la racine
+// et reste en français (décision de P5.4) — n'a PAS de segment de langue. Ces fonctions
+// ne s'appliquent donc qu'aux chemins situés sous le préfixe, et renvoient le chemin
+// inchangé ailleurs.
 //
 // PIÈGE À NE PAS RÉINTRODUIRE : `trailingSlash` vaut `true` à l'export statique et
 // `false` en développement (cf. next.config.ts). Le même chemin s'écrit donc
@@ -40,7 +41,7 @@ const toSegments = (pathname) => pathname.split('/').filter(Boolean);
  * @param {string[]} options.locales - Locale codes the site ships.
  * @param {string} [options.prefix='/demo'] - Path prefix the locale segment follows.
  * @returns {string|null} The locale code, or `null` when the path carries none — either
- *   because it is outside `prefix` (the documentation site) or because it is the bare
+ *   because it is outside `prefix` (a surface with no locale segment) or because it is the bare
  *   prefix itself (`/demo`, handled by the redirector page).
  */
 export const readLocaleFromPath = (pathname, { locales, prefix = '/demo' }) => {
@@ -73,7 +74,7 @@ export const readLocaleFromPath = (pathname, { locales, prefix = '/demo' }) => {
  * @param {string} [options.prefix='/demo'] - Path prefix the locale segment follows.
  * @returns {string} The rewritten path, keeping the trailing slash convention of the
  *   input. A path carrying no locale segment is returned untouched — switching the
- *   language of the documentation site is meaningless, it has only one.
+ *   language of a surface that has a single language is meaningless.
  */
 export const swapLocaleInPath = (pathname, nextLocale, { locales, prefix = '/demo' }) => {
     const current = readLocaleFromPath(pathname, { locales, prefix });

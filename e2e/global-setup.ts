@@ -23,7 +23,7 @@ import { docsRoutes, demoRoutes } from './helpers/routes';
 // connecte au HMR — une simple requête `fetch` ne déclenche rien, d'où le navigateur
 // ci-dessous. Sans cette garde, le serveur boucle (la page se recharge ~1 fois par
 // seconde) et une trentaine de tests expirent chacun à 60 s, sans jamais nommer la cause.
-const DEPANNAGE = 'voir CONTRIBUTING.md#dépannage';
+const DEPANNAGE = 'supprimez `.next/dev/cache` puis relancez la suite';
 
 // Au-delà de ce nombre de navigations principales en quelques secondes, la page est en
 // boucle de rechargement. Une marge de 3 absorbe le rechargement complet légitime que
