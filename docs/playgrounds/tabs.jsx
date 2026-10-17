@@ -11,8 +11,10 @@ import { GridIcon, PulseIcon, UsersIcon, CogIcon } from '@/components/icons';
 // props DIRECTEMENT : pas de `toProps`, le cas le plus simple.
 //
 // `showIcons` est une molette de démonstration et non une prop de <Tabs> : les icônes
-// sont passées onglet par onglet. Elle est donc listée dans `scaffold.omit` — elle agit
-// sur l'aperçu, jamais sur le code généré.
+// sont passées onglet par onglet. Elle est donc listée dans `scaffold.omit` (aucun attribut
+// sur <Tabs>), mais `scaffold.imports` et `scaffold.children` sont des fonctions des props :
+// quand elle est active, le code généré importe les icônes et les passe à chaque <Tab>,
+// exactement comme l'aperçu.
 
 export const controls = {
     variant: {
@@ -49,22 +51,35 @@ export const controls = {
     showIcons: { type: 'boolean', label: 'Icônes', default: true, row: 1 },
 };
 
+// Onglets de l'aperçu ET du code : une seule liste, pour que les deux ne divergent pas.
+const TABS = [
+    { value: 'apercu', label: 'Aperçu', icon: 'GridIcon', panel: "Vue d'ensemble du projet : indicateurs clés et derniers entraînements." },
+    { value: 'activite', label: 'Activité', icon: 'PulseIcon', count: '12', panel: 'Douze événements récents — commits, ré-entraînements, publications.' },
+    { value: 'equipe', label: 'Équipe', icon: 'UsersIcon', panel: 'Membres ayant accès à cet espace et leurs rôles respectifs.' },
+    { value: 'reglages', label: 'Réglages', icon: 'CogIcon', panel: "Visibilité, jetons d'API, intégrations." },
+];
+
+const ICONS = { GridIcon, PulseIcon, UsersIcon, CogIcon };
+
 export const scaffold = {
     component: 'Tabs',
-    imports: [
+    imports: ({ showIcons }) => [
         "import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@/components/ui';",
+        ...(showIcons ? [`import { ${TABS.map((tab) => tab.icon).join(', ')} } from '@/components/icons';`] : []),
     ],
     omit: ['showIcons'],
-    children: `  <TabList label="Sections du projet">
-    <Tab value="apercu">Aperçu</Tab>
-    <Tab value="activite" count="12">Activité</Tab>
-    <Tab value="equipe">Équipe</Tab>
-  </TabList>
-  <TabPanels>
-    <TabPanel value="apercu">Vue d'ensemble du projet.</TabPanel>
-    <TabPanel value="activite">Douze événements récents.</TabPanel>
-    <TabPanel value="equipe">Membres et rôles.</TabPanel>
-  </TabPanels>`,
+    children: ({ showIcons }) => [
+        '  <TabList label="Sections du projet">',
+        ...TABS.map((tab) => {
+            const icon = showIcons ? ` icon={<${tab.icon} />}` : '';
+            const count = tab.count ? ` count="${tab.count}"` : '';
+            return `    <Tab value="${tab.value}"${icon}${count}>${tab.label}</Tab>`;
+        }),
+        '  </TabList>',
+        '  <TabPanels>',
+        ...TABS.map((tab) => `    <TabPanel value="${tab.value}">${tab.panel}</TabPanel>`),
+        '  </TabPanels>',
+    ].join('\n'),
 };
 
 export const hint = (
@@ -85,16 +100,19 @@ export const hint = (
 const TabsPlayground = ({ showIcons, ...tabsProps }) => (
     <Tabs defaultValue="apercu" {...tabsProps}>
         <TabList label="Sections du projet">
-            <Tab value="apercu" icon={showIcons ? <GridIcon /> : undefined}>Aperçu</Tab>
-            <Tab value="activite" icon={showIcons ? <PulseIcon /> : undefined} count="12">Activité</Tab>
-            <Tab value="equipe" icon={showIcons ? <UsersIcon /> : undefined}>Équipe</Tab>
-            <Tab value="reglages" icon={showIcons ? <CogIcon /> : undefined}>Réglages</Tab>
+            {TABS.map(({ value, label, icon, count }) => {
+                const Icon = ICONS[icon];
+                return (
+                    <Tab key={value} value={value} icon={showIcons ? <Icon /> : undefined} count={count}>
+                        {label}
+                    </Tab>
+                );
+            })}
         </TabList>
         <TabPanels>
-            <TabPanel value="apercu">Vue d&apos;ensemble du projet : indicateurs clés et derniers entraînements.</TabPanel>
-            <TabPanel value="activite">Douze événements récents — commits, ré-entraînements, publications.</TabPanel>
-            <TabPanel value="equipe">Membres ayant accès à cet espace et leurs rôles respectifs.</TabPanel>
-            <TabPanel value="reglages">Visibilité, jetons d&apos;API, intégrations.</TabPanel>
+            {TABS.map(({ value, panel }) => (
+                <TabPanel key={value} value={value}>{panel}</TabPanel>
+            ))}
         </TabPanels>
     </Tabs>
 );

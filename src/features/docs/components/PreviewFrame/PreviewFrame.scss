@@ -32,7 +32,10 @@
   // collé en haut à gauche d'un cadre vide se lit mal.
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  // Surchargeable par le schéma d'un playground (`frame`) : un composant dont le menu
+  // ouvert déborde du bouton se pose en haut du cadre, pas au milieu, sinon il faudrait
+  // un cadre deux fois plus haut pour que le menu y tienne.
+  justify-content: var(--docs-demo-justify, center);
   gap: var(--docs-demo-gap);
 }
 

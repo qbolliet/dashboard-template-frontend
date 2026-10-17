@@ -1,12 +1,17 @@
 // =================================================================
-// FLAGCHIP — pastille ronde de drapeau, avec repli textuel en CSS pur
+// FLAGCHIP — pastille ronde de drapeau, avec repli textuel
 // =================================================================
 // Structure : span.lang-switch-flag > span.lang-switch-flag-fallback + [img]
 //
 // Le repli et l'image occupent la MÊME cellule de grille (`grid-area: 1 / 1`) :
-// c'est ce qui les superpose au lieu de les empiler, et donc ce qui fait
-// réapparaître le repli tout seul quand l'image échoue à charger (alt=""
-// décorative → non peinte par le navigateur). Aucun JS, aucun état.
+// la pastille garde donc la même boîte quel que soit l'état de l'image.
+//
+// Le repli n'est PAS « du CSS pur » : un <img alt=""> qui échoue n'est pas
+// invisible, Chromium y peint l'icône d'image cassée dès que le CSS lui impose
+// une taille (ce qu'on fait ci-dessous). L'image est donc cachée tant qu'elle
+// n'est pas chargée (`[data-status='loaded']`, posé par FlagChip.jsx sur `onLoad`)
+// et FlagChip la retire du DOM sur `onError`. Le CSS ne porte que la
+// superposition et ce masquage ; l'état, lui, vit dans le composant.
 
 @use '../tokens' as *;   // --lang-switch-flag-size (pilote de l'échelle)
 @use '../colors' as *;   // --lang-switch-surface, etc. (non utilisées ici, cohérence de l'ordre)
@@ -27,7 +32,7 @@
 
   // Superposition plutôt qu'empilement : les deux enfants occupent la même
   // case de la grille 1×1 implicite, l'image (déclarée après en JSX) est donc
-  // peinte par-dessus le repli quand elle charge.
+  // peinte par-dessus le repli une fois chargée.
   > * {
     grid-area: 1 / 1;
   }
@@ -37,6 +42,13 @@
     height: 100%;
     object-fit: cover;
     display: block;
+
+    // Cachée jusqu'au `load` : `visibility` et non `display: none`, pour que la
+    // balise garde sa boîte et que le chargement paresseux (`loading="lazy"`)
+    // continue de se déclencher. Le repli, dessous, reste visible.
+    &:not([data-status='loaded']) {
+      visibility: hidden;
+    }
   }
 }
 

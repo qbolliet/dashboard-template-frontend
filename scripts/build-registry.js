@@ -200,7 +200,9 @@ const deriveUnitItem = (name, unit, warnings) => {
  * Extrait les métadonnées du bloc de commentaire de tête d'un exemple.
  *
  * Le format attendu — titre, description, puis une ou plusieurs balises
- * `@item` nommant les items de registry démontrés :
+ * `@item` nommant les items de registry démontrés, et éventuellement des balises
+ * `@asset /chemin/depuis/public.svg` pour les fichiers de `public/` que l'exemple
+ * sert lui-même (ils sont installés avec lui, sous le même chemin) :
  *
  * ```
  * /**
@@ -209,6 +211,7 @@ const deriveUnitItem = (name, unit, warnings) => {
  *  * Une série temporelle : x, y, un titre et un libellé d'axe.
  *  *
  *  * @item chart
+ *  * @asset /flags/fr.svg
  *  *\/
  * ```
  *
@@ -216,21 +219,24 @@ const deriveUnitItem = (name, unit, warnings) => {
  * à tenir synchronisé.
  *
  * @param {string} source - Contenu brut du fichier d'exemple.
- * @returns {{title: string, description: string, items: string[]}}
+ * @returns {{title: string, description: string, items: string[], assets: string[]}}
  */
 const parseExampleHeader = (source) => {
   const match = source.match(/\/\*\*([\s\S]*?)\*\//);
-  if (!match) return { title: '', description: '', items: [] };
+  if (!match) return { title: '', description: '', items: [], assets: [] };
 
   // Retrait de l'indentation et de l'astérisque de gouttière de chaque ligne.
   const gutter = /^\s*\*? ?/;
   const lines = match[1].split('\n').map((line) => line.replace(gutter, '').trimEnd());
 
   const items = [];
+  const assets = [];
   const prose = [];
   for (const line of lines) {
     const tag = line.match(/^@item\s+(\S+)/);
+    const asset = line.match(/^@asset\s+(\S+)/);
     if (tag) items.push(tag[1]);
+    else if (asset) assets.push(asset[1]);
     else if (!line.startsWith('@')) prose.push(line);
   }
 
@@ -241,7 +247,7 @@ const parseExampleHeader = (source) => {
     .map((block) => block.trim().replace(/\s*\n\s*/g, ' '))
     .filter(Boolean);
 
-  return { title: paragraphs[0] || '', description: paragraphs[1] || '', items };
+  return { title: paragraphs[0] || '', description: paragraphs[1] || '', items, assets };
 };
 
 /**
@@ -250,9 +256,10 @@ const parseExampleHeader = (source) => {
  * Un exemple est un cas d'usage figé : il est à la fois affiché dans la
  * documentation et installable, d'où sa présence dans le registry.
  *
+ * @param {string[]} warnings - Collecteur d'avertissements non fatals.
  * @returns {Object[]} Les items d'exemple, triés par nom.
  */
-const deriveExampleItems = () => {
+const deriveExampleItems = (warnings) => {
   const directory = toAbsolute(EXAMPLES_DIR);
   if (!fs.existsSync(directory)) return [];
 
@@ -265,6 +272,17 @@ const deriveExampleItems = () => {
       const name = entry.replace(/\.jsx$/, '');
       const header = parseExampleHeader(fs.readFileSync(toAbsolute(repoPath), 'utf8'));
 
+      // L'exemple reste en PREMIER : emitGeneratedModule() lit `files[0]`. Les fichiers
+      // de public/ qu'il déclare par `@asset` suivent, avec leur chemin d'origine pour
+      // cible, de sorte que l'URL qu'il construit (`/flags/fr.svg`) résolve une fois installé.
+      const assetFiles = header.assets.map((asset) => {
+        const assetPath = `public${asset}`;
+        if (!fs.existsSync(toAbsolute(assetPath))) {
+          warnings.push(`${name} : @asset déclaré mais absent — ${assetPath}`);
+        }
+        return fileEntry(assetPath);
+      });
+
       return {
         name,
         type: 'registry:block',
@@ -272,7 +290,7 @@ const deriveExampleItems = () => {
         description: header.description,
         registryDependencies: sortedUnique([...header.items, TOKENS_ITEM]),
         dependencies: [],
-        files: [{ path: repoPath, type: 'registry:file', target: `~/src/examples/${entry}` }],
+        files: [{ path: repoPath, type: 'registry:file', target: `~/src/examples/${entry}` }, ...assetFiles],
         meta: { example: true, of: header.items[0] || null },
       };
     });
@@ -309,7 +327,7 @@ const syncRegistry = () => {
       return item;
     });
 
-  const items = [...unitItems, ...deriveExampleItems()].map((item) => {
+  const items = [...unitItems, ...deriveExampleItems(warnings)].map((item) => {
     const old = previousByName.get(item.name) || {};
     const merged = { ...item };
 

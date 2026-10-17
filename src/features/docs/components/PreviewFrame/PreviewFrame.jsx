@@ -51,9 +51,12 @@ export const PreviewThemeContext = createContext(null);
  * @param {React.ReactNode} props.children - What to display inside the frame.
  * @param {string} [props.label] - Accessible name of the frame.
  * @param {boolean} [props.padded] - Whether to inset the content (defaults to true).
+ * @param {Object} [props.style] - CSS custom properties overriding the frame's layout
+ *   (`--docs-demo-min-height`, `--docs-demo-justify`) for a component whose overlay
+ *   (an open menu) must fit inside the frame.
  * @returns {JSX.Element} The rendered frame.
  */
-const PreviewFrame = ({ children, label = 'Aperçu du composant', padded = true }) => {
+const PreviewFrame = ({ children, label = 'Aperçu du composant', padded = true, style }) => {
     const { theme: siteTheme } = useTheme();
     const [override, setOverride] = useState(null);
 
@@ -67,6 +70,7 @@ const PreviewFrame = ({ children, label = 'Aperçu du composant', padded = true 
                 // LA ligne qui porte la démonstration : le thème est un attribut de CE
                 // conteneur, pas du document.
                 data-theme={theme}
+                style={style}
                 aria-label={label}>
                 <button
                     type="button"

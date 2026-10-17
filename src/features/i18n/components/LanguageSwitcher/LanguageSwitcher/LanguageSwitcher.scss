@@ -24,6 +24,11 @@
   // inline-block et non block : le contrôle se pose dans une barre d'actions à
   // côté d'autres boutons, et ne doit pas en occuper toute la largeur.
   display: inline-block;
+  // fit-content : `inline-block` ne suffit pas. Dans un parent flex en colonne (cadre
+  // d'aperçu, barre d'actions) l'élément est blockifié ET étiré à toute la largeur
+  // (`align-items: stretch`), et `right: 0` du menu se colle alors au bord du CONTENEUR,
+  // loin du bouton. La largeur contrainte à celle du bouton garde le menu attaché à lui.
+  width: fit-content;
 
   // Les modificateurs de taille RÉASSIGNENT le pilote unique de l'échelle plutôt
   // que de redéclarer des dimensions : la hauteur du bouton, sa largeur en mode

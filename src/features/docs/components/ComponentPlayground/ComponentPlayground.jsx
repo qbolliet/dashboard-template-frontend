@@ -55,7 +55,7 @@ const loadPlayground = (name) => {
  */
 const PlaygroundBody = ({ name }) => {
     const schema = use(loadPlayground(name));
-    const { controls, scaffold, toProps, default: Render, hint } = schema;
+    const { controls, scaffold, toProps, default: Render, hint, frame } = schema;
 
     const [values, setValues] = useState(() => defaultsOf(controls));
 
@@ -76,7 +76,7 @@ const PlaygroundBody = ({ name }) => {
                 onChange={(key, value) => setValues((current) => ({ ...current, [key]: value }))} />
 
             <div className="doc-playground__panes">
-                <PreviewFrame label={`Rendu — ${scaffold.component}`}>
+                <PreviewFrame label={`Rendu — ${scaffold.component}`} style={frame}>
                     {/* unwrapExpr : les valeurs marquées par expr() sortent verbatim dans
                         le code mais doivent arriver au composant sous leur forme réelle. */}
                     <Render {...unwrapExpr(props)} />

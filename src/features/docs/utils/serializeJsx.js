@@ -188,11 +188,15 @@ export const defaultsOf = (controls) =>
  *
  * @param {Object} scaffold - What surrounds the serialized props.
  * @param {string} scaffold.component - Component name, e.g. `'Chart'`.
- * @param {Array<string>} [scaffold.imports] - Import lines, emitted verbatim.
+ * @param {Array<string>|function(Object): Array<string>} [scaffold.imports] - Import lines,
+ *   emitted verbatim; a function receives the current props, for imports that depend on a
+ *   control (e.g. icons only imported when shown).
  * @param {string} [scaffold.data] - Expression passed to the data prop, e.g. `'demoData'`.
  * @param {string} [scaffold.dataCode] - Declaration emitted before the element.
  * @param {string} [scaffold.dataProp] - Name of the data prop (defaults to `'data'`).
- * @param {string} [scaffold.children] - Children source; makes the element non-self-closing.
+ * @param {string|function(Object): string} [scaffold.children] - Children source; makes the
+ *   element non-self-closing. A function receives the current props, so that a demonstration
+ *   knob listed in `omit` (e.g. `showIcons`) can still shape the children it drives.
  * @param {Array<string>} [scaffold.omit] - Props that drive the demonstration harness
  *   rather than the component, and must never appear in the snippet (e.g. a toggle
  *   showing a JSON output panel next to the component). They still reach the preview.
@@ -206,9 +210,14 @@ export const defaultsOf = (controls) =>
  */
 export const serializeJsx = (scaffold, props, defaults = {}) => {
     const {
-        component, imports = [], data, dataCode, dataProp = 'data', children,
+        component, data, dataCode, dataProp = 'data',
         omit = [], always = [],
     } = scaffold;
+
+    // Une molette de démonstration (`omit`) n'écrit aucun attribut, mais peut très bien
+    // changer les enfants ou les imports : sans cela le code ne reproduirait plus l'aperçu.
+    const imports = typeof scaffold.imports === 'function' ? scaffold.imports(props) : (scaffold.imports ?? []);
+    const children = typeof scaffold.children === 'function' ? scaffold.children(props) : scaffold.children;
 
     const attributes = [];
     // La donnée vient du scaffold et non des contrôles : elle n'est jamais « à sa valeur
