@@ -40,7 +40,7 @@ function readJson(filePath, label) {
   let source;
   try {
     source = fs.readFileSync(filePath, 'utf8');
-  } catch (err) {
+  } catch {
     console.error(`validate:config: ${label} est introuvable — ${path.relative(process.cwd(), filePath)}`);
     process.exit(1);
   }

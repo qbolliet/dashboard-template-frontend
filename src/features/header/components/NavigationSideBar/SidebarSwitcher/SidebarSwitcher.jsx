@@ -50,7 +50,6 @@ const SidebarSwitcher = ({
     const {
         focusedIndex,
         handleKeyDown: handleKeyboardNav,
-        setFocusedIndex,
         resetFocus
     } = useKeyboardNavigation({
         items,

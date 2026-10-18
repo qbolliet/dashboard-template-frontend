@@ -28,7 +28,7 @@ const SidebarItem = ({
     const isActive = isCurrentPath(item.path);
 
     // Gestion du clic sur l'item
-    const handleItemClick = (event) => {
+    const handleItemClick = () => {
         if (onItemClick) {
             onItemClick(item);
         }

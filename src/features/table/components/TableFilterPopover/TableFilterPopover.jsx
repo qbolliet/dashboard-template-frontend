@@ -66,7 +66,7 @@ const TableFilterPopover = ({ uniqueValues, valueCounts, filter, onFilterChange,
             type="button"
             className="data-table-pop-search-clear"
             onClick={() => setSearch('')}
-            aria-label="Effacer la recherche"
+            aria-label={labels.clearSearch}
           >
             <CloseIcon />
           </button>

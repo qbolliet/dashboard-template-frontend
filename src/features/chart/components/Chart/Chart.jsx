@@ -738,7 +738,7 @@ const ChartCanvas = ({
   } else if (chartKind === 'bar-h') {
     marks = <BarMarks data={mData} x={x} y={y} channels={channels} xScale={mXScale} yScale={mYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="h" fill={fill} stack={mStack} groups={mGroups} />;
   } else if (chartKind === 'heatmap') {
-    marks = <HeatmapMarks data={mData} x={x} y={y} z={z} xScale={mXScale} yScale={mYScale} colorScale={cScale} hovered={hovered} fill={effFill} />;
+    marks = <HeatmapMarks data={mData} x={x} y={y} z={z} xScale={mXScale} yScale={mYScale} colorScale={cScale} fill={effFill} />;
   } else if (isViolinKind) {
     marks = <ViolinMarks data={data} x={x} y={y} z={z} channels={channels} xScale={mXScale} yScale={mYScale} xScaleBase={baseXScale} yScaleBase={baseYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} orient={chartKind === 'violin-h' ? 'h' : 'v'} fill={effFill} stack={stack} hovered={hovered} />;
   }

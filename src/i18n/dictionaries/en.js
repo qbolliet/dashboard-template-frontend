@@ -125,6 +125,7 @@ const en = {
         title: 'Page not found',
         description: 'The requested page does not exist or has been moved.',
         backHome: 'Back to the demo home page',
+        entryPoints: 'Site entry points',
     },
 
     // -------------------------------------------------------------

@@ -128,6 +128,8 @@ export const toProps = (values) => {
  *   also carries for the generated snippet.
  * @returns {JSX.Element} The rendered table.
  */
+// `columnsMode` est destructuré pour ne PAS atteindre <Table> via le spread.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const TablePlayground = ({ columnsMode, columnsMetadata, ...tableProps }) => (
     <Table data={rows} columnsMetadata={columnsMetadata} {...tableProps} />
 );

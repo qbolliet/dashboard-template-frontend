@@ -155,6 +155,8 @@ const fr = {
         title: 'Page introuvable',
         description: "La page demandée n'existe pas ou a été déplacée.",
         backHome: "Retour à l'accueil de la démonstration",
+        // Nom accessible de la liste de liens de la 404 racine, rendue hors de [locale].
+        entryPoints: "Points d'entrée du site",
     },
 
     // -------------------------------------------------------------

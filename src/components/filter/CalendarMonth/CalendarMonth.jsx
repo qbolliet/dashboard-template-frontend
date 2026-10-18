@@ -3,16 +3,35 @@
 import { useEffect, useRef, useState } from 'react';
 import VisuallyHidden from '@/components/common/VisuallyHidden';
 import { ChevronIcon } from '@/components/icons';
+import { DEFAULT_INTL_LOCALE } from '@/utils/format/constants';
+import { mergeLabels } from '@/utils/i18n/mergeLabels';
 import './CalendarMonth.scss';
 
-// ── Libellés français ────────────────────────────────────────────
-// Mois : index 0 = Janvier (aligné sur Date.getMonth()).
-const MONTHS_FR = [
-  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
-];
-// Jours : index 0 = Dimanche (aligné sur Date.getDay()).
-const DAYS_FR = ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'];
+// Défauts français, surchargeables par la prop `labels` (cf. mergeLabels).
+const DEFAULT_LABELS = {
+  previousMonth: 'Mois précédent',
+  nextMonth: 'Mois suivant',
+  month: 'Mois',
+  year: 'Année',
+};
+
+/**
+ * Month and weekday names of a locale, read from Intl rather than translated.
+ *
+ * @param {string} intlLocale - Full Intl tag, e.g. 'fr-FR'.
+ * @returns {{months: string[], weekdays: string[]}} Months (0 = January) and short
+ *   weekdays (0 = Sunday, aligned on Date.getDay()).
+ */
+const namesFor = (intlLocale) => {
+  // UTC partout : un fuseau négatif décalerait la date d'un jour et donc le nom obtenu.
+  const month = new Intl.DateTimeFormat(intlLocale, { month: 'long', timeZone: 'UTC' });
+  const weekday = new Intl.DateTimeFormat(intlLocale, { weekday: 'short', timeZone: 'UTC' });
+  return {
+    months: Array.from({ length: 12 }, (_, i) => month.format(Date.UTC(2023, i, 1))),
+    // Le 1er janvier 2023 est un dimanche : l'index 0 correspond donc à getDay() = 0.
+    weekdays: Array.from({ length: 7 }, (_, i) => weekday.format(Date.UTC(2023, 0, 1 + i))),
+  };
+};
 
 /**
  * Builds the visible weeks of a month (Sunday in column 0).

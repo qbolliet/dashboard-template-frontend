@@ -16,9 +16,8 @@ const CELL_SEP = '|';
  *   - 'fill' → solid cells with a thin translucent white gap stroke;
  *   - 'line' → outlined cells (no fill), the contour carrying the color, inset
  *     by a small padding to air out the grid.
- * The `hovered` prop is accepted for API symmetry with the other marks; the
- * active-cell emphasis is delegated to the higher-level ActiveMark overlay,
- * exactly as in the prototype (cells are painted uniformly here).
+ * Takes no `hovered` prop, unlike the other marks: the active-cell emphasis is
+ * delegated to the higher-level ActiveMark overlay (cells are painted uniformly here).
  *
  * @param {object} props
  * @param {Array<object>} props.data - Data rows (long format).
@@ -28,13 +27,12 @@ const CELL_SEP = '|';
  * @param {Function} props.xScale - x band scale.
  * @param {Function} props.yScale - y band scale.
  * @param {Function} props.colorScale - Sequential color scale over mean(z).
- * @param {*} [props.hovered] - Hovered channel value, or null (unused here).
  * @param {'fill'|'line'} [props.fill='fill'] - Fill mode.
  * @returns {JSX.Element}
  */
 const HeatmapMarks = ({
   data, x, y, z, xScale, yScale, colorScale,
-  hovered, fill = 'fill',
+  fill = 'fill',
 }) => {
   const cellW = xScale.bandwidth ? xScale.bandwidth() : 20;
   const cellH = yScale.bandwidth ? yScale.bandwidth() : 20;

@@ -122,19 +122,15 @@ export const announce = (message, priority = 'polite', timeout = 1000) => {
 export const setupKeyboardDetection = () => {
   if (typeof document === 'undefined') return;
 
-  let isUsingKeyboard = false;
-
   // Détecte l'utilisation du clavier
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Tab') {
-      isUsingKeyboard = true;
       document.body.classList.add('using-keyboard');
     }
   });
 
   // Détecte l'utilisation de la souris
   document.addEventListener('mousedown', () => {
-    isUsingKeyboard = false;
     document.body.classList.remove('using-keyboard');
   });
 };

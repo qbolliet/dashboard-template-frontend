@@ -25,10 +25,8 @@ const SkipLink = ({ href, children, className = '', ...props }) => {
   /**
    * Gère le clic sur le skip link
    * Focus l'élément cible après le défilement
-   *
-   * @param {Event} event - L'événement de clic
    */
-  const handleClick = (event) => {
+  const handleClick = () => {
     // Laisse le comportement par défaut (scroll) se produire
     // puis focus l'élément cible
     setTimeout(() => {

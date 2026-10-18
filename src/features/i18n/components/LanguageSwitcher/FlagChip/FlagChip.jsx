@@ -48,6 +48,10 @@ const FlagChip = ({ country, flagSrc = flagCdnSrc, className = '' }) => {
                 nœud <img> doit exister pour charger. Il est en revanche retiré du DOM
                 sur 'failed'. */}
             {src && status !== 'failed' && (
+                // Décision D4 : <img> brut et non next/image, car l'image absente doit se replier
+                // en CSS sur la pastille textuelle (onError + data-status), ce que le loader
+                // d'optimisation de next/image ne permet pas.
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                     key={src}
                     src={src}

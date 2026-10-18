@@ -2,6 +2,8 @@
 import Link from 'next/link';
 import SkipLink from '@/components/common/SkipLink/SkipLink';
 import ThemeToggleButton from '@/features/theme/components/ThemeToggleButton/ThemeToggleButton';
+import { getDictionary } from '@/i18n/getDictionary';
+import { DEFAULT_LOCALE } from '@/i18n/config';
 import { DEMO_BASE_PATH } from '@/utils/navigation/basePaths';
 import './not-found.scss';
 
@@ -26,6 +28,12 @@ import './not-found.scss';
 // d'évitement, son <main> et sa bascule de thème. Elle ne peut pas afficher la sidebar
 // — il n'y a pas de page courante à situer — et offre à la place le ou les points
 // d'entrée du site.
+//
+// LANGUE : celle par défaut du site (DEFAULT_LOCALE), délibérément sans négociation. Cette
+// page est figée en out/404.html par l'export statique et servie telle quelle pour toute
+// adresse inconnue : il n'existe ni requête ni en-tête Accept-Language au moment du rendu,
+// et le segment d'URL ne porte pas forcément une langue valide. Négocier côté client
+// via navigator.languages ferait clignoter la langue au chargement pour un gain minime.
 
 export const metadata = {
     title: 'Page introuvable',
@@ -36,27 +44,31 @@ export const metadata = {
  *
  * @returns {JSX.Element} The rendered 404 page.
  */
-const NotFound = () => (
-    <>
-        <SkipLink href="#main-content">Passer au contenu</SkipLink>
+const NotFound = async () => {
+    const dictionary = await getDictionary(DEFAULT_LOCALE);
 
-        <div className="not-found__bar">
-            <ThemeToggleButton />
-        </div>
+    return (
+        <>
+            <SkipLink href="#main-content">Passer au contenu</SkipLink>
 
-        <main id="main-content" className="not-found">
-            <p className="not-found__code">404</p>
-            <h1 className="not-found__title">Page introuvable</h1>
-            <p className="not-found__text">
-                Cette adresse ne correspond à aucune page de ce site.
-            </p>
+            <div className="not-found__bar">
+                <ThemeToggleButton />
+            </div>
 
-            <nav className="not-found__links" aria-label="Points d'entrée du site">
-                <Link href="/">Documentation</Link>
-                <Link href={DEMO_BASE_PATH}>Application de démonstration</Link>
-            </nav>
-        </main>
-    </>
-);
+            <main id="main-content" className="not-found">
+                <p className="not-found__code">404</p>
+                <h1 className="not-found__title">Page introuvable</h1>
+                <p className="not-found__text">
+                    Cette adresse ne correspond à aucune page de ce site.
+                </p>
+
+                <nav className="not-found__links" aria-label={dictionary.notFound.entryPoints}>
+                    <Link href="/">Documentation</Link>
+                    <Link href={DEMO_BASE_PATH}>Application de démonstration</Link>
+                </nav>
+            </main>
+        </>
+    );
+};
 
 export default NotFound;
