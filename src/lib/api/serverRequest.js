@@ -22,13 +22,12 @@ import { request } from './client';
  * Server-side `request()` that never throws.
  *
  * @param {string} document - GraphQL document to execute.
- * @param {Object} [variables] - Query variables.
- * @param {Object} [options] - Transport options (`catalog`, `schema`).
+ * @param {Object} [variables] - Query variables (`catalog` / `schema` included).
  * @returns {Promise<Object|null>} The `data` object, or `null` if the call failed.
  */
-export async function requestSafe(document, variables = {}, options = {}) {
+export async function requestSafe(document, variables = {}) {
     try {
-        return await request(document, variables, options);
+        return await request(document, variables);
     } catch (error) {
         // Journalisé, jamais propagé : visible dans la sortie de `next build` sans
         // l'interrompre.

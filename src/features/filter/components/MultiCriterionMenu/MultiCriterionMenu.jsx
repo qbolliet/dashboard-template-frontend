@@ -44,8 +44,8 @@ const makeBlank = (id) => ({
   variable: null,
   operation: null,
   value: null,
-  sql_type: null,
-  is_categorical: false,
+  typeFamily: null,
+  isCategorical: false,
   bracketLeft: false,
   bracketRight: false,
 });
@@ -53,7 +53,7 @@ const makeBlank = (id) => ({
 /**
  * Combines several CriterionMenu cards linked by logical connectors, with optional
  * grouping brackets, and exposes a structured value (depth/group tree + serialisation).
- * The SQL clause is intentionally NOT computed here: the target is to pass only the JSON
+ * The SQL clause is intentionally not computed here: the target is to pass only the JSON
  * to the API, which rewrites the underlying SQL (a demo page may still derive SQL from
  * `tree` via filterEngine.treeToSQL).
  *
@@ -64,13 +64,13 @@ const makeBlank = (id) => ({
  *   Options of the connector select. A single option renders the connectors as static
  *   labels (the way to impose one connector between every card).
  * @param {boolean} [showConnectors=true] - Renders the connector between cards.
- * @param {{value: string, label: string, sql_type: string, is_categorical: boolean}[]} [variables=[]] -
- *   Variable metadata list.
- * @param {Object<string, {value: string, label: string}[]>} [operationsByType={}] -
- *   Operations indexed by sql_type / "categorical".
+ * @param {{value: string, label: string, typeFamily: string, isCategorical: boolean,
+ *   filterOperations: string[]}[]} [variables=[]] - Variable metadata list.
+ * @param {Object<string, string>} [operationLabels={}] - Operation labels keyed by
+ *   `FilterOperation` enum value (see CriterionMenu).
  * @param {string} [catalog] - API catalog forwarded to the cards' value primitives.
- * @param {?Array<{variable: ?string, operation: ?string, value: *, sql_type: ?string,
- *   is_categorical: ?boolean, bracketLeft: ?boolean, bracketRight: ?boolean,
+ * @param {?Array<{variable: ?string, operation: ?string, value: *, typeFamily: ?string,
+ *   isCategorical: ?boolean, bracketLeft: ?boolean, bracketRight: ?boolean,
  *   connectorBefore: ?string}>} [defaultCriteria=null] - Initial criteria seeding the
  *   builder (e.g. a persisted filter, same shape as the `criteria` emitted by
  *   `onChange`). Uncontrolled: read once at mount (and on lock reset); ignored when
@@ -107,7 +107,7 @@ const MultiCriterionMenu = ({
   connectorOptions = DEFAULT_CONNECTORS,
   showConnectors = true,
   variables = [],
-  operationsByType = {},
+  operationLabels = {},
   catalog,
   defaultCriteria = null,
   lockedVariables = null,
@@ -139,17 +139,17 @@ const MultiCriterionMenu = ({
   // Critère figé sur une variable (+ opération éventuellement imposée)
   const makeLocked = (variableId, lockedOp, id) => {
     const meta = variables.find((v) => v.value === variableId) ?? null;
-    const t = meta?.sql_type ?? null;
-    const cat = meta?.is_categorical ?? false;
-    const ops = resolveOperations(t, cat, operationsByType);
+    const t = meta?.typeFamily ?? null;
+    const cat = meta?.isCategorical ?? false;
+    const ops = resolveOperations(meta, operationLabels);
     const op = lockedOp || (ops[0] ? ops[0].value : null);
     return {
       id,
       variable: variableId,
       operation: op,
       value: defaultValue(t, cat, op),
-      sql_type: t,
-      is_categorical: cat,
+      typeFamily: t,
+      isCategorical: cat,
       bracketLeft: false,
       bracketRight: false,
     };
@@ -167,8 +167,8 @@ const MultiCriterionMenu = ({
         variable: c.variable ?? null,
         operation: c.operation ?? null,
         value: c.value ?? null,
-        sql_type: c.sql_type ?? null,
-        is_categorical: !!c.is_categorical,
+        typeFamily: c.typeFamily ?? null,
+        isCategorical: !!c.isCategorical,
         bracketLeft: !!c.bracketLeft,
         bracketRight: !!c.bracketRight,
       }));
@@ -215,8 +215,8 @@ const MultiCriterionMenu = ({
       variable: c.variable,
       operation: c.operation,
       value: c.value,
-      sql_type: c.sql_type,
-      is_categorical: c.is_categorical,
+      typeFamily: c.typeFamily,
+      isCategorical: c.isCategorical,
       bracketLeft: parentheses ? !!c.bracketLeft : false,
       bracketRight: parentheses ? !!c.bracketRight : false,
       connectorBefore: i === 0 ? null : conns[i - 1] || defaultConn,
@@ -371,7 +371,7 @@ const MultiCriterionMenu = ({
                 onCommit={emit.flush}
                 onRemove={!lockedVars && criteria.length > 1 ? () => removeCriterion(i) : undefined}
                 variables={variables}
-                operationsByType={operationsByType}
+                operationLabels={operationLabels}
                 catalog={catalog}
                 parentheses={parentheses}
                 validate={validate}

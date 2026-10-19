@@ -5,8 +5,7 @@
 // Server Component ne résout pas un baril qui réexporte de tels hooks). Tout ce qui touche à ces features vit dans
 // l'îlot client IndicatorExplorer.
 import { requestSafe } from '@/lib/api/serverRequest';
-import { GET_CATALOG_SCHEMA, GET_FACT_TABLE_WITH_METADATA } from '@/lib/api/documents';
-import { restrictToColumns } from '../../utils/deriveEncoding';
+import { GET_FACT_TABLE_WITH_METADATA } from '@/lib/api/documents';
 import PageBody from '../PageBody/PageBody';
 import PageHeader from '../PageHeader/PageHeader';
 import IndicatorExplorer from '../IndicatorExplorer/IndicatorExplorer';
@@ -32,22 +31,15 @@ import IndicatorExplorer from '../IndicatorExplorer/IndicatorExplorer';
  * @returns {JSX.Element} The rendered indicator page.
  */
 const IndicatorPage = async ({ node, locale, labels, dictionary }) => {
-    // Deux appels tolérants à la panne (cf. requestSafe) : le schéma du catalogue, et
-    // une seule ligne de faits dont on ne garde QUE la liste des colonnes — le schéma
-    // décrit tout le catalogue, les lignes n'en portent qu'un sous-ensemble.
-    const [schemaResult, sampleResult] = await Promise.all([
-        requestSafe(GET_CATALOG_SCHEMA),
-        requestSafe(GET_FACT_TABLE_WITH_METADATA, { limit: 1, offset: 0, format: 'OBJECTS' }),
-    ]);
-
-    const catalogSchema = schemaResult?.getCatalogSchema ?? [];
-    const columns = sampleResult?.getFactTableWithMetadata?.columns ?? [];
+    // Un seul appel tolérant à la panne (cf. requestSafe) : une ligne de faits dont on
+    // ne garde QUE `fields`, les métadonnées des colonnes du jeu (mêmes noms, même
+    // ordre que `columns`). La ligne elle-même est ignorée.
+    const sample = await requestSafe(GET_FACT_TABLE_WITH_METADATA, { limit: 1, offset: 0, format: 'OBJECTS' });
+    const fields = sample?.getFactTableWithMetadata?.fields ?? [];
 
     // `null` signale explicitement l'échec du rendu serveur : l'îlot refera alors le
     // travail à partir de ses propres données plutôt que d'afficher un tableau vide.
-    const columnsMetadata = catalogSchema.length && columns.length
-        ? restrictToColumns(columns, catalogSchema)
-        : null;
+    const columnsMetadata = fields.length ? fields : null;
 
     return (
         <PageBody>

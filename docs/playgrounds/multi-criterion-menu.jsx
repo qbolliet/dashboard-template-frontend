@@ -10,11 +10,11 @@ import { resolveOperationLabels } from '@/features/filter/utils/filterTypes';
 import { DEFAULT_LOCALE } from '@/i18n/config';
 import { expr } from '@/features/docs/utils/serializeJsx';
 
-// Les libellés d'opérateurs de config/filter/operations.json acceptent la forme
-// `{ fr, en }` depuis P5.4 : on les aplatit avant de les passer au composant, qui
+// Les libellés d'opérateurs de config/filter/operations.json (indexés par valeur
+// d'enum de l'API) acceptent la forme `{ fr, en }` : on les aplatit avant de les passer au composant, qui
 // n'attend que des chaînes. Le site de documentation étant monolingue, il résout dans
 // la langue par défaut.
-const localizedOperations = resolveOperationLabels(operations, DEFAULT_LOCALE, DEFAULT_LOCALE);
+const operationLabels = resolveOperationLabels(operations, DEFAULT_LOCALE, DEFAULT_LOCALE);
 
 // =================================================================
 // PLAYGROUND — MultiCriterionMenu
@@ -63,7 +63,7 @@ export const scaffold = {
     dataCode: `// \`variables\` vient des métadonnées de l'API (useVariableMetadata).
 const [result, setResult] = useState(null);`,
     omit: ['showJson', 'showSql'],
-    always: ['variables', 'operationsByType', 'onChange'],
+    always: ['variables', 'operationLabels', 'onChange'],
 };
 
 export const hint = (
@@ -89,7 +89,7 @@ const isComplete = (node) =>
  */
 export const toProps = ({ maxCriteria, ...rest }) => ({
     variables: expr('variables', undefined),
-    operationsByType: expr('operations', localizedOperations),
+    operationLabels: expr('operations', operationLabels),
     onChange: expr('setResult', undefined),
     // 0 dans le contrôle = pas de plafond = `null` pour le composant.
     maxCriteria: maxCriteria > 0 ? maxCriteria : null,
@@ -106,7 +106,7 @@ export const toProps = ({ maxCriteria, ...rest }) => ({
 // sont fournis ICI (le composant est contrôlé), et les récupérer pour les jeter
 // laisserait des variables inutilisées.
 const MultiCriterionMenuPlayground = ({
-    showJson, showSql, operationsByType, maxCriteria,
+    showJson, showSql, operationLabels, maxCriteria,
     orientation, wrap, addMode, parentheses, showConnectors,
     validate, footer, showLabels, showOperations, showSlider,
 }) => {
@@ -126,7 +126,7 @@ const MultiCriterionMenuPlayground = ({
         <>
             <MultiCriterionMenu
                 variables={variables}
-                operationsByType={operationsByType}
+                operationLabels={operationLabels}
                 onChange={setResult}
                 maxCriteria={maxCriteria}
                 orientation={orientation}

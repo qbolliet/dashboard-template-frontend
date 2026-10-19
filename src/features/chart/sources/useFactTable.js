@@ -16,14 +16,13 @@ import { GET_FACT_TABLE_WITH_METADATA } from '@/lib/api/documents';
 //
 // Le transport (API ou fixtures) est choisi une fois pour toutes dans
 // lib/api/client.js : ce hook est identique dans les deux modes. `catalog` /
-// `schema` sont les coordonnées ducklake, transmises en arguments de requête ET
-// en en-têtes X-Catalog-Id / X-Schema-Id.
+// `schema` sont les coordonnées ducklake, transmises en simples arguments de
+// requête.
 
 function fetchFactTable([, fields, structuredFilters, limit, offset, sort, catalog, schema]) {
   return request(
     GET_FACT_TABLE_WITH_METADATA,
     { fields, structuredFilters, limit, offset, sort, format: 'OBJECTS', catalog, schema },
-    { catalog, schema },
   ).then((data) => data.getFactTableWithMetadata);
 }
 
@@ -40,12 +39,13 @@ function fetchFactTable([, fields, structuredFilters, limit, offset, sort, catal
  *
  * @param {Object}   [params]
  * @param {string[]} [params.fields] - Columns to select.
- * @param {Array}    [params.structuredFilters] - `[{ key, operator, value|values }]`.
+ * @param {Object}   [params.structuredFilters] - Filter tree (`FilterNode`, root = group):
+ *   `{ children: [{ connector, negate, criterion: { variable, operation, value } }] }`.
  * @param {number}   [params.limit=100] - Page size, max 1000.
  * @param {number}   [params.offset=0] - Row offset, max 10000.
  * @param {Array}    [params.sort] - `[{ field, order }]`.
- * @param {string}   [params.catalog] - Ducklake catalog → header X-Catalog-Id.
- * @param {string}   [params.schema]  - Ducklake schema → header X-Schema-Id.
+ * @param {string}   [params.catalog] - Ducklake catalog (query argument).
+ * @param {string}   [params.schema]  - Ducklake schema (query argument).
  * @returns {{ columns: string[], rows: Array<object>, metadata: object|null, loading: boolean, error: (Error|null) }}
  */
 export function useFactTable({

@@ -22,18 +22,8 @@ const VARIABLES = {
   GET_FACT_TABLE_WITH_METADATA: { catalog: 'catalogue', limit: 5 },
   GET_CATALOG_SCHEMA: { catalog: 'catalogue' },
   GET_SELECT_OPTIONS: { fieldName: 'region' },
-  GET_GROUPED_SELECT_OPTIONS: { groupField: 'region', optionsField: 'country' },
+  GET_SELECT_OPTIONS_TREE: { fieldName: 'country', maxDepth: 2 },
 };
-
-// Documents écrits pour l'ANCIEN SDL, encore invalides contre le contrat 0.3.0 (même
-// liste que l'échec attendu de `npm run check:gql`). Marqués `it.fails` : le test
-// passe tant qu'ils échouent et devient ROUGE dès qu'on les corrige — il faut alors
-// les retirer d'ici. À vider lors de la réécriture des documents.
-const PENDING_DOCUMENT_REWRITE = new Set([
-  'GET_FACT_TABLE_WITH_METADATA',
-  'GET_CATALOG_SCHEMA',
-  'GET_GROUPED_SELECT_OPTIONS',
-]);
 
 const documents = loadDocuments().map(({ name, source }) => ({ id: name.split(' ')[0], source }));
 
@@ -59,9 +49,7 @@ describe('documents GraphQL contre le serveur mock', () => {
   });
 
   for (const { id, source } of documents) {
-    const run = PENDING_DOCUMENT_REWRITE.has(id) ? it.fails : it;
-
-    run(`${id} s'exécute sans erreur`, async () => {
+    it(`${id} s'exécute sans erreur`, async () => {
       const result = await execute(id, source);
 
       expect(result.errors).toBeUndefined();

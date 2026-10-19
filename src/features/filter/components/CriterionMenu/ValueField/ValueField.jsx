@@ -2,11 +2,11 @@
 import ConstraintField from '@/components/filter/ConstraintField/ConstraintField';
 import SelectMenu from '@/components/filter/SelectMenu/SelectMenu';
 import TypeAwareInput from '@/components/filter/TypeAwareInput/TypeAwareInput';
-import { isIntegerSqlType, isNumericSqlType, isDateSqlType } from '@/features/filter/utils/filterTypes';
+import { isIntegerFamily, isNumericFamily, isDateFamily } from '@/features/filter/utils/filterTypes';
 import './ValueField.scss';
 
 /**
- * Adaptive value field: renders the right control for a (sql_type, is_categorical,
+ * Adaptive value field: renders the right control for a (typeFamily, isCategorical,
  * operation) triple. Options (categorical) and bounds (numeric/date) are loaded by the
  * primitives themselves via `fieldName` (their internal mock/GraphQL hooks) — this
  * component no longer receives them.
@@ -16,9 +16,9 @@ import './ValueField.scss';
  * (min ≤ max, within bounds…); the other field types leave it untouched (the card falls
  * back to `isComplete`).
  *
- * @param {?string} sqlType - PostgreSQL sql_type of the selected variable.
+ * @param {?string} typeFamily - `TypeFamily` enum value of the selected variable.
  * @param {boolean} isCategorical - Categorical flag of the selected variable.
- * @param {?string} operation - Selected operation value.
+ * @param {?string} operation - Selected operation (`FilterOperation` enum value).
  * @param {*} value - Current value in the criterion's internal format.
  * @param {function(*, {debounce: boolean}=): void} onChange - Emits the next internal
  *   value. The second argument tags the emission intent: text/number/date typing is
@@ -40,7 +40,7 @@ import './ValueField.scss';
  * @returns {JSX.Element}
  */
 const ValueField = ({
-  sqlType,
+  typeFamily,
   isCategorical,
   operation,
   value,
@@ -64,7 +64,7 @@ const ValueField = ({
 
   // ── Catégoriel : SelectMenu alimenté par le hook interne (fieldName) ──
   if (isCategorical) {
-    const isMulti = operation === 'in' || operation === 'not_in';
+    const isMulti = operation === 'IN' || operation === 'NOT_IN';
 
     // Multi : value est un tableau d'ids ; les libellés sont résolus par le SelectMenu.
     if (isMulti) {
@@ -99,9 +99,9 @@ const ValueField = ({
   // ── Numérique : ConstraintField (bornes chargées via fieldName) ──
   // Uniforme (single + between) → valide toujours min ≤ max / bornes et remonte le
   // verdict. La barre slider est gouvernée par showSlider (masquée = inputs seuls).
-  if (isNumericSqlType(sqlType)) {
-    const isRange = operation === 'between';
-    const valueType = isIntegerSqlType(sqlType) ? 'integer' : 'float';
+  if (isNumericFamily(typeFamily)) {
+    const isRange = operation === 'BETWEEN';
+    const valueType = isIntegerFamily(typeFamily) ? 'integer' : 'float';
     return (
       <ConstraintField
         labels={labels}
@@ -128,8 +128,8 @@ const ValueField = ({
   // ── Date : ConstraintField valueType="date" (bornes via fieldName) ──
   // La plage est portée par une chaîne « A → B » (calendrier double) ; ConstraintField
   // valide l'ordre (début ≤ fin) et les bornes, et remonte le verdict.
-  if (isDateSqlType(sqlType)) {
-    const isRange = operation === 'between';
+  if (isDateFamily(typeFamily)) {
+    const isRange = operation === 'BETWEEN';
     return (
       <ConstraintField
         labels={labels}

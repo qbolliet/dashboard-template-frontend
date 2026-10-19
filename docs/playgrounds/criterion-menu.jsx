@@ -4,17 +4,16 @@
 import { useState } from 'react';
 import CriterionMenu from '@/features/filter/components/CriterionMenu/CriterionMenu';
 import { useVariableMetadata, metadataToVariables } from '@/features/filter/sources/useVariableMetadata';
-import { isNumericSqlType } from '@/features/filter/utils/filterTypes';
 import operations from '@config/filter/operations.json';
-import { resolveOperationLabels } from '@/features/filter/utils/filterTypes';
+import { isDateFamily, isNumericFamily, resolveOperationLabels } from '@/features/filter/utils/filterTypes';
 import { DEFAULT_LOCALE } from '@/i18n/config';
 import { expr } from '@/features/docs/utils/serializeJsx';
 
-// Les libellés d'opérateurs de config/filter/operations.json acceptent la forme
-// `{ fr, en }` depuis P5.4 : on les aplatit avant de les passer au composant, qui
+// Les libellés d'opérateurs de config/filter/operations.json (indexés par valeur
+// d'enum de l'API) acceptent la forme `{ fr, en }` : on les aplatit avant de les passer au composant, qui
 // n'attend que des chaînes. Le site de documentation étant monolingue, il résout dans
 // la langue par défaut.
-const localizedOperations = resolveOperationLabels(operations, DEFAULT_LOCALE, DEFAULT_LOCALE);
+const operationLabels = resolveOperationLabels(operations, DEFAULT_LOCALE, DEFAULT_LOCALE);
 
 // =================================================================
 // PLAYGROUND — CriterionMenu
@@ -33,10 +32,10 @@ const localizedOperations = resolveOperationLabels(operations, DEFAULT_LOCALE, D
 
 // Critères initiaux par type, repris de la page d'origine.
 const SEEDS = {
-    numérique: { variable: 'gdp', operation: 'between', value: { min: -2, max: 5 }, sql_type: 'double precision', is_categorical: false, bracketLeft: false, bracketRight: false },
-    date: { variable: 'date_obs', operation: 'between', value: '', sql_type: 'date', is_categorical: false, bracketLeft: false, bracketRight: false },
-    catégoriel: { variable: 'indicator', operation: 'in', value: [], sql_type: 'character varying', is_categorical: true, bracketLeft: false, bracketRight: false },
-    texte: { variable: 'libelle', operation: 'eq', value: '', sql_type: 'text', is_categorical: false, bracketLeft: false, bracketRight: false },
+    numérique: { variable: 'gdp', operation: 'BETWEEN', value: { min: -2, max: 5 }, typeFamily: 'NUMBER', isCategorical: false, bracketLeft: false, bracketRight: false },
+    date: { variable: 'date_obs', operation: 'BETWEEN', value: '', typeFamily: 'DATE', isCategorical: false, bracketLeft: false, bracketRight: false },
+    catégoriel: { variable: 'indicator', operation: 'IN', value: [], typeFamily: 'TEXT', isCategorical: true, bracketLeft: false, bracketRight: false },
+    texte: { variable: 'libelle', operation: 'EQ', value: '', typeFamily: 'TEXT', isCategorical: false, bracketLeft: false, bracketRight: false },
 };
 
 export const controls = {
@@ -69,14 +68,15 @@ export const scaffold = {
 const [criterion, setCriterion] = useState(initialCriterion);`,
     // Molettes de démonstration : elles n'existent que dans le playground.
     omit: ['kind'],
-    always: ['criterion', 'onChange', 'variables', 'operationsByType'],
+    always: ['criterion', 'onChange', 'variables', 'operationLabels'],
 };
 
 export const hint = (
     <>
         <code>showSlider</code> n&apos;a d&apos;effet que sur les types numériques et date.
-        Le critère porte son <code>sql_type</code> et son <code>is_categorical</code>
-        {' '}(métadonnées de l&apos;API) plutôt qu&apos;un type abstrait.
+        Le critère porte son <code>typeFamily</code> et son <code>isCategorical</code>
+        {' '}(métadonnées de l&apos;API) ; les opérations proposées sont celles que l&apos;API
+        {' '}accepte sur la colonne (<code>filterOperations</code>).
     </>
 );
 
@@ -90,7 +90,7 @@ export const toProps = ({ kind, hideOperationWhenSet, locked, ...rest }) => ({
     criterion: expr('criterion', SEEDS[kind]),
     onChange: expr('setCriterion', undefined),
     variables: expr('variables', undefined),
-    operationsByType: expr('operations', localizedOperations),
+    operationLabels: expr('operations', operationLabels),
     // La page d'origine dérivait showOperation ainsi : masquer l'opération une fois
     // qu'elle est renseignée.
     showOperation: !hideOperationWhenSet || !SEEDS[kind].operation,
@@ -121,7 +121,7 @@ const CriterionCard = ({ seed, variables, ...rest }) => {
             criterion={criterion}
             onChange={setCriterion}
             variables={variables}
-            operationsByType={localizedOperations}
+            operationLabels={operationLabels}
             {...rest} />
     );
 };
@@ -145,10 +145,10 @@ const CriterionMenuPlayground = ({
     // Sous-ensemble de variables cohérent avec le type sélectionné : proposer une date
     // dans une carte numérique n'apprendrait rien sur la prop qu'on manipule.
     const kindVars = allVars.filter((variable) => {
-        if (kind === 'catégoriel') return variable.is_categorical;
-        if (kind === 'date') return variable.sql_type?.includes('date') || variable.sql_type?.includes('timestamp');
-        if (kind === 'numérique') return !variable.is_categorical && isNumericSqlType(variable.sql_type);
-        return !variable.is_categorical && !isNumericSqlType(variable.sql_type);
+        if (kind === 'catégoriel') return variable.isCategorical;
+        if (kind === 'date') return !variable.isCategorical && isDateFamily(variable.typeFamily);
+        if (kind === 'numérique') return !variable.isCategorical && isNumericFamily(variable.typeFamily);
+        return !variable.isCategorical && !isNumericFamily(variable.typeFamily) && !isDateFamily(variable.typeFamily);
     });
 
     // `locked` (« filtre de dashboard fixé sur une colonne ») : plus qu'une seule variable

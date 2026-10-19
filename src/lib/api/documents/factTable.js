@@ -4,10 +4,13 @@ import { gql } from './gql';
 // =================================================================
 // DOCUMENT — getFactTableWithMetadata
 // =================================================================
-// Lignes de faits au format long (`data`, mis en forme par `format`) + `metadata`
-// (count/extents/pagination) : la paire consommée à la fois par <Chart> (rows
-// passées telles quelles) et par <Table>. `catalog` / `schema` sont à la fois des
-// arguments de requête et des en-têtes ducklake (posés par le transport GraphQL).
+// Lignes de faits au format long (`data`, mis en forme par `format`), leurs
+// métadonnées de colonnes (`fields`, mêmes noms et même ordre que `columns`) et
+// `metadata` (count/extents/pagination) : de quoi alimenter <Chart> et <Table>
+// en un seul appel, sans requête getCatalogSchema parallèle. `catalog` / `schema`
+// sont de simples arguments de requête.
+//
+// La sélection de `fields` est la même que celle de catalogSchema.js.
 
 /**
  * `getFactTableWithMetadata` query document.
@@ -17,7 +20,7 @@ import { gql } from './gql';
 export const GET_FACT_TABLE_WITH_METADATA = gql`
   query GetFactTableWithMetadata(
     $fields: [String!]
-    $structuredFilters: [Filter]
+    $structuredFilters: FilterNode
     $limit: Int! = 100
     $offset: Int! = 0
     $sort: [SortInput!]
@@ -36,6 +39,20 @@ export const GET_FACT_TABLE_WITH_METADATA = gql`
       schema: $schema
     ) {
       columns
+      fields {
+        name
+        label
+        sqlType
+        typeFamily
+        filterOperations
+        isCategorical
+        isPrimaryKey
+        unit
+        displayFormat
+        labelFor
+        labelFields
+        parentName
+      }
       data
       metadata {
         count

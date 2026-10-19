@@ -7,37 +7,45 @@ import { GET_CATALOG_SCHEMA } from '@/lib/api/documents';
 // SOURCE — VARIABLE METADATA (métadonnées de champs)
 // =================================================================
 // `getCatalogSchema(catalog, schema)` renvoie la liste des champs avec leurs
-// métadonnées { name, label, python_type, sql_type, is_categorical,
-// is_primary_key } depuis la `metadata_table`. Ces métadonnées pilotent
-// DIRECTEMENT le CriterionMenu (type de champ, opérations, widget) sans type
-// intermédiaire. C'est la même opération que celle dont <Table> tire ses
-// `columnsMetadata` : un seul point d'introspection de schéma côté API.
+// métadonnées au contrat 0.3.0 { name, label, sqlType, typeFamily,
+// filterOperations, isCategorical, isPrimaryKey, labelFor, … }. Ces métadonnées
+// pilotent directement le CriterionMenu (famille de type, opérations acceptées,
+// widget) sans type intermédiaire.
 //
-// `catalog` / `schema` restent les coordonnées ducklake d'accès.
+// `catalog` / `schema` sont les coordonnées ducklake, passées en arguments de requête.
 
 function fetchVariableMetadata([, catalog, schema]) {
-  return request(GET_CATALOG_SCHEMA, { catalog, schema }, { catalog, schema })
+  return request(GET_CATALOG_SCHEMA, { catalog, schema })
     .then((data) => data.getCatalogSchema);
 }
 
 /**
  * Maps API field metadata to the `variables` shape consumed by CriterionMenu /
- * MultiCriterionMenu : `{ value, label, sql_type, is_categorical }` (value = field name).
+ * MultiCriterionMenu: `{ value, label, typeFamily, isCategorical, filterOperations }`
+ * (value = field name).
  *
- * @param {Array} fields - Metadata list from {@link useVariableMetadata}.
- * @returns {{value: string, label: string, sql_type: string, is_categorical: boolean}[]}
+ * Label columns (`labelFor` set) are dropped: they carry the label of a code
+ * column, not a variable to filter on.
+ *
+ * @param {Array} fields - Metadata list from {@link useVariableMetadata} (or the
+ *   `fields` of `getFactTableWithMetadata`).
+ * @returns {{value: string, label: string, typeFamily: string, isCategorical: boolean,
+ *   filterOperations: string[]}[]}
  */
 export function metadataToVariables(fields = []) {
-  return fields.map((f) => ({
-    value: f.name,
-    label: f.label,
-    sql_type: f.sql_type,
-    is_categorical: f.is_categorical,
-  }));
+  return fields
+    .filter((f) => !f.labelFor)
+    .map((f) => ({
+      value: f.name,
+      label: f.label,
+      typeFamily: f.typeFamily,
+      isCategorical: f.isCategorical,
+      filterOperations: f.filterOperations,
+    }));
 }
 
 /**
- * Fetches the field metadata of a catalog/schema (rows of the `metadata_table`).
+ * Fetches the field metadata of a catalog/schema (every column, label columns included).
  *
  * Backed by SWR: caches and deduplicates requests sharing the same
  * `['catalogSchema', catalog, schema]` key across component instances.

@@ -12,7 +12,7 @@
 // Importation des modules
 import HoverToolbar from '@/components/toolbar/HoverToolbar/HoverToolbar';
 import { ResetIcon, DownloadIcon, CopyIcon } from '@/components/icons';
-import { isNumericSqlType } from '@/features/filter/utils/filterTypes';
+import { isNumericFamily } from '@/features/filter/utils/filterTypes';
 import useDataTableState from '@/features/table/hooks/useDataTableState';
 import { formatCell, isNumericCol } from '@/features/table/utils/formatCell';
 import { toCsv, downloadBlob } from '@/features/table/utils/exporters';
@@ -73,7 +73,7 @@ const DEFAULT_LABELS = {
  * @typedef {object} ColumnDef
  * @property {string} key - Column key in `data`.
  * @property {string} [label] - Header label (defaults to `key`, or the API label).
- * @property {'number'} [type] - Right-aligned, tabular-mono (derived from sql_type
+ * @property {'number'} [type] - Right-aligned, tabular-mono (derived from typeFamily
  *   when `columnsMetadata` is provided).
  * @property {function(*, Object): (JSX.Element|import('../../utils/formatCell').FormatSpec)} [format]
  * @property {function(*, Object): JSX.Element} [render] - Custom render (badge, link…),
@@ -98,9 +98,10 @@ const SNIPPET_BUILDERS = { js: snippetFetch, py: snippetPython, curl: snippetCur
  * @param {Array<ColumnDef>} [props.columns] - Column schema. Optional if
  *   `columnsMetadata` is provided; otherwise required. When both are given,
  *   `columns` fixes the order and overrides (by `key`) the derived columns.
- * @param {Array<{name: string, label: string, sql_type: string, is_categorical: boolean,
- *   is_primary_key: boolean}>} [props.columnsMetadata] - API metadata
- *   (getCatalogSchema); auto-derives key/label/type of the columns.
+ * @param {Array<{name: string, label: string, typeFamily: string, isCategorical: boolean,
+ *   isPrimaryKey: boolean}>} [props.columnsMetadata] - API metadata (`fields` of
+ *   getFactTableWithMetadata, or getCatalogSchema); auto-derives key/label/type of the
+ *   columns.
  * @param {string} [props.title] - Table header title.
  * @param {{apiBase?: string, operation?: string, catalog?: string, schema?: string,
  *   limit?: number}} [props.queryHint] - GraphQL snippet parameters.
@@ -145,12 +146,12 @@ const Table = ({
   const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
   const intlLocale = intlLocaleFor(locale);
   // ── Dérivation des colonnes ──
-  // Métadonnées API → ColumnDef (type numérique si sql_type numérique ET non
-  // catégoriel). La prop `columns`, si fournie, fixe l'ordre et surcharge par clé.
+  // Métadonnées API → ColumnDef (type numérique si famille INTEGER/NUMBER ET non
+  // catégoriel : un code numérique catégoriel reste aligné comme du texte). La prop `columns`, si fournie, fixe l'ordre et surcharge par clé.
   const derived = (columnsMetadata || []).map((m) => ({
     key: m.name,
     label: m.label || m.name,
-    type: (isNumericSqlType(m.sql_type) && !m.is_categorical) ? 'number' : undefined,
+    type: (isNumericFamily(m.typeFamily) && !m.isCategorical) ? 'number' : undefined,
   }));
   const derivedByKey = new Map(derived.map((c) => [c.key, c]));
   const resolvedColumns = columns

@@ -25,13 +25,13 @@ import { Chart, ChartsFeatures as F } from '@/features/chart';
 import MultiCriterionMenu from '@/features/filter/components/MultiCriterionMenu/MultiCriterionMenu';
 import { CardGrid, StatCard } from '@/components/ui';
 import { formatNumber } from '@/utils/format/formatNumber';
-import { connectorsFrom } from '@/features/filter/utils/filterTypes';
+import { connectorsFrom, resolveOperationLabels } from '@/features/filter/utils/filterTypes';
+import { metadataToVariables } from '@/features/filter/sources/useVariableMetadata';
 import { interpolate } from '@/utils/i18n/interpolate';
-import { resolveLocalized } from '@/utils/i18n/resolveLocalized';
 import { intlLocaleFor, formatsFor } from '@/i18n/formats';
 import { DEFAULT_LOCALE } from '@/i18n/config';
 import operations from '@config/filter/operations.json';
-import { deriveEncoding, restrictToColumns } from '../../utils/deriveEncoding';
+import { deriveEncoding } from '../../utils/deriveEncoding';
 import { rowsExtent } from '../../utils/rowsExtent';
 import './IndicatorExplorer.scss';
 
@@ -80,9 +80,9 @@ const formatExtent = (extent, numeric, intlLocale, separator) => {
  *
  * @param {Object} props - Component props.
  * @param {string} props.name - Node name, used to title the chart and the table.
- * @param {Array<Object>|null} props.columnsMetadata - Column schema resolved on the
- *   server and already restricted to the dataset's columns. `null` when the server
- *   call failed — the component then falls back on its own fetch.
+ * @param {Array<Object>|null} props.columnsMetadata - Metadata of the dataset's columns
+ *   (`fields` of getFactTableWithMetadata), resolved on the server. `null` when the
+ *   server call failed — the component then falls back on its own fetch.
  * @param {string} props.locale - Current locale code.
  * @param {Object} props.labels - `pages` namespace of the dictionary.
  * @param {Object} props.dictionary - The full dictionary: this island composes four
@@ -102,25 +102,14 @@ const IndicatorExplorer = ({
     const toolbar = useIndicatorToolbar(dictionary.chart);
 
     // Les libellés d'opérateurs viennent de config/filter/operations.json, qui accepte
-    // depuis P5.4 la forme `{ fr, en }`. On les aplatit ici, à la frontière, pour que
-    // <MultiCriterionMenu> continue de recevoir des chaînes.
-    const localizedOperations = Object.fromEntries(
-        Object.entries(operations)
-            .filter(([key]) => !key.startsWith('_'))
-            .map(([sqlType, ops]) => [
-                sqlType,
-                ops.map((op) => ({
-                    ...op,
-                    label: resolveLocalized(op.label, locale, DEFAULT_LOCALE),
-                })),
-            ]),
-    );
-    const { columns, data, metadata, columnsMetadata: fetched, loading, error } = useFactTableWithMetadata();
+    // la forme `{ fr, en }`. On les aplatit ici, à la frontière, pour que
+    // <MultiCriterionMenu> reçoive des chaînes.
+    const operationLabels = resolveOperationLabels(operations, locale, DEFAULT_LOCALE);
+    const { data, metadata, columnsMetadata: fetched, loading, error } = useFactTableWithMetadata();
 
-    // Schéma serveur si le prérendu a abouti, repli sur celui du hook sinon.
-    const schema = serverColumnsMetadata?.length
-        ? serverColumnsMetadata
-        : restrictToColumns(columns, fetched);
+    // Schéma serveur si le prérendu a abouti, repli sur celui du hook sinon. Les deux
+    // sont les `fields` du jeu, déjà alignés sur ses colonnes.
+    const schema = serverColumnsMetadata?.length ? serverColumnsMetadata : fetched;
 
     // `labels` de deriveEncoding nomme les AXES du graphique (une colonne → son
     // intitulé) : rien à voir avec les libellés d'interface reçus en prop, d'où le
@@ -139,16 +128,11 @@ const IndicatorExplorer = ({
     const isFiltered = Boolean(filterTree);
     const extentOf = (column) => (isFiltered ? rowsExtent(chartData, column) : metadata?.extents?.[column]);
 
-    // Variables du menu de filtres : toutes les colonnes du jeu sauf la clé primaire,
-    // qui n'a pas de sens comme critère.
-    const variables = schema
-        .filter((m) => !m.is_primary_key)
-        .map((m) => ({
-            value: m.name,
-            label: m.label,
-            sql_type: m.sql_type,
-            is_categorical: m.is_categorical,
-        }));
+    // Variables du menu de filtres : toutes les colonnes du jeu, sauf les colonnes de
+    // libellés (`labelFor`), qui décrivent un code au lieu d'être une variable. Les
+    // colonnes de clé (`isPrimaryKey`) restent : au contrat 0.3.0 ce sont les
+    // coordonnées de la ligne (pays, date…), les critères les plus naturels.
+    const variables = metadataToVariables(schema);
 
     if (error) {
         return (
@@ -187,7 +171,7 @@ const IndicatorExplorer = ({
 
             <MultiCriterionMenu
                 variables={variables}
-                operationsByType={localizedOperations}
+                operationLabels={operationLabels}
                 connectorOptions={connectorsFrom(dictionary.filter)}
                 labels={dictionary.filter}
                 intlLocale={intlLocale}

@@ -14,7 +14,7 @@
 import { useState } from 'react';
 import CriterionMenu from '@/features/filter/components/CriterionMenu/CriterionMenu';
 import { useVariableMetadata, metadataToVariables } from '@/features/filter/sources/useVariableMetadata';
-import { isNumericSqlType } from '@/features/filter/utils/filterTypes';
+import { isNumericFamily } from '@/features/filter/utils/filterTypes';
 import operations from '@config/filter/operations.json';
 import { resolveOperationLabels } from '@/features/filter/utils/filterTypes';
 import { DEFAULT_LOCALE } from '@/i18n/config';
@@ -41,7 +41,7 @@ const CriterionMenuBasic = () => {
   // Variables filtrables, tirées du schéma du catalogue.
   const { fields } = useVariableMetadata();
   const variables = metadataToVariables(fields).filter(
-    (variable) => !variable.is_categorical && isNumericSqlType(variable.sql_type),
+    (variable) => !variable.isCategorical && isNumericFamily(variable.typeFamily),
   );
 
   return (

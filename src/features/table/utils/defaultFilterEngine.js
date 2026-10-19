@@ -1,20 +1,22 @@
 // =================================================================
 // DEFAULT FILTER ENGINE — évaluation d'un arbre <MultiCriterionMenu> sur des lignes
 // =================================================================
-//   • les feuilles portent { variable, operation, value, sqlType, isCategorical }
-//     (buildTree) — on route le type via isNumericSqlType / isDateSqlType
-//     (pas de type abstrait 'continuous'/'date'/'categorical'/'text') ;
+//   • les feuilles portent { variable, operation, value, typeFamily, isCategorical }
+//     (buildTree) — on route le type via isNumericFamily / isDateFamily, sur la
+//     famille de type de l'API (INTEGER, NUMBER, DATE, TIMESTAMP…) ;
+//   • les opérations sont les valeurs de l'enum FilterOperation de l'API (EQ, IN,
+//     BETWEEN…), en majuscules ;
 //   • les groupes/feuilles portent `children` (arbre réel) ou `enfants` (forme
 //     sérialisée par filterEngine.serialize, clés françaises) ;
 //   • le connecteur logique est porté par l'ENFANT (ch.connector / ch.connecteur),
 //     AND par défaut — jamais par le parent ;
 //   • un critère incomplet (sans variable ou sans opération) est ignoré (→ true).
-// La forme sérialisée (enfants/connecteur/valeur) ne porte PAS sqlType/isCategorical
+// La forme sérialisée (enfants/connecteur/valeur) ne porte PAS typeFamily/isCategorical
 // (serialize() les élague) : evalCriterion route alors sur la branche générique
 // (égalité brute), faute d'information de type — cas volontairement dégradé,
 // la forme sérialisée n'étant pas la source de vérité pour l'évaluation.
 
-import { isNumericSqlType, isDateSqlType } from '@/features/filter/utils/filterTypes';
+import { isNumericFamily, isDateFamily } from '@/features/filter/utils/filterTypes';
 
 /**
  * Normalizes the many shapes a `defaultFilter` prop can take into a single
@@ -64,35 +66,34 @@ function dfTime(v) {
  *
  * @param {Object} row - Data row.
  * @param {{variable: ?string, operation: ?string, value?: *, valeur?: *,
- *   sqlType?: string, isCategorical?: boolean}} leaf - Criterion leaf (real
- *   tree: `value`/`sqlType`/`isCategorical`; serialized form: `valeur` only).
+ *   typeFamily?: string, isCategorical?: boolean}} leaf - Criterion leaf (real
+ *   tree: `value`/`typeFamily`/`isCategorical`; serialized form: `valeur` only).
  * @returns {boolean} Whether the row passes the criterion. An incomplete
  *   criterion (no variable or no operation) always passes (ignored).
  */
 export function evalCriterion(row, leaf) {
   const key = leaf.variable;
   const op = leaf.operation;
-  const sqlType = leaf.sqlType;
+  const typeFamily = leaf.typeFamily;
   const isCategorical = leaf.isCategorical;
   const value = ('value' in leaf) ? leaf.value : leaf.valeur;
   if (!key || !op) return true; // Critère incomplet → ignoré.
   const cell = row[key];
 
-  // Appartenance (in/not_in) : sémantique indépendante du type — traitée avant
+  // Appartenance (IN/NOT_IN) : sémantique indépendante du type — traitée avant
   // le routage numérique/date/catégoriel/texte pour couvrir aussi les arbres
-  // bruts tiers (cf. normalizeDefaultFilter) où `in` porte sur une colonne
-  // non catégorielle (isCategorical falsy).
-  if (op === 'in' || op === 'not_in') {
+  // bruts tiers où `IN` porte sur une colonne non catégorielle (isCategorical falsy).
+  if (op === 'IN' || op === 'NOT_IN') {
     const list = Array.isArray(value) ? value : [];
     if (!list.length) return true; // Liste vide → critère neutre (ignoré).
     const inc = list.map(String).includes(String(cell));
-    return op === 'not_in' ? !inc : inc;
+    return op === 'NOT_IN' ? !inc : inc;
   }
 
-  if (isNumericSqlType(sqlType)) {
+  if (isNumericFamily(typeFamily)) {
     const c = dfNum(cell);
     if (c == null) return false;
-    if (op === 'between') {
+    if (op === 'BETWEEN') {
       const mn = dfNum(value && value.min);
       const mx = dfNum(value && value.max);
       // Aucune borne → critère neutre (ignoré). Une SEULE borne → contrainte
@@ -106,11 +107,11 @@ export function evalCriterion(row, leaf) {
     const t = dfNum(value);
     if (t == null) return true;
     switch (op) {
-      case 'eq': return c === t;
-      case 'gt': return c > t;
-      case 'gte': return c >= t;
-      case 'lt': return c < t;
-      case 'lte': return c <= t;
+      case 'EQ': return c === t;
+      case 'GT': return c > t;
+      case 'GTE': return c >= t;
+      case 'LT': return c < t;
+      case 'LTE': return c <= t;
       // Opération non reconnue (typo, opérateur pas câblé ici) : on EXCLUT la
       // ligne plutôt que de la laisser passer — un filtre mal formé doit se
       // remarquer (aucun résultat), pas disparaître silencieusement.
@@ -118,10 +119,10 @@ export function evalCriterion(row, leaf) {
     }
   }
 
-  if (isDateSqlType(sqlType)) {
+  if (isDateFamily(typeFamily)) {
     const c = dfTime(cell);
     if (c == null) return false;
-    if (op === 'between') {
+    if (op === 'BETWEEN') {
       // Plage encodée « JJ/MM/AAAA → JJ/MM/AAAA » par TypeAwareInput (ISO toléré aussi).
       const [a, b] = String(value || '').split(' → ');
       const ta = dfTime(a);
@@ -137,9 +138,9 @@ export function evalCriterion(row, leaf) {
     const t = dfTime(value);
     if (t == null) return true;
     switch (op) {
-      case 'eq': return c === t;
-      case 'before': return c < t;
-      case 'after': return c > t;
+      case 'EQ': return c === t;
+      case 'BEFORE': return c < t;
+      case 'AFTER': return c > t;
       // Opération non reconnue (typo, opérateur pas câblé ici) : on EXCLUT la
       // ligne plutôt que de la laisser passer — un filtre mal formé doit se
       // remarquer (aucun résultat), pas disparaître silencieusement.
@@ -152,15 +153,15 @@ export function evalCriterion(row, leaf) {
     return String(cell) === String(value);
   }
 
-  // Texte (sqlType hors familles numérique/date, non catégoriel).
-  if (op === 'contains' || op === 'starts') {
+  // Texte (famille hors numérique/date, non catégoriel).
+  if (op === 'CONTAINS' || op === 'STARTS') {
     if (value == null || value === '') return true;
     const c = String(cell).toLowerCase();
     const v = String(value).toLowerCase();
-    return op === 'contains' ? c.includes(v) : c.startsWith(v);
+    return op === 'CONTAINS' ? c.includes(v) : c.startsWith(v);
   }
 
-  // Générique (eq, ou forme sérialisée sans sqlType) : égalité en chaîne.
+  // Générique (EQ, ou forme sérialisée sans typeFamily) : égalité en chaîne.
   if (value == null || value === '') return true;
   return String(cell) === String(value);
 }

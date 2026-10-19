@@ -27,19 +27,14 @@ export const TRANSPORT_NAME = process.env.NEXT_PUBLIC_API_URL ? 'graphql' : 'moc
  * client holds no cache of its own.
  *
  * @param {string} document - Query document from `lib/api/documents`.
- * @param {Object} [variables] - Query variables.
- * @param {Object} [options] - Ducklake coordinates, sent as headers by the
- *   GraphQL transport (`X-Catalog-Id` / `X-Schema-Id`).
- * @param {string} [options.catalog] - Ducklake catalog.
- * @param {string} [options.schema] - Ducklake schema.
+ * @param {Object} [variables] - Query variables. The ducklake coordinates
+ *   (`catalog` / `schema`) are plain query arguments and travel here.
  * @returns {Promise<Object>} The GraphQL `data` object, keyed by root field.
  */
-export function request(document, variables = {}, { catalog, schema } = {}) {
+export function request(document, variables = {}) {
   return transport({
     document,
     operationName: getOperationName(document),
     variables,
-    catalog,
-    schema,
   });
 }

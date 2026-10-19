@@ -8,7 +8,7 @@
 // La complétude d'un critère est déléguée à filterTypes.js (source unique de vérité,
 // partagée avec le CriterionMenu).
 
-import { isComplete, isNumericSqlType, isDateSqlType } from './filterTypes';
+import { isComplete, isNumericFamily, isDateFamily } from './filterTypes';
 
 // =================================================================
 // a) Construction de l'arbre profondeur/groupe
@@ -19,8 +19,8 @@ import { isComplete, isNumericSqlType, isDateSqlType } from './filterTypes';
  * Each leaf carries its depth and the group number at that depth; the
  * brackets are derived from the bracketLeft / bracketRight markers of each card.
  *
- * @param {{variable: ?string, operation: ?string, value: *, sql_type: ?string,
- *   is_categorical: ?boolean, bracketLeft: boolean, bracketRight: boolean,
+ * @param {{variable: ?string, operation: ?string, value: *, typeFamily: ?string,
+ *   isCategorical: ?boolean, bracketLeft: boolean, bracketRight: boolean,
  *   connectorBefore: ?string}[]} items - Ordered criteria, each with the logical
  *   connector that precedes it.
  * @returns {{tree: object, balanced: boolean}} Root group node and whether every
@@ -57,8 +57,8 @@ export function buildTree(items) {
       variable: c.variable,
       operation: c.operation,
       value: c.value,
-      sqlType: c.sql_type,
-      isCategorical: c.is_categorical,
+      typeFamily: c.typeFamily,
+      isCategorical: c.isCategorical,
       complete: isComplete(c),
     };
     stack[stack.length - 1].children.push(leaf);
@@ -95,7 +95,7 @@ function isoDate(d) {
  */
 function criterionSQL(leaf) {
   const col = leaf.variable || '?';
-  const sqlType = leaf.sqlType;
+  const typeFamily = leaf.typeFamily;
   const isCat = leaf.isCategorical;
   const op = leaf.operation;
   const val = leaf.value;
@@ -109,35 +109,35 @@ function criterionSQL(leaf) {
 
   // Catégoriel : appartenance multiple (IN / NOT IN) ou égalité simple
   if (isCat) {
-    if (op === 'in' || op === 'not_in') {
+    if (op === 'IN' || op === 'NOT_IN') {
       const list = Array.isArray(val) ? val : [];
       const inner = list.length ? list.map(q).join(', ') : '?';
-      return `${col} ${op === 'not_in' ? 'NOT IN' : 'IN'} (${inner})`;
+      return `${col} ${op === 'NOT_IN' ? 'NOT IN' : 'IN'} (${inner})`;
     }
     return val ? `${col} = ${q(val)}` : `${col} = ?`;
   }
   // Numérique : comparateurs simples + plage BETWEEN
-  if (isNumericSqlType(sqlType)) {
-    const map = { eq: '=', gt: '>', gte: '>=', lt: '<', lte: '<=' };
-    if (op === 'between') return `${col} BETWEEN ${num(val && val.min)} AND ${num(val && val.max)}`;
+  if (isNumericFamily(typeFamily)) {
+    const map = { EQ: '=', GT: '>', GTE: '>=', LT: '<', LTE: '<=' };
+    if (op === 'BETWEEN') return `${col} BETWEEN ${num(val && val.min)} AND ${num(val && val.max)}`;
     return `${col} ${map[op] || '='} ${num(val)}`;
   }
   // Date : conversion ISO + plage encodée « A → B » par TypeAwareInput
-  if (isDateSqlType(sqlType)) {
-    if (op === 'between') {
+  if (isDateFamily(typeFamily)) {
+    if (op === 'BETWEEN') {
       const [a, b] = String(val || '').split(' → ');
       const sa = /^\d{2}\/\d{2}\/\d{4}$/.test(a) ? q(isoDate(a)) : '?';
       const sb = /^\d{2}\/\d{2}\/\d{4}$/.test(b) ? q(isoDate(b)) : '?';
       return `${col} BETWEEN ${sa} AND ${sb}`;
     }
-    const map = { before: '<', after: '>', eq: '=' };
+    const map = { BEFORE: '<', AFTER: '>', EQ: '=' };
     return /^\d{2}\/\d{2}\/\d{4}$/.test(val)
       ? `${col} ${map[op] || '='} ${q(isoDate(val))}`
       : `${col} ${map[op] || '='} ?`;
   }
   // Texte : égalité, LIKE %x% (contient), LIKE x% (commence par)
-  if (op === 'contains') return val ? `${col} LIKE ${q(`%${val}%`)}` : `${col} LIKE ?`;
-  if (op === 'starts') return val ? `${col} LIKE ${q(`${val}%`)}` : `${col} LIKE ?`;
+  if (op === 'CONTAINS') return val ? `${col} LIKE ${q(`%${val}%`)}` : `${col} LIKE ?`;
+  if (op === 'STARTS') return val ? `${col} LIKE ${q(`${val}%`)}` : `${col} LIKE ?`;
   return val ? `${col} = ${q(val)}` : `${col} = ?`;
 }
 
@@ -173,7 +173,7 @@ export function treeToSQL(node) {
 // =================================================================
 /**
  * Produces a human-readable, JSON-friendly view of the tree, dropping the
- * internal fields (varType, complete) used only for SQL generation.
+ * internal fields (typeFamily, isCategorical, complete) used only for SQL generation.
  *
  * @param {object} node - Tree node (group or criterion) from buildTree.
  * @returns {object} Plain object mirroring the tree structure.

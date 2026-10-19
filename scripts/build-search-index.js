@@ -124,7 +124,7 @@ async function main() {
   //       method: 'POST',
   //       headers: { 'Content-Type': 'application/json' },
   //       body: JSON.stringify({
-  //         query: 'query GetCatalogSchema { getCatalogSchema { name label sql_type } }',
+  //         query: 'query GetCatalogSchema { getCatalogSchema { name label sqlType } }',
   //       }),
   //     });
   //     const { data } = await response.json();
@@ -132,7 +132,7 @@ async function main() {
   //       title: field.label,
   //       path: target.path,          // page qui expose ce champ
   //       type: 'field',
-  //       description: `Variable du catalogue (${field.sql_type}).`,
+  //       description: `Variable du catalogue (${field.sqlType}).`,
   //       keywords: [field.name],     // le nom technique, cherché tel quel
   //     })));
   //   }

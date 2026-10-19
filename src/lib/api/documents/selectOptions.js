@@ -2,12 +2,13 @@
 import { gql } from './gql';
 
 // =================================================================
-// DOCUMENTS — getSelectOptions / getGroupedSelectOptions
+// DOCUMENTS — getSelectOptions / getSelectOptionsTree
 // =================================================================
 // Options des menus déroulants de filtrage. Mode plat : valeurs distinctes d'une
-// colonne, filtrables côté serveur par `searchTerm`. Mode groupé : deux niveaux
-// (ex. continent -> pays), renvoyé directement sous la forme [{ group, options }]
-// consommée par SelectMenu.
+// colonne, filtrables côté serveur par `searchTerm`. Mode hiérarchique : arbre
+// [{ value, label, children? }] d'une chaîne de colonnes (remontée côté serveur
+// par `Metadata.parentName`) ; avec `maxDepth: 2` sur la feuille, c'est le format
+// « groupes d'options » de SelectMenu, une fois mappé par useSelectOptions.
 
 /**
  * `getSelectOptions` query document — flat, server-searchable options.
@@ -36,36 +37,27 @@ export const GET_SELECT_OPTIONS = gql`
 `;
 
 /**
- * `getGroupedSelectOptions` query document — two-level grouped options.
+ * `getSelectOptionsTree` query document — nested options of a column hierarchy.
  *
- * Note: the API exposes no `searchTerm` argument here — grouped options are not
- * server-filterable (see the mock transport, which keeps a local filter).
+ * Returns a JSON tree `[{ value, label, children? }]`; `fieldName` is the deepest
+ * level and `maxDepth` the number of levels kept going up from it.
  *
  * @type {string}
  */
-export const GET_GROUPED_SELECT_OPTIONS = gql`
-  query GetGroupedSelectOptions(
-    $groupField: String!
-    $optionsField: String!
-    $limit: Int = 50
+export const GET_SELECT_OPTIONS_TREE = gql`
+  query GetSelectOptionsTree(
+    $fieldName: String!
+    $maxDepth: Int
+    $searchTerm: String
     $catalog: String
     $schema: String
   ) {
-    getGroupedSelectOptions(
-      groupField: $groupField
-      optionsField: $optionsField
-      limit: $limit
+    getSelectOptionsTree(
+      fieldName: $fieldName
+      maxDepth: $maxDepth
+      searchTerm: $searchTerm
       catalog: $catalog
       schema: $schema
-    ) {
-      group {
-        value
-        label
-      }
-      options {
-        value
-        label
-      }
-    }
+    )
   }
 `;

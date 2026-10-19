@@ -4,10 +4,15 @@ import { gql } from './gql';
 // =================================================================
 // DOCUMENT — getCatalogSchema
 // =================================================================
-// Métadonnées de tous les champs d'un catalogue/schéma (lignes de la
-// `metadata_table`). C'est la SEULE opération d'introspection de champs de
-// l'API : elle alimente aussi bien les `columnsMetadata` de <Table> que les
-// `variables` de CriterionMenu (via metadataToVariables).
+// Métadonnées de TOUS les champs d'un catalogue/schéma (colonnes de libellés
+// comprises), au contrat 0.3.0 : camelCase, famille de type (`typeFamily`) et
+// opérations de filtre acceptées (`filterOperations`) dérivées par le serveur.
+// Alimente les `variables` de CriterionMenu (via metadataToVariables). Pour les
+// colonnes d'un jeu de résultats, préférer `getFactTableWithMetadata.fields`,
+// déjà aligné sur `columns`.
+//
+// La sélection est la même que celle de `fields` dans factTable.js : texte
+// dupliqué volontairement, `check:gql` extrayant les blocs sans interpolation.
 
 /**
  * `getCatalogSchema` query document.
@@ -19,10 +24,16 @@ export const GET_CATALOG_SCHEMA = gql`
     getCatalogSchema(catalog: $catalog, schema: $schema) {
       name
       label
-      python_type
-      sql_type
-      is_categorical
-      is_primary_key
+      sqlType
+      typeFamily
+      filterOperations
+      isCategorical
+      isPrimaryKey
+      unit
+      displayFormat
+      labelFor
+      labelFields
+      parentName
     }
   }
 `;

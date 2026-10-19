@@ -29,14 +29,14 @@ const DEFAULT_LABELS = {
 };
 
 /**
- * Controlled criterion card: three rows (variable, operation, value) whose SQL type
+ * Controlled criterion card: three rows (variable, operation, value) whose type family
  * drives the value field. State lives entirely in the parent through `criterion` /
  * `onChange`; this component only derives display data and patches. Categorical options
  * and numeric/date bounds are loaded by the primitives themselves via `fieldName`
  * (their internal mock/GraphQL hooks) — no data-loading prop here.
  *
- * @param {{variable: ?string, operation: ?string, value: *, sql_type: ?string,
- *   is_categorical: ?boolean, bracketLeft: boolean, bracketRight: boolean}} criterion -
+ * @param {{variable: ?string, operation: ?string, value: *, typeFamily: ?string,
+ *   isCategorical: ?boolean, bracketLeft: boolean, bracketRight: boolean}} criterion -
  *   Controlled criterion state.
  * @param {function(object, {debounce: boolean}=): void} onChange - Receives the updated
  *   criterion. The optional meta forwards the emission intent: absent for structural
@@ -45,10 +45,13 @@ const DEFAULT_LABELS = {
  *   debounced parent can flush its pending emission.
  * @param {function(): void} [onRemove] - Removes the criterion; its presence renders
  *   the removal button.
- * @param {{value: string, label: string, sql_type: string, is_categorical: boolean}[]} variables -
- *   Variable metadata list (from useVariableMetadata → metadataToVariables).
- * @param {Object<string, {value: string, label: string}[]>} operationsByType - Operations
- *   indexed by sql_type / "categorical" (config/filter/operations.json).
+ * @param {{value: string, label: string, typeFamily: string, isCategorical: boolean,
+ *   filterOperations: string[]}[]} variables - Variable metadata list (from
+ *   useVariableMetadata → metadataToVariables). `filterOperations` is the set the API
+ *   accepts on the column; the offered operations are its subset the value field can edit.
+ * @param {Object<string, string>} [operationLabels] - Operation labels keyed by
+ *   `FilterOperation` enum value (config/filter/operations.json, flattened by
+ *   resolveOperationLabels). A missing label shows the enum value.
  * @param {string} [catalog] - API catalog forwarded to the value primitives.
  * @param {boolean} [parentheses] - Enables the grouping brackets.
  * @param {boolean} [footer] - Renders the validity footer (with `validate`).
@@ -74,7 +77,7 @@ const CriterionMenu = ({
   onCommit,
   onRemove,
   variables,
-  operationsByType,
+  operationLabels,
   catalog,
   parentheses = false,
   footer = false,
@@ -93,11 +96,12 @@ const CriterionMenu = ({
   firstDayOfWeek,
 }) => {
   const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
-  // Méta de la variable sélectionnée → source du type SQL courant (catalogue autoritaire)
+  // Méta de la variable sélectionnée → source de la famille de type courante et des
+  // opérations acceptées par l'API (catalogue autoritaire)
   const varMeta = variables.find((v) => v.value === criterion.variable) ?? null;
-  const sqlType = varMeta?.sql_type ?? null;
-  const isCategorical = varMeta?.is_categorical ?? false;
-  const ops = resolveOperations(sqlType, isCategorical, operationsByType);
+  const typeFamily = varMeta?.typeFamily ?? null;
+  const isCategorical = varMeta?.isCategorical ?? false;
+  const ops = resolveOperations(varMeta, operationLabels);
 
   // Verdict de VALEUR remonté par le champ (ConstraintField). null = pas de verdict de
   // champ (types sans validation croisée) → repli sur isComplete. Réinitialisé à chaque
@@ -112,18 +116,18 @@ const CriterionMenu = ({
   // Changement de variable : reset opération et valeur selon le nouveau type
   const onVariable = (id) => {
     const meta = variables.find((v) => v.value === id) ?? null;
-    const t = meta?.sql_type ?? null;
-    const cat = meta?.is_categorical ?? false;
-    const newOps = resolveOperations(t, cat, operationsByType);
+    const t = meta?.typeFamily ?? null;
+    const cat = meta?.isCategorical ?? false;
+    const newOps = resolveOperations(meta, operationLabels);
     const op = newOps[0]?.value ?? null;
     setFieldVerdict(null);
-    patch({ variable: id, sql_type: t, is_categorical: cat, operation: op, value: defaultValue(t, cat, op) });
+    patch({ variable: id, typeFamily: t, isCategorical: cat, operation: op, value: defaultValue(t, cat, op) });
   };
 
   // Changement d'opération : reset de la seule valeur
   const onOperation = (op) => {
     setFieldVerdict(null);
-    patch({ operation: op, value: defaultValue(sqlType, isCategorical, op) });
+    patch({ operation: op, value: defaultValue(typeFamily, isCategorical, op) });
   };
 
   // Toggle d'un crochet (gauche/droite)
@@ -136,8 +140,8 @@ const CriterionMenu = ({
   const complete = isComplete({
     operation: criterion.operation,
     value: criterion.value,
-    sql_type: sqlType,
-    is_categorical: isCategorical,
+    typeFamily,
+    isCategorical,
   });
   const valid = fieldVerdict != null ? fieldVerdict : complete;
 
@@ -205,7 +209,7 @@ const CriterionMenu = ({
           dateMask={dateMask}
           dateOrder={dateOrder}
           firstDayOfWeek={firstDayOfWeek}
-          sqlType={sqlType}
+          typeFamily={typeFamily}
           isCategorical={isCategorical}
           operation={criterion.operation}
           value={criterion.value}
