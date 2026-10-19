@@ -2,7 +2,9 @@
 import factTable from '../fixtures/factTable.json';
 import { CHART_FACT_TABLE } from '../fixtures/chartFactTable';
 import { MACRO_CATALOG_SCHEMA } from '../fixtures/catalogSchema';
-import { MOCK_FLAT_OPTIONS, MOCK_GROUPED_OPTIONS, MOCK_OPTIONS_BY_FIELD } from '../fixtures/selectOptions';
+import { CATALOGUE_FIELD_STATS, MACRO_FIELD_STATS } from '../fixtures/fieldStats';
+import { MOCK_OPTIONS_BY_FIELD, MOCK_OPTIONS_TREES } from '../fixtures/selectOptions';
+import { createMockResolvers } from './mockResolvers';
 
 // =================================================================
 // TRANSPORT — FIXTURES LOCALES
@@ -11,7 +13,8 @@ import { MOCK_FLAT_OPTIONS, MOCK_GROUPED_OPTIONS, MOCK_OPTIONS_BY_FIELD } from '
 // PAS un repli sur erreur : une opération inconnue lève, et les hooks propagent
 // l'erreur telle quelle. Chaque résolveur est `async` — la réponse arrive donc
 // dans une microtâche, ce qui fait passer les composants par le même cycle
-// `loading -> données` que l'API réelle.
+// `loading -> données` que l'API réelle. La logique des résolveurs vit dans
+// mockResolvers.js, partagée avec le serveur `npm run mock:api`.
 
 /**
  * Catalog id serving the documentary catalogue fixture (`factTable.json`).
@@ -21,45 +24,25 @@ import { MOCK_FLAT_OPTIONS, MOCK_GROUPED_OPTIONS, MOCK_OPTIONS_BY_FIELD } from '
  */
 export const MOCK_CATALOGUE_ID = 'catalogue';
 
-// Deux jeux de faits cohabitent : le catalogue documentaire (table) et le panel
-// macro (graphique, filtres). Ils partagent les mêmes opérations, on les
-// distingue donc comme le ferait l'API — par le catalogue demandé.
-const isCatalogue = (catalog) => catalog === MOCK_CATALOGUE_ID;
+const resolvers = createMockResolvers({
+  catalogueId: MOCK_CATALOGUE_ID,
+  factTable,
+  CHART_FACT_TABLE,
+  MACRO_CATALOG_SCHEMA,
+  CATALOGUE_FIELD_STATS,
+  MACRO_FIELD_STATS,
+  MOCK_OPTIONS_BY_FIELD,
+  MOCK_OPTIONS_TREES,
+});
 
-// Filtrage par libellé, équivalent local de l'argument `searchTerm` que l'API
-// applique côté serveur sur getSelectOptions.
-const matches = (option, term) => option.label.toLowerCase().includes(term);
-
-const RESOLVERS = {
-  // `fields`, `structuredFilters`, `limit`, `offset` et `sort` ne sont pas
-  // appliqués : les fixtures tiennent en une page (18 et 20 lignes, sous la
-  // limite par défaut de 100) et `metadata` resterait à recalculer sinon.
-  GetFactTableWithMetadata: async ({ catalog }) => {
-    // `columnsMetadata` de la fixture appartient à getCatalogSchema : on ne
-    // renvoie ici que les trois champs du type DatasetWithMetadata.
-    const { columns, data, metadata } = isCatalogue(catalog) ? factTable : CHART_FACT_TABLE;
-
-    return { getFactTableWithMetadata: { columns, data, metadata } };
-  },
-
-  GetCatalogSchema: async ({ catalog }) => ({
-    getCatalogSchema: isCatalogue(catalog) ? factTable.columnsMetadata : MACRO_CATALOG_SCHEMA,
-  }),
-
-  GetSelectOptions: async ({ fieldName, searchTerm, limit = 50 }) => {
-    const source = MOCK_OPTIONS_BY_FIELD[fieldName] ?? MOCK_FLAT_OPTIONS;
-    const term = (searchTerm || '').trim().toLowerCase();
-    const options = term ? source.filter((o) => matches(o, term)) : source;
-
-    return { getSelectOptions: options.slice(0, limit) };
-  },
-
-  // Pas d'argument `searchTerm` : l'API n'en expose pas sur cette opération. La
-  // recherche en mode groupé est un filtrage local, fait par useSelectOptions —
-  // identique dans les deux transports, donc.
-  GetGroupedSelectOptions: async ({ limit = 50 }) => ({
-    getGroupedSelectOptions: MOCK_GROUPED_OPTIONS.map((g) => ({ ...g, options: g.options.slice(0, limit) })),
-  }),
+// Nom d'opération -> champ racine du schéma. Une opération, un résolveur ; la
+// réponse est enveloppée sous le champ racine, exactement comme le ferait GraphQL.
+const OPERATIONS = {
+  GetFactTableWithMetadata: 'getFactTableWithMetadata',
+  GetCatalogSchema: 'getCatalogSchema',
+  GetSelectOptions: 'getSelectOptions',
+  GetSelectOptionsTree: 'getSelectOptionsTree',
+  GetFieldStats: 'getFieldStats',
 };
 
 /**
@@ -76,11 +59,11 @@ const RESOLVERS = {
  * @throws {Error} If no fixture resolver is registered for the operation.
  */
 export async function mockTransport({ operationName, variables = {} }) {
-  const resolve = RESOLVERS[operationName];
+  const rootField = OPERATIONS[operationName];
 
-  if (!resolve) {
+  if (!rootField) {
     throw new Error(`Transport mock : aucune fixture pour l'opération « ${operationName} ».`);
   }
 
-  return resolve(variables);
+  return { [rootField]: resolvers[rootField](variables) };
 }

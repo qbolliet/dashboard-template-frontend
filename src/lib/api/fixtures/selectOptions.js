@@ -1,107 +1,66 @@
 // =================================================================
-// FIXTURE — getSelectOptions / getGroupedSelectOptions
+// FIXTURE — getSelectOptions / getSelectOptionsTree
 // =================================================================
-// Jeu local servi par transports/mock.js. Forme identique à celle des opérations
-// correspondantes de l'API : le hook useSelectOptions ne voit aucune différence
-// entre les deux transports.
+// Jeu du panel macro servi par les résolveurs mock (transport en mémoire ET serveur
+// `mock:api`). Fidèle au contrat 0.3.0 : sur une colonne ordinaire `label = value` ;
+// seule une colonne de CODES portant des colonnes de libellés (`Metadata.labelFields`)
+// a un libellé distinct, lu dans la colonne de libellés choisie. Une option s'écrit
+// donc `{ value, labels? }`, `labels` associant chaque colonne de libellés au texte
+// de cette valeur. Les options du catalogue documentaire, elles, sont dérivées de ses
+// lignes (cf. mockResolvers.js).
 
-// Mock plat : liste simple d'options { value, label }.
-// Sert de repli par défaut quand `fieldName` n'a pas d'entrée dédiée ci-dessous.
-export const MOCK_FLAT_OPTIONS = [
-  { value: "fr", label: "France" },
-  { value: "de", label: "Allemagne" },
-  { value: "it", label: "Italie" },
-  { value: "es", label: "Espagne" },
-  { value: "nl", label: "Pays-Bas" },
-  { value: "be", label: "Belgique" },
-  { value: "at", label: "Autriche" },
-  { value: "pt", label: "Portugal" },
-  { value: "pl", label: "Pologne" },
-  { value: "se", label: "Suède" },
-];
+// Options sans libellé propre : `label = value`.
+const plain = (...values) => values.map((value) => ({ value }));
 
-// Mock par champ : options catégorielles indexées par `fieldName`. Imite la réponse
-// de getSelectOptions(fieldName) qui renvoie les valeurs distinctes d'une colonne.
-// Repli sur MOCK_FLAT_OPTIONS pour tout champ absent (cf. useSelectOptions).
+/**
+ * Distinct values of the macro catalog columns, keyed by column name.
+ *
+ * `value` is the value as it appears in the rows of the macro fact table
+ * (fixtures/chartFactTable.js) — a filter set on `country` compares the option
+ * value to the row value, so codes would never match anything.
+ *
+ * @type {Record<string, Array<{value: string, labels?: Record<string, string>}>>}
+ */
 export const MOCK_OPTIONS_BY_FIELD = {
-  // `value` = la valeur telle qu'elle figure DANS les lignes du panel macro
-  // (fixtures/chartFactTable.js), pas un code pays : un filtre posé sur `country`
-  // depuis une page indicateur compare la valeur de l'option à celle de la ligne,
-  // et des codes (`fr`, `de`…) ne correspondraient jamais à rien. getSelectOptions
-  // renvoie les valeurs distinctes d'une colonne — ce sont donc bien ces trois-là.
-  country: [
-    { value: "France", label: "France" },
-    { value: "Allemagne", label: "Allemagne" },
-    { value: "Italie", label: "Italie" },
-  ],
+  country: plain('France', 'Allemagne', 'Italie'),
   indicator: [
-    { value: "pib", label: "PIB" },
-    { value: "conso", label: "Consommation" },
-    { value: "invest", label: "Investissement" },
-    { value: "export", label: "Exportations" },
-    { value: "import", label: "Importations" },
-    { value: "emploi", label: "Emploi" },
-    { value: "infl_ind", label: "Inflation" },
-    { value: "taux_dir", label: "Taux directeur" },
+    { value: 'pib', labels: { indicator_label: 'PIB' } },
+    { value: 'conso', labels: { indicator_label: 'Consommation' } },
+    { value: 'invest', labels: { indicator_label: 'Investissement' } },
+    { value: 'export', labels: { indicator_label: 'Exportations' } },
+    { value: 'import', labels: { indicator_label: 'Importations' } },
+    { value: 'emploi', labels: { indicator_label: 'Emploi' } },
+    { value: 'infl_ind', labels: { indicator_label: 'Inflation' } },
+    { value: 'taux_dir', labels: { indicator_label: 'Taux directeur' } },
   ],
-  sector: [
-    { value: "agri", label: "Agriculture" },
-    { value: "indus", label: "Industrie" },
-    { value: "serv", label: "Services" },
-    { value: "finance", label: "Finance" },
-    { value: "energie", label: "Énergie" },
-  ],
+  sector: plain('Agriculture', 'Industrie', 'Services', 'Finance', 'Énergie'),
   region: [
-    { value: "eu", label: "Union européenne" },
-    { value: "na", label: "Amérique du Nord" },
-    { value: "asia", label: "Asie" },
-    { value: "africa", label: "Afrique" },
+    { value: 'eu', labels: { region_label: 'Union européenne' } },
+    { value: 'na', labels: { region_label: 'Amérique du Nord' } },
+    { value: 'asia', labels: { region_label: 'Asie' } },
+    { value: 'africa', labels: { region_label: 'Afrique' } },
   ],
-  type_orga: [
-    { value: "public", label: "Public" },
-    { value: "prive", label: "Privé" },
-    { value: "assoc", label: "Associatif" },
-  ],
-  frequence: [
-    { value: "annuel", label: "Annuel" },
-    { value: "trim", label: "Trimestriel" },
-    { value: "mensuel", label: "Mensuel" },
-  ],
-  source: [
-    { value: "bce", label: "BCE" },
-    { value: "ocde", label: "OCDE" },
-    { value: "insee", label: "INSEE" },
-    { value: "eurostat", label: "Eurostat" },
-  ],
+  type_orga: plain('Public', 'Privé', 'Associatif'),
+  frequence: plain('Annuel', 'Trimestriel', 'Mensuel'),
+  source: plain('BCE', 'OCDE', 'INSEE', 'Eurostat'),
 };
 
-// Mock groupé : structure { group, options } prête à l'affichage, calquée sur la
-// sélection `group { value label } options { value label }` du document.
-export const MOCK_GROUPED_OPTIONS = [
-  {
-    group: { value: "west", label: "Europe de l'Ouest" },
-    options: [
-      { value: "fr", label: "France" },
-      { value: "de", label: "Allemagne" },
-      { value: "nl", label: "Pays-Bas" },
-      { value: "be", label: "Belgique" },
-      { value: "at", label: "Autriche" },
-    ],
-  },
-  {
-    group: { value: "south", label: "Europe du Sud" },
-    options: [
-      { value: "it", label: "Italie" },
-      { value: "es", label: "Espagne" },
-      { value: "pt", label: "Portugal" },
-    ],
-  },
-  {
-    group: { value: "central", label: "Europe centrale" },
-    options: [{ value: "pl", label: "Pologne" }],
-  },
-  {
-    group: { value: "north", label: "Europe du Nord" },
-    options: [{ value: "se", label: "Suède" }],
-  },
-];
+/**
+ * Option trees of the hierarchical columns, keyed by the DEEPEST column of the chain
+ * (the `fieldName` of getSelectOptionsTree) and spanning the whole chain.
+ *
+ * `country` descends from `region` (`Metadata.parentName`): a two-level tree, the
+ * group-options format of a select menu. Only the combinations present in the data
+ * appear, like the `SELECT DISTINCT` of the real API.
+ *
+ * @type {Record<string, Array<{value: string, labels?: Record<string, string>, children?: Array}>>}
+ */
+export const MOCK_OPTIONS_TREES = {
+  country: [
+    {
+      value: 'eu',
+      labels: { region_label: 'Union européenne' },
+      children: plain('France', 'Allemagne', 'Italie'),
+    },
+  ],
+};

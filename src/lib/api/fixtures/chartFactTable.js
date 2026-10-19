@@ -31,13 +31,12 @@ const DATA = [
   { date_obs: '2024-04-01', country: 'Italie',    gdp: 101.2 },
 ];
 
-// `extents` donne [min, max] pour les mesures et [premier, dernier] pour les
-// dimensions catégorielles — même contenu que le `metadata.extents` de l'API.
+// `extents` ne couvre que les colonnes numériques et les dates — [min, max] — comme
+// le `metadata.extents` de l'API, qui n'en calcule plus sur du texte (`country`).
 const METADATA = {
   count: DATA.length,
   extents: {
     date_obs: ['2023-01-01', '2024-04-01'],
-    country: ['France', 'Italie'],
     gdp: [98.0, 112.2],
   },
   total: DATA.length,

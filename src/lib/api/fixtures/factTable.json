@@ -26,12 +26,8 @@
     "count": 20,
     "extents": {
       "id": [1, 20],
-      "sector": ["Commerce", "Services"],
-      "source": ["BCE", "SDES"],
-      "frequency": ["Annuel", "Trimestriel"],
       "lastUpdate": ["2025-12-31", "2026-05-22"],
       "observations": [28, 6420],
-      "status": ["actif", "wip"],
       "montant": [2800, 642000]
     },
     "total": 20,
@@ -41,14 +37,15 @@
     "generatedAt": "2026-05-22T00:00:00.000Z"
   },
   "columnsMetadata": [
-    { "name": "id",            "label": "ID",                       "sql_type": "integer", "is_categorical": false, "is_primary_key": true },
-    { "name": "code",          "label": "Code",                     "sql_type": "text",    "is_categorical": false, "is_primary_key": false },
-    { "name": "indicator",     "label": "Indicateur",                "sql_type": "text",    "is_categorical": false, "is_primary_key": false },
-    { "name": "sector",        "label": "Secteur",                  "sql_type": "text",    "is_categorical": true,  "is_primary_key": false },
-    { "name": "source",        "label": "Source",                   "sql_type": "text",    "is_categorical": true,  "is_primary_key": false },
-    { "name": "frequency",     "label": "Fréquence",                 "sql_type": "text",    "is_categorical": true,  "is_primary_key": false },
-    { "name": "status",        "label": "Statut",                   "sql_type": "text",    "is_categorical": true,  "is_primary_key": false },
-    { "name": "lastUpdate",    "label": "Dernière mise à jour",      "sql_type": "date",    "is_categorical": false, "is_primary_key": false },
-    { "name": "observations",  "label": "Observations",             "sql_type": "integer", "is_categorical": false, "is_primary_key": false }
+    {"name":"id","label":"ID","sqlType":"INTEGER","typeFamily":"INTEGER","filterOperations":["EQ","NEQ","GT","GTE","LT","LTE","BETWEEN","NOT_BETWEEN","IN","NOT_IN","IS_NULL","IS_NOT_NULL"],"isCategorical":false,"isPrimaryKey":true,"parentName":null,"labelFor":null,"labelFields":[],"unit":null,"displayFormat":null,"family":"Identification","description":null,"defaultAggregation":null},
+    {"name":"code","label":"Code","sqlType":"VARCHAR","typeFamily":"TEXT","filterOperations":["EQ","NEQ","IEQ","CONTAINS","NOT_CONTAINS","ICONTAINS","STARTS","NOT_STARTS","ISTARTS","ENDS","NOT_ENDS","IENDS","MATCHES","IN","NOT_IN","IS_NULL","IS_NOT_NULL"],"isCategorical":false,"isPrimaryKey":false,"parentName":null,"labelFor":null,"labelFields":[],"unit":null,"displayFormat":null,"family":"Identification","description":null,"defaultAggregation":null},
+    {"name":"indicator","label":"Indicateur","sqlType":"VARCHAR","typeFamily":"TEXT","filterOperations":["EQ","NEQ","IEQ","CONTAINS","NOT_CONTAINS","ICONTAINS","STARTS","NOT_STARTS","ISTARTS","ENDS","NOT_ENDS","IENDS","MATCHES","IN","NOT_IN","IS_NULL","IS_NOT_NULL"],"isCategorical":false,"isPrimaryKey":false,"parentName":null,"labelFor":null,"labelFields":[],"unit":null,"displayFormat":null,"family":"Identification","description":null,"defaultAggregation":null},
+    {"name":"sector","label":"Secteur","sqlType":"VARCHAR","typeFamily":"TEXT","filterOperations":["EQ","NEQ","IEQ","CONTAINS","NOT_CONTAINS","ICONTAINS","STARTS","NOT_STARTS","ISTARTS","ENDS","NOT_ENDS","IENDS","MATCHES","IN","NOT_IN","IS_NULL","IS_NOT_NULL"],"isCategorical":true,"isPrimaryKey":false,"parentName":null,"labelFor":null,"labelFields":[],"unit":null,"displayFormat":null,"family":"Classification","description":null,"defaultAggregation":null},
+    {"name":"source","label":"Source","sqlType":"VARCHAR","typeFamily":"TEXT","filterOperations":["EQ","NEQ","IEQ","CONTAINS","NOT_CONTAINS","ICONTAINS","STARTS","NOT_STARTS","ISTARTS","ENDS","NOT_ENDS","IENDS","MATCHES","IN","NOT_IN","IS_NULL","IS_NOT_NULL"],"isCategorical":true,"isPrimaryKey":false,"parentName":null,"labelFor":null,"labelFields":[],"unit":null,"displayFormat":null,"family":"Classification","description":null,"defaultAggregation":null},
+    {"name":"frequency","label":"Fréquence","sqlType":"VARCHAR","typeFamily":"TEXT","filterOperations":["EQ","NEQ","IEQ","CONTAINS","NOT_CONTAINS","ICONTAINS","STARTS","NOT_STARTS","ISTARTS","ENDS","NOT_ENDS","IENDS","MATCHES","IN","NOT_IN","IS_NULL","IS_NOT_NULL"],"isCategorical":true,"isPrimaryKey":false,"parentName":null,"labelFor":null,"labelFields":[],"unit":null,"displayFormat":null,"family":"Classification","description":null,"defaultAggregation":null},
+    {"name":"status","label":"Statut","sqlType":"VARCHAR","typeFamily":"TEXT","filterOperations":["EQ","NEQ","IEQ","CONTAINS","NOT_CONTAINS","ICONTAINS","STARTS","NOT_STARTS","ISTARTS","ENDS","NOT_ENDS","IENDS","MATCHES","IN","NOT_IN","IS_NULL","IS_NOT_NULL"],"isCategorical":true,"isPrimaryKey":false,"parentName":null,"labelFor":null,"labelFields":[],"unit":null,"displayFormat":null,"family":"Classification","description":null,"defaultAggregation":null},
+    {"name":"lastUpdate","label":"Dernière mise à jour","sqlType":"DATE","typeFamily":"DATE","filterOperations":["EQ","NEQ","BEFORE","AFTER","ON_OR_BEFORE","ON_OR_AFTER","BETWEEN","NOT_BETWEEN","IN","NOT_IN","IS_NULL","IS_NOT_NULL"],"isCategorical":false,"isPrimaryKey":false,"parentName":null,"labelFor":null,"labelFields":[],"unit":null,"displayFormat":null,"family":"Suivi","description":null,"defaultAggregation":null},
+    {"name":"observations","label":"Observations","sqlType":"BIGINT","typeFamily":"INTEGER","filterOperations":["EQ","NEQ","GT","GTE","LT","LTE","BETWEEN","NOT_BETWEEN","IN","NOT_IN","IS_NULL","IS_NOT_NULL"],"isCategorical":false,"isPrimaryKey":false,"parentName":null,"labelFor":null,"labelFields":[],"unit":null,"displayFormat":",.0f","family":"Suivi","description":null,"defaultAggregation":null},
+    {"name":"montant","label":"Montant","sqlType":"DOUBLE","typeFamily":"NUMBER","filterOperations":["EQ","NEQ","GT","GTE","LT","LTE","BETWEEN","NOT_BETWEEN","IN","NOT_IN","IS_NULL","IS_NOT_NULL"],"isCategorical":false,"isPrimaryKey":false,"parentName":null,"labelFor":null,"labelFields":[],"unit":"€","displayFormat":",.0f","family":"Suivi","description":null,"defaultAggregation":null}
   ]
 }

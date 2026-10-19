@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 // Vérifie que tous les documents GraphQL de src/lib/api/documents/ sont valides
-// vis-à-vis de scripts/schema.graphql (source figée servie par le mock, voir
-// l'en-tête de ce fichier). Validation maison via `graphql` (déjà une dépendance
+// vis-à-vis de scripts/schema.graphql — le SDL OFFICIEL de l'API, copié par
+// `npm run sync:schema` (jamais édité à la main). Validation maison via `graphql` (déjà une dépendance
 // du client) plutôt que @graphql-inspector/cli, pour ne pas tirer une dépendance
 // supplémentaire pour un simple appel à `validate()`.
 //
@@ -88,4 +88,7 @@ function main() {
   console.log(`check-gql: ${documents.length} document(s) GraphQL valides contre scripts/schema.graphql.`);
 }
 
-main();
+// Importé (test vitest des documents) le module n'exécute rien.
+if (require.main === module) main();
+
+module.exports = { loadDocuments };
