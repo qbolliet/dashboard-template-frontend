@@ -145,6 +145,34 @@ describe('résolveurs mock', () => {
     ]);
   });
 
+  it('getFieldStats : sans filtre, stats globales ; avec filtre, stats du jeu retenu', () => {
+    expect(resolvers.getFieldStats({ fieldName: 'gdp' })).toEqual(MACRO_FIELD_STATS.gdp);
+
+    const filtered = resolvers.getFieldStats({
+      fieldName: 'gdp',
+      structuredFilters: {
+        children: [{ criterion: { variable: 'country', operation: 'EQ', value: 'France' } }],
+      },
+    });
+    const france = CHART_FACT_TABLE.data.filter((row) => row.country === 'France').map((row) => row.gdp);
+
+    expect(filtered).toEqual({
+      min: Math.min(...france),
+      max: Math.max(...france),
+      distinctCount: new Set(france).size,
+      nullCount: 0,
+    });
+    expect(filtered.max).toBeLessThan(MACRO_FIELD_STATS.gdp.max);
+  });
+
+  it('getFieldStats : un filtre mal formé est refusé, une colonne hors des lignes garde ses stats', () => {
+    expect(() => resolvers.getFieldStats({ fieldName: 'gdp', structuredFilters: { criterion: {} } })).toThrow();
+    expect(resolvers.getFieldStats({
+      fieldName: 'inflation',
+      structuredFilters: { children: [{ criterion: { variable: 'country', operation: 'EQ', value: 'France' } }] },
+    })).toEqual(MACRO_FIELD_STATS.inflation);
+  });
+
   it("rejette une colonne inconnue et une colonne de libellés qui n'en est pas une", () => {
     expect(() => resolvers.getFieldStats({ fieldName: 'nope' })).toThrow(/inconnue/);
     expect(() => resolvers.getSelectOptions({ fieldName: 'sector', labelField: 'region_label' })).toThrow();

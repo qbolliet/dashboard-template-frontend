@@ -22,6 +22,7 @@
 import { useMemo, useState } from 'react';
 import { Table, useFactTableWithMetadata } from '@/features/table';
 import { Chart, ChartsFeatures as F } from '@/features/chart';
+import { useFieldStats } from '@/hooks/fieldStats/useFieldStats';
 import MultiCriterionMenu from '@/features/filter/components/MultiCriterionMenu/MultiCriterionMenu';
 import { CardGrid, StatCard } from '@/components/ui';
 import { formatNumber } from '@/utils/format/formatNumber';
@@ -55,10 +56,27 @@ const useIndicatorToolbar = (chartLabels) => useMemo(
 // d'outils du tableau propose de copier.
 const QUERY_HINT = { operation: 'getFactTableWithMetadata', limit: 100 };
 
+// Familles de type dont `min` / `max` sont des bornes au sens d'une période ou d'une
+// amplitude (une colonne texte a aussi un min et un max, lexicaux, qui ne veulent rien dire ici).
+const BOUNDED_FAMILIES = new Set(['INTEGER', 'NUMBER', 'DATE', 'TIMESTAMP']);
+
+/**
+ * Turns the getFieldStats of a column into the `[min, max]` pair `formatExtent` reads.
+ *
+ * @param {?{min: *, max: *}} stats - Stats of the column under the current filter.
+ * @param {?{typeFamily: string}} field - Metadata of the column.
+ * @returns {Array|null} `[min, max]`, or `null` when stats are missing, empty or not bounds.
+ */
+const extentFromStats = (stats, field) => (
+    stats && field && BOUNDED_FAMILIES.has(field.typeFamily) && stats.min != null && stats.max != null
+        ? [stats.min, stats.max]
+        : null
+);
+
 /**
  * Formats an `[min, max]` extent pair into a readable range.
  *
- * @param {Array} [extent] - Two-element extent from `metadata.extents`.
+ * @param {Array} [extent] - Two-element `[min, max]` extent (from getFieldStats).
  * @param {boolean} numeric - Whether to run the bounds through the number formatter.
  * @param {string} intlLocale - Full Intl tag, driving the number conventions.
  * @param {string} separator - Range separator, from the dictionary.
@@ -133,13 +151,16 @@ const IndicatorExplorer = ({
     // renommage local.
     const { x, y, hue, labels: axisLabels, format } = deriveEncoding(schema);
 
-    // Les cartes suivent le filtre : `metadata` est celle de la requête filtrée (compte et
-    // étendues calculés par l'API sur les lignes retenues). `isFiltered` vaut vrai dès
-    // qu'un filtre est envoyé, même s'il laisse passer toutes les lignes : le total
-    // d'origine reste alors affiché, ce qui confirme au lecteur que son filtre a bien été
-    // pris en compte.
+    // Les cartes suivent le filtre : `metadata.total` est le nombre de lignes retenues
+    // (et non la taille de la page, `count`), et les bornes de x et y viennent de
+    // getFieldStats sous le même filtre — `metadata.extents` ne couvre que la page
+    // courante. `isFiltered` vaut vrai dès qu'un filtre est envoyé, même s'il laisse
+    // passer toutes les lignes : le total d'origine reste alors affiché, ce qui confirme
+    // au lecteur que son filtre a bien été pris en compte.
     const isFiltered = Boolean(structuredFilters);
-    const extentOf = (column) => metadata?.extents?.[column];
+    const xStats = useFieldStats({ fieldName: x, structuredFilters, enabled: !!x }).stats;
+    const yStats = useFieldStats({ fieldName: y, structuredFilters, enabled: !!y }).stats;
+    const fieldOf = (column) => schema?.find((m) => m.name === column);
 
     // Variables du menu de filtres : toutes les colonnes du jeu, sauf les colonnes de
     // libellés (`labelFor`), qui décrivent un code au lieu d'être une variable. Les
@@ -159,28 +180,27 @@ const IndicatorExplorer = ({
 
     return (
         <>
-            {/* Indicateurs de cadrage, lus dans le `metadata` de la requête filtrée (l'API
-                renvoie déjà le compte et les étendues des lignes retenues) : ils restent
-                d'accord avec le graphique et le tableau. Filtre actif, le total d'origine
-                passe en note. Une valeur absente (chargement en cours) s'affiche en tiret
+            {/* Indicateurs de cadrage : total de la requête filtrée et bornes de x et y sous
+                le même filtre, donc d'accord avec le graphique et le tableau. Filtre actif,
+                le total d'origine passe en note. Une valeur absente (chargement en cours) s'affiche en tiret
                 cadratin via formatStatValue. */}
             <CardGrid perRow={3}>
                 <StatCard
                     title={labels.observations}
-                    value={metadata?.count}
+                    value={metadata?.total}
                     format={{ compact: true, locale: intlLocaleFor(locale) }}
                     footerNote={isFiltered
                         ? interpolate(labels.observationsFilteredNote, {
-                            total: formatNumber(baseline.metadata?.count ?? baseline.data.length, { decimals: 0, locale: intlLocale }),
+                            total: formatNumber(baseline.metadata?.total ?? baseline.data.length, { decimals: 0, locale: intlLocale }),
                         })
                         : labels.observationsNote} />
                 <StatCard
                     title={labels.period}
-                    value={formatExtent(extentOf(x), false, intlLocale, labels.rangeSeparator)}
+                    value={formatExtent(extentFromStats(xStats, fieldOf(x)), false, intlLocale, labels.rangeSeparator)}
                     footerNote={axisLabels.x} />
                 <StatCard
                     title={labels.amplitude}
-                    value={formatExtent(extentOf(y), true, intlLocale, labels.rangeSeparator)}
+                    value={formatExtent(extentFromStats(yStats, fieldOf(y)), true, intlLocale, labels.rangeSeparator)}
                     footerNote={axisLabels.y} />
             </CardGrid>
 
@@ -193,6 +213,7 @@ const IndicatorExplorer = ({
                 dateMask={dateMask}
                 dateOrder={dateOrder}
                 firstDayOfWeek={firstDayOfWeek}
+                structuredFilters={structuredFilters}
                 onChange={setFilter} />
 
             {/* Requête FILTRÉE refusée (BAD_USER_INPUT…) : le menu reste en place pour que

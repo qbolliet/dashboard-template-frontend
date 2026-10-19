@@ -12,9 +12,9 @@
 // ainsi des données strictement identiques.
 //
 // Fidèle au contrat 0.3.0 sur ce qui se voit côté interface. `structuredFilters`
-// est appliqué par getFactTableWithMetadata (validé comme le fait l'API : un arbre
-// mal formé lève BAD_USER_INPUT) ; non appliqués (les fixtures tiennent en une
-// page) : `structuredFilters` des autres opérations et la projection `fields`.
+// est appliqué par getFactTableWithMetadata et getFieldStats (validé comme le fait
+// l'API : un arbre mal formé lève BAD_USER_INPUT) ; non appliqués (les fixtures tiennent
+// en une page) : `structuredFilters` des opérations d'options et la projection `fields`.
 
 // Familles de type qui ont des bornes (extents / min-max numériques ou dates).
 const BOUNDED_FAMILIES = new Set(['INTEGER', 'NUMBER', 'DATE', 'TIMESTAMP']);
@@ -363,11 +363,27 @@ export function createMockResolvers(fixtures) {
       return nodesAtLevel(tree, height - Math.min(maxDepth ?? height, height));
     },
 
-    getFieldStats: ({ catalog, fieldName }) => {
+    getFieldStats: ({ catalog, fieldName, structuredFilters }) => {
       const dataset = datasetOf(catalog);
       fieldOf(dataset, fieldName);
 
-      return dataset.stats[fieldName] ?? { min: null, max: null, distinctCount: 0, nullCount: 0 };
+      const global = dataset.stats[fieldName] ?? { min: null, max: null, distinctCount: 0, nullCount: 0 };
+      if (structuredFilters === null || structuredFilters === undefined) return global;
+
+      // Avec un filtre, les stats se recalculent sur les lignes retenues (validées comme
+      // le fait l'API). Une colonne absente des lignes des fixtures garde ses stats
+      // globales : on ne peut pas inventer ce qu'un filtre y laisserait.
+      const { columns, data } = dataset.table;
+      const rows = applyFilterNode(data, structuredFilters, (name) => fieldOf(dataset, name));
+      if (!columns.includes(fieldName)) return global;
+
+      const values = rows.map((row) => row[fieldName]).filter((v) => v !== null && v !== undefined);
+      return {
+        min: values.length ? values.reduce((a, b) => (b < a ? b : a)) : null,
+        max: values.length ? values.reduce((a, b) => (b > a ? b : a)) : null,
+        distinctCount: new Set(values).size,
+        nullCount: rows.length - values.length,
+      };
     },
   };
 }

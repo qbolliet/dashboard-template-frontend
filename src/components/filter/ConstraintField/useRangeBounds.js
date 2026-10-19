@@ -1,70 +1,107 @@
 // Importation des modules
-import useSWR from 'swr';
+import { useFieldMetadata } from '@/hooks/fieldMetadata/useFieldMetadata';
+import { useFieldStats } from '@/hooks/fieldStats/useFieldStats';
 
 // =================================================================
-// SOURCE — BORNES DE CHAMP (locales)
+// SOURCE — BORNES DE CHAMP (getFieldStats)
 // =================================================================
-// Seule source du projet qui ne passe PAS par lib/api/client : l'API n'expose
-// aucune opération de bornes par champ. Les seules bornes réelles disponibles
-// sont les `metadata.extents` de getFactTableWithMetadata — les brancher
-// supposerait une requête par champ et une dérivation du `step` côté client,
-// hors périmètre tant que le besoin n'est pas tranché. Le hook garde donc un
-// résolveur local, asynchrone pour exercer le même cycle loading→données.
+// Les bornes du slider sont les `min` / `max` de getFieldStats, calculés sur le jeu
+// filtré par le filtre courant. L'API ne fournit pas de pas : il se déduit ici de la
+// famille de type du champ (lue dans son `Metadata`).
 
-// ── Bornes par défaut ──
-const MOCK_BOUNDS = { min: 0, max: 100, step: 1 };
-
-// ── Bornes par champ ──
-// Numériques : {min,max,step} chiffrés. Dates : bornes en JJ/MM/AAAA + step en ms
-// (ConstraintField sait projeter des dates sur son axe numérique). Repli : MOCK_BOUNDS.
 const MS_PER_DAY = 86_400_000;
-const MOCK_BOUNDS_BY_FIELD = {
-  gdp:        { min: -10, max: 15,  step: 0.1 },
-  inflation:  { min: -2,  max: 20,  step: 0.1 },
-  chomage:    { min: 0,   max: 30,  step: 0.1 },
-  dette_pib:  { min: 0,   max: 200, step: 1 },
-  prod_indus: { min: 0,   max: 200, step: 1 },
-  taux_dir:   { min: 0,   max: 10,  step: 0.05 },
-  date_obs:   { min: '01/01/2000', max: '31/12/2025', step: MS_PER_DAY },
-  date_pub:   { min: '01/01/2000', max: '31/12/2025', step: MS_PER_DAY },
-  date_rev:   { min: '01/01/2000', max: '31/12/2025', step: MS_PER_DAY },
-  date_maj:   { min: '01/01/2000', max: '31/12/2025', step: MS_PER_DAY },
+const MS_PER_HOUR = 3_600_000;
+
+// Nombre de pas visé sur l'étendue d'une mesure quand aucun format ne dicte la précision.
+const TARGET_STEPS = 100;
+
+/**
+ * Converts a `min` / `max` of getFieldStats into a number on the slider axis.
+ *
+ * @param {*} raw - Bound as serialized by the API: number, decimal string (integer beyond
+ *   2^53), ISO `YYYY-MM-DD` date or ISO 8601 timestamp.
+ * @param {string} [typeFamily] - `typeFamily` of the field.
+ * @returns {(number|undefined)} Number (epoch ms for DATE / TIMESTAMP), or undefined when
+ *   the bound is missing or not numeric (text column).
+ */
+export const boundToNumber = (raw, typeFamily) => {
+  if (raw === null || raw === undefined || raw === '') return undefined;
+
+  if (typeFamily === 'DATE' || typeFamily === 'TIMESTAMP') {
+    // Une date nue est lue à minuit LOCAL, comme les dates saisies dans ConstraintField
+    // (parseDate) ; un horodatage ISO 8601 porte son propre fuseau.
+    const bare = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(raw));
+    const ms = bare ? new Date(+bare[1], +bare[2] - 1, +bare[3]).getTime() : Date.parse(raw);
+    return Number.isFinite(ms) ? ms : undefined;
+  }
+
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : undefined;
 };
 
-async function fetchRangeBounds([, fieldName]) {
-  return MOCK_BOUNDS_BY_FIELD[fieldName] ?? MOCK_BOUNDS;
-}
+/**
+ * Derives the slider step of a field.
+ *
+ * INTEGER: 1. DATE: one day. TIMESTAMP: one hour. NUMBER: the precision of the field's
+ * `displayFormat` when it has one (`',.2f'` gives 0.01), otherwise `(max - min) / 100`
+ * rounded down to a power of 10.
+ *
+ * @param {Object} params
+ * @param {string} [params.typeFamily]    - `typeFamily` of the field.
+ * @param {string} [params.displayFormat] - d3-format string of the field.
+ * @param {number} [params.min] - Lower bound on the slider axis.
+ * @param {number} [params.max] - Upper bound on the slider axis.
+ * @returns {number} Positive step.
+ */
+export const stepFor = ({ typeFamily, displayFormat, min, max }) => {
+  if (typeFamily === 'INTEGER') return 1;
+  if (typeFamily === 'DATE') return MS_PER_DAY;
+  if (typeFamily === 'TIMESTAMP') return MS_PER_HOUR;
+
+  const precision = /\.(\d+)f/.exec(displayFormat ?? '');
+  if (precision) return 10 ** -Number(precision[1]);
+
+  const range = max - min;
+  if (!(range > 0)) return 1;
+  return 10 ** Math.floor(Math.log10(range / TARGET_STEPS));
+};
 
 /**
  * Fetches the numeric/date bounds (min, max, step) that drive ConstraintField's slider.
  *
- * Backed by SWR: caches and deduplicates requests sharing the same
- * `['rangeBounds', fieldName, catalog]` key across component instances. Bounds
- * are resolved locally — the API exposes no per-field bounds operation (see the
- * header note). The component lets explicit `min`/`max` props take precedence
- * over the returned values.
+ * `min` / `max` come from getFieldStats under the current filter; `step` is derived
+ * from the field's type family. The component lets explicit `min` / `max` / `step`
+ * props take precedence over the returned values.
  *
  * @param {Object}  params
- * @param {string}  params.fieldName - API field name, indexes the local bounds.
- * @param {string}  [params.catalog] - API catalog (part of the key only).
+ * @param {string}  params.fieldName            - API field name.
+ * @param {string}  [params.catalog]            - API catalog.
+ * @param {string}  [params.schema]             - API schema within the catalog.
+ * @param {?Object} [params.structuredFilters]  - Current filter tree: the bounds are those
+ *   of the filtered dataset.
  * @param {boolean} [params.enabled] - Fetch activé (défaut true). À `false` quand le
  *   parent ne fournit pas de `fieldName` (bornes `min`/`max` statiques passées en props) :
- *   la clé SWR devient `null`, aucun appel n'est déclenché ; les bornes retournées
- *   retombent alors sur `MOCK_BOUNDS`.
- * @returns {{ min: number, max: number, step: number, loading: boolean, error: (Error|null) }}
- *   Resolved bounds, loading flag and error.
+ *   aucun appel n'est déclenché, les bornes restent `undefined`.
+ * @returns {{ min: (number|undefined), max: (number|undefined), step: (number|undefined),
+ *   loading: boolean, error: (Error|null) }} Bounds on the slider axis (epoch ms for
+ *   dates), undefined until resolved, loading flag and error.
  */
-export function useRangeBounds({ fieldName, catalog, enabled = true } = {}) {
-  const key = enabled ? ['rangeBounds', fieldName, catalog] : null;
-  const { data, error, isLoading } = useSWR(key, fetchRangeBounds);
+export function useRangeBounds({ fieldName, catalog, schema, structuredFilters, enabled = true } = {}) {
+  const { field, error: fieldError } = useFieldMetadata({ fieldName, catalog, schema, enabled });
+  const { stats, loading, error: statsError } = useFieldStats({
+    fieldName, structuredFilters, catalog, schema, enabled,
+  });
 
-  const bounds = data ?? MOCK_BOUNDS;
+  const min = boundToNumber(stats?.min, field?.typeFamily);
+  const max = boundToNumber(stats?.max, field?.typeFamily);
 
   return {
-    min: bounds.min,
-    max: bounds.max,
-    step: bounds.step,
-    loading: isLoading,
-    error: error ?? null,
+    min,
+    max,
+    // Sans fiche du champ, la famille est inconnue : le pas reste indéterminé et
+    // ConstraintField applique son repli plutôt qu'un pas deviné.
+    step: field && stats ? stepFor({ typeFamily: field.typeFamily, displayFormat: field.displayFormat, min, max }) : undefined,
+    loading,
+    error: statsError ?? fieldError,
   };
 }

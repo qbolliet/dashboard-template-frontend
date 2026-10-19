@@ -23,6 +23,7 @@ const VARIABLES = {
   GET_CATALOG_SCHEMA: { catalog: 'catalogue' },
   GET_SELECT_OPTIONS: { fieldName: 'region' },
   GET_SELECT_OPTIONS_TREE: { fieldName: 'country', maxDepth: 2 },
+  GET_FIELD_STATS: { fieldName: 'gdp' },
 };
 
 const documents = loadDocuments().map(({ name, source }) => ({ id: name.split(' ')[0], source }));

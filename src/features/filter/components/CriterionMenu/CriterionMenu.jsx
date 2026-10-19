@@ -53,6 +53,8 @@ const DEFAULT_LABELS = {
  *   `FilterOperation` enum value (config/filter/operations.json, flattened by
  *   resolveOperationLabels). A missing label shows the enum value.
  * @param {string} [catalog] - API catalog forwarded to the value primitives.
+ * @param {?Object} [structuredFilters] - Current filter tree, forwarded to the value
+ *   primitives so numeric and date bounds follow the filtered dataset.
  * @param {boolean} [parentheses] - Enables the grouping brackets.
  * @param {boolean} [footer] - Renders the validity footer (with `validate`).
  * @param {boolean} [validate] - Enables validation (accent color + inline feedback).
@@ -79,6 +81,7 @@ const CriterionMenu = ({
   variables,
   operationLabels,
   catalog,
+  structuredFilters,
   parentheses = false,
   footer = false,
   validate = false,
@@ -218,6 +221,7 @@ const CriterionMenu = ({
           onValidityChange={setFieldVerdict}
           fieldName={criterion.variable}
           catalog={catalog}
+          structuredFilters={structuredFilters}
           validate={validate}
           showSlider={showSlider} />
       </CriterionRow>

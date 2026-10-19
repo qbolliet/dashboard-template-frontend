@@ -2,18 +2,20 @@
 import useSWR from 'swr';
 import { request } from '@/lib/api/client';
 import { GET_SELECT_OPTIONS, GET_SELECT_OPTIONS_TREE } from '@/lib/api/documents';
+import { useFieldMetadata } from '@/hooks/fieldMetadata/useFieldMetadata';
 
 // =================================================================
 // SOURCE — OPTIONS DE MENU DÉROULANT
 // =================================================================
 // Deux opérations selon le mode : `getSelectOptions(fieldName, limit, searchTerm,
-// catalog)` en mode plat, `getSelectOptionsTree(fieldName, maxDepth: 2, catalog)`
-// en mode groupé. L'arbre renvoyé [{ value, label, children? }] est mappé ici vers
-// la structure [{ group, options }] consommée par SelectMenu.
+// catalog)` en mode plat, `getSelectOptionsTree(fieldName, maxDepth: 2, searchTerm,
+// catalog)` en mode groupé. L'arbre renvoyé [{ value, label, children? }] est mappé ici
+// vers la structure [{ group, options }] consommée par SelectMenu. Dans les deux modes
+// la recherche est faite par le serveur ; le hook ne filtre rien.
 //
 // En mode groupé, c'est le serveur qui remonte la hiérarchie depuis `fieldName`
-// (via `Metadata.parentName`) : `groupField` ne sert qu'à activer le mode, sa
-// valeur n'est pas transmise à l'API.
+// (via `Metadata.parentName`) : `groupField` force le mode, sa valeur n'est pas
+// transmise à l'API. Quand il est absent, le mode est déduit de `parentName`.
 //
 // Nombre d'options ramenées par appel en mode plat. L'arbre n'a pas de `limit` :
 // l'API rejette un arbre trop grand plutôt que de le tronquer.
@@ -41,11 +43,12 @@ export const treeToGroups = (tree = []) =>
       options: node.children.map(({ value, label }) => ({ value, label })),
     }));
 
-function fetchSelectOptions([, fieldName, catalog, groupField, searchTerm, schema]) {
-  // Mode groupé dérivé de la présence du champ de groupe (aligné sur SelectMenu)
-  if (groupField) {
-    return request(GET_SELECT_OPTIONS_TREE, { fieldName, maxDepth: GROUP_DEPTH, catalog, schema })
-      .then((data) => ({ flat: [], groups: treeToGroups(data.getSelectOptionsTree) }));
+function fetchSelectOptions([, fieldName, catalog, grouped, searchTerm, schema]) {
+  if (grouped) {
+    return request(
+      GET_SELECT_OPTIONS_TREE,
+      { fieldName, maxDepth: GROUP_DEPTH, searchTerm: searchTerm || undefined, catalog, schema },
+    ).then((data) => ({ flat: [], groups: treeToGroups(data.getSelectOptionsTree) }));
   }
 
   return request(
@@ -58,47 +61,46 @@ function fetchSelectOptions([, fieldName, catalog, groupField, searchTerm, schem
  * Fetches the options displayed by SelectMenu (flat or two-level grouped).
  *
  * Backed by SWR: caches and deduplicates requests sharing the same
- * `['selectOptions', fieldName, catalog, groupField, searchTerm, schema]` key across
+ * `['selectOptions', fieldName, catalog, grouped, searchTerm, schema]` key across
  * component instances, and keeps the previous options visible (no flash to
- * empty) while a new key — e.g. a debounced search term — resolves.
+ * empty) while a new key — e.g. a debounced search term — resolves. The search is
+ * done by the API in both modes (a grouped search keeps the matching leaves and their
+ * ancestors), so `searchTerm` is part of the key.
  *
  * @param {Object}  params
  * @param {string}  params.fieldName    - API field name (the leaf level in
  *   grouped mode).
  * @param {string}  [params.catalog]    - API catalog.
  * @param {string}  [params.schema]     - API schema within the catalog.
- * @param {string}  [params.groupField] - Group field; its presence enables the
- *   grouped-options mode (the API derives the group level from the column
- *   hierarchy, so its value is not sent).
- * @param {string}  [params.searchTerm] - Text filter applied to labels.
+ * @param {string}  [params.groupField] - Group field; its presence forces the
+ *   grouped-options mode. Without it the mode is deduced from the field's
+ *   `Metadata.parentName` (a field with a parent is grouped). The API derives the
+ *   group level from the column hierarchy, so the value itself is not sent.
+ * @param {string}  [params.searchTerm] - Text filter applied to labels by the API.
  * @param {boolean} [params.enabled]    - Fetch activé (défaut true). À `false` quand le
  *   parent fournit une liste statique (`options`) : la clé SWR devient `null`, aucun
  *   appel n'est déclenché (règles des hooks : appel inconditionnel, mais fetch conditionnel).
- * @returns {{ options: Array, groups: Array, loading: boolean, error: (Error|null) }}
- *   Flat options, grouped options ([{ group, options }]), loading flag and error.
+ * @returns {{ options: Array, groups: Array, grouped: boolean, loading: boolean, error: (Error|null) }}
+ *   Flat options, grouped options ([{ group, options }]), the resolved mode, loading flag
+ *   and error.
  */
 export function useSelectOptions({ fieldName, catalog, schema, groupField, searchTerm, enabled = true } = {}) {
-  const grouped = !!groupField;
+  // Sans `groupField`, le mode se lit dans la fiche du champ : le schéma est mis en
+  // cache et partagé, mais la requête d'options attend sa réponse (`ready`) pour ne pas
+  // lancer un appel plat que l'arbre remplacerait aussitôt. Un schéma en échec laisse
+  // `parentName` vide : on retombe sur le mode plat plutôt que de bloquer le menu.
+  const { field, ready } = useFieldMetadata({ fieldName, catalog, schema, enabled: enabled && !groupField });
+  const grouped = !!groupField || !!field?.parentName;
 
-  // En mode groupé, `searchTerm` est encore HORS de la clé : l'arbre est chargé une
-  // fois et filtré localement ci-dessous. (getSelectOptionsTree accepte un
-  // `searchTerm` serveur ; le brancher est l'objet d'une étape ultérieure.)
-  const key = enabled ? ['selectOptions', fieldName, catalog, groupField, grouped ? null : searchTerm, schema] : null;
+  const key = enabled && (groupField || ready)
+    ? ['selectOptions', fieldName, catalog, grouped, searchTerm, schema]
+    : null;
   const { data, error, isLoading } = useSWR(key, fetchSelectOptions, { keepPreviousData: true });
-
-  // Filtrage local du mode groupé : option par option, puis suppression des
-  // groupes devenus vides. En mode plat, c'est l'API qui filtre (`searchTerm`).
-  const term = (searchTerm || '').trim().toLowerCase();
-  const groups = data?.groups ?? [];
-  const filteredGroups = term
-    ? groups
-      .map((g) => ({ ...g, options: g.options.filter((o) => o.label.toLowerCase().includes(term)) }))
-      .filter((g) => g.options.length > 0)
-    : groups;
 
   return {
     options: data?.flat ?? [],
-    groups: filteredGroups,
+    groups: data?.groups ?? [],
+    grouped,
     loading: isLoading,
     error: error ?? null,
   };

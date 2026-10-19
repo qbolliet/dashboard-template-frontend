@@ -36,7 +36,8 @@ const DEFAULT_LABELS = {
  * @param {boolean}  [clearable]  - Single uniquement : reclicker l'option déjà choisie la
  *   désélectionne (défaut). À `false`, la valeur reste choisie : pour un champ qui doit
  *   toujours porter une valeur (ex. l'opération d'un critère de filtre).
- * @param {string}   [groupField] - Champ de groupe ; sa présence active le mode groupé.
+ * @param {string}   [groupField] - Champ de groupe ; sa présence force le mode groupé. Sans
+ *   lui, le mode est déduit de `Metadata.parentName` du champ (un champ hiérarchique est groupé).
  * @param {{value: string, label: string}[]} [options] - Liste statique d'options ;
  *   si fournie, court-circuite useSelectOptions (filtrage client uniquement, groupé non supporté).
  * @param {Array}    value        - Tableau des valeurs sélectionnées [{value, label}].
@@ -75,9 +76,6 @@ const SelectMenu = ({
 }) => {
   const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
   const resolvedPlaceholder = placeholder ?? labels.placeholder;
-  // Mode groupé dérivé de la présence du champ de groupe (une seule source de vérité)
-  const grouped = !!groupField;
-
   // État local : ouverture du dropdown, terme de recherche, curseur clavier
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState('');
@@ -102,11 +100,14 @@ const SelectMenu = ({
 
   // Récupération des options via hook — désactivée (aucun fetch) quand `options` prop
   // est fournie : le résultat serait de toute façon jeté au profit du filtrage statique.
-  const { options: hookOptions, groups: hookGroups } = useSelectOptions({
+  // `grouped` vient du hook : champ de groupe explicite, sinon `parentName` du champ.
+  // Statique : jamais groupé.
+  const { options: hookOptions, groups: hookGroups, grouped: hookGrouped } = useSelectOptions({
     fieldName, catalog, groupField, searchTerm: debouncedFilter, enabled: !options,
   });
 
   // Mode statique : filtrage client sur la prop `options` ; groupé non supporté.
+  const grouped = !options && hookGrouped;
   const filteredStatic = options
     ? (filter
         ? options.filter((o) => o.label.toLowerCase().includes(filter.toLowerCase()))

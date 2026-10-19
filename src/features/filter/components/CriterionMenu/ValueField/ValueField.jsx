@@ -29,6 +29,8 @@ import './ValueField.scss';
  * @param {function(boolean): void} [onValidityChange] - Receives ConstraintField's verdict.
  * @param {?string} fieldName - API field name (= variable id) feeding the primitives' hooks.
  * @param {?string} [catalog] - API catalog forwarded to the primitives.
+ * @param {?Object} [structuredFilters] - Current filter tree: numeric and date bounds are
+ *   those of the filtered dataset.
  * @param {boolean} [validate] - Enables real-time validation on the field.
  * @param {boolean} [showSlider] - Numeric/date: render the ConstraintField slider bar.
  * @param {string}   [intlLocale] - Full Intl tag, driving number and date formatting.
@@ -49,6 +51,7 @@ const ValueField = ({
   onValidityChange,
   fieldName,
   catalog,
+  structuredFilters,
   validate = false,
   showSlider = false,
   labels,
@@ -114,6 +117,7 @@ const ValueField = ({
         rangeMode={isRange}
         fieldName={fieldName}
         catalog={catalog}
+        structuredFilters={structuredFilters}
         validate={validate}
         showSlider={showSlider}
         inputsOnTop
@@ -142,6 +146,7 @@ const ValueField = ({
         rangeMode={isRange}
         fieldName={fieldName}
         catalog={catalog}
+        structuredFilters={structuredFilters}
         validate={validate}
         showSlider={showSlider}
         inputsOnTop

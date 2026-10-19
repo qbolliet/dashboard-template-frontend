@@ -69,6 +69,8 @@ const makeBlank = (id) => ({
  * @param {Object<string, string>} [operationLabels={}] - Operation labels keyed by
  *   `FilterOperation` enum value (see CriterionMenu).
  * @param {string} [catalog] - API catalog forwarded to the cards' value primitives.
+ * @param {?Object} [structuredFilters] - Current filter tree (`FilterNode`) applied to the
+ *   dataset, forwarded to the cards so slider bounds reflect the filtered dataset.
  * @param {?Array<{variable: ?string, operation: ?string, value: *, typeFamily: ?string,
  *   isCategorical: ?boolean, bracketLeft: ?boolean, bracketRight: ?boolean,
  *   connectorBefore: ?string}>} [defaultCriteria=null] - Initial criteria seeding the
@@ -109,6 +111,7 @@ const MultiCriterionMenu = ({
   variables = [],
   operationLabels = {},
   catalog,
+  structuredFilters,
   defaultCriteria = null,
   lockedVariables = null,
   lockedOperations = null,
@@ -373,6 +376,7 @@ const MultiCriterionMenu = ({
                 variables={variables}
                 operationLabels={operationLabels}
                 catalog={catalog}
+                structuredFilters={structuredFilters}
                 parentheses={parentheses}
                 validate={validate}
                 footer={footer}
