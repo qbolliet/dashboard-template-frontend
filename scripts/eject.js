@@ -16,10 +16,8 @@
 // donc remonter l'application à la racine ; il faut déplacer des dossiers. D'où une
 // opération unique, exécutée une fois, qui laisse un diff git relisible.
 //
-// DEUX MODES :
-//   (défaut)      retire toute la surface de documentation ;
-//   --keep-docs   la conserve pour documenter SON dashboard, remontée sous /docs, avec
-//                 docs/content/ réduit à un squelette.
+// DEUX MODES : décrits une seule fois, dans HELP ci-dessous (`--help`), et détaillés par
+// dossier dans docs/content/guides/partir-du-template.mdx.
 //
 // CONTRAINTE DE CONCEPTION : aucune dépendance, et CommonJS comme les autres scripts/*.js
 // — le script doit tourner sur un dépôt fraîchement cloné, AVANT `npm install`.
@@ -78,6 +76,9 @@ Options
   -y, --yes     N'attend pas de confirmation.
   --force       N'exige pas un arbre git propre.
   -h, --help    Affiche cette aide.
+
+Ce qui est conservé ou retiré, dossier par dossier, et la procédure complète : guide
+« Partir du template » (docs/content/guides/partir-du-template.mdx).
 `;
 
 // =================================================================

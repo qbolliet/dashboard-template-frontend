@@ -52,56 +52,11 @@ C'est un mode de fonctionnement à part entière, pas un repli sur erreur — vo
 ### Détacher votre projet de cette documentation
 
 Ce partage — la documentation à la racine, votre application sous `/demo` — est celui du
-dépôt modèle, pas celui de votre projet. **Une commande le renverse, une fois pour
-toutes :**
-
-```bash
-npm run eject
-```
-
-Votre application remonte à la racine (`/fr/…` au lieu de `/demo/fr/…`) et toute la surface
-de documentation est retirée : `docs/`, `src/features/docs/`, le registry, les cinq
-générateurs, les dépendances MDX, le workflow de déploiement Pages. `npm run dev` sert
-alors **votre** site, et démarre d'autant plus vite qu'il ne reste qu'un générateur à
-lancer.
-
-Pour garder la machinerie de documentation et documenter votre propre tableau de bord,
-`npm run eject -- --keep-docs` : l'application remonte à la racine de la même façon, la
-documentation passe sous `/docs` et `docs/content/` est réduit à un squelette de deux
-pages.
-
-Dans les deux cas, `config/site.config.json` est remplacé par un manifeste minimal et
-l'arbre de démonstration conservé en `config/site.config.example.json`.
-
-L'opération **déplace des dossiers de `src/app/`** — c'est la seule façon de changer la
-forme des URL, puisque l'export statique n'accepte ni middleware ni *rewrites* — et le
-script se supprime lui-même à la fin. Elle exige donc un arbre git propre : `git diff` est
-le seul moyen de revenir en arrière. Ajoutez `--dry-run` pour voir le plan sans rien
-écrire.
-
-Le script retire aussi ce qui ne concerne que le dépôt modèle — `CHANGELOG.md` et
-`CONTRIBUTING.md`, les notes de chantier à la racine, le dossier `assets/` (après avoir
-vérifié que rien ne le référence), les entrées de `.gitignore` devenues sans objet — et
-retire de `.github/workflows/verify.yml` le job `eject`, qui appellerait un script disparu.
-Le workflow exécute alors `npm run verify`, la barrière complète du dépôt. En mode
-`--keep-docs`, un `CHANGELOG.md` d'une ligne remplace celui du modèle.
-
-Deux garanties tiennent à la façon dont il procède. **Il ne laisse jamais un dépôt à moitié
-éjecté** : toute l'opération est d'abord déroulée à blanc, motifs de remplacement compris, et
-un motif périmé arrête le script avant la première écriture. **Il est insensible aux fins de
-ligne** : un clone Windows (`core.autocrlf=true`) écrit des CRLF, le script les normalise
-pour comparer et restitue l'EOL d'origine de chaque fichier. Le `.gitattributes` du dépôt
-(`eol=lf`) évite d'ailleurs ce cas pour les clones faits après son ajout.
-
-Les trois gestes qui suivent, dans l'ordre où ils se posent :
-
-1. **Décrivez vos pages** dans `config/site.config.json` — c'est le manifeste dont l'arbre
-   de navigation, les routes et l'index de recherche sont tous dérivés. Voir
-   [Générer des pages depuis un JSON](/guides/pages-depuis-json).
-2. **Branchez vos données** en copiant `.env.example` vers `.env.local` et en y renseignant
-   `NEXT_PUBLIC_API_URL`.
-3. **Reprenez la marque** en surchargeant les primitives de couleur. Une dizaine de lignes
-   suffisent, thème sombre compris : voir [Theming](/fondations/theming), niveau A.
+dépôt modèle, pas celui de votre projet. `npm run eject` le renverse en une commande :
+votre application remonte à la racine et la documentation est retirée (ou conservée sous
+`/docs` avec `--keep-docs`). L'opération exige un arbre git propre, dont le diff est le seul
+retour arrière. Le choix des modes, la procédure et la checklist de publication sont dans
+[Partir du template](/guides/partir-du-template).
 
 ## Projet existant — la CLI du registry
 

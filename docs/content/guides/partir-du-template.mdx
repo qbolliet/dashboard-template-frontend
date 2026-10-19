@@ -1,0 +1,163 @@
+---
+title: Partir du template
+description: Ce que l'eject garde, ce qu'il retire, comment le lancer et comment revenir en arrière.
+order: 0
+---
+
+# Partir du template
+
+Vous venez de cloner le dépôt. Il sert deux surfaces depuis un seul arbre : cette
+documentation à la racine, et l'application pilotée par le manifeste sous `/demo`. C'est le
+bon partage pour le dépôt modèle, pas pour votre projet — votre site s'y trouve relégué
+derrière la documentation de quelqu'un d'autre. **`npm run eject`** renverse ce partage une
+fois pour toutes : l'application remonte à la racine (`/fr/…` au lieu de `/demo/fr/…`).
+
+La page répond à trois questions : qu'est-ce que je garde, qu'est-ce qui disparaît, et
+comment je reviens en arrière.
+
+## Choisir un mode
+
+| | `npm run eject` | `npm run eject -- --keep-docs` |
+|---|---|---|
+| **Pour qui** | Vous voulez un dashboard, rien d'autre | Vous voulez documenter votre propre dashboard |
+| **Application** | À la racine, `/fr/…` | À la racine, `/fr/…` |
+| **Documentation** | Retirée | Conservée, sous `/docs` |
+| `docs/` | Supprimé | `docs/content/` réduit à deux pages (`index.mdx`, `exemple.mdx`) ; playgrounds et générateurs d'index conservés |
+| `src/app/(docs)/` et `src/features/docs/` | Supprimés (avec `src/mdx-components.jsx`) | Conservés, route déplacée sous `/docs` |
+| `registry/` et `public/r/` | Supprimés | Conservés |
+| `scripts/build-*.js` | Supprimés (index, props, tokens, registry, inventaire) et `scripts/lib` | Conservés |
+| Dépendances MDX | Retirées de `package.json` | Conservées |
+| `package.json` | Un seul générateur reste (`build:search`) ; `verify` raccourci | `dev`, `prebuild` et `verify` gardent les cinq générateurs |
+| `.github/workflows/docs.yml` | Supprimé | Conservé ; `build:docs` y devient `build:static` |
+| `e2e/` | Tests visuels, cas limites, hydratation du thème et sélecteur de langue supprimés ; `smoke`, `navigation`, `i18n`, `responsive`, `a11y-contrast` réécrits | Idem |
+| `CHANGELOG.md` | Supprimé | Remplacé par un fichier d'une ligne |
+| `CONTRIBUTING.md`, `RECETTE_G0.md`, `docs-internal/` | Supprimés | Supprimés |
+| `scripts/eject.js` | Supprimé | Supprimé |
+
+Dans les deux modes, la même chose se produit sur le manifeste et la configuration :
+
+- `src/app/(site)/demo/` est déplacé vers `src/app/(site)/` ;
+- `config/site.config.json` est remplacé par un manifeste minimal (Accueil, Indicateur,
+  À propos) et l'arbre de démonstration est conservé en
+  `config/site.config.example.json` ;
+- `config/content/home.json` est écrit pour que l'accueil minimal ait ses liens ;
+- `README.md` est remplacé par un démarrage court ;
+- le job `eject` de `.github/workflows/verify.yml` est retiré, le workflow exécute
+  désormais `npm run verify` ;
+- `build:docs` devient `build:static`, `.env.example` est réécrit en conséquence ;
+- `tsconfig.json`, `vitest.config.mjs`, `next.config.ts` et `eslint.config.mjs` perdent
+  leurs références aux dossiers retirés ;
+- `assets/` est supprimé s'il n'est référencé nulle part, conservé avec un avertissement
+  sinon.
+
+{/* Les deux colonnes ci-dessus sont tirées de `node scripts/eject.js --dry-run` et
+     `node scripts/eject.js --keep-docs --dry-run`. Si l'une des sorties change, ce tableau
+     doit suivre. */}
+
+## Pas à pas
+
+**1 — Cloner.** Depuis le bouton « Use this template » ou en ligne de commande, comme
+décrit dans [Installation](/introduction/installation). Node 22 ou plus.
+
+```bash
+gh repo create mon-dashboard --template qbolliet/dashboard-template-frontend --private --clone
+cd mon-dashboard
+```
+
+**2 — Arbre propre.** Le script refuse de s'exécuter si `git status` n'est pas vide,
+fichiers non suivis compris. Committez ou remisez d'abord ce que vous avez touché.
+
+```bash
+git status
+```
+
+**3 — Dry-run.** Sur un clone, `npm install` n'est pas nécessaire : le script ne dépend de
+rien. Il déroule toute l'opération à blanc, motifs de remplacement compris, et liste chaque
+déplacement et chaque suppression sans rien écrire.
+
+```bash
+node scripts/eject.js --dry-run
+node scripts/eject.js --keep-docs --dry-run
+```
+
+Un motif périmé arrête le script ici, avec l'arbre intact. Une exécution réelle commence de
+toute façon par la même passe.
+
+**4 — Eject.** Il demande une confirmation, sauf avec `--yes`.
+
+```bash
+npm run eject
+# ou, pour garder la documentation sous /docs :
+npm run eject -- --keep-docs
+```
+
+**5 — Premier lancement.** Les dépendances retirées disparaissent du lock au passage.
+
+```bash
+npm install
+npm run dev
+```
+
+Votre site est servi sur `http://localhost:3000` (et la documentation sur `/docs` en mode
+`--keep-docs`). Sans configuration, il tourne sur les fixtures locales. Relisez
+`git diff` avant de committer.
+
+**6 — Les trois gestes.**
+
+1. **Le manifeste** : décrivez vos pages dans `config/site.config.json`. Voir
+   [Générer des pages depuis un JSON](/guides/pages-depuis-json).
+2. **L'API** : copiez `.env.example` vers `.env.local` et renseignez `NEXT_PUBLIC_API_URL`.
+   Voir [Brancher l'API GraphQL](/guides/api-graphql).
+3. **La marque** : surchargez les primitives de couleur. Voir
+   [Theming](/fondations/theming), niveau A.
+
+## Ce qu'on ne peut pas défaire sans git
+
+L'opération déplace et supprime des dossiers, puis le script se supprime lui-même. Il n'y a
+pas de commande `uneject`. C'est pourquoi l'arbre doit être propre : **`git diff` est le
+seul retour arrière.**
+
+```bash
+git checkout . && git clean -fd
+```
+
+Cela restaure les fichiers suivis et supprime ceux que l'eject a créés. Deux limites :
+
+- **Ce que git ne suit pas ne revient pas.** `docs/__docs__.js`, `docs/__docs-pages__.js`,
+  `docs/__props__.json` et `public/r/` sont ignorés par git. Ils sont régénérés par
+  `npm run dev` après un retour arrière, mais ne sont pas restaurés par `git checkout`.
+- **Sans dépôt git** (archive téléchargée), le script avertit et continue : il n'y a alors
+  aucun retour arrière possible. `--force` passe outre l'exigence d'un arbre propre ; ne
+  l'utilisez pas pour contourner des modifications que vous n'avez pas sauvegardées.
+
+Une fois les modifications committées, annuler un eject est un `git revert` ordinaire.
+
+## Et si je veux juste un composant ?
+
+Alors n'ejectez rien. Chaque composant, feature et bloc est publié comme item de registry,
+et `npx shadcn@latest add <url>` copie les fichiers d'un seul item (et de ses dépendances
+internes) dans votre application Next.js existante. Voir
+[Installation](/introduction/installation), section « Projet existant ».
+
+## Avant de publier mon dashboard
+
+- [ ] **`NEXT_PUBLIC_API_URL`** renseignée dans l'environnement de build, et non seulement
+      dans `.env.local`. Sans elle, le site publié sert les fixtures et le fait sans
+      erreur.
+- [ ] **Sous-chemin de déploiement.** Sur GitHub Pages, le site est servi sous
+      `/<dépôt>/` : posez `NEXT_PUBLIC_BASE_PATH=/<dépôt>` (sans barre finale) et construisez
+      avec `npm run build:static`. À la racine d'un domaine, ne posez rien.
+- [ ] **`REGISTRY_BASE_URL`** (mode `--keep-docs` seulement) alignée sur l'URL publique de
+      la documentation, sinon le registry s'installe en téléchargeant ses dépendances
+      depuis `localhost`.
+- [ ] **Langues.** `site.locales` et `site.defaultLocale` du manifeste, les dictionnaires
+      de `src/i18n/dictionaries/`, puis `npm run check:i18n` pour lister ce qui manque.
+      Voir [Internationalisation](/guides/internationalisation).
+- [ ] **Titre et description** du site dans `site`, et `localeCountries` si vous changez
+      les langues.
+- [ ] **Manifeste de démonstration.** Supprimez `config/site.config.example.json` quand
+      vous n'en avez plus besoin, remplacez les pages d'exemple (Indicateur, À propos) et le
+      contenu de `config/content/home.json`, puis lancez `npm run validate:config`.
+- [ ] **`assets/`**, si l'eject l'a conservé avec un avertissement : supprimez-le à la
+      main s'il est inutile.
+- [ ] **`npm run verify && npm run build`** passent sur le dépôt tel qu'il sera publié.
