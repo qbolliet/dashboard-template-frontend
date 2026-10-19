@@ -288,6 +288,21 @@ describe('evalFilterNode', () => {
     expect(evalFilterNode({ city: 'Nice' }, node)).toBe(false);
   });
 
+  it('gives AND precedence over OR, like SQL and the API', () => {
+    // A OR B AND C ≡ A OR (B AND C) — jamais (A OR B) AND C
+    const node = {
+      type: 'group',
+      children: [
+        { variable: 'city', operation: 'EQ', value: 'Paris', isCategorical: true },
+        { variable: 'city', operation: 'EQ', value: 'Lyon', isCategorical: true, connector: 'OR' },
+        { variable: 'age', operation: 'GT', value: '18', typeFamily: 'INTEGER', connector: 'AND' },
+      ],
+    };
+    expect(evalFilterNode({ city: 'Paris', age: 10 }, node)).toBe(true);
+    expect(evalFilterNode({ city: 'Lyon', age: 10 }, node)).toBe(false);
+    expect(evalFilterNode({ city: 'Lyon', age: 30 }, node)).toBe(true);
+  });
+
   it('reads the French serialized shape (enfants/connecteur)', () => {
     const node = {
       enfants: [

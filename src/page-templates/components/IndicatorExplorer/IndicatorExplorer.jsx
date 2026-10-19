@@ -12,27 +12,27 @@
 // prérendue au build, un fetch serveur des lignes figerait donc les chiffres dans le
 // HTML jusqu'au prochain déploiement. Le parent ne fournit que la structure (schéma
 // de colonnes), stable par nature.
+//
+// Le filtrage est fait par l'API, jamais sur les lignes chargées : le filtre du menu
+// (toFilterNode) et les filtres de colonne du tableau (critères IN) forment un seul
+// FilterNode, envoyé en `structuredFilters`. Graphique, tableau et indicateurs
+// montrent donc le jeu filtré, pas un sous-ensemble de la première page.
 
 // Importation des modules
 import { useMemo, useState } from 'react';
-import {
-    Table,
-    useFactTableWithMetadata,
-    normalizeDefaultFilter,
-    evalFilterNode,
-} from '@/features/table';
+import { Table, useFactTableWithMetadata } from '@/features/table';
 import { Chart, ChartsFeatures as F } from '@/features/chart';
 import MultiCriterionMenu from '@/features/filter/components/MultiCriterionMenu/MultiCriterionMenu';
 import { CardGrid, StatCard } from '@/components/ui';
 import { formatNumber } from '@/utils/format/formatNumber';
 import { connectorsFrom, resolveOperationLabels } from '@/features/filter/utils/filterTypes';
+import { toFilterNode, columnCriteria, andNodes } from '@/features/filter/utils/filterEngine';
 import { metadataToVariables } from '@/features/filter/sources/useVariableMetadata';
 import { interpolate } from '@/utils/i18n/interpolate';
 import { intlLocaleFor, formatsFor } from '@/i18n/formats';
 import { DEFAULT_LOCALE } from '@/i18n/config';
 import operations from '@config/filter/operations.json';
 import { deriveEncoding } from '../../utils/deriveEncoding';
-import { rowsExtent } from '../../utils/rowsExtent';
 import './IndicatorExplorer.scss';
 
 // Barre d'outils du graphique. Elle était en portée MODULE, ce qui n'est plus possible :
@@ -97,6 +97,8 @@ const IndicatorExplorer = ({
     dictionary,
 }) => {
     const [filter, setFilter] = useState(null);
+    // Sélections des filtres de colonne du tableau (mode distant de <Table>)
+    const [columnFilters, setColumnFilters] = useState({});
     const intlLocale = intlLocaleFor(locale);
     const { dateMask, dateOrder, firstDayOfWeek } = formatsFor(locale);
     const toolbar = useIndicatorToolbar(dictionary.chart);
@@ -105,28 +107,39 @@ const IndicatorExplorer = ({
     // la forme `{ fr, en }`. On les aplatit ici, à la frontière, pour que
     // <MultiCriterionMenu> reçoive des chaînes.
     const operationLabels = resolveOperationLabels(operations, locale, DEFAULT_LOCALE);
-    const { data, metadata, columnsMetadata: fetched, loading, error } = useFactTableWithMetadata();
+
+    // Jeu NON filtré : sert de repli au schéma et donne le total d'origine affiché en
+    // note quand un filtre est actif. Même clé SWR que la requête filtrée sans filtre :
+    // aucune requête de plus tant que rien n'est filtré, le cache ensuite.
+    const baseline = useFactTableWithMetadata();
 
     // Schéma serveur si le prérendu a abouti, repli sur celui du hook sinon. Les deux
     // sont les `fields` du jeu, déjà alignés sur ses colonnes.
-    const schema = serverColumnsMetadata?.length ? serverColumnsMetadata : fetched;
+    const schema = serverColumnsMetadata?.length ? serverColumnsMetadata : baseline.columnsMetadata;
+
+    // FilterNode envoyé à l'API. Le menu émet un arbre buildTree (déjà debouncé) :
+    // critères incomplets omis, expression non équilibrée → aucun filtre. Les dates y
+    // sont saisies dans l'ordre de la langue (dateOrder), converties en ISO 8601.
+    // Les filtres de colonne s'y ajoutent en ET, le filtre du menu gardé en sous-groupe.
+    const menuNode = filter ? toFilterNode(filter.tree, { balanced: filter.balanced, dateOrder }) : null;
+    const tableColumns = (schema ?? []).map((m) => ({ key: m.name, typeFamily: m.typeFamily }));
+    const structuredFilters = andNodes(menuNode, columnCriteria(columnFilters, tableColumns));
+
+    // Sans filtre, `structuredFilters` est nul : même clé, donc même requête, que `baseline`.
+    const { data, metadata, loading, error } = useFactTableWithMetadata({ structuredFilters });
 
     // `labels` de deriveEncoding nomme les AXES du graphique (une colonne → son
     // intitulé) : rien à voir avec les libellés d'interface reçus en prop, d'où le
     // renommage local.
     const { x, y, hue, labels: axisLabels, format } = deriveEncoding(schema);
 
-    // <Table> applique `defaultFilter` lui-même ; le graphique, lui, reçoit des lignes
-    // brutes. On lui applique donc le MÊME filtre, avec le moteur du tableau plutôt
-    // qu'une réimplémentation — les deux vues montrent ainsi toujours le même sous-jeu.
-    const filterTree = normalizeDefaultFilter(filter);
-    const chartData = filterTree ? data.filter((row) => evalFilterNode(row, filterTree)) : data;
-
-    // Les cartes suivent le filtre. `isFiltered` vaut vrai dès qu'un arbre de filtre existe,
-    // même s'il laisse passer toutes les lignes : le total d'origine reste alors affiché,
-    // ce qui confirme au lecteur que son filtre a bien été pris en compte.
-    const isFiltered = Boolean(filterTree);
-    const extentOf = (column) => (isFiltered ? rowsExtent(chartData, column) : metadata?.extents?.[column]);
+    // Les cartes suivent le filtre : `metadata` est celle de la requête filtrée (compte et
+    // étendues calculés par l'API sur les lignes retenues). `isFiltered` vaut vrai dès
+    // qu'un filtre est envoyé, même s'il laisse passer toutes les lignes : le total
+    // d'origine reste alors affiché, ce qui confirme au lecteur que son filtre a bien été
+    // pris en compte.
+    const isFiltered = Boolean(structuredFilters);
+    const extentOf = (column) => metadata?.extents?.[column];
 
     // Variables du menu de filtres : toutes les colonnes du jeu, sauf les colonnes de
     // libellés (`labelFor`), qui décrivent un code au lieu d'être une variable. Les
@@ -134,29 +147,31 @@ const IndicatorExplorer = ({
     // coordonnées de la ligne (pays, date…), les critères les plus naturels.
     const variables = metadataToVariables(schema);
 
-    if (error) {
-        return (
-            <p className="indicator-explorer__status indicator-explorer__status--error" role="alert">
-                {interpolate(labels.error, { message: String(error.message ?? error) })}
-            </p>
-        );
-    }
+    // Message d'erreur de chargement, commun aux deux cas ci-dessous.
+    const errorStatus = (err) => (
+        <p className="indicator-explorer__status indicator-explorer__status--error" role="alert">
+            {interpolate(labels.error, { message: String(err.message ?? err) })}
+        </p>
+    );
+
+    // Jeu injoignable : rien d'autre à montrer.
+    if (baseline.error) return errorStatus(baseline.error);
 
     return (
         <>
-            {/* Indicateurs de cadrage. Sans filtre ils viennent de `metadata` (l'API renvoie
-                déjà le compte et les étendues) ; filtre actif, ils sont recalculés sur les
-                lignes retenues pour rester d'accord avec le graphique et le tableau, et le
-                total d'origine passe en note. Une valeur absente (chargement en cours)
-                s'affiche en tiret cadratin via formatStatValue. */}
+            {/* Indicateurs de cadrage, lus dans le `metadata` de la requête filtrée (l'API
+                renvoie déjà le compte et les étendues des lignes retenues) : ils restent
+                d'accord avec le graphique et le tableau. Filtre actif, le total d'origine
+                passe en note. Une valeur absente (chargement en cours) s'affiche en tiret
+                cadratin via formatStatValue. */}
             <CardGrid perRow={3}>
                 <StatCard
                     title={labels.observations}
-                    value={isFiltered ? chartData.length : metadata?.count}
+                    value={metadata?.count}
                     format={{ compact: true, locale: intlLocaleFor(locale) }}
                     footerNote={isFiltered
                         ? interpolate(labels.observationsFilteredNote, {
-                            total: formatNumber(metadata?.count ?? data.length, { decimals: 0, locale: intlLocale }),
+                            total: formatNumber(baseline.metadata?.count ?? baseline.data.length, { decimals: 0, locale: intlLocale }),
                         })
                         : labels.observationsNote} />
                 <StatCard
@@ -180,11 +195,15 @@ const IndicatorExplorer = ({
                 firstDayOfWeek={firstDayOfWeek}
                 onChange={setFilter} />
 
+            {/* Requête FILTRÉE refusée (BAD_USER_INPUT…) : le menu reste en place pour que
+                le lecteur corrige son filtre, plutôt que de tout remplacer par l'erreur. */}
+            {error && errorStatus(error)}
+
             {/* <Chart> exige un `y` : sans mesure continue dans le jeu, on l'omet plutôt
                 que de le laisser lever. Le tableau, lui, reste pertinent. */}
             {y && (
                 <Chart
-                    data={chartData}
+                    data={data}
                     x={x} y={y} hue={hue}
                     format={format}
                     labels={axisLabels}
@@ -199,10 +218,11 @@ const IndicatorExplorer = ({
                 title={name}
                 data={data}
                 columnsMetadata={schema}
-                defaultFilter={filter}
+                columnFilters={columnFilters}
+                onColumnFiltersChange={setColumnFilters}
                 locale={locale}
                 labels={dictionary.table}
-                queryHint={QUERY_HINT} />
+                queryHint={{ ...QUERY_HINT, structuredFilters: menuNode }} />
 
             {loading && (
                 <p className="indicator-explorer__status">{labels.loading}</p>

@@ -17,7 +17,9 @@ import useDataTableState from '@/features/table/hooks/useDataTableState';
 import { formatCell, isNumericCol } from '@/features/table/utils/formatCell';
 import { toCsv, downloadBlob } from '@/features/table/utils/exporters';
 import { copyToClipboard } from '@/utils/clipboard/copyToClipboard';
-import { buildQueryVariables, snippetFetch, snippetPython, snippetCurl } from '@/features/table/utils/querySnippets';
+import {
+  buildQueryVariables, snippetFetch, snippetPython, snippetCurl, snippetExport,
+} from '@/features/table/utils/querySnippets';
 import TableHeaderCell from './TableHeaderCell/TableHeaderCell';
 import TableChipRow from './TableChipRow/TableChipRow';
 import TableFooter from './TableFooter/TableFooter';
@@ -43,6 +45,7 @@ const DEFAULT_LABELS = {
   copyFetch: 'Copier la requête fetch (JavaScript)',
   copyPython: 'Copier la requête Python (requests)',
   copyCurl: 'Copier la commande cURL',
+  copyExport: 'Copier la commande d’export complet (.parquet, cURL)',
   filtersLabel: 'Filtres',
   removeFilter: 'Retirer le filtre {label}',
   removeSort: 'Retirer le tri',
@@ -83,9 +86,9 @@ const DEFAULT_LABELS = {
  */
 
 // Mapping des libellés de langue pour le panneau de révélation de code.
-const REVEAL_LANG = { js: 'javascript', py: 'python', curl: 'bash' };
+const REVEAL_LANG = { js: 'javascript', py: 'python', curl: 'bash', export: 'bash' };
 // Fabriques de snippets par type de copie.
-const SNIPPET_BUILDERS = { js: snippetFetch, py: snippetPython, curl: snippetCurl };
+const SNIPPET_BUILDERS = { js: snippetFetch, py: snippetPython, curl: snippetCurl, export: snippetExport };
 
 /**
  * Interactive data table: per-column sort, distinct-value filters, column
@@ -104,13 +107,23 @@ const SNIPPET_BUILDERS = { js: snippetFetch, py: snippetPython, curl: snippetCur
  *   columns.
  * @param {string} [props.title] - Table header title.
  * @param {{apiBase?: string, operation?: string, catalog?: string, schema?: string,
- *   limit?: number}} [props.queryHint] - GraphQL snippet parameters.
+ *   limit?: number, structuredFilters?: Object}} [props.queryHint] - GraphQL snippet
+ *   parameters. `structuredFilters` (a FilterNode, e.g. the dashboard menu filter) is
+ *   ANDed with the column filters in the copied requests; `catalog` / `schema` also
+ *   scope the column value lists in remote mode.
  * @param {*} [props.defaultFilter] - `<MultiCriterionMenu>` output, raw tree node,
  *   or criteria array (implicit AND). Materialized into modifiable, clearable
  *   per-column filters.
  * @param {boolean} [props.enableSort=true] - Sort on header-label click.
  * @param {boolean} [props.enableFilter=true] - Per-value filter (funnel + popover).
  * @param {boolean} [props.enableColumnRemoval=true] - Hover-revealed removal cross.
+ * @param {Object<string, ?Array>} [props.columnFilters] - Controlled per-column value
+ *   selections, used with `onColumnFiltersChange`.
+ * @param {function(Object<string, ?Array>): void} [props.onColumnFiltersChange] - Remote
+ *   mode, for a table backed by the API: the caller owns the column selections and
+ *   sends them to the API (`columnCriteria` → `structuredFilters`); `data` is shown as
+ *   received, and the funnel lists the column's values through getSelectOptions
+ *   (include list: nothing ticked = no filter). `defaultFilter` is then ignored.
  * @param {Array<import('@/components/toolbar/HoverToolbar/HoverToolbar').ToolSpec>} [props.extraTools]
  *   - Extra operations injected at the head of the toolbar (dedicated group).
  * @param {function(Array<Object>, ColumnDef[]): void} [props.onExportParquet] - Real
@@ -136,6 +149,8 @@ const Table = ({
   enableSort = true,
   enableFilter = true,
   enableColumnRemoval = true,
+  columnFilters,
+  onColumnFiltersChange,
   extraTools = [],
   onExportParquet,
   className,
@@ -152,6 +167,8 @@ const Table = ({
     key: m.name,
     label: m.label || m.name,
     type: (isNumericFamily(m.typeFamily) && !m.isCategorical) ? 'number' : undefined,
+    // Famille de type conservée : elle type les valeurs envoyées à l'API (columnCriteria)
+    typeFamily: m.typeFamily,
   }));
   const derivedByKey = new Map(derived.map((c) => [c.key, c]));
   const resolvedColumns = columns
@@ -187,8 +204,11 @@ const Table = ({
     enableSort,
     enableFilter,
     enableColumnRemoval,
+    columnFilters,
+    onColumnFiltersChange,
     intlLocale,
   });
+  const remote = typeof onColumnFiltersChange === 'function';
 
   // Slug de nom de fichier pour les exports (« Titre du tableau » → titre_du_tableau).
   const slug = (title || 'table').toLowerCase().replace(/\s+/g, '_');
@@ -240,6 +260,7 @@ const Table = ({
       { id: 'js', icon: <CopyIcon />, caption: 'JS', done: copied === 'js', onClick: () => onCopy('js'), label: labels.copyFetch },
       { id: 'py', icon: <CopyIcon />, caption: 'PY', done: copied === 'py', onClick: () => onCopy('py'), label: labels.copyPython },
       { id: 'curl', icon: <CopyIcon />, caption: 'cURL', done: copied === 'curl', onClick: () => onCopy('curl'), label: labels.copyCurl },
+      { id: 'export', icon: <CopyIcon />, caption: 'EXPORT', done: copied === 'export', onClick: () => onCopy('export'), label: labels.copyExport },
     ],
   ];
 
@@ -305,6 +326,9 @@ const Table = ({
                   enableFilter={enableFilter}
                   enableColumnRemoval={enableColumnRemoval && visibleColumns.length > 1}
                   onRemove={() => removeColumn(c.key)}
+                  remote={remote
+                    ? { fieldName: c.key, catalog: queryHint.catalog, schema: queryHint.schema }
+                    : null}
                   labels={labels}
                 />
               ))}

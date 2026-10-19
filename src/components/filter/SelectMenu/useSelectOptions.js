@@ -41,16 +41,16 @@ export const treeToGroups = (tree = []) =>
       options: node.children.map(({ value, label }) => ({ value, label })),
     }));
 
-function fetchSelectOptions([, fieldName, catalog, groupField, searchTerm]) {
+function fetchSelectOptions([, fieldName, catalog, groupField, searchTerm, schema]) {
   // Mode groupé dérivé de la présence du champ de groupe (aligné sur SelectMenu)
   if (groupField) {
-    return request(GET_SELECT_OPTIONS_TREE, { fieldName, maxDepth: GROUP_DEPTH, catalog })
+    return request(GET_SELECT_OPTIONS_TREE, { fieldName, maxDepth: GROUP_DEPTH, catalog, schema })
       .then((data) => ({ flat: [], groups: treeToGroups(data.getSelectOptionsTree) }));
   }
 
   return request(
     GET_SELECT_OPTIONS,
-    { fieldName, searchTerm: searchTerm ?? '', limit: LIMIT, catalog },
+    { fieldName, searchTerm: searchTerm ?? '', limit: LIMIT, catalog, schema },
   ).then((data) => ({ flat: data.getSelectOptions, groups: [] }));
 }
 
@@ -58,7 +58,7 @@ function fetchSelectOptions([, fieldName, catalog, groupField, searchTerm]) {
  * Fetches the options displayed by SelectMenu (flat or two-level grouped).
  *
  * Backed by SWR: caches and deduplicates requests sharing the same
- * `['selectOptions', fieldName, catalog, groupField, searchTerm]` key across
+ * `['selectOptions', fieldName, catalog, groupField, searchTerm, schema]` key across
  * component instances, and keeps the previous options visible (no flash to
  * empty) while a new key — e.g. a debounced search term — resolves.
  *
@@ -66,6 +66,7 @@ function fetchSelectOptions([, fieldName, catalog, groupField, searchTerm]) {
  * @param {string}  params.fieldName    - API field name (the leaf level in
  *   grouped mode).
  * @param {string}  [params.catalog]    - API catalog.
+ * @param {string}  [params.schema]     - API schema within the catalog.
  * @param {string}  [params.groupField] - Group field; its presence enables the
  *   grouped-options mode (the API derives the group level from the column
  *   hierarchy, so its value is not sent).
@@ -76,13 +77,13 @@ function fetchSelectOptions([, fieldName, catalog, groupField, searchTerm]) {
  * @returns {{ options: Array, groups: Array, loading: boolean, error: (Error|null) }}
  *   Flat options, grouped options ([{ group, options }]), loading flag and error.
  */
-export function useSelectOptions({ fieldName, catalog, groupField, searchTerm, enabled = true } = {}) {
+export function useSelectOptions({ fieldName, catalog, schema, groupField, searchTerm, enabled = true } = {}) {
   const grouped = !!groupField;
 
   // En mode groupé, `searchTerm` est encore HORS de la clé : l'arbre est chargé une
   // fois et filtré localement ci-dessous. (getSelectOptionsTree accepte un
   // `searchTerm` serveur ; le brancher est l'objet d'une étape ultérieure.)
-  const key = enabled ? ['selectOptions', fieldName, catalog, groupField, grouped ? null : searchTerm] : null;
+  const key = enabled ? ['selectOptions', fieldName, catalog, groupField, grouped ? null : searchTerm, schema] : null;
   const { data, error, isLoading } = useSWR(key, fetchSelectOptions, { keepPreviousData: true });
 
   // Filtrage local du mode groupé : option par option, puis suppression des

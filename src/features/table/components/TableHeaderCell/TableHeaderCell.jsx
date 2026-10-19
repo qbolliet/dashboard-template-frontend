@@ -35,6 +35,9 @@ const DEFAULT_LABELS = {
  * @param {boolean} props.enableFilter - Enables the filter funnel + popover.
  * @param {boolean} props.enableColumnRemoval - Enables the hover-revealed removal button.
  * @param {function(): void} props.onRemove - Hides the column.
+ * @param {?{fieldName: string, catalog?: string, schema?: string}} [props.remote] - API
+ *   coordinates of the column when the table is backed by the API (popover values
+ *   from getSelectOptions, include-list selection).
  * @param {Object} [props.labels] - Wording overrides, merged over the French defaults.
  * @returns {JSX.Element}
  */
@@ -52,6 +55,7 @@ const TableHeaderCell = ({
   enableFilter,
   enableColumnRemoval,
   onRemove,
+  remote = null,
   labels: labelOverrides,
 }) => {
   const labels = mergeLabels(DEFAULT_LABELS, labelOverrides);
@@ -83,8 +87,10 @@ const TableHeaderCell = ({
   const label = col.label || col.key;
 
   // Filtre actif : une sélection partielle (ni « tout », ni un tableau de même
-  // longueur que l'ensemble des valeurs).
-  const hasActiveFilter = enableFilter && filter !== null && filter.length !== uniqueValues.length;
+  // longueur que l'ensemble des valeurs). En mode distant, toute liste non vide.
+  const hasActiveFilter = enableFilter && filter !== null && (remote
+    ? filter.length > 0
+    : filter.length !== uniqueValues.length);
 
   const sortTitle = interpolate(
     sortDir === 'asc' ? labels.sortAsc : sortDir === 'desc' ? labels.sortDesc : labels.sortBy,
@@ -170,6 +176,7 @@ const TableHeaderCell = ({
             valueCounts={valueCounts}
             filter={filter}
             onFilterChange={onFilterChange}
+            remote={remote}
             side={isLast ? 'right' : 'left'}
           />
         )}

@@ -172,6 +172,7 @@ const fr = {
         copyFetch: 'Copier la requête fetch (JavaScript)',
         copyPython: 'Copier la requête Python (requests)',
         copyCurl: 'Copier la commande cURL',
+        copyExport: 'Copier la commande d’export complet (.parquet, cURL)',
         filtersLabel: 'Filtres',
         removeFilter: 'Retirer le filtre {label}',
         removeSort: 'Retirer le tri',

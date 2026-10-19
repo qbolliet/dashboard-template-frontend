@@ -9,7 +9,8 @@
 //   • les groupes/feuilles portent `children` (arbre réel) ou `enfants` (forme
 //     sérialisée par filterEngine.serialize, clés françaises) ;
 //   • le connecteur logique est porté par l'ENFANT (ch.connector / ch.connecteur),
-//     AND par défaut — jamais par le parent ;
+//     AND par défaut — jamais par le parent ; précédence SQL (ET avant OU), comme
+//     l'API qui reçoit le même arbre en FilterNode ;
 //   • un critère incomplet (sans variable ou sans opération) est ignoré (→ true).
 // La forme sérialisée (enfants/connecteur/valeur) ne porte PAS typeFamily/isCategorical
 // (serialize() les élague) : evalCriterion route alors sur la branche générique
@@ -168,9 +169,10 @@ export function evalCriterion(row, leaf) {
 
 /**
  * Recursively evaluates a tree node (group or criterion leaf) against a row.
- * A group combines its children left-to-right, each child carrying its own
- * preceding logical connector (`connector`/`connecteur`, AND by default) —
- * never the parent.
+ * A group combines its children with SQL precedence — AND binds tighter than OR,
+ * as in the API and in treeToSQL: `A OR B AND C` is `A OR (B AND C)`. Each child
+ * carries its own preceding logical connector (`connector`/`connecteur`, AND by
+ * default) — never the parent.
  *
  * @param {Object} row - Data row.
  * @param {?object} node - Tree node (`children`/`enfants` = group, otherwise
@@ -182,17 +184,22 @@ export function evalFilterNode(row, node) {
   const kids = node.children || node.enfants;
   if (kids) {
     if (!kids.length) return true;
-    let res = null;
+    // Précédence SQL : le groupe est un OU de suites de ET. `run` accumule la suite
+    // de ET en cours ; chaque OR la clôt (versée dans `anyRun`) et en ouvre une autre.
+    // Même sémantique que l'API, qui compile l'arbre en clause WHERE.
+    let anyRun = false;
+    let run = true;
     kids.forEach((ch, idx) => {
       const v = evalFilterNode(row, ch);
-      if (idx === 0) {
-        res = v;
+      const conn = ch.connector || ch.connecteur || 'AND';
+      if (idx > 0 && conn === 'OR') {
+        anyRun = anyRun || run;
+        run = v;
       } else {
-        const conn = ch.connector || ch.connecteur || 'AND';
-        res = conn === 'OR' ? (res || v) : (res && v);
+        run = run && v;
       }
     });
-    return res == null ? true : res;
+    return anyRun || run;
   }
   return evalCriterion(row, node);
 }

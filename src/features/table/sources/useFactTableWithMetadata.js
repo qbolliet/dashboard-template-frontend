@@ -13,7 +13,9 @@ import { GET_FACT_TABLE_WITH_METADATA } from '@/lib/api/documents';
 //  `data` / `fields` sont passées telles quelles à <Table>
 // (props `data` / `columnsMetadata`), sans reformatage.
 
-function fetchFactTableWithMetadata([, fields, structuredFilters, limit, offset, sort, catalog, schema]) {
+function fetchFactTableWithMetadata([, fields, filtersJson, limit, offset, sort, catalog, schema]) {
+  // L'arbre voyage dans la clé SWR sous forme de JSON (cf. useFactTableWithMetadata)
+  const structuredFilters = filtersJson ? JSON.parse(filtersJson) : undefined;
   return request(
     GET_FACT_TABLE_WITH_METADATA,
     { fields, structuredFilters, limit, offset, sort, format: 'OBJECTS', catalog, schema },
@@ -27,12 +29,15 @@ function fetchFactTableWithMetadata([, fields, structuredFilters, limit, offset,
  * the metadata of its columns (`fields`, ready to feed `<Table columnsMetadata={…} />`).
  *
  * Backed by SWR: caches and deduplicates requests sharing the same
- * `['factTableWithMetadata', fields, structuredFilters, limit, offset, sort,
- * catalog, schema]` key across component instances.
+ * `['factTableWithMetadata', fields, JSON(structuredFilters), limit, offset, sort,
+ * catalog, schema]` key across component instances. The previous rows stay
+ * visible while a new key (e.g. a new filter) resolves.
  *
  * @param {Object}   [params]
  * @param {string[]} [params.fields] - Columns to select.
- * @param {Object}   [params.structuredFilters] - Filter tree (`FilterNode`, root = group).
+ * @param {?Object}  [params.structuredFilters] - Filter tree (`FilterNode`, root =
+ *   group), e.g. from `toFilterNode`. A new object with the same content reuses the
+ *   same cache entry.
  * @param {number}   [params.limit=100] - Page size, max 1000.
  * @param {number}   [params.offset=0] - Row offset, max 10000.
  * @param {Array}    [params.sort] - `[{ field, order }]`.
@@ -44,8 +49,13 @@ function fetchFactTableWithMetadata([, fields, structuredFilters, limit, offset,
 export function useFactTableWithMetadata({
   fields, structuredFilters, limit = 100, offset = 0, sort, catalog, schema,
 } = {}) {
-  const key = ['factTableWithMetadata', fields, structuredFilters, limit, offset, sort, catalog, schema];
-  const { data: res, error, isLoading } = useSWR(key, fetchFactTableWithMetadata);
+  // L'arbre est recréé à chaque rendu du consommateur (toFilterNode est pur) : on le
+  // place dans la clé sous forme de JSON, stable tant que son contenu ne change pas.
+  const filtersJson = structuredFilters ? JSON.stringify(structuredFilters) : null;
+  const key = ['factTableWithMetadata', fields, filtersJson, limit, offset, sort, catalog, schema];
+  // keepPreviousData : pendant le chargement d'un nouveau filtre, les lignes
+  // précédentes restent affichées (pas de graphique vidé puis redessiné).
+  const { data: res, error, isLoading } = useSWR(key, fetchFactTableWithMetadata, { keepPreviousData: true });
 
   // En cas d'échec du fetch, on renvoie un état vide + `error` : masquer la panne
   // derrière des données de démonstration tromperait le consommateur.

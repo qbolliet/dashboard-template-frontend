@@ -40,6 +40,13 @@ import { normalizeDefaultFilter, deriveFiltersFromDefault } from '../utils/defau
  * @param {boolean} config.enableSort - Enables sorting.
  * @param {boolean} config.enableFilter - Enables per-column value filters.
  * @param {boolean} config.enableColumnRemoval - Enables hiding columns.
+ * @param {Object<string, ?Array>} [config.columnFilters] - Controlled per-column
+ *   selections (remote mode).
+ * @param {function(Object<string, ?Array>): void} [config.onColumnFiltersChange] -
+ *   Its presence switches to the remote mode: the table is backed by the API, the
+ *   caller owns the selections and sends them in `structuredFilters` (see
+ *   `columnCriteria`). They are then neither seeded from `defaultFilter` nor applied
+ *   to `data`, which the server has already filtered.
  * @returns {{
  *   visibleColumns: Array, hiddenColumns: Array,
  *   uniqueValues: Object<string, Array>, valueCounts: Object<string, Object>,
@@ -62,8 +69,13 @@ const useDataTableState = ({
   enableSort,
   enableFilter,
   enableColumnRemoval,
+  columnFilters,
+  onColumnFiltersChange,
   intlLocale = DEFAULT_INTL_LOCALE,
 }) => {
+  // Mode distant : sélections contrôlées par le parent, qui les envoie à l'API.
+  const remote = typeof onColumnFiltersChange === 'function';
+
   // ── Tri : { key, dir } | null ──
   const [sort, setSort] = useState(null);
   // ── Colonnes masquées (par clé) ──
@@ -113,14 +125,15 @@ const useDataTableState = ({
   // rester libre de cette dépendance instable que deriveFiltersFromDefault
   // ne prend plus `uniqueValues` en paramètre (cf. defaultFilterEngine.js).
   const columnKeysSig = columns.map((c) => c.key).join(',');
+  // En mode distant, pas de seed : le filtre par défaut est déjà appliqué par l'API.
   const seeded = useMemo(() => {
-    const tree = normalizeDefaultFilter(defaultFilter);
+    const tree = remote ? null : normalizeDefaultFilter(defaultFilter);
     return deriveFiltersFromDefault(tree, data, columns);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, defaultFilter, columnKeysSig]);
+  }, [data, defaultFilter, columnKeysSig, remote]);
   const [overrides, setOverrides] = useState({});
   // Prop contrôlée : un changement d'IDENTITÉ de `defaultFilter` réamorce le seed.
-  // Ajustement d'état AU RENDU (D9), sur le modèle de MultiCriterionMenu
+  // Ajustement d'état au rendu, sur le modèle de MultiCriterionMenu
   // (bloc prevMax) — jamais dans un useEffect (react-hooks v6 le rejette).
   // Effet de bord assumé : au changement de defaultFilter, les éditions manuelles
   // de colonnes NON concernées sont aussi effacées (le filtre par défaut redevient
@@ -132,12 +145,19 @@ const useDataTableState = ({
     setOverrides({});
   }
   const filters = Object.fromEntries(
-    columns.map((c) => [c.key, c.key in overrides ? overrides[c.key] : seeded[c.key]]),
+    columns.map((c) => [c.key, remote
+      ? (columnFilters?.[c.key] ?? null)
+      : (c.key in overrides ? overrides[c.key] : seeded[c.key])]),
   );
-  const setColumnFilter = (key, v) => setOverrides((o) => ({ ...o, [key]: v }));
+  // Distant : on remonte la nouvelle sélection au parent (depuis un handler, jamais un effet).
+  const setColumnFilter = (key, v) => (remote
+    ? onColumnFiltersChange({ ...columnFilters, [key]: v })
+    : setOverrides((o) => ({ ...o, [key]: v })));
 
   // ── Pipeline de dérivation : data → filtres → tri (ordre strict) ──
-  const filteredRows = data.filter((r) => {
+  // Distant : les lignes sont déjà filtrées par l'API. Les refiltrer serait au mieux
+  // inutile, au pire faux (valeurs d'options en chaîne contre cellules numériques).
+  const filteredRows = remote ? data : data.filter((r) => {
     for (const c of columns) {
       const f = filters[c.key];
       if (f !== null) {
@@ -197,7 +217,8 @@ const useDataTableState = ({
       const f = filters[c.key];
       if (f !== null) {
         const all = uniqueValues[c.key] || [];
-        if (f.length !== all.length) {
+        // Distant : liste d'inclusion, toute sélection non vide est un filtre
+        if (remote ? f.length > 0 : f.length !== all.length) {
           // ∅ si vide, valeurs jointes si ≤ 2, sinon « n valeurs » (format prototype).
           const value = f.length === 0
             ? '∅'
@@ -224,7 +245,8 @@ const useDataTableState = ({
   // resetAll écrase TOUT à null (y compris le seed du defaultFilter), comme le
   // Reset du prototype : chaque colonne est explicitement forcée à « tout ».
   const resetAll = () => {
-    setOverrides(Object.fromEntries(columns.map((c) => [c.key, null])));
+    if (remote) onColumnFiltersChange({});
+    else setOverrides(Object.fromEntries(columns.map((c) => [c.key, null])));
     setSort(null);
     setHidden(new Set());
   };

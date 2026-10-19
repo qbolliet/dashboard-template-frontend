@@ -141,6 +141,7 @@ const en = {
         copyFetch: 'Copy the fetch request (JavaScript)',
         copyPython: 'Copy the Python request (requests)',
         copyCurl: 'Copy the cURL command',
+        copyExport: 'Copy the full-export command (.parquet, cURL)',
         filtersLabel: 'Filters',
         removeFilter: 'Remove the {label} filter',
         removeSort: 'Remove sorting',

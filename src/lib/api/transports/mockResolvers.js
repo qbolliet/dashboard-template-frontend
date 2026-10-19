@@ -11,9 +11,10 @@
 // fixtures lui sont injectées (`createMockResolvers`). Les deux modes affichent
 // ainsi des données strictement identiques.
 //
-// Fidèle au contrat 0.3.0 sur ce qui se voit côté interface ; non appliqués (les
-// fixtures tiennent en une page) : `structuredFilters` de toutes les opérations
-// et la projection `fields` de getFactTableWithMetadata.
+// Fidèle au contrat 0.3.0 sur ce qui se voit côté interface. `structuredFilters`
+// est appliqué par getFactTableWithMetadata (validé comme le fait l'API : un arbre
+// mal formé lève BAD_USER_INPUT) ; non appliqués (les fixtures tiennent en une
+// page) : `structuredFilters` des autres opérations et la projection `fields`.
 
 // Familles de type qui ont des bornes (extents / min-max numériques ou dates).
 const BOUNDED_FAMILIES = new Set(['INTEGER', 'NUMBER', 'DATE', 'TIMESTAMP']);
@@ -46,6 +47,119 @@ const applySort = (rows, sort) => {
     }
     return 0;
   });
+};
+
+// =================================================================
+// ARBRE DE FILTRES (FilterNode) — validation et évaluation
+// =================================================================
+// Même contrat que le compilateur de l'API : un nœud porte exactement un de
+// `criterion` / `children`, la racine est un groupe, aucun groupe n'est vide ; les
+// connecteurs suivent la précédence SQL (NOT, puis AND, puis OR). Seuls les
+// connecteurs et opérations que l'interface émet sont évalués ; les autres sont
+// refusés explicitement plutôt qu'approximés.
+
+// Valeur de comparaison : nombre si les deux côtés en sont, sinon chaîne (les dates
+// ISO 8601 se comparent alors dans l'ordre chronologique).
+const comparable = (cell, value) => (
+  typeof cell === 'number' && value !== '' && !Number.isNaN(Number(value))
+    ? [cell, Number(value)]
+    : [String(cell), String(value)]
+);
+
+// Prédicat d'un critère sur une ligne. Un NULL ne satisfait aucune comparaison.
+const evalCriterion = (row, { variable, operation, value }) => {
+  const cell = row[variable];
+  if (operation === 'IS_NULL') return cell === null || cell === undefined;
+  if (operation === 'IS_NOT_NULL') return cell !== null && cell !== undefined;
+  if (cell === null || cell === undefined) return false;
+
+  const cmp = (v) => {
+    const [a, b] = comparable(cell, v);
+    return compare(a, b);
+  };
+
+  switch (operation) {
+    case 'EQ': return cmp(value) === 0;
+    case 'NEQ': return cmp(value) !== 0;
+    case 'GT': case 'AFTER': return cmp(value) > 0;
+    case 'GTE': case 'ON_OR_AFTER': return cmp(value) >= 0;
+    case 'LT': case 'BEFORE': return cmp(value) < 0;
+    case 'LTE': case 'ON_OR_BEFORE': return cmp(value) <= 0;
+    case 'BETWEEN': return cmp(value.min) >= 0 && cmp(value.max) <= 0;
+    case 'NOT_BETWEEN': return !(cmp(value.min) >= 0 && cmp(value.max) <= 0);
+    case 'IN': return value.some((v) => cmp(v) === 0);
+    case 'NOT_IN': return !value.some((v) => cmp(v) === 0);
+    case 'CONTAINS': return String(cell).includes(String(value));
+    case 'STARTS': return String(cell).startsWith(String(value));
+    default: throw badUserInput(`Opération « ${operation} » non prise en charge par le mock.`);
+  }
+};
+
+// Validation structurelle d'un nœud (ce que le SDL ne peut pas exprimer) ;
+// `checkVariable` lève sur une colonne inconnue, comme le contrôle de l'API.
+const checkNode = (node, checkVariable) => {
+  const hasCriterion = node.criterion !== null && node.criterion !== undefined;
+  const hasChildren = node.children !== null && node.children !== undefined;
+  if (hasCriterion === hasChildren) {
+    throw badUserInput('Un nœud de filtre porte exactement un de criterion ou children.');
+  }
+  if (hasChildren) {
+    if (node.children.length === 0) throw badUserInput('Un groupe de filtres ne peut pas être vide.');
+    node.children.forEach((child) => checkNode(child, checkVariable));
+    return;
+  }
+  const { variable, operation, value } = node.criterion;
+  checkVariable(variable);
+  if ((operation === 'IN' || operation === 'NOT_IN') && (!Array.isArray(value) || value.length === 0)) {
+    throw badUserInput(`${operation} attend un tableau non vide.`);
+  }
+  if ((operation === 'BETWEEN' || operation === 'NOT_BETWEEN')
+    && (value === null || typeof value !== 'object' || !('min' in value) || !('max' in value))) {
+    throw badUserInput(`${operation} attend une valeur {min, max}.`);
+  }
+};
+
+// Évaluation d'un nœud : un groupe est un OU de suites de ET (précédence SQL) ;
+// AND_NOT / OR_NOT nient le nœud qu'ils introduisent.
+const evalNode = (row, node) => {
+  let result;
+  if (node.children) {
+    let anyRun = false;
+    let run = true;
+    node.children.forEach((child, i) => {
+      const connector = i === 0 ? 'AND' : (child.connector ?? 'AND');
+      if (!['AND', 'OR', 'AND_NOT', 'OR_NOT'].includes(connector)) {
+        throw badUserInput(`Connecteur « ${connector} » non pris en charge par le mock.`);
+      }
+      let v = evalNode(row, child);
+      if (connector.endsWith('_NOT')) v = !v;
+      if (i > 0 && connector.startsWith('OR')) {
+        anyRun = anyRun || run;
+        run = v;
+      } else {
+        run = run && v;
+      }
+    });
+    result = anyRun || run;
+  } else {
+    result = evalCriterion(row, node.criterion);
+  }
+  return node.negate ? !result : result;
+};
+
+/**
+ * Applies a `structuredFilters` tree to rows, validating it as the API does.
+ *
+ * @param {Object[]} rows - Fact rows.
+ * @param {?Object} node - Root FilterNode, or null/undefined for no filter.
+ * @param {function(string): void} checkVariable - Throws on an unknown column.
+ * @returns {Object[]} Rows passing the filter.
+ */
+const applyFilterNode = (rows, node, checkVariable) => {
+  if (node === null || node === undefined) return rows;
+  if (!node.children) throw badUserInput('La racine de structuredFilters doit être un groupe.');
+  checkNode(node, checkVariable);
+  return rows.filter((row) => evalNode(row, node));
 };
 
 // Bornes [min, max] des colonnes numériques et temporelles d'une page de lignes ;
@@ -161,7 +275,7 @@ export function createMockResolvers(fixtures) {
   };
 
   return {
-    getFactTableWithMetadata: ({ catalog, limit = 100, offset = 0, sort, format = 'OBJECTS' }) => {
+    getFactTableWithMetadata: ({ catalog, structuredFilters, limit = 100, offset = 0, sort, format = 'OBJECTS' }) => {
       const dataset = datasetOf(catalog);
       const { columns, data, metadata } = dataset.table;
 
@@ -169,7 +283,9 @@ export function createMockResolvers(fixtures) {
       // sans métadonnée est une erreur explicite, pas un trou silencieux.
       const fields = columns.map((name) => withStats(dataset, fieldOf(dataset, name)));
 
-      const rows = applySort(data, sort).slice(offset, offset + limit);
+      // Filtre AVANT tri et pagination : `total` compte les lignes retenues, comme l'API.
+      const matching = applyFilterNode(data, structuredFilters, (name) => fieldOf(dataset, name));
+      const rows = applySort(matching, sort).slice(offset, offset + limit);
 
       return {
         columns,
@@ -178,10 +294,10 @@ export function createMockResolvers(fixtures) {
         metadata: {
           count: rows.length,
           extents: pageExtents(rows, fields),
-          total: data.length,
-          hasNextPage: offset + limit < data.length,
+          total: matching.length,
+          hasNextPage: offset + limit < matching.length,
           currentPage: Math.floor(offset / limit) + 1,
-          totalPages: Math.max(1, Math.ceil(data.length / limit)),
+          totalPages: Math.max(1, Math.ceil(matching.length / limit)),
           generatedAt: metadata.generatedAt,
         },
       };
