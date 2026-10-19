@@ -1,6 +1,6 @@
 # Recette G0 — vitrine, sélecteur de langue et eject
 
-Rapport du prompt **G0** de [POST_TEMPLATIZATION_PROMPTS.md](./POST_TEMPLATIZATION_PROMPTS.md),
+Rapport du prompt **G0** de [POST_TEMPLATIZATION_PROMPTS.md](./docs-internal/POST_TEMPLATIZATION_PROMPTS.md),
 exécuté le 2026-10-16 sur la branche `qb-templatization` (HEAD `d6012d9`), Windows 11,
 Node 22, Next.js 16.2.9 (Turbopack), Playwright 1.62 (Chromium seul).
 

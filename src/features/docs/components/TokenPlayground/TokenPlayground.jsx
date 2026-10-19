@@ -13,7 +13,7 @@ import './TokenPlayground.scss';
 // =================================================================
 // TOKEN PLAYGROUND — la même chose, deux fois, sans variante de code
 // =================================================================
-// Démontre §4.4 de TEMPLATIZATION_ARCHITECTURE.md. Le MÊME exemple de registry est rendu
+// Démontre §4.4 de docs-internal/TEMPLATIZATION_ARCHITECTURE.md. Le MÊME exemple de registry est rendu
 // DEUX FOIS côte à côte : à gauche tel qu'il est livré, à droite dans un sous-arbre où
 // quelques propriétés personnalisées ont été redéclarées. Aucune prop ne diffère, aucun
 // fichier du composant n'est touché, rien n'est recompilé — c'est exactement ce qu'un

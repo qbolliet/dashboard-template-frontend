@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// Inventaire des unités distribuables du dépôt (P1.3 de TEMPLATIZATION_PROMPTS.md).
+// Inventaire des unités distribuables du dépôt (P1.3 de docs-internal/TEMPLATIZATION_PROMPTS.md).
 //
 // Émet registry/inventory.json : pour chaque unité — composant de
 // src/components/, feature de src/features/, socle de tokens ou brique de
@@ -9,7 +9,7 @@
 //
 // C'est la forme intermédiaire qui alimentera scripts/build-registry.js (P4.1) :
 // les `dependencies` / `registryDependencies` du format shadcn s'en déduisent
-// mécaniquement, jamais à la main (cf. §2.3 de TEMPLATIZATION_ARCHITECTURE.md).
+// mécaniquement, jamais à la main (cf. §2.3 de docs-internal/TEMPLATIZATION_ARCHITECTURE.md).
 //
 // Ce script ne modifie aucun fichier de src/ : il observe et rapporte.
 
@@ -175,7 +175,7 @@ const UNIT_DEFINITIONS = [
   // Racines explicites, PAS 'src/features/i18n' entier : LocaleSwitcher,
   // LocaleRedirect et LocaleProvider dépendent de src/i18n/ (dictionnaire +
   // config du site), donc ne sont pas autonomes — seul le groupe de présentation
-  // pure <LanguageSwitcher> l'est (cf. §1 de LANGUAGE_SWITCHER_ARCHITECTURE.md).
+  // pure <LanguageSwitcher> l'est (cf. §1 de docs-internal/LANGUAGE_SWITCHER_ARCHITECTURE.md).
   // Le hook vit à la racine de la feature (hooks/), pas sous components/, d'où
   // la seconde racine explicite.
   {

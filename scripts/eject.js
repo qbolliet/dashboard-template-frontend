@@ -64,7 +64,7 @@ Détache ce dépôt de la documentation du template : l'application remonte à l
 (/<langue>/… au lieu de /demo/<langue>/…) et la surface de documentation est retirée.
 Opération unique et irréversible — le script se supprime lui-même à la fin. Il retire
 aussi ce qui ne concerne que le template : CHANGELOG et CONTRIBUTING, notes de chantier
-(TEMPLATIZATION_*, RECETTE_*…), dossier assets/ s'il n'est référencé nulle part, entrées
+(docs-internal/, RECETTE_*…), dossier assets/ s'il n'est référencé nulle part, entrées
 de .gitignore devenues sans objet, et le job \`eject\` de la CI.
 
 Options
@@ -829,14 +829,22 @@ function mountAppAtRoot() {
     // de navigation.
     patch('src/app/not-found.jsx', [
         [
-            `            <nav className="not-found__links" aria-label="Points d'entrée du site">
-                <Link href="/">Documentation</Link>
-                <Link href={DEMO_BASE_PATH}>Application de démonstration</Link>
-            </nav>`,
-            `            <p className="not-found__links">
-                <Link href={DEMO_BASE_PATH || '/'}>Retour à l&apos;accueil</Link>
-            </p>`,
+            `                <nav className="not-found__links" aria-label={dictionary.notFound.entryPoints}>
+                    <Link href="/">Documentation</Link>
+                    <Link href={DEMO_BASE_PATH}>Application de démonstration</Link>
+                </nav>`,
+            `                <p className="not-found__links">
+                    <Link href={DEMO_BASE_PATH || '/'}>Retour à l&apos;accueil</Link>
+                </p>`,
         ],
+        // Le libellé du <nav> était la seule lecture du dictionnaire : sans lui, la constante
+        // et ses deux imports deviendraient inutilisés et casseraient le lint de la copie éjectée.
+        [`import { getDictionary } from '@/i18n/getDictionary';
+import { DEFAULT_LOCALE } from '@/i18n/config';
+`, ''],
+        [`    const dictionary = await getDictionary(DEFAULT_LOCALE);
+
+`, ''],
     ]);
 }
 
@@ -1415,7 +1423,9 @@ function rewriteWorkflows(keepDocs) {
 // dans la copie locale de l'auteur (ignorés) — d'où un motif plutôt qu'une liste figée.
 const TEMPLATE_PROSE = /^(RECETTE_\w+|(POST_)?TEMPLATIZATION_\w+|LANGUAGE_SWITCHER_\w+)\.md$/;
 
-// Un dossier interne unique qui accueillerait ces notes (cf. chantier G2 de la recette).
+// Dossier versionné qui accueille désormais ces notes (TEMPLATIZATION_*, LANGUAGE_SWITCHER_*,
+// POST_TEMPLATIZATION_*). Son absence n'est pas une erreur : l'auteur du template prévoit de
+// le supprimer avant de fusionner dans main, et l'eject doit rester possible après.
 const TEMPLATE_PROSE_DIR = 'docs-internal';
 
 /**
@@ -1449,23 +1459,24 @@ function removeTemplateProse(keepDocs) {
  * Seules les entrées dont l'objet disparaît sont retirées : les artefacts générés par le
  * registry, l'index de documentation et les tables de props partent avec leurs
  * générateurs en mode complet, mais restent indispensables en --keep-docs ; les notes de
- * chantier partent dans les deux modes. Les entrées d'ordre personnel (CLAUDE.md,
+ * chantier n'ont plus d'entrée (docs-internal/ est versionné). Les entrées d'ordre personnel (CLAUDE.md,
  * .claude/…, TODO…) ne concernent pas le template et sont laissées telles quelles.
  *
  * @param {boolean} keepDocs - Whether the documentation machinery was kept.
  */
 function cleanGitignore(keepDocs) {
+    // Les notes de chantier vivent dans docs-internal/, versionné : plus aucune entrée
+    // .gitignore ne les concerne. Garde-fou — une entrée qui les ferait réapparaître comme
+    // ignorées les soustrairait à git, donc à la copie de la CI, et l'étape de suppression
+    // de docs-internal/ (cf. removeTemplateProse) ne serait plus jamais exercée.
+    patchWith('.gitignore', (text) => {
+        if (/^\/?docs-internal/m.test(text) || /^(POST_)?TEMPLATIZATION_\w+\.md$/m.test(text)) {
+            fail('.gitignore ignore à nouveau les notes de chantier : docs-internal/ doit rester versionné.');
+        }
+        return text;
+    });
+
     const replacements = [
-        [
-            `TEMPLATIZATION_ARCHITECTURE.md
-TEMPLATIZATION_PROMPTS.md
-
-LANGUAGE_SWITCHER_ARCHITECTURE.md
-LANGUAGE_SWITCHER_PROMPTS.md
-
-`,
-            '',
-        ],
         // Le script `build:docs` est renommé `build:static` dans les deux modes.
         ['(cf. npm run build:docs)', '(cf. npm run build:static)'],
     ];

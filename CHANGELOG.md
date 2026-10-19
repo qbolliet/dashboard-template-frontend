@@ -15,6 +15,25 @@ since the copy they took.
 
 ### Added
 
+- **Language switcher** — `LanguageSwitcher`, a flag button opening a listbox
+  of languages (ARIA *Collapsible Dropdown Listbox*: arrows, Home/End, Escape
+  returning focus to the button). It knows nothing about the site's i18n —
+  languages, current value and labels arrive as props — so it installs alone
+  from the registry (`language-switcher`). Its flag image falls back to the
+  country code when it fails to load. The header mounts it through
+  `LocaleSwitcher`, an adapter that maps `site.locales`, the current
+  dictionary and a path-preserving navigation onto those props. No label or
+  `aria-*` string is hardcoded in French any more: the remaining ones were
+  moved to the dictionaries (`npm run check:i18n` lists what is missing).
+- **Eject** — `npm run eject` detaches a repository created from the template
+  from its documentation: the manifest-driven application is lifted from
+  `/demo` to the root and the whole documentation surface is removed
+  (`--keep-docs` keeps it under `/docs`, reduced to a skeleton; `--dry-run`
+  previews). It also removes what only concerns the template (changelog,
+  contributing guide, work notes), requires a clean git tree, runs every
+  replacement as a dry pass first and fails loudly when an expected string has
+  disappeared. A CI job (`eject`) runs it on a copy, then lints, tests and
+  builds the result. See `docs/content/introduction/installation.mdx`.
 - **Search** — navigation nodes accept an optional `keywords` list in
   `config/site.config.json`: terms a page must be found under without them
   appearing on screen (acronyms, former names, another trade's vocabulary).
@@ -26,6 +45,13 @@ since the copy they took.
 
 ### Changed
 
+- **Navigation** — the layout (horizontal top bar or collapsible sidebar) is
+  derived from the depth of the navigation tree, and an internal node can be
+  either a link or a folder.
+- **Pages** — the per-URL page modules became `src/page-templates/`: one
+  template per manifest node `type`, registered in `src/config/pageTypes.js`.
+- **Next.js 16** — dependency update; the dev server was made to start
+  reliably and the Windows path pitfalls are documented.
 - **Search** — the matcher went from one contiguous substring in one field to
   all query terms, each matched by word prefix, each in whichever field suits
   it: "gdp france" now finds the page, which it could not before. Fields are
@@ -38,9 +64,19 @@ since the copy they took.
   `depth`. Re-run `npm run build:search` (already wired into `dev` and
   `prebuild`).
 
-## [1.0.0] - 2026-08-09
+### Fixed
 
-Initial public release. Entries are grouped by feature area rather than by
+- **Dark theme** — the page background is applied in dark mode, contrasts meet
+  WCAG AA, and the preview theme renders identically across hydration.
+- **Layout** — pages no longer scroll horizontally on narrow viewports.
+- **Demo** — the home page has real content and only the current page is
+  marked as current.
+- **End-to-end suite** — stabilised, and its reference snapshots refreshed.
+
+## [0.1.0] - 2026-08-09
+
+Initial public release (first tagged as 1.0.0; the project stays in 0.x, so any
+breaking change from here on is a minor version). Entries are grouped by feature area rather than by
 commit, matching the order the template was built in (`qb-header-migration`
 → `qb-globe` → `qb-templatization`).
 
@@ -110,5 +146,5 @@ commit, matching the order the template was built in (`qb-header-migration`
   components (focus trap, `aria-*` attributes, semantic roles and tags,
   roving tabindex).
 
-[Unreleased]: https://github.com/qbolliet/dashboard-template-frontend/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/qbolliet/dashboard-template-frontend/releases/tag/v1.0.0
+[Unreleased]: https://github.com/qbolliet/dashboard-template-frontend/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/qbolliet/dashboard-template-frontend/releases/tag/v0.1.0

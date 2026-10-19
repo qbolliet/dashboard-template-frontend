@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// Construction du registry au format shadcn (P4.1 de TEMPLATIZATION_PROMPTS.md).
+// Construction du registry au format shadcn (P4.1 de docs-internal/TEMPLATIZATION_PROMPTS.md).
 //
 // Deux modes :
 //

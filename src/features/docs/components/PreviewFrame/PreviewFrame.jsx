@@ -23,7 +23,7 @@ export const PreviewThemeContext = createContext(null);
 // PREVIEW FRAME — cadre d'aperçu, avec bascule clair/sombre LOCALE
 // =================================================================
 // Le cadre pose `data-theme` sur LUI-MÊME, et non sur <html>. C'est la démonstration la
-// plus parlante du §4.4 niveau C de TEMPLATIZATION_ARCHITECTURE.md : les tokens étant des
+// plus parlante du §4.4 niveau C de docs-internal/TEMPLATIZATION_ARCHITECTURE.md : les tokens étant des
 // propriétés personnalisées CSS, une surcharge est scopable à un sous-arbre, et deux
 // apparences du même composant peuvent coexister sur une même page — sans variante de
 // code, sans prop supplémentaire, sans rebuild.

@@ -166,5 +166,5 @@ Justifications :
 |---|---|---|
 | 1 | Langue de la documentation | **Tranché : français** (déjà la langue des 30 pages MDX et de `features/docs`). Le préciser dans `guides/internationalisation.mdx` ; traduction anglaise éventuelle plus tard. |
 | 2 | Le bloc sombre local des 21 fichiers : remonter ou laisser ? | Laisser. C'est la convention documentée (`theme-sombre.mdx`) et `check:palette` la surveille ; le coût du remontage dépasse le gain. |
-| 3 | Les 4 documents `TEMPLATIZATION_*` / `LANGUAGE_SWITCHER_*` : les versionner ? | Les déplacer dans `docs-internal/` versionné (ou les supprimer du dépôt tiers via l'eject) : ils décrivent des décisions que `CONTRIBUTING.md` renvoie à d'autres sources. |
-| 4 | Numéro de version | **Tranché : rester en 0.x.** Le dépôt est à `1.0.0` (tag `v1.0.0`) alors que personne ne l'utilise : voir G2 pour le ramener en 0.x. Ensuite, toute rupture = version mineure (`0.y.0`). |
+| 3 | Les 4 documents `TEMPLATIZATION_*` / `LANGUAGE_SWITCHER_*` : les versionner ? | Les déplacer dans `docs-internal/` versionné : ils décrivent des décisions que `CONTRIBUTING.md` renvoie à d'autres sources. Je les supprimerai une fois que j'ai implémenté toutes mes spécifications, avant de merge sur main. On peut les laisser à la racine du repo pour le moment |
+| 4 | Numéro de version | **Tranché : rester en 0.x.** Le dépôt est à `1.0.0` (tag `v1.0.0`) alors que personne ne l'utilise : voir G2 pour le ramener en 0.x. Ensuite, toute rupture = version mineure (`0.y.0`). Je souhaite repasser en version 0.x |

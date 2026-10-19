@@ -8,7 +8,7 @@ Les prompts **F1 à F7** (migration vers l'API 0.3.0) restent ceux de
 `../dashboard-template-api/prompts-integration.md` ; ils ne sont pas recopiés ici. Ce
 fichier ajoute ce qui les entoure : **G0 à G3** avant, **API-0** et **API-1** entre, **F8**
 après, **T1** à la fin. **R1 à R8** (remédiation de la recette G0) s'intercalent entre G0 et
-G1 : ils corrigent les constats `C1` à `C26` de [RECETTE_G0.md](./RECETTE_G0.md).
+G1 : ils corrigent les constats `C1` à `C26` de [RECETTE_G0.md](../RECETTE_G0.md).
 
 Un prompt = une session, un commit, un périmètre vérifiable. Ne pas committer sans relecture.
 
@@ -98,14 +98,14 @@ fichier | capture ou extrait », trié par gravité, et la liste explicite de ce
 pas pu vérifier. Aucune modification de code.
 ```
 
-Le rapport de G0 est dans [RECETTE_G0.md](./RECETTE_G0.md) (constats `C1` à `C26`, pistes de
+Le rapport de G0 est dans [RECETTE_G0.md](../RECETTE_G0.md) (constats `C1` à `C26`, pistes de
 correction, résultats e2e, liste de ce qui n'a pas été vérifié).
 
 ---
 
 ## R1 à R8 — Remédiation de la recette G0
 
-Un prompt par famille de constats de [RECETTE_G0.md](./RECETTE_G0.md). **Ordre** : R1 d'abord
+Un prompt par famille de constats de [RECETTE_G0.md](../RECETTE_G0.md). **Ordre** : R1 d'abord
 (sans serveur de dev fiable, ni la recette ni les captures ne sont rejouables), puis R2 à R7
 dans l'ordre qui vous convient (R2 et R3 touchent le rendu : les lancer avant R5/R6 évite de
 régénérer deux fois les mêmes captures), R8 en dernier.

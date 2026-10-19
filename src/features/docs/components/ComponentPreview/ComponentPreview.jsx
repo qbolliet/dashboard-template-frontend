@@ -14,7 +14,7 @@ import './ComponentPreview.scss';
 // =================================================================
 // Répond à « à quoi ressemble l'usage canonique ? ». À ne pas confondre avec
 // <ComponentPlayground>, qui répond à « que fait ce composant si je change ce
-// paramètre ? » — cf. le tableau du §5.2 de TEMPLATIZATION_ARCHITECTURE.md. Les deux
+// paramètre ? » — cf. le tableau du §5.2 de docs-internal/TEMPLATIZATION_ARCHITECTURE.md. Les deux
 // artefacts sont volontairement distincts : ici le code est FIGÉ et lu au build, là il
 // est GÉNÉRÉ au runtime ; il y a un playground par composant, mais autant d'exemples que
 // de cas d'usage ; et un item de registry doit pointer vers des fichiers concrets, ce

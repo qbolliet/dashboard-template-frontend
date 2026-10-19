@@ -10,7 +10,7 @@ instead.
 
 `src/` is organized in four layers with a strict dependency direction. Full
 detail — including CSS token scoping — lives in [CLAUDE.md](./CLAUDE.md) and
-[DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md); the short version:
+[the design-system pages](./docs/content/fondations/design-system.mdx); the short version:
 
 ```
 styles/      → global CSS primitives and semantic tokens
@@ -95,7 +95,7 @@ distributable component:
 6. Write the documentation page: a `.mdx` file under `docs/content/composants/`
    (or the relevant section) with a `<ComponentPlayground>` and one
    `<ComponentPreview>` per example — the page doubles as the component's
-   test bench (dogfooding; see `TEMPLATIZATION_ARCHITECTURE.md`).
+   test bench (dogfooding; see `docs-internal/TEMPLATIZATION_ARCHITECTURE.md`).
 7. Run `npm run verify` — `build:props --strict` fails the build if the
    component's JSDoc is incomplete, and `build:registry` (non-`--sync` mode)
    fails if `registry.json` is stale relative to the inventory.
@@ -106,8 +106,12 @@ This template follows [Semantic Versioning](https://semver.org/), adapted
 for a project that's mostly **distributed by copy** (`Use this template`) or
 by pulling individual items from the registry, rather than updated via
 `git pull` or a package manager. There is no automated migration path
-between versions — the changelog is how a consumer who copied `v1.0.0`
-finds out what changed in `v1.1.0`.
+between versions — the changelog is how a consumer who copied `v0.1.0`
+finds out what changed in `v0.2.0`.
+
+The project is in **0.x**: until it deliberately moves to 1.0, a breaking
+change as defined below bumps the **minor** number (`0.y.0`), and everything
+else bumps the patch.
 
 Given that distribution model, a **breaking (major) change** is any change
 that would silently break a project someone already copied or installed

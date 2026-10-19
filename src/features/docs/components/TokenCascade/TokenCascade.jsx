@@ -5,7 +5,7 @@ import './TokenCascade.scss';
 // =================================================================
 // TOKEN CASCADE — le schéma des quatre niveaux, en HTML
 // =================================================================
-// Illustre §4.1 de TEMPLATIZATION_ARCHITECTURE.md. Volontairement un composant et non un
+// Illustre §4.1 de docs-internal/TEMPLATIZATION_ARCHITECTURE.md. Volontairement un composant et non un
 // bloc de code ASCII : un schéma dessiné en caractères ne suit pas le thème, ne se
 // réagence pas sur petit écran, et ne peut pas lier les fichiers qu'il nomme.
 //

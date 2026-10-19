@@ -3,10 +3,10 @@ import type { Locator } from '@playwright/test';
 import { playgroundFrame, previewFrame, clickTab } from './helpers/previewFrame';
 
 // =================================================================
-// CAS LIMITES HÉRITÉS DES PAGES /test-* (P4.6 de TEMPLATIZATION_PROMPTS.md)
+// CAS LIMITES HÉRITÉS DES PAGES /test-* (P4.6 de docs-internal/TEMPLATIZATION_PROMPTS.md)
 // =================================================================
 // Reprend la colonne « destination : test » du tableau de correspondance produit en
-// P4.6 (« Constat d'exécution », TEMPLATIZATION_PROMPTS.md) : chaque bloc ci-dessous
+// P4.6 (« Constat d'exécution », docs-internal/TEMPLATIZATION_PROMPTS.md) : chaque bloc ci-dessous
 // pointe vers le commentaire qui l'a explicitement laissé en attente de cette suite.
 
 test.describe('Chart — coercition ISO et branchement loading/error/success', () => {
