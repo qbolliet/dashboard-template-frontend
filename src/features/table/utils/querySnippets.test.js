@@ -77,4 +77,10 @@ describe('snippets', () => {
     expect(JSON.parse(url.searchParams.get('filters'))).toEqual(vars.structuredFilters);
     expect(snippetExport(vars, hint)).toContain('curl -sS -OJ ');
   });
+
+  it('adds fields and bom to the export URL on request', () => {
+    const url = new URL(buildExportUrl(vars, hint, 'csv', { fields: ['country', 'year'], bom: true }));
+    expect(url.searchParams.get('fields')).toBe('country,year');
+    expect(url.searchParams.get('bom')).toBe('1');
+  });
 });

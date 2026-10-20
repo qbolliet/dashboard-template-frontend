@@ -16,6 +16,9 @@ import { isNumericFamily } from '@/features/filter/utils/filterTypes';
 import useDataTableState from '@/features/table/hooks/useDataTableState';
 import { formatCell, isNumericCol } from '@/features/table/utils/formatCell';
 import { toCsv, downloadBlob } from '@/features/table/utils/exporters';
+import { buildExportRequest, requestExport, ExportError } from '@/features/table/utils/exportRequest';
+import useAriaAnnounce from '@/hooks/accessibility/useAriaAnnounce';
+import { TRANSPORT_NAME } from '@/lib/api/client';
 import { copyToClipboard } from '@/utils/clipboard/copyToClipboard';
 import {
   buildQueryVariables, snippetFetch, snippetPython, snippetCurl, snippetExport,
@@ -25,6 +28,7 @@ import TableChipRow from './TableChipRow/TableChipRow';
 import TableFooter from './TableFooter/TableFooter';
 import TableSnippetReveal from './TableSnippetReveal/TableSnippetReveal';
 import { mergeLabels } from '@/utils/i18n/mergeLabels';
+import { interpolate } from '@/utils/i18n/interpolate';
 import { DEFAULT_LOCALE } from '@/i18n/config';
 import { intlLocaleFor } from '@/i18n/formats';
 import './Table.scss';
@@ -46,6 +50,14 @@ const DEFAULT_LABELS = {
   copyPython: 'Copier la requête Python (requests)',
   copyCurl: 'Copier la commande cURL',
   copyExport: 'Copier la commande d’export complet (.parquet, cURL)',
+  exportStarted: 'Export en cours…',
+  exportDone: 'Export terminé : {filename}',
+  exportTooLarge: 'Le jeu de données est trop volumineux pour être exporté en entier : filtrez-le pour réduire le nombre de lignes.',
+  exportRateLimited: 'Trop d’exports simultanés : réessayez dans {seconds} s.',
+  exportRateLimitedNoDelay: 'Trop d’exports simultanés : réessayez dans un instant.',
+  exportRejected: 'Export refusé : {detail}',
+  exportFailed: 'L’export a échoué (erreur {status}).',
+  exportNetworkError: 'L’export a échoué : l’API est injoignable.',
   filtersLabel: 'Filtres',
   removeFilter: 'Retirer le filtre {label}',
   removeSort: 'Retirer le tri',
@@ -93,7 +105,9 @@ const SNIPPET_BUILDERS = { js: snippetFetch, py: snippetPython, curl: snippetCur
 /**
  * Interactive data table: per-column sort, distinct-value filters, column
  * removal, hover toolbar (reset / CSV / Parquet exports / query snippets), and
- * an optional `<MultiCriterionMenu>` default filter.
+ * an optional `<MultiCriterionMenu>` default filter. Backed by the API (remote mode),
+ * CSV and Parquet export the whole filtered dataset through `/api/export`; otherwise
+ * CSV exports the loaded rows client-side.
  *
  * @param {object} props
  * @param {Array<Object>} props.data - Rows in long format (key → value). Direct
@@ -126,9 +140,11 @@ const SNIPPET_BUILDERS = { js: snippetFetch, py: snippetPython, curl: snippetCur
  *   (include list: nothing ticked = no filter). `defaultFilter` is then ignored.
  * @param {Array<import('@/components/toolbar/HoverToolbar/HoverToolbar').ToolSpec>} [props.extraTools]
  *   - Extra operations injected at the head of the toolbar (dedicated group).
- * @param {function(Array<Object>, ColumnDef[]): void} [props.onExportParquet] - Real
- *   Parquet export (server route / server action). Absent = JSON `.parquet.json`
- *   fallback, like the prototype.
+ * @param {function(Array<Object>, ColumnDef[]): void} [props.onExportParquet] - Custom
+ *   Parquet export (server route / server action) for a table fed by static `data`.
+ *   Ignored in remote mode backed by the API, where both exports go through
+ *   `/api/export` (whole filtered dataset). Without the API and without this prop,
+ *   the Parquet button is hidden.
  * @param {string} [props.className]
  * @param {Object} [props.style]
  * @param {string} [props.className] - Additional class(es) on the root section.
@@ -209,21 +225,43 @@ const Table = ({
     intlLocale,
   });
   const remote = typeof onColumnFiltersChange === 'function';
+  const announce = useAriaAnnounce();
+  // Adossée à l'API : mode distant et transport GraphQL réel (ou endpoint explicite).
+  // Avec les fixtures en mémoire, aucun /api/export n'existe à joindre.
+  const apiBacked = remote && (TRANSPORT_NAME === 'graphql' || !!queryHint.apiBase);
 
   // Slug de nom de fichier pour les exports (« Titre du tableau » → titre_du_tableau).
   const slug = (title || 'table').toLowerCase().replace(/\s+/g, '_');
 
   // ── Handlers d'export ──
+  // Export complet via l'API : colonnes visibles, FilterNode courant (menu + filtres de
+  // colonne), tri courant. Les erreurs HTTP sont annoncées, jamais levées vers React.
+  const exportThroughApi = async (format) => {
+    const vars = buildQueryVariables(filters, sort, resolvedColumns, queryHint);
+    const request = buildExportRequest(vars, queryHint, format, visibleColumns.map((c) => c.key));
+    announce(labels.exportStarted);
+    try {
+      const { blob, filename } = await requestExport(request, labels, slug, format);
+      downloadBlob(blob, filename);
+      announce(interpolate(labels.exportDone, { filename }));
+      flash(format);
+    } catch (err) {
+      if (!(err instanceof ExportError)) throw err;
+      announce(err.message, 'assertive');
+    }
+  };
   const onCsv = () => {
+    if (apiBacked) return exportThroughApi('csv');
     downloadBlob(toCsv(sortedRows, visibleColumns), `${slug}.csv`, 'text/csv;charset=utf-8');
     flash('csv');
   };
   const onParquet = () => {
-    if (onExportParquet) onExportParquet(sortedRows, visibleColumns);
-    // Repli sans dépendance : export JSON « .parquet.json », comme le prototype.
-    else downloadBlob(JSON.stringify(sortedRows, null, 2), `${slug}.parquet.json`, 'application/json');
+    if (apiBacked) return exportThroughApi('parquet');
+    onExportParquet(sortedRows, visibleColumns);
     flash('parquet');
   };
+  // Pas d'export Parquet sans API ni callback dédié : le JSON renommé n'en était pas un.
+  const canExportParquet = apiBacked || typeof onExportParquet === 'function';
 
   // ── Handler de copie (snippet GraphQL réel) ──
   const onCopy = (kind) => {
@@ -254,7 +292,9 @@ const Table = ({
       : [],
     [
       { id: 'csv', icon: <DownloadIcon />, caption: 'CSV', done: copied === 'csv', onClick: onCsv, label: labels.exportCsv },
-      { id: 'parquet', icon: <DownloadIcon />, caption: 'PARQUET', done: copied === 'parquet', onClick: onParquet, label: labels.exportParquet },
+      ...(canExportParquet
+        ? [{ id: 'parquet', icon: <DownloadIcon />, caption: 'PARQUET', done: copied === 'parquet', onClick: onParquet, label: labels.exportParquet }]
+        : []),
     ],
     [
       { id: 'js', icon: <CopyIcon />, caption: 'JS', done: copied === 'js', onClick: () => onCopy('js'), label: labels.copyFetch },

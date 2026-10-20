@@ -180,12 +180,16 @@ export function snippetCurl(vars, queryHint = {}) {
  * @param {Object} vars - Variables object from `buildQueryVariables`.
  * @param {{apiBase?: string}} [queryHint]
  * @param {'parquet'|'csv'|'arrow'} [format='parquet'] - Export format.
+ * @param {{fields?: string[], bom?: boolean}} [options] - `fields`: columns to export,
+ *   in order (default: all). `bom`: UTF-8 byte-order mark, for a CSV opened in Excel.
  * @returns {string} Export URL, `filters` being the URL-encoded FilterNode JSON.
  */
-export function buildExportUrl(vars, queryHint = {}, format = 'parquet') {
+export function buildExportUrl(vars, queryHint = {}, format = 'parquet', options = {}) {
   // L'export est servi à côté de /graphql, sous le même préfixe éventuel
   const base = resolveEndpoint(queryHint).replace(/\/graphql\/?$/, '');
   const params = new URLSearchParams({ format });
+  if (options.fields?.length) params.set('fields', options.fields.join(','));
+  if (options.bom) params.set('bom', '1');
   if (vars.catalog != null) params.set('catalog', vars.catalog);
   if (vars.schema != null) params.set('schema', vars.schema);
   if (vars.sort?.length) {
