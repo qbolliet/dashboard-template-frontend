@@ -2,9 +2,9 @@
 import { useId } from 'react';
 import { scaleBand } from '@visx/scale';
 import { Bar } from '@visx/shape';
-import { mean } from 'd3-array';
 import { color as d3color } from 'd3-color';
 import { groupSeries, seriesKey, xKeyOf } from '@/features/chart/utils/encoding';
+import { reduceValues } from '@/features/chart/utils/aggregate';
 import HatchPatterns from '../shared/HatchPatterns';
 import SeriesMarker from '../shared/SeriesMarker';
 import './BarMarks.scss';
@@ -53,12 +53,16 @@ function seriesMatchesHover(g, hovered) {
  * @param {?Array<object>} [props.groups=null] - Pre-computed `groupSeries(data, channels)`
  *   result (mutualisé côté appelant, cf. Chart.jsx) ; recalculé en interne si absent, pour
  *   ne pas casser un usage direct du composant.
+ * @param {string} [props.aggregate='AVG'] - Reduction of the rows sharing a (band, series)
+ *   slot, as accepted by `reduceValues`: `'none'` when the rows are API aggregates (one
+ *   row per bar), an `Aggregation` value (`SUM`, `AVG`…).
  * @returns {JSX.Element}
  */
 const BarMarks = ({
   data, x, y, channels, xScale, yScale,
   colorScale, styleScale, markerScale, hatchScale,
   hovered, orient = 'v', fill = 'fill', stack = null, mini = false, groups = null,
+  aggregate = 'AVG',
 }) => {
   // Initialisation des valeurs
   const horizontal = orient === 'h';
@@ -130,7 +134,8 @@ const BarMarks = ({
             {paintSeries.map((g) => {
               const rows = sMap.get(g.key);
               if (!rows || !rows.length) return null;
-              const value = mean(rows, (r) => +r[valKey]);
+              // Une barre = une valeur : réduction des lignes du slot (aucune en 'none')
+              const value = reduceValues(rows.map((r) => +r[valKey]).filter((v) => !isNaN(v)), aggregate);
               if (value == null || isNaN(value)) return null;
               const color = colorScale(g.colorVal);
               const dash = channels.style ? styleScale(g.styleVal) : null;

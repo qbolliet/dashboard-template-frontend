@@ -20,12 +20,12 @@ import { defineField } from './metadata.js';
  */
 export const MACRO_CATALOG_SCHEMA = [
   // Mesures continues
-  defineField({ name: 'gdp', label: 'Croissance du PIB (%)', sqlType: 'DOUBLE', unit: '%', displayFormat: ',.1f', family: 'Mesures' }),
-  defineField({ name: 'inflation', label: "Taux d'inflation (%)", sqlType: 'DOUBLE', unit: '%', displayFormat: ',.1f', family: 'Mesures' }),
-  defineField({ name: 'chomage', label: 'Taux de chômage (%)', sqlType: 'DOUBLE', unit: '%', displayFormat: ',.1f', family: 'Mesures' }),
-  defineField({ name: 'dette_pib', label: 'Dette publique / PIB (%)', sqlType: 'DOUBLE', unit: '%', displayFormat: ',.1f', family: 'Mesures' }),
-  defineField({ name: 'prod_indus', label: 'Production industrielle (idx)', sqlType: 'DOUBLE', displayFormat: ',.1f', family: 'Mesures' }),
-  defineField({ name: 'taux_dir', label: 'Taux directeur (%)', sqlType: 'DOUBLE', unit: '%', displayFormat: ',.2f', family: 'Mesures' }),
+  defineField({ name: 'gdp', label: 'Croissance du PIB (%)', sqlType: 'DOUBLE', unit: '%', displayFormat: ',.1f', family: 'Mesures', defaultAggregation: 'AVG' }),
+  defineField({ name: 'inflation', label: "Taux d'inflation (%)", sqlType: 'DOUBLE', unit: '%', displayFormat: ',.1f', family: 'Mesures', defaultAggregation: 'AVG' }),
+  defineField({ name: 'chomage', label: 'Taux de chômage (%)', sqlType: 'DOUBLE', unit: '%', displayFormat: ',.1f', family: 'Mesures', defaultAggregation: 'AVG' }),
+  defineField({ name: 'dette_pib', label: 'Dette publique / PIB (%)', sqlType: 'DOUBLE', unit: '%', displayFormat: ',.1f', family: 'Mesures', defaultAggregation: 'AVG' }),
+  defineField({ name: 'prod_indus', label: 'Production industrielle (idx)', sqlType: 'DOUBLE', displayFormat: ',.1f', family: 'Mesures', defaultAggregation: 'AVG' }),
+  defineField({ name: 'taux_dir', label: 'Taux directeur (%)', sqlType: 'DOUBLE', unit: '%', displayFormat: ',.2f', family: 'Mesures', defaultAggregation: 'AVG' }),
 
   // Dates
   defineField({ name: 'date_obs', label: "Date d'observation", sqlType: 'DATE', isPrimaryKey: true, family: 'Dates' }),

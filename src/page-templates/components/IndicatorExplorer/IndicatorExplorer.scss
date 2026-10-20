@@ -1,6 +1,7 @@
 // ===== INDICATOR EXPLORER - ÉTATS DE CHARGEMENT ET D'ERREUR =====
-// La mise en page du bloc vient de .page (PageBody) : ne restent ici que les deux
-// lignes de statut, qui n'appartiennent à aucun composant existant.
+// La mise en page du bloc vient de .page (PageBody) : ne restent ici que les lignes de
+// statut et l'intitulé du sélecteur de mesures, qui n'appartiennent à aucun composant
+// existant.
 @use '@/styles/globals/tokens/semantic-colors';
 @use '@/styles/globals/primitives/colors';
 @use '@/styles/globals/typography';
@@ -8,6 +9,15 @@
 .indicator-explorer__status {
     font-size: var(--font-size-sm);
     color: hsl(var(--color-text-tertiary));
+}
+
+// Intitulé du sélecteur de mesures, posé au-dessus de lui (le <SelectMenu> suit
+// immédiatement dans le flux de .page : aucun conteneur supplémentaire).
+.indicator-explorer__measures-label {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: hsl(var(--color-text-secondary));
 }
 
 .indicator-explorer__status--error {

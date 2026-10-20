@@ -24,6 +24,7 @@ const VARIABLES = {
   GET_SELECT_OPTIONS: { fieldName: 'region' },
   GET_SELECT_OPTIONS_TREE: { fieldName: 'country', maxDepth: 2 },
   GET_FIELD_STATS: { fieldName: 'gdp' },
+  GET_AGGREGATES: { catalog: 'catalogue', groupBy: [{ field: 'sector' }], aggregates: [{ measure: 'montant' }] },
 };
 
 const documents = loadDocuments().map(({ name, source }) => ({ id: name.split(' ')[0], source }));

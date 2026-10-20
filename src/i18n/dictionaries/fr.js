@@ -138,6 +138,10 @@ const fr = {
         period: 'Période couverte',
         amplitude: 'Amplitude observée',
         rangeSeparator: ' → ',
+        // Sélecteur des mesures du graphique (plusieurs : une série par mesure)
+        measures: 'Mesures du graphique',
+        measuresPlaceholder: 'Choisir une ou plusieurs mesures',
+        chartTruncated: 'Graphique limité aux {count} premiers groupes : affinez le filtre pour tout afficher.',
         aboutSources: 'Sources des données',
         // Les trous portent ici des <code>, pas du texte : voir
         // src/utils/i18n/interpolateNodes.jsx. La phrase entière est dans le
@@ -306,6 +310,18 @@ const fr = {
         interval: 'Intervalle',
         confidenceIntervals: 'Intervalles de confiance',
         normalizeBar: 'Barre de normalisation (100)',
+        // Axes et séries tracés depuis les agrégats de l'API (useAggregatedChart)
+        aggregateAxis: '{label} ({aggregation})',
+        measureSeries: 'Mesure',
+        aggregations: {
+            SUM: 'somme',
+            AVG: 'moyenne',
+            MEDIAN: 'médiane',
+            MIN: 'minimum',
+            MAX: 'maximum',
+            COUNT: 'effectif',
+            MODE: 'mode',
+        },
     },
 
     toolbar: {

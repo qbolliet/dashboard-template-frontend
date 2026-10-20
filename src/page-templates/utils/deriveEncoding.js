@@ -23,9 +23,10 @@ import { isDateFamily, isNumericFamily } from '@/features/filter/utils/filterTyp
  * @param {Array<Object>} columnsMetadata - Metadata of the columns present in the rows
  *   (`fields` of `getFactTableWithMetadata`).
  * @returns {{x: (string|undefined), y: (string|undefined), hue: (string|undefined),
- *   labels: Object, format: Object}} Props ready to spread onto `<Chart>`. `y` is
- *   `undefined` when no continuous measure is available — the caller must then skip
- *   the chart, which requires it.
+ *   labels: Object, format: Object, grain: (string|undefined)}} Encoding of the chart.
+ *   `y` is `undefined` when no continuous measure is available — the caller must then
+ *   skip the chart, which requires it. `grain` is the `TimeGrain` the server-side
+ *   aggregates truncate a date x to; it is not a `<Chart>` prop.
  */
 export const deriveEncoding = (columnsMetadata = []) => {
     const xMeta = columnsMetadata.find((m) => isDateFamily(m.typeFamily));
@@ -46,5 +47,8 @@ export const deriveEncoding = (columnsMetadata = []) => {
         // (`displayFormat`, `unit`) n'a pas à l'être : <Chart fields={columnsMetadata}>
         // le lit lui-même dans les métadonnées, pour les axes comme pour l'infobulle.
         format: xMeta ? { x: '%Y-%m' } : {},
+        // Grain des agrégats serveur sur l'axe temporel, assorti au format mensuel de
+        // l'axe : un point par mois et par série, quel que soit le pas des données.
+        grain: xMeta ? 'MONTH' : undefined,
     };
 };

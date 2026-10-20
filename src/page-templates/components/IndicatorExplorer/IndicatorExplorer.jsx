@@ -17,13 +17,19 @@
 // (toFilterNode) et les filtres de colonne du tableau (critères IN) forment un seul
 // FilterNode, envoyé en `structuredFilters`. Graphique, tableau et indicateurs
 // montrent donc le jeu filtré, pas un sous-ensemble de la première page.
+//
+// L'agrégation aussi est faite par l'API : un graphique qui regroupe (lignes, barres,
+// heatmap) est tracé depuis getAggregates — sur tout le jeu filtré, avec l'agrégation
+// déclarée de chaque mesure (SUM d'un stock, AVG d'un taux) — et non depuis la page
+// de 100 lignes du tableau (cf. useAggregatedChart).
 
 // Importation des modules
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { Table, useFactTableWithMetadata } from '@/features/table';
-import { Chart, ChartsFeatures as F } from '@/features/chart';
+import { Chart, ChartsFeatures as F, useAggregatedChart } from '@/features/chart';
 import { useFieldStats } from '@/hooks/fieldStats/useFieldStats';
 import MultiCriterionMenu from '@/features/filter/components/MultiCriterionMenu/MultiCriterionMenu';
+import SelectMenu from '@/components/filter/SelectMenu/SelectMenu';
 import { CardGrid, StatCard } from '@/components/ui';
 import { formatNumber } from '@/utils/format/formatNumber';
 import { formatValue } from '@/utils/format/formatValue';
@@ -122,6 +128,10 @@ const IndicatorExplorer = ({
     const [filter, setFilter] = useState(null);
     // Sélections des filtres de colonne du tableau (mode distant de <Table>)
     const [columnFilters, setColumnFilters] = useState({});
+    // Mesures choisies dans le sélecteur ([{value, label}]) ; `null` tant que le lecteur
+    // n'a rien choisi : la mesure déduite du schéma s'applique alors.
+    const [measureSelection, setMeasureSelection] = useState(null);
+    const measuresId = useId();
     const intlLocale = intlLocaleFor(locale);
     const { dateMask, dateOrder, firstDayOfWeek } = formatsFor(locale);
     const toolbar = useIndicatorToolbar(dictionary.chart);
@@ -154,7 +164,33 @@ const IndicatorExplorer = ({
     // `labels` de deriveEncoding nomme les AXES du graphique (une colonne → son
     // intitulé) : rien à voir avec les libellés d'interface reçus en prop, d'où le
     // renommage local.
-    const { x, y, hue, labels: axisLabels, format } = deriveEncoding(schema);
+    const { x, y, hue, labels: axisLabels, format, grain } = deriveEncoding(schema);
+
+    // Mesures proposées : les colonnes numériques continues du jeu. Le lecteur en choisit
+    // une (son agrégation déclarée s'applique, sans code propre à la mesure) ou plusieurs
+    // (une série par mesure). Vider le sélecteur revient à la mesure déduite du schéma.
+    const measureOptions = (schema ?? [])
+        .filter((m) => isNumericFamily(m.typeFamily) && !m.isCategorical && !m.labelFor)
+        .map((m) => ({ value: m.name, label: m.label ?? m.name }));
+    const measures = measureSelection?.length
+        ? measureSelection.map((o) => o.value)
+        : (y ? [y] : []);
+
+    // Props du graphique : agrégats de l'API pour les types qui regroupent, lignes brutes
+    // de la page sinon. `labels` du hook nomme les axes et séries agrégés (« Population
+    // (somme) », « Mesure ») ; ceux de deriveEncoding servent en mode lignes brutes.
+    const chart = useAggregatedChart({
+        x,
+        measures,
+        hue,
+        fields: schema,
+        fill: 'line',
+        grain,
+        rows: data,
+        structuredFilters,
+        labels: dictionary.chart,
+    });
+    const chartLabels = chart.mode === 'server' && chart.chartProps.labels ? chart.chartProps.labels : axisLabels;
 
     // Les cartes suivent le filtre : `metadata.total` est le nombre de lignes retenues
     // (et non la taille de la page, `count`), et les bornes de x et y viennent de
@@ -164,7 +200,9 @@ const IndicatorExplorer = ({
     // au lecteur que son filtre a bien été pris en compte.
     const isFiltered = Boolean(structuredFilters);
     const xStats = useFieldStats({ fieldName: x, structuredFilters, enabled: !!x }).stats;
-    const yStats = useFieldStats({ fieldName: y, structuredFilters, enabled: !!y }).stats;
+    // L'amplitude suit la mesure principale du graphique (la première choisie).
+    const primaryMeasure = measures[0];
+    const yStats = useFieldStats({ fieldName: primaryMeasure, structuredFilters, enabled: !!primaryMeasure }).stats;
     const fieldOf = (column) => schema?.find((m) => m.name === column);
 
     // Variables du menu de filtres : toutes les colonnes du jeu, sauf les colonnes de
@@ -173,7 +211,7 @@ const IndicatorExplorer = ({
     // coordonnées de la ligne (pays, date…), les critères les plus naturels.
     const variables = metadataToVariables(schema);
 
-    // Message d'erreur de chargement, commun aux deux cas ci-dessous.
+    // Message d'erreur de chargement, commun aux trois cas ci-dessous (jeu, filtre, agrégats).
     const errorStatus = (err) => (
         <p className="indicator-explorer__status indicator-explorer__status--error" role="alert">
             {interpolate(labels.error, { message: String(err.message ?? err) })}
@@ -205,8 +243,8 @@ const IndicatorExplorer = ({
                     footerNote={axisLabels.x} />
                 <StatCard
                     title={labels.amplitude}
-                    value={formatExtent(extentFromStats(yStats, fieldOf(y)), fieldOf(y), intlLocale, labels.rangeSeparator)}
-                    footerNote={axisLabels.y} />
+                    value={formatExtent(extentFromStats(yStats, fieldOf(primaryMeasure)), fieldOf(primaryMeasure), intlLocale, labels.rangeSeparator)}
+                    footerNote={fieldOf(primaryMeasure)?.label ?? axisLabels.y} />
             </CardGrid>
 
             <MultiCriterionMenu
@@ -225,20 +263,44 @@ const IndicatorExplorer = ({
                 le lecteur corrige son filtre, plutôt que de tout remplacer par l'erreur. */}
             {error && errorStatus(error)}
 
+            {/* Sélecteur des mesures, seulement s'il y a un choix à faire. */}
+            {y && measureOptions.length > 1 && (
+                <>
+                    <label htmlFor={measuresId} className="indicator-explorer__measures-label">
+                        {labels.measures}
+                    </label>
+                    <SelectMenu
+                        id={measuresId}
+                        allowMulti
+                        options={measureOptions}
+                        value={measureSelection ?? measureOptions.filter((o) => o.value === y)}
+                        onChange={setMeasureSelection}
+                        placeholder={labels.measuresPlaceholder}
+                        labels={dictionary.selectMenu} />
+                </>
+            )}
+
+            {/* Agrégats refusés par l'API : même traitement qu'une requête filtrée refusée. */}
+            {chart.error && errorStatus(chart.error)}
+
             {/* <Chart> exige un `y` : sans mesure continue dans le jeu, on l'omet plutôt
                 que de le laisser lever. Le tableau, lui, reste pertinent. */}
             {y && (
                 <Chart
-                    data={data}
-                    x={x} y={y} hue={hue}
-                    fields={schema}
+                    {...chart.chartProps}
                     format={format}
-                    labels={axisLabels}
+                    labels={chartLabels}
                     title={name}
                     toolbar={toolbar}
                     locale={locale}
                     uiLabels={dictionary.chart}
                     height={420} />
+            )}
+
+            {chart.truncated && (
+                <p className="indicator-explorer__status">
+                    {interpolate(labels.chartTruncated, { count: chart.chartProps.data.length })}
+                </p>
             )}
 
             <Table

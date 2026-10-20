@@ -52,6 +52,7 @@ export const GET_FACT_TABLE_WITH_METADATA = gql`
         labelFor
         labelFields
         parentName
+        defaultAggregation
       }
       data
       metadata {

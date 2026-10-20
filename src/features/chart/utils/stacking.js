@@ -2,8 +2,8 @@
 // STACKING — empilement de séries (bar/line/violin) par canal
 // =================================================================
 // Importation des modules
-import { mean, sum } from 'd3-array';
 import { seriesKey, xKeyOf } from './encoding';
+import { reduceValues } from './aggregate';
 
 /**
  * Builds the stacked offsets of series grouped by x, for one of the three
@@ -22,7 +22,9 @@ import { seriesKey, xKeyOf } from './encoding';
  * @param {{color: ?string, style: ?string, marker: ?string}} params.channels - Active channel columns.
  * @param {'none'|'all'|'color'|'style'|'marker'} params.stackBy - Stacking mode.
  * @param {Array<string>} [params.seriesOrder] - Series keys in the desired stacking order.
- * @param {'sum'|'mean'} [params.aggregate] - Aggregation used for duplicate (series, x) values.
+ * @param {string} [params.aggregate='SUM'] - Reduction of duplicate (series, x) values, as
+ *   accepted by `reduceValues`: `'none'` for rows already aggregated by the API (one row
+ *   per segment, value kept as is), an `Aggregation` value (`SUM`, `AVG`…).
  * @returns {?{offsets: Map<string, {y0: number, y1: number}>, max: number}} Offsets keyed by
  *   "serieKey|xKey", and the max cumulated value across all x buckets; null if stackBy is 'none'.
  */
@@ -41,8 +43,8 @@ export function buildStacks({ data, posKey, valKey, channels, stackBy, seriesOrd
 
   const orderIndex = new Map((seriesOrder || []).map((k, i) => [k, i]));
 
-  // Regroupe les lignes par (clé de groupe, clé d'abscisse) ; agrège les
-  // doublons série/x si nécessaire (aggregate: 'sum' | 'mean').
+  // Regroupe les lignes par (clé de groupe, clé d'abscisse) ; réduit les doublons
+  // série/x selon `aggregate` (cf. reduceValues ; 'none' : déjà agrégé par l'API).
   const buckets = new Map();
   for (const row of data) {
     const sk = seriesKey(row, channels);
@@ -66,7 +68,7 @@ export function buildStacks({ data, posKey, valKey, channels, stackBy, seriesOrd
     );
     let acc = 0;
     for (const it of items) {
-      const v = aggregate === 'mean' ? mean(it.vals) : sum(it.vals);
+      const v = reduceValues(it.vals, aggregate ?? 'SUM');
       const y0 = acc;
       const y1 = acc + v;
       acc = y1;

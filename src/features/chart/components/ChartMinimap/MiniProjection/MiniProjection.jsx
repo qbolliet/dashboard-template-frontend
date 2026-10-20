@@ -1,7 +1,8 @@
 // Importation des modules
 import { Bar, Area } from '@visx/shape';
 import { curveMonotoneX, curveMonotoneY } from '@visx/curve';
-import { mean, max, extent } from 'd3-array';
+import { max, extent } from 'd3-array';
+import { reduceValues } from '../../../utils/aggregate';
 
 /**
  * 1D projection of a 3D chart onto one axis, for the brush minimaps: a bar chart
@@ -18,12 +19,15 @@ import { mean, max, extent } from 'd3-array';
  * @param {number} props.height - Minimap height (px).
  * @param {'x'|'y'} [props.direction='x'] - Brushed axis direction.
  * @param {string} [props.color='currentColor'] - Fill color.
- * @param {'mean'|'count'} [props.mode='mean'] - Aggregation mode.
+ * @param {'AVG'|'SUM'|'COUNT'} [props.mode='AVG'] - Aggregation mode (`Aggregation` value, as
+ *   accepted by `reduceValues`). `'SUM'` projects
+ *   cells that add up (a heatmap of SUM or COUNT aggregates): averaging them would hide
+ *   the axis total.
  * @returns {JSX.Element}
  */
 const MiniProjection = ({
   data, posCol, posType, valCol, posScale,
-  width, height, direction = 'x', color = 'currentColor', mode = 'mean',
+  width, height, direction = 'x', color = 'currentColor', mode = 'AVG',
 }) => {
   // Initialisation de la direction
   const isX = direction === 'x';
@@ -31,7 +35,8 @@ const MiniProjection = ({
   const thick = isX ? height : width;
 
   // Agrégation le long de l'axe : par catégorie (band) ou par classe (binning
-  // continu en 24 intervalles). `mode` : moyenne de la valeur ou effectif.
+  // continu en 24 intervalles). `mode` : moyenne de la valeur, somme ou effectif.
+  const reduce = (vs) => reduceValues(vs, mode);
   const agg = (() => {
     if (posType === 'categorical') {
       const m = new Map();
@@ -41,7 +46,7 @@ const MiniProjection = ({
         if (!m.has(p)) m.set(p, []);
         m.get(p).push(v);
       }
-      return [...m.entries()].map(([k, vs]) => ({ pos: k, value: mode === 'count' ? vs.length : mean(vs) }));
+      return [...m.entries()].map(([k, vs]) => ({ pos: k, value: reduce(vs) }));
     }
     const vals = data.map((r) => ({ p: +r[posCol], v: +r[valCol] })).filter((d) => !isNaN(d.p) && !isNaN(d.v));
     if (!vals.length) return [];
@@ -56,7 +61,7 @@ const MiniProjection = ({
     }
     return acc.map((vs, i) => ({
       pos: ext[0] + ((i + 0.5) / bins) * span,
-      value: vs.length ? (mode === 'count' ? vs.length : mean(vs)) : 0,
+      value: vs.length ? reduce(vs) : 0,
     }));
   })();
 

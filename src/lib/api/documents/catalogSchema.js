@@ -34,6 +34,7 @@ export const GET_CATALOG_SCHEMA = gql`
       labelFor
       labelFields
       parentName
+      defaultAggregation
     }
   }
 `;

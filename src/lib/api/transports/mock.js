@@ -43,6 +43,7 @@ const OPERATIONS = {
   GetSelectOptions: 'getSelectOptions',
   GetSelectOptionsTree: 'getSelectOptionsTree',
   GetFieldStats: 'getFieldStats',
+  GetAggregates: 'getAggregates',
 };
 
 /**

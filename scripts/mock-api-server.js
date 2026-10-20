@@ -6,7 +6,8 @@
 // Sert `scripts/schema.graphql` (SDL officielle de dashboard-template-api, copiée
 // par `npm run sync:schema` — ne jamais l'éditer) via graphql-yoga, avec les
 // résolveurs des opérations consommées par le template (getFactTableWithMetadata,
-// getCatalogSchema, getSelectOptions, getSelectOptionsTree, getFieldStats). Ces
+// getCatalogSchema, getSelectOptions, getSelectOptionsTree, getFieldStats,
+// getAggregates). Ces
 // résolveurs sont CEUX du transport mock en mémoire (src/lib/api/transports/
 // mockResolvers.js), sur les mêmes fixtures — pour que dev / dev:mock / dev:api
 // affichent des données identiques. Toute autre opération du schéma reste

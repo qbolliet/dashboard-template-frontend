@@ -16,7 +16,7 @@ describe('deriveEncoding', () => {
   it('encodes the DATE in x, the DOUBLE measure in y and the categorical in hue', async () => {
     const encoding = deriveEncoding(await fetchFields());
 
-    expect(encoding).toMatchObject({ x: 'date_obs', y: 'gdp', hue: 'country', format: { x: '%Y-%m' } });
+    expect(encoding).toMatchObject({ x: 'date_obs', y: 'gdp', hue: 'country', format: { x: '%Y-%m' }, grain: 'MONTH' });
     expect(encoding.labels).toEqual({
       x: "Date d'observation",
       y: 'Croissance du PIB (%)',

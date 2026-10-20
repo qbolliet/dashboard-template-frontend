@@ -113,6 +113,9 @@ const en = {
         period: 'Period covered',
         amplitude: 'Observed range',
         rangeSeparator: ' → ',
+        measures: 'Chart measures',
+        measuresPlaceholder: 'Choose one or more measures',
+        chartTruncated: 'Chart limited to the first {count} groups: narrow the filter to see them all.',
         aboutSources: 'Data sources',
         aboutProse:
             'The pages of this site are generated from the {manifest} manifest: every '
@@ -270,6 +273,17 @@ const en = {
         interval: 'Interval',
         confidenceIntervals: 'Confidence intervals',
         normalizeBar: 'Normalisation bar (100)',
+        aggregateAxis: '{label} ({aggregation})',
+        measureSeries: 'Measure',
+        aggregations: {
+            SUM: 'sum',
+            AVG: 'average',
+            MEDIAN: 'median',
+            MIN: 'minimum',
+            MAX: 'maximum',
+            COUNT: 'count',
+            MODE: 'mode',
+        },
     },
 
     toolbar: {

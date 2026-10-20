@@ -9,3 +9,4 @@ export { GET_FACT_TABLE_WITH_METADATA } from './factTable';
 export { GET_CATALOG_SCHEMA } from './catalogSchema';
 export { GET_SELECT_OPTIONS, GET_SELECT_OPTIONS_TREE } from './selectOptions';
 export { GET_FIELD_STATS } from './fieldStats';
+export { GET_AGGREGATES } from './aggregates';

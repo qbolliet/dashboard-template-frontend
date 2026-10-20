@@ -34,6 +34,7 @@ import {
   distinctVals, groupSeries, seriesKey, xKeyOf,
 } from '../../utils/encoding';
 import { buildStacks } from '../../utils/stacking';
+import { reduceValues, clientAggregation, isAdditive } from '../../utils/aggregate';
 import { resolveFormatter } from '../../utils/formatters';
 import { resolveColumnType, formatFromFields } from '../../utils/fieldTypes';
 import { makeScale } from '../../utils/scales';
@@ -118,7 +119,7 @@ function computeBaseHoverTargets({
    en coordonnées directes). ─────────────────────────────────────────────── */
 function computeHoverTargets({
   chartKind, filteredData, channels, xScale, yScale, x, y, z,
-  stack, stackMain, innerWidth, innerHeight, fill, groups,
+  stack, stackMain, innerWidth, innerHeight, fill, groups, reduce,
 }) {
   const out = [];
 
@@ -133,7 +134,7 @@ function computeHoverTargets({
     }
   } else if (chartKind === 'bar' || chartKind === 'bar-h') {
     // Barres verticales/horizontales : centroïde au sommet de chaque barre
-    // (sommet cumulé en empilage, pointe de la moyenne sinon), zone de survol
+    // (sommet cumulé en empilage, pointe de la valeur réduite sinon), zone de survol
     // = rectangle plein de la barre, ou disque au sommet en mode nuage (fill='none').
     const horizontal = chartKind === 'bar-h';
     const bandKey = horizontal ? y : x;
@@ -165,7 +166,8 @@ function computeHoverTargets({
       for (const g of seriesList) {
         const rows = sMap.get(g.key);
         if (!rows || !rows.length) continue;
-        const value = mean(rows, (r) => +r[valKey]);
+        // Même réduction que BarMarks (`reduce`), pour que la tooltip lise la barre tracée
+        const value = reduceValues(rows.map((r) => +r[valKey]).filter((v) => !isNaN(v)), reduce);
         if (value == null || isNaN(value)) continue;
         let vStart, vEnd, cross0, crossW, tipVal;
         if (stackMain) {
@@ -198,7 +200,7 @@ function computeHoverTargets({
     }
   } else if (chartKind === 'heatmap') {
     // Heatmap : centroïde au centre de chaque cellule (x, y), zone de survol =
-    // rectangle de la cellule (même agrégation par moyenne que HeatmapMarks).
+    // rectangle de la cellule (même réduction `reduce` que HeatmapMarks).
     const cellW = xScale.bandwidth ? xScale.bandwidth() : 20;
     const cellH = yScale.bandwidth ? yScale.bandwidth() : 20;
     const map = new Map();
@@ -214,7 +216,7 @@ function computeHoverTargets({
       const cellY = yScale.bandwidth ? yScale(c.y) : yScale(c.y) - cellH / 2;
       out.push({
         px: cellX + cellW / 2, py: cellY + cellH / 2,
-        row: { [x]: c.x, [y]: c.y, [z]: mean(c.vals) },
+        row: { [x]: c.x, [y]: c.y, [z]: reduceValues(c.vals, reduce) },
         hit: { type: 'rect', x: cellX, y: cellY, w: cellW, h: cellH },
       });
     }
@@ -351,6 +353,10 @@ const ChartCanvas = ({
   ciFeature, baFeature, normFactor, channelAssign, baReal,
   expanded, setExpanded, voronoiOn, setVoronoiOn, tooltipsOn, setTooltipsOn,
   locale, uiLabels,
+  // Réduction des groupes (barres, piles, cellules) : 'none' sur des agrégats de l'API,
+  // sinon l'agrégation par défaut de la colonne de valeur ; et mode de projection de la
+  // heatmap dans ses mini-vues ('SUM' pour une agrégation additive, 'AVG' sinon).
+  reduce, projectionMode,
 }) => {
   // Modèle d'état des mini-vues, partagé avec <MultiChart> : interrupteur maître
   // (barre d'outils) + pli par axe (pastilles). Cf. useMinimapState. Persiste tant
@@ -407,7 +413,7 @@ const ChartCanvas = ({
   const groupsFull = groupSeries(data, channels);
   const seriesOrder = groupsFull.map((s) => s.key);
   const stackMini = stackActive
-    ? buildStacks({ data, posKey: stackPosKey, valKey: stackValKey, channels, stackBy: stack, seriesOrder, aggregate: 'mean' })
+    ? buildStacks({ data, posKey: stackPosKey, valKey: stackValKey, channels, stackBy: stack, seriesOrder, aggregate: reduce })
     : null;
 
   // ── Extension de l'axe VALEUR (line / bar) ────────────────────────────────
@@ -515,7 +521,7 @@ const ChartCanvas = ({
 
   // ── Empilage des marks affichés (données filtrées par le brush) ───────────
   const stackMain = stackActive
-    ? buildStacks({ data: filteredData, posKey: stackPosKey, valKey: stackValKey, channels, stackBy: stack, seriesOrder, aggregate: 'mean' })
+    ? buildStacks({ data: filteredData, posKey: stackPosKey, valKey: stackValKey, channels, stackBy: stack, seriesOrder, aggregate: reduce })
     : null;
 
   // ── Entrées des marks : bascule preview pendant un geste de brush ─────────
@@ -609,7 +615,7 @@ const ChartCanvas = ({
     : [];
   const hoverTargets = (zoomLayer || isBrushing) ? [] : computeHoverTargets({
     chartKind, filteredData, channels, xScale, yScale, x, y, z,
-    stack, stackMain, innerWidth, innerHeight, fill, groups: groupsFiltered,
+    stack, stackMain, innerWidth, innerHeight, fill, groups: groupsFiltered, reduce,
   });
 
   // Ancrage adaptatif : bulle du côté OPPOSÉ au point (flip près des bords). En
@@ -735,11 +741,11 @@ const ChartCanvas = ({
   if (chartKind === 'line') {
     marks = <LineMarks data={mData} x={x} y={y} channels={channels} xScale={mXScale} yScale={mYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} fill={fill} stack={mStack} groups={mGroups} baReal={baReal} />;
   } else if (chartKind === 'bar') {
-    marks = <BarMarks data={mData} x={x} y={y} channels={channels} xScale={mXScale} yScale={mYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="v" fill={fill} stack={mStack} groups={mGroups} />;
+    marks = <BarMarks data={mData} x={x} y={y} channels={channels} xScale={mXScale} yScale={mYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="v" fill={fill} stack={mStack} groups={mGroups} aggregate={reduce} />;
   } else if (chartKind === 'bar-h') {
-    marks = <BarMarks data={mData} x={x} y={y} channels={channels} xScale={mXScale} yScale={mYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="h" fill={fill} stack={mStack} groups={mGroups} />;
+    marks = <BarMarks data={mData} x={x} y={y} channels={channels} xScale={mXScale} yScale={mYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="h" fill={fill} stack={mStack} groups={mGroups} aggregate={reduce} />;
   } else if (chartKind === 'heatmap') {
-    marks = <HeatmapMarks data={mData} x={x} y={y} z={z} xScale={mXScale} yScale={mYScale} colorScale={cScale} fill={effFill} />;
+    marks = <HeatmapMarks data={mData} x={x} y={y} z={z} xScale={mXScale} yScale={mYScale} colorScale={cScale} fill={effFill} aggregate={reduce} />;
   } else if (isViolinKind) {
     marks = <ViolinMarks data={data} x={x} y={y} z={z} channels={channels} xScale={mXScale} yScale={mYScale} xScaleBase={baseXScale} yScaleBase={baseYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} orient={chartKind === 'violin-h' ? 'h' : 'v'} fill={effFill} stack={stack} hovered={hovered} />;
   }
@@ -756,25 +762,25 @@ const ChartCanvas = ({
     xMiniContent = <>{<LineMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} fill={fill} stack={stackMini} groups={groupsFull} mini />}{renderMiniCI(baseXScale, yMini)}</>;
   } else if (chartKind === 'bar') {
     const yMini = baseYScale.copy().range([miniH, 0]);
-    xMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="v" fill={fill} stack={stackMini} groups={groupsFull} mini />}{renderMiniCI(baseXScale, yMini)}</>;
+    xMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="v" fill={fill} stack={stackMini} groups={groupsFull} mini aggregate={reduce} />}{renderMiniCI(baseXScale, yMini)}</>;
   } else if (has2DBrush) {
-    xMiniContent = <MiniProjection data={data} posCol={x} posType={xType} valCol={z} posScale={baseXScale} width={innerWidth} height={miniH} direction="x" mode="mean" />;
+    xMiniContent = <MiniProjection data={data} posCol={x} posType={xType} valCol={z} posScale={baseXScale} width={innerWidth} height={miniH} direction="x" mode={chartKind === 'heatmap' ? projectionMode : 'AVG'} />;
   } else if (chartKind === 'violin-v') {
-    xMiniContent = <MiniProjection data={data} posCol={x} posType={xType} valCol={y} posScale={baseXScale} width={innerWidth} height={miniH} direction="x" mode="mean" />;
+    xMiniContent = <MiniProjection data={data} posCol={x} posType={xType} valCol={y} posScale={baseXScale} width={innerWidth} height={miniH} direction="x" mode="AVG" />;
   } else if (chartKind === 'violin-h') {
-    xMiniContent = <MiniProjection data={data} posCol={x} posType={xType} valCol={x} posScale={baseXScale} width={innerWidth} height={miniH} direction="x" mode="count" />;
+    xMiniContent = <MiniProjection data={data} posCol={x} posType={xType} valCol={x} posScale={baseXScale} width={innerWidth} height={miniH} direction="x" mode="COUNT" />;
   }
 
   let yMiniContent = null;
   if (has2DBrush) {
-    yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={z} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="mean" />;
+    yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={z} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode={chartKind === 'heatmap' ? projectionMode : 'AVG'} />;
   } else if (isBarH) {
     const miniX = baseXScale.copy().range([0, Math.max(2, yMinimapW - 2)]);
-    yMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={miniX} yScale={baseYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="h" fill={fill} stack={stackMini} groups={groupsFull} mini />}{renderMiniCI(miniX, baseYScale)}</>;
+    yMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={miniX} yScale={baseYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="h" fill={fill} stack={stackMini} groups={groupsFull} mini aggregate={reduce} />}{renderMiniCI(miniX, baseYScale)}</>;
   } else if (chartKind === 'violin-v') {
-    yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={y} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="count" />;
+    yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={y} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="COUNT" />;
   } else if (chartKind === 'violin-h') {
-    yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={x} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="count" />;
+    yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={x} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="COUNT" />;
   }
 
   return (
@@ -983,6 +989,19 @@ const ChartCanvas = ({
  *   and `detectType` is not called for it, so a code such as '01012100' stays a string.
  *   The `displayFormat` and `unit` of a numeric column also format its axis and tooltip.
  *   Without `fields`, the types are sampled from the values as before.
+ *   On raw rows, grouped marks (bars, stacks, heatmap cells) reduce their rows with the
+ *   value column's `defaultAggregation` (SUM, AVG…), the mean when it declares none.
+ * @param {{measure: string, aggregation?: string}|Array<{measure: string, aggregation?: string}>} [props.aggregate]
+ *   Declares that `data` already holds aggregates computed by the API (getAggregates):
+ *   one row per group (abscissa × hue series, or heatmap cell), the value in `y` (`x`
+ *   for horizontal bars, `z` for a heatmap). The chart then renders each value as is and
+ *   never re-aggregates it. `aggregation` (else the measure's `defaultAggregation` in
+ *   `fields`) only drives how a heatmap's minimaps project the cells: summed for SUM /
+ *   COUNT, averaged otherwise. An array describes several measures plotted in LONG
+ *   format (hue = measure). Fetching is the caller's job — see `useAggregatedChart`.
+ *   With a dataset list (`data` = Array<Dataset>), it is the default of the datasets,
+ *   each descriptor being able to declare its own `aggregate` (aggregated and raw
+ *   datasets can then be mixed on one frame).
  * @param {object} [props.format] - { x?, y?, z? } d3 spec or function. Wins over the
  *   formatting derived from `fields`.
  * @param {object} [props.labels] - { x?, y?, z?, color?, style?, marker? }.
@@ -1016,7 +1035,7 @@ const ChartCanvas = ({
 const Chart = ({
   data, x, y, z, hue,
   fill = 'line', stack = 'none',
-  fields, format: formatProp = {}, labels = {}, maxLabelLength = {}, maxLines = {},
+  fields, aggregate, format: formatProp = {}, labels = {}, maxLabelLength = {}, maxLines = {},
   overlap = 'auto', tickDensity = 'normal',
   'categorical-x': categoricalX = false, 'categorical-y': categoricalY = false,
   title, height = 460,
@@ -1073,7 +1092,7 @@ const Chart = ({
       <MultiChart
         data={data} x={x} y={y} hue={hue}
         fill={fill} stack={stack}
-        fields={fields} locale={locale}
+        fields={fields} aggregate={aggregate} locale={locale}
         format={formatProp} labels={labels} maxLabelLength={maxLabelLength} maxLines={maxLines}
         overlap={overlap} tickDensity={tickDensity}
         title={title} height={height} defaults={defaults} toolbar={toolbar}
@@ -1100,6 +1119,20 @@ const Chart = ({
 
   const posKey = chartKind === 'bar-h' ? y : x;
   const valKey = chartKind === 'bar-h' ? x : y;
+
+  // ── Réduction des groupes (barres, piles, cellules de heatmap) ────────────
+  // Agrégats de l'API (`aggregate`) : une ligne par groupe, rendue telle quelle
+  // ('none' — aucune double agrégation). Lignes brutes : agrégation par défaut de la
+  // colonne de valeur (SUM d'une population, AVG d'un taux), la moyenne sans métadonnée.
+  const valueCol = chartKind === 'heatmap' ? z : valKey;
+  const aggregateList = aggregate ? (Array.isArray(aggregate) ? aggregate : [aggregate]) : [];
+  const reduce = aggregateList.length ? 'none' : clientAggregation(fields, valueCol);
+  // Agrégation effective de la mesure, pour projeter la heatmap dans ses mini-vues : des
+  // cellules SUM / COUNT s'additionnent le long d'un axe, les autres se moyennent.
+  const effectiveAggregation = aggregateList.length
+    ? (aggregateList[0].aggregation ?? clientAggregation(fields, aggregateList[0].measure))
+    : reduce;
+  const projectionMode = isAdditive(effectiveAggregation) ? 'SUM' : 'AVG';
 
   // ── Rôle TRANSFORM (normalisation) : données AVANT échelles/marks ─────────
   // GARANTIE : inactif ⇒ référence brute inchangée (zéro recalcul, rendu nu).
@@ -1275,6 +1308,7 @@ const Chart = ({
               expanded={expanded} setExpanded={setExpanded}
               voronoiOn={voronoiOn} setVoronoiOn={setVoronoiOn}
               tooltipsOn={tooltipsOn} setTooltipsOn={setTooltipsOn}
+              reduce={reduce} projectionMode={projectionMode}
             />
           ) : null
         )}

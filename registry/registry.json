@@ -50,6 +50,11 @@
           "target": "~/src/lib/api/client.js"
         },
         {
+          "path": "src/lib/api/documents/aggregates.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/documents/aggregates.js"
+        },
+        {
           "path": "src/lib/api/documents/catalogSchema.js",
           "type": "registry:file",
           "target": "~/src/lib/api/documents/catalogSchema.js"
@@ -58,6 +63,11 @@
           "path": "src/lib/api/documents/factTable.js",
           "type": "registry:file",
           "target": "~/src/lib/api/documents/factTable.js"
+        },
+        {
+          "path": "src/lib/api/documents/fieldStats.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/documents/fieldStats.js"
         },
         {
           "path": "src/lib/api/documents/gql.js",
@@ -90,6 +100,16 @@
           "target": "~/src/lib/api/fixtures/factTable.json"
         },
         {
+          "path": "src/lib/api/fixtures/fieldStats.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/fixtures/fieldStats.js"
+        },
+        {
+          "path": "src/lib/api/fixtures/metadata.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/fixtures/metadata.js"
+        },
+        {
           "path": "src/lib/api/fixtures/selectOptions.js",
           "type": "registry:file",
           "target": "~/src/lib/api/fixtures/selectOptions.js"
@@ -108,6 +128,11 @@
           "path": "src/lib/api/transports/mock.js",
           "type": "registry:file",
           "target": "~/src/lib/api/transports/mock.js"
+        },
+        {
+          "path": "src/lib/api/transports/mockResolvers.js",
+          "type": "registry:file",
+          "target": "~/src/lib/api/transports/mockResolvers.js"
         }
       ],
       "docs": "Sans `NEXT_PUBLIC_API_URL`, le client sert les fixtures embarquées : le composant se rend hors ligne. Définis la variable pour brancher ta propre API — le SDL attendu est dans `schema.graphql`."
@@ -152,6 +177,8 @@
         "filter-tokens",
         "icons",
         "tokens-global",
+        "utils-format",
+        "utils-i18n",
         "visually-hidden"
       ],
       "files": [
@@ -239,6 +266,7 @@
         "icons",
         "tokens-global",
         "toolbar-tools",
+        "utils-format",
         "utils-i18n"
       ],
       "files": [
@@ -548,6 +576,11 @@
           "target": "~/src/features/chart/components/overlays/overlayData.js"
         },
         {
+          "path": "src/features/chart/hooks/useAggregatedChart.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/hooks/useAggregatedChart.js"
+        },
+        {
           "path": "src/features/chart/hooks/useBrushZoom.js",
           "type": "registry:file",
           "target": "~/src/features/chart/hooks/useBrushZoom.js"
@@ -581,6 +614,11 @@
           "path": "src/features/chart/sources/demoData.js",
           "type": "registry:file",
           "target": "~/src/features/chart/sources/demoData.js"
+        },
+        {
+          "path": "src/features/chart/sources/useAggregates.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/sources/useAggregates.js"
         },
         {
           "path": "src/features/chart/sources/useFactTable.js",
@@ -623,6 +661,16 @@
           "target": "~/src/features/chart/toolbar-features/zoom.js"
         },
         {
+          "path": "src/features/chart/utils/aggregate.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/utils/aggregate.js"
+        },
+        {
+          "path": "src/features/chart/utils/aggregationPlan.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/utils/aggregationPlan.js"
+        },
+        {
           "path": "src/features/chart/utils/datasetList.js",
           "type": "registry:file",
           "target": "~/src/features/chart/utils/datasetList.js"
@@ -636,6 +684,11 @@
           "path": "src/features/chart/utils/exportImage.js",
           "type": "registry:file",
           "target": "~/src/features/chart/utils/exportImage.js"
+        },
+        {
+          "path": "src/features/chart/utils/fieldTypes.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/utils/fieldTypes.js"
         },
         {
           "path": "src/features/chart/utils/formatters.js",
@@ -725,9 +778,7 @@
       "categories": [
         "filtres"
       ],
-      "dependencies": [
-        "swr"
-      ],
+      "dependencies": [],
       "registryDependencies": [
         "date-parse",
         "filter-tokens",
@@ -1161,6 +1212,7 @@
         "tokens-global",
         "utils-i18n",
         "utils-math",
+        "utils-navigation",
         "utils-url"
       ],
       "files": [
@@ -2053,11 +2105,13 @@
         "api-client",
         "chart",
         "filter",
+        "select-menu",
         "table",
         "tokens-global",
         "ui",
         "utils-format",
-        "utils-i18n"
+        "utils-i18n",
+        "utils-navigation"
       ],
       "files": [
         {
@@ -2144,6 +2198,11 @@
           "path": "src/page-templates/utils/deriveEncoding.js",
           "type": "registry:file",
           "target": "~/src/page-templates/utils/deriveEncoding.js"
+        },
+        {
+          "path": "src/page-templates/utils/rowsExtent.js",
+          "type": "registry:file",
+          "target": "~/src/page-templates/utils/rowsExtent.js"
         }
       ],
       "docs": "Ces gabarits sont câblés par `src/config/pageTypes.js` et la route `src/app/[...slug]/`, qui restent du ressort de ton application : le registry ne les installe pas."
@@ -2324,8 +2383,11 @@
       "registryDependencies": [
         "api-client",
         "filter",
+        "hooks-accessibility",
+        "hooks-debounce",
         "hover-toolbar",
         "icons",
+        "select-menu",
         "table-tokens",
         "tokens-global",
         "utils-format",
@@ -2456,6 +2518,11 @@
           "path": "src/features/table/utils/exporters.js",
           "type": "registry:file",
           "target": "~/src/features/table/utils/exporters.js"
+        },
+        {
+          "path": "src/features/table/utils/exportRequest.js",
+          "type": "registry:file",
+          "target": "~/src/features/table/utils/exportRequest.js"
         },
         {
           "path": "src/features/table/utils/formatCell.js",
@@ -2900,7 +2967,9 @@
       "type": "registry:lib",
       "title": "Formatage de nombres et de texte",
       "description": "Formatage localisé : devise, pourcentage, notation compacte, unités, décimales contrôlées. Plus slugify, qui dérive un identifiant d'ancre stable d'un texte.",
-      "dependencies": [],
+      "dependencies": [
+        "d3-format"
+      ],
       "registryDependencies": [
         "tokens-global"
       ],
@@ -2914,6 +2983,11 @@
           "path": "src/utils/format/formatNumber.js",
           "type": "registry:file",
           "target": "~/src/utils/format/formatNumber.js"
+        },
+        {
+          "path": "src/utils/format/formatValue.js",
+          "type": "registry:file",
+          "target": "~/src/utils/format/formatValue.js"
         },
         {
           "path": "src/utils/format/slugify.js",
@@ -3019,6 +3093,11 @@
       ],
       "files": [
         {
+          "path": "src/utils/navigation/activePath.js",
+          "type": "registry:file",
+          "target": "~/src/utils/navigation/activePath.js"
+        },
+        {
           "path": "src/utils/navigation/basePaths.js",
           "type": "registry:file",
           "target": "~/src/utils/navigation/basePaths.js"
@@ -3032,6 +3111,11 @@
           "path": "src/utils/navigation/flattenNavigation.js",
           "type": "registry:file",
           "target": "~/src/utils/navigation/flattenNavigation.js"
+        },
+        {
+          "path": "src/utils/navigation/navigationLayout.js",
+          "type": "registry:file",
+          "target": "~/src/utils/navigation/navigationLayout.js"
         },
         {
           "path": "src/utils/navigation/resolveNavigationTree.js",

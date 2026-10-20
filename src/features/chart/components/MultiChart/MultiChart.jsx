@@ -3,8 +3,16 @@
    MultiChart.jsx — <MultiChart>
    Branche « data = liste de jeux » du composant <Chart>. Activée quand `data`
    n'est PAS un Array<Row> mais un Array<Dataset> (cf. isDatasetList) :
-     Dataset = { label, data, hue?, fill?, stack?, 'categorical-x'?, 'categorical-y'? }
-   Les arguments hue / fill / stack de <Chart> servent de DÉFAUT (resolveDatasets).
+     Dataset = { label, data, hue?, fill?, stack?, aggregate?, 'categorical-x'?, 'categorical-y'? }
+   Les arguments hue / fill / stack / aggregate de <Chart> servent de DÉFAUT
+   (resolveDatasets).
+
+   AGRÉGATION DES BARRES ET DES PILES — même règle que <Chart>, jeu par jeu
+   ───────────────────────────────────────────────────────────────────────
+   Un jeu qui déclare `aggregate` (agrégats de l'API, une ligne par groupe) est
+   rendu tel quel, jamais ré-agrégé ('none'). Un jeu de lignes brutes réduit les
+   lignes d'une même barre / d'un même segment de pile avec la `defaultAggregation`
+   de y dans `fields` (SUM d'un stock, AVG d'un taux), la moyenne sans métadonnée.
 
    COORDINATION DES CANAUX (couleur / trait / marqueur) ENTRE JEUX
    ───────────────────────────────────────────────────────────────
@@ -29,7 +37,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { useIsomorphicLayoutEffect } from '@/hooks/layoutEffect/useIsomorphicLayoutEffect';
 import { ParentSize } from '@visx/responsive';
 import { scaleTime, scaleLinear, scaleBand, scaleOrdinal } from '@visx/scale';
-import { extent, mean } from 'd3-array';
+import { extent } from 'd3-array';
 import { color as d3color } from 'd3-color';
 
 import { resolveDatasets, channelsFor } from '@/features/chart/utils/datasetList';
@@ -39,6 +47,7 @@ import {
   distinctVals, groupSeries, seriesKey, xKeyOf,
 } from '@/features/chart/utils/encoding';
 import { buildStacks } from '@/features/chart/utils/stacking';
+import { reduceValues, clientAggregation } from '@/features/chart/utils/aggregate';
 import { resolveFormatter } from '@/features/chart/utils/formatters';
 import { resolveColumnType, formatFromFields } from '@/features/chart/utils/fieldTypes';
 import { measureText, tickCountFor } from '@/features/chart/utils/measureText';
@@ -86,9 +95,10 @@ function centerX(scale, v) {
 /* ───────────────────────── Géométrie des barres continues ─────────────
    Barres positionnées à leur x (axe continu ou catégoriel) avec une largeur
    calculée à partir du plus petit écart pixel entre x distincts. Dodge par
-   série (scaleBand), empilage optionnel. Renvoie la liste de rectangles + le
-   centre/sommet de chaque barre (réutilisée pour le survol). ─────────────── */
-function barGeometry(rows, x, y, channels, xScale, yScale, stack) {
+   série (scaleBand), empilage optionnel. `reduce` réduit les lignes d'une même
+   barre (cf. reduceValues : 'none' pour des agrégats de l'API). Renvoie la liste
+   de rectangles + le centre/sommet de chaque barre (réutilisée pour le survol). */
+function barGeometry(rows, x, y, channels, xScale, yScale, stack, reduce) {
   const seriesList = groupSeries(rows, channels);
   const seriesKeys = seriesList.map((s) => s.key);
 
@@ -122,7 +132,7 @@ function barGeometry(rows, x, y, channels, xScale, yScale, stack) {
   const zero = yScale(0);
 
   const stk = (stack && stack !== 'none')
-    ? buildStacks({ data: rows, posKey: x, valKey: y, channels, stackBy: stack, seriesOrder: seriesKeys, aggregate: 'mean' })
+    ? buildStacks({ data: rows, posKey: x, valKey: y, channels, stackBy: stack, seriesOrder: seriesKeys, aggregate: reduce })
     : null;
 
   // Ordre de PEINTURE inversé : la 1re série est empilée/rendue en dernier (donc
@@ -136,7 +146,8 @@ function barGeometry(rows, x, y, channels, xScale, yScale, stack) {
     for (const g of paintSeries) {
       const rs = m.get(g.key);
       if (!rs || !rs.length) continue;
-      const value = mean(rs, (r) => +r[y]);
+      // Une barre = une valeur : réduction des lignes du slot (aucune en 'none')
+      const value = reduceValues(rs.map((r) => +r[y]).filter((v) => !isNaN(v)), reduce);
       if (value == null || isNaN(value)) continue;
       let vTop, vBot, x0, w;
       if (stk) {
@@ -168,9 +179,9 @@ function barGeometry(rows, x, y, channels, xScale, yScale, stack) {
 const ContinuousBarMarks = ({
   rows, x, y, channels, xScale, yScale,
   colorScale, styleScale, markerScale, hatchScale,
-  hovered, fill, stack, mini = false,
+  hovered, fill, stack, reduce, mini = false,
 }) => {
-  const { bars } = barGeometry(rows, x, y, channels, xScale, yScale, stack);
+  const { bars } = barGeometry(rows, x, y, channels, xScale, yScale, stack, reduce);
 
   // Identité stable des <pattern> via useId (aucun compteur de module : impureté
   // de rendu proscrite par react-compiler).
@@ -388,7 +399,7 @@ const MultiChartCanvas = ({
     if (bar || area) anchor0 = true;
     if (ds.stack && ds.stack !== 'none') {
       const sl = groupSeries(rows, ch).map((s) => s.key);
-      const st = buildStacks({ data: rows, posKey: x, valKey: y, channels: ch, stackBy: ds.stack, seriesOrder: sl, aggregate: 'mean' });
+      const st = buildStacks({ data: rows, posKey: x, valKey: y, channels: ch, stackBy: ds.stack, seriesOrder: sl, aggregate: ds.reduce });
       if (st) { hi = Math.max(hi, st.max); lo = Math.min(lo, 0); }
     } else {
       for (const r of rows) { const v = +r[y]; if (!isNaN(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }
@@ -411,7 +422,7 @@ const MultiChartCanvas = ({
     const rows = isBrushing ? ds.rows : filterRows(ds.rows);
     const bar = isBarLike(ds, xTypeAxis);
     const st = (ds.stack && ds.stack !== 'none')
-      ? buildStacks({ data: rows, posKey: x, valKey: y, channels: scales.channels, stackBy: ds.stack, seriesOrder: groupSeries(rows, scales.channels).map((s) => s.key), aggregate: 'mean' })
+      ? buildStacks({ data: rows, posKey: x, valKey: y, channels: scales.channels, stackBy: ds.stack, seriesOrder: groupSeries(rows, scales.channels).map((s) => s.key), aggregate: ds.reduce })
       : null;
     return { ds, scales, rows, bar, st };
   });
@@ -423,7 +434,8 @@ const MultiChartCanvas = ({
         <ContinuousBarMarks
           key={ds.index} rows={rows} x={x} y={y} channels={ch}
           xScale={mXScale} yScale={yScale} colorScale={scales.color} styleScale={scales.style}
-          markerScale={scales.marker} hatchScale={scales.hatch} hovered={hovered} fill={ds.fill} stack={ds.stack} />
+          markerScale={scales.marker} hatchScale={scales.hatch} hovered={hovered} fill={ds.fill} stack={ds.stack}
+          reduce={ds.reduce} />
       );
     }
     return (
@@ -444,7 +456,7 @@ const MultiChartCanvas = ({
     for (const { ds, scales, rows, bar, st } of layers) {
       const ch = scales.channels;
       if (bar) {
-        const { bars } = barGeometry(rows, x, y, ch, xScale, yScale, ds.stack);
+        const { bars } = barGeometry(rows, x, y, ch, xScale, yScale, ds.stack, ds.reduce);
         for (const b of bars) hoverTargets.push({ px: b.cx, py: b.top, row: b.row, ds, scales, hit: { type: 'rect', x: b.x, y: b.y, w: b.w, h: b.h } });
       } else {
         for (const r of rows) {
@@ -544,11 +556,12 @@ const MultiChartCanvas = ({
             <ContinuousBarMarks
               key={ds.index} rows={ds.rows} x={x} y={y} channels={ch}
               xScale={baseXScale} yScale={yMini} colorScale={scales.color} styleScale={scales.style}
-              markerScale={scales.marker} hatchScale={scales.hatch} fill={ds.fill} stack={ds.stack} mini />
+              markerScale={scales.marker} hatchScale={scales.hatch} fill={ds.fill} stack={ds.stack}
+              reduce={ds.reduce} mini />
           );
         }
         const st = (ds.stack && ds.stack !== 'none')
-          ? buildStacks({ data: ds.rows, posKey: x, valKey: y, channels: ch, stackBy: ds.stack, seriesOrder: groupSeries(ds.rows, ch).map((s) => s.key), aggregate: 'mean' })
+          ? buildStacks({ data: ds.rows, posKey: x, valKey: y, channels: ch, stackBy: ds.stack, seriesOrder: groupSeries(ds.rows, ch).map((s) => s.key), aggregate: ds.reduce })
           : null;
         return (
           <LineMarks
@@ -675,7 +688,8 @@ const MultiChartCanvas = ({
  *
  * @param {object} props
  * @param {Array<object>} props.data - Dataset descriptors ({ label, data, hue?, fill?,
- *   stack?, 'categorical-x'?, 'categorical-y'? }).
+ *   stack?, aggregate?, 'categorical-x'?, 'categorical-y'? }). A descriptor's `aggregate`
+ *   (same shape as `props.aggregate`) declares that this dataset holds API aggregates.
  * @param {string} props.x - Abscissa column (shared by every dataset).
  * @param {string} props.y - Ordinate column (required, shared).
  * @param {string|string[]} [props.hue] - Default hue column(s) for datasets that omit it.
@@ -684,7 +698,13 @@ const MultiChartCanvas = ({
  * @param {Array<object>} [props.fields] - Column metadata (`fields` of
  *   DatasetWithMetadata). When present, the type of x and y comes from their `typeFamily`
  *   instead of being sampled, and the `displayFormat` / `unit` of a numeric column format
- *   its axis and tooltip. Forwarded by <Chart>, which documents the mapping.
+ *   its axis and tooltip. Forwarded by <Chart>, which documents the mapping. On raw
+ *   rows, bars and stacks reduce their rows with the `defaultAggregation` of y (SUM,
+ *   AVG…), the mean when it declares none.
+ * @param {{measure: string, aggregation?: string}|Array<{measure: string, aggregation?: string}>} [props.aggregate]
+ *   Default `aggregate` of the datasets that do not declare their own: their rows are
+ *   API aggregates (one row per abscissa × series), rendered as is, never
+ *   re-aggregated. Forwarded by <Chart>, which documents it.
  * @param {object} [props.format] - { x?, y? } d3 spec or function. Wins over `fields`.
  * @param {string} [props.locale] - Site locale code, driving the formatters built from `fields`.
  * @param {object} [props.labels] - { x?, y? } axis labels.
@@ -704,7 +724,7 @@ const MultiChartCanvas = ({
  */
 const MultiChart = ({
   data, x, y, hue, fill = 'line', stack = 'none',
-  fields, format: formatProp = {}, labels = {}, maxLabelLength = {}, maxLines = {},
+  fields, aggregate, format: formatProp = {}, labels = {}, maxLabelLength = {}, maxLines = {},
   overlap = 'auto', tickDensity = 'normal',
   title, height = 460, defaults = {}, toolbar = [], locale,
 }) => {
@@ -717,7 +737,7 @@ const MultiChart = ({
   if (!y) throw new Error("<Chart>: l'argument `y` est requis.");
 
   // ── Jeux résolus + types d'axes partagés ──────────────────────────────────
-  const datasets = resolveDatasets(data, fill, stack, hue);
+  const datasets = resolveDatasets(data, fill, stack, hue, aggregate);
   const rawRows = datasets.flatMap((d) => d.rows);
   // Avec `fields`, le type vient de la `typeFamily` des colonnes (cf. <Chart>) ; sans
   // elles, ou pour une colonne non décrite, il est échantillonné comme avant.
@@ -731,9 +751,15 @@ const MultiChart = ({
   let xTypeAxis = xType;
   if (xType === 'categorical' || (datasets.length && datasets.every((d) => d.catX))) xTypeAxis = 'categorical';
 
+  // Réduction des barres et des piles, propre à chaque jeu (même règle que <Chart>) :
+  // agrégats de l'API rendus tels quels ('none'), lignes brutes réduites par
+  // l'agrégation par défaut de y (la moyenne sans métadonnée).
+  const clientReduce = clientAggregation(fields, y);
+
   // Coercition par jeu (dates / nombres).
   const typedSets = datasets.map((ds) => ({
     ...ds,
+    reduce: ds.aggregate ? 'none' : clientReduce,
     rows: ds.rows.map((r) => ({
       ...r,
       [x]: xTypeAxis === 'categorical' ? String(r[x] ?? '') : coerce(r[x], xType),

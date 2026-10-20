@@ -1,8 +1,8 @@
 {
   "$comment": "Généré par scripts/build-inventory.js — ne pas éditer à la main.",
-  "generatedAt": "2026-10-16T15:38:48.252Z",
+  "generatedAt": "2026-10-20T12:42:25.209Z",
   "unitCount": 54,
-  "fileCount": 505,
+  "fileCount": 522,
   "fanoutThreshold": 3,
   "units": {
     "accessible-icon": {
@@ -49,10 +49,14 @@
         "src/lib/api"
       ],
       "clientBoundary": false,
-      "fileCount": 13,
+      "fileCount": 18,
       "files": [
         {
           "path": "src/lib/api/client.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/lib/api/documents/aggregates.js",
           "kind": "lib"
         },
         {
@@ -61,6 +65,10 @@
         },
         {
           "path": "src/lib/api/documents/factTable.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/lib/api/documents/fieldStats.js",
           "kind": "lib"
         },
         {
@@ -88,6 +96,14 @@
           "kind": "fixture"
         },
         {
+          "path": "src/lib/api/fixtures/fieldStats.js",
+          "kind": "lib"
+        },
+        {
+          "path": "src/lib/api/fixtures/metadata.js",
+          "kind": "lib"
+        },
+        {
           "path": "src/lib/api/fixtures/selectOptions.js",
           "kind": "lib"
         },
@@ -101,6 +117,10 @@
         },
         {
           "path": "src/lib/api/transports/mock.js",
+          "kind": "fixture"
+        },
+        {
+          "path": "src/lib/api/transports/mockResolvers.js",
           "kind": "fixture"
         }
       ],
@@ -191,10 +211,14 @@
         "filter-tokens",
         "icons",
         "tokens-global",
+        "utils-format",
+        "utils-i18n",
         "visually-hidden"
       ],
       "internalCode": [
         "icons",
+        "utils-format",
+        "utils-i18n",
         "visually-hidden"
       ],
       "internalTokens": [
@@ -205,6 +229,8 @@
         "filter-tokens",
         "icons",
         "tokens-global",
+        "utils-format",
+        "utils-i18n",
         "visually-hidden"
       ],
       "styleGlobals": [],
@@ -261,7 +287,7 @@
         "src/features/chart"
       ],
       "clientBoundary": true,
-      "fileCount": 86,
+      "fileCount": 91,
       "files": [
         {
           "path": "src/features/chart/components/Chart/_colors.scss",
@@ -508,6 +534,10 @@
           "kind": "lib"
         },
         {
+          "path": "src/features/chart/hooks/useAggregatedChart.js",
+          "kind": "hook"
+        },
+        {
           "path": "src/features/chart/hooks/useBrushZoom.js",
           "kind": "hook"
         },
@@ -534,6 +564,10 @@
         {
           "path": "src/features/chart/sources/demoData.js",
           "kind": "fixture"
+        },
+        {
+          "path": "src/features/chart/sources/useAggregates.js",
+          "kind": "hook"
         },
         {
           "path": "src/features/chart/sources/useFactTable.js",
@@ -568,6 +602,14 @@
           "kind": "lib"
         },
         {
+          "path": "src/features/chart/utils/aggregate.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/chart/utils/aggregationPlan.js",
+          "kind": "util"
+        },
+        {
           "path": "src/features/chart/utils/datasetList.js",
           "kind": "util"
         },
@@ -577,6 +619,10 @@
         },
         {
           "path": "src/features/chart/utils/exportImage.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/chart/utils/fieldTypes.js",
           "kind": "util"
         },
         {
@@ -648,6 +694,7 @@
         "icons",
         "tokens-global",
         "toolbar-tools",
+        "utils-format",
         "utils-i18n"
       ],
       "internalCode": [
@@ -656,6 +703,7 @@
         "hover-toolbar",
         "icons",
         "toolbar-tools",
+        "utils-format",
         "utils-i18n"
       ],
       "internalTokens": [
@@ -672,6 +720,7 @@
         "toolbar-button",
         "toolbar-tokens",
         "toolbar-tools",
+        "utils-format",
         "utils-i18n"
       ],
       "styleGlobals": [],
@@ -785,9 +834,7 @@
           "kind": "hook"
         }
       ],
-      "npm": [
-        "swr"
-      ],
+      "npm": [],
       "npmAsyncOnly": [],
       "asyncOnlyFiles": [],
       "internal": [
@@ -1851,6 +1898,7 @@
         "tokens-global",
         "utils-i18n",
         "utils-math",
+        "utils-navigation",
         "utils-url"
       ],
       "internalCode": [
@@ -1860,6 +1908,7 @@
         "theme",
         "utils-i18n",
         "utils-math",
+        "utils-navigation",
         "utils-url"
       ],
       "internalTokens": [
@@ -1878,6 +1927,7 @@
         "utils-accessibility",
         "utils-i18n",
         "utils-math",
+        "utils-navigation",
         "utils-url",
         "visually-hidden"
       ],
@@ -2622,7 +2672,7 @@
         "src/page-templates"
       ],
       "clientBoundary": true,
-      "fileCount": 15,
+      "fileCount": 16,
       "files": [
         {
           "path": "src/page-templates/_tokens.scss",
@@ -2683,6 +2733,10 @@
         {
           "path": "src/page-templates/utils/deriveEncoding.js",
           "kind": "util"
+        },
+        {
+          "path": "src/page-templates/utils/rowsExtent.js",
+          "kind": "util"
         }
       ],
       "npm": [],
@@ -2692,20 +2746,24 @@
         "api-client",
         "chart",
         "filter",
+        "select-menu",
         "table",
         "tokens-global",
         "ui",
         "utils-format",
-        "utils-i18n"
+        "utils-i18n",
+        "utils-navigation"
       ],
       "internalCode": [
         "api-client",
         "chart",
         "filter",
+        "select-menu",
         "table",
         "ui",
         "utils-format",
-        "utils-i18n"
+        "utils-i18n",
+        "utils-navigation"
       ],
       "internalTokens": [
         "tokens-global"
@@ -2748,6 +2806,7 @@
         "utils-format",
         "utils-i18n",
         "utils-math",
+        "utils-navigation",
         "utils-url",
         "visually-hidden"
       ],
@@ -3023,7 +3082,7 @@
         "src/features/table"
       ],
       "clientBoundary": true,
-      "fileCount": 27,
+      "fileCount": 28,
       "files": [
         {
           "path": "src/features/table/components/_colors.scss",
@@ -3126,6 +3185,10 @@
           "kind": "util"
         },
         {
+          "path": "src/features/table/utils/exportRequest.js",
+          "kind": "util"
+        },
+        {
           "path": "src/features/table/utils/formatCell.js",
           "kind": "util"
         },
@@ -3142,8 +3205,11 @@
       "internal": [
         "api-client",
         "filter",
+        "hooks-accessibility",
+        "hooks-debounce",
         "hover-toolbar",
         "icons",
+        "select-menu",
         "table-tokens",
         "tokens-global",
         "utils-format",
@@ -3152,8 +3218,11 @@
       "internalCode": [
         "api-client",
         "filter",
+        "hooks-accessibility",
+        "hooks-debounce",
         "hover-toolbar",
         "icons",
+        "select-menu",
         "utils-format",
         "utils-i18n"
       ],
@@ -3789,7 +3858,7 @@
         "src/utils/format"
       ],
       "clientBoundary": false,
-      "fileCount": 3,
+      "fileCount": 4,
       "files": [
         {
           "path": "src/utils/format/constants.js",
@@ -3800,11 +3869,17 @@
           "kind": "util"
         },
         {
+          "path": "src/utils/format/formatValue.js",
+          "kind": "util"
+        },
+        {
           "path": "src/utils/format/slugify.js",
           "kind": "util"
         }
       ],
-      "npm": [],
+      "npm": [
+        "d3-format"
+      ],
       "npmAsyncOnly": [],
       "asyncOnlyFiles": [],
       "internal": [],
@@ -3931,8 +4006,12 @@
         "src/utils/navigation"
       ],
       "clientBoundary": false,
-      "fileCount": 4,
+      "fileCount": 6,
       "files": [
+        {
+          "path": "src/utils/navigation/activePath.js",
+          "kind": "util"
+        },
         {
           "path": "src/utils/navigation/basePaths.js",
           "kind": "util"
@@ -3943,6 +4022,10 @@
         },
         {
           "path": "src/utils/navigation/flattenNavigation.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/navigation/navigationLayout.js",
           "kind": "util"
         },
         {
@@ -4065,6 +4148,36 @@
         ]
       },
       {
+        "unit": "pages",
+        "count": 9,
+        "dependencies": [
+          "api-client",
+          "chart",
+          "filter",
+          "select-menu",
+          "table",
+          "ui",
+          "utils-format",
+          "utils-i18n",
+          "utils-navigation"
+        ]
+      },
+      {
+        "unit": "table",
+        "count": 9,
+        "dependencies": [
+          "api-client",
+          "filter",
+          "hooks-accessibility",
+          "hooks-debounce",
+          "hover-toolbar",
+          "icons",
+          "select-menu",
+          "utils-format",
+          "utils-i18n"
+        ]
+      },
+      {
         "unit": "globe",
         "count": 8,
         "dependencies": [
@@ -4075,6 +4188,20 @@
           "utils-html",
           "utils-i18n",
           "utils-math",
+          "utils-url"
+        ]
+      },
+      {
+        "unit": "header",
+        "count": 8,
+        "dependencies": [
+          "common",
+          "hooks-accessibility",
+          "icons",
+          "theme",
+          "utils-i18n",
+          "utils-math",
+          "utils-navigation",
           "utils-url"
         ]
       },
@@ -4107,40 +4234,15 @@
         ]
       },
       {
-        "unit": "header",
-        "count": 7,
-        "dependencies": [
-          "common",
-          "hooks-accessibility",
-          "icons",
-          "theme",
-          "utils-i18n",
-          "utils-math",
-          "utils-url"
-        ]
-      },
-      {
-        "unit": "pages",
-        "count": 7,
-        "dependencies": [
-          "api-client",
-          "chart",
-          "filter",
-          "table",
-          "ui",
-          "utils-format",
-          "utils-i18n"
-        ]
-      },
-      {
         "unit": "chart",
-        "count": 6,
+        "count": 7,
         "dependencies": [
           "api-client",
           "hooks-layout-effect",
           "hover-toolbar",
           "icons",
           "toolbar-tools",
+          "utils-format",
           "utils-i18n"
         ]
       },
@@ -4157,18 +4259,6 @@
         ]
       },
       {
-        "unit": "table",
-        "count": 6,
-        "dependencies": [
-          "api-client",
-          "filter",
-          "hover-toolbar",
-          "icons",
-          "utils-format",
-          "utils-i18n"
-        ]
-      },
-      {
         "unit": "constraint-field",
         "count": 5,
         "dependencies": [
@@ -4177,6 +4267,16 @@
           "utils-format",
           "utils-i18n",
           "utils-math"
+        ]
+      },
+      {
+        "unit": "calendar-month",
+        "count": 4,
+        "dependencies": [
+          "icons",
+          "utils-format",
+          "utils-i18n",
+          "visually-hidden"
         ]
       }
     ]
@@ -4192,7 +4292,6 @@
       "@next/mdx",
       "@visx/clip-path",
       "@visx/group",
-      "d3-format",
       "d3-time-format",
       "graphql",
       "remark-frontmatter"
@@ -4213,6 +4312,10 @@
       {
         "unit": "api-client",
         "path": "src/lib/api/transports/mock.js"
+      },
+      {
+        "unit": "api-client",
+        "path": "src/lib/api/transports/mockResolvers.js"
       }
     ],
     "externalConfig": [
@@ -4236,6 +4339,8 @@
       "src/features/i18n/components/LocaleRedirect/LocaleRedirect.jsx",
       "src/features/i18n/components/LocaleSwitcher/LocaleSwitcher.jsx",
       "src/features/i18n/providers/LocaleProvider.jsx",
+      "src/hooks/fieldMetadata/useFieldMetadata.js",
+      "src/hooks/fieldStats/useFieldStats.js",
       "src/utils/clipboard/copyToClipboard.js",
       "src/utils/highlight/highlight.js"
     ]

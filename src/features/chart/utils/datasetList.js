@@ -39,14 +39,17 @@ export function asArr(hue) {
  * descriptor omits it.
  *
  * @param {Array<object>} data - Dataset descriptors
- *   ({ label?, data, hue?, fill?, stack?, 'categorical-x'?, 'categorical-y'? }).
+ *   ({ label?, data, hue?, fill?, stack?, aggregate?, 'categorical-x'?, 'categorical-y'? }).
  * @param {?string} defFill - Chart-level default fill ('none'|'line'|'fill').
  * @param {?string} defStack - Chart-level default stack ('none'|'color'|'style'|'marker'|'all').
  * @param {?(string|Array<string>)} defHue - Chart-level default hue column(s).
+ * @param {?(Object|Array<Object>)} [defAggregate] - Chart-level `aggregate` declaration
+ *   (rows already aggregated by the API), used by the datasets that do not declare their own.
  * @returns {Array<{index:number, label:string, rows:Array<object>, fill:string,
- *   stack:string, hueCols:Array<string>, catX:boolean, catY:boolean}>} Resolved datasets.
+ *   stack:string, hueCols:Array<string>, aggregate:(Object|Array<Object>|null),
+ *   catX:boolean, catY:boolean}>} Resolved datasets.
  */
-export function resolveDatasets(data, defFill, defStack, defHue) {
+export function resolveDatasets(data, defFill, defStack, defHue, defAggregate) {
   return data.map((d, i) => ({
     index: i,
     label: d.label != null ? d.label : `Jeu ${i + 1}`,
@@ -54,6 +57,8 @@ export function resolveDatasets(data, defFill, defStack, defHue) {
     fill: d.fill != null ? d.fill : (defFill != null ? defFill : 'line'),
     stack: d.stack != null ? d.stack : (defStack != null ? defStack : 'none'),
     hueCols: asArr(d.hue != null ? d.hue : defHue),
+    // Jeu d'agrégats de l'API (une ligne par groupe) : déclaré par le jeu, sinon par <Chart>
+    aggregate: d.aggregate != null ? d.aggregate : (defAggregate ?? null),
     catX: !!d['categorical-x'],
     catY: !!d['categorical-y'],
   }));

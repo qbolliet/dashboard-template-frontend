@@ -1,9 +1,9 @@
 // =================================================================
 // RÉSOLVEURS MOCK — LOGIQUE PARTAGÉE
 // =================================================================
-// UNE implémentation des cinq opérations de l'API consommées par le template
+// UNE implémentation des six opérations de l'API consommées par le template
 // (getFactTableWithMetadata, getCatalogSchema, getSelectOptions,
-// getSelectOptionsTree, getFieldStats), appuyée sur les fixtures de
+// getSelectOptionsTree, getFieldStats, getAggregates), appuyée sur les fixtures de
 // src/lib/api/fixtures/. Elle sert deux consommateurs :
 //   - le transport en mémoire (transports/mock.js), via le bundler ;
 //   - le serveur `npm run mock:api` (scripts/mock-api-server.js), via `import()`.
@@ -12,7 +12,7 @@
 // ainsi des données strictement identiques.
 //
 // Fidèle au contrat 0.3.0 sur ce qui se voit côté interface. `structuredFilters`
-// est appliqué par getFactTableWithMetadata et getFieldStats (validé comme le fait
+// est appliqué par getFactTableWithMetadata, getFieldStats et getAggregates (validé comme le fait
 // l'API : un arbre mal formé lève BAD_USER_INPUT) ; non appliqués (les fixtures tiennent
 // en une page) : `structuredFilters` des opérations d'options et la projection `fields`.
 
@@ -179,6 +179,142 @@ const pageExtents = (rows, fields) => {
   return extents;
 };
 
+// =================================================================
+// AGRÉGATS (getAggregates) — troncature temporelle, réducteurs, métadonnées
+// =================================================================
+// Mêmes règles que le constructeur SQL de l'API (src/utils/aggregate-query.ts) sur ce
+// que l'interface consomme : agrégation effective, alias par défaut, type et format du
+// résultat, ordre des groupes et formats OBJECTS / ARRAYS / LONG.
+
+// Bornes de l'API (API.AGGREGATES.MAX_GROUP_BY / MAX_AGGREGATES, valeurs par défaut).
+const MAX_GROUP_BY = 4;
+const MAX_AGGREGATES = 20;
+
+// Nom de colonne de sortie accepté pour un alias.
+const ALIAS_PATTERN = /^[a-z_][a-z0-9_]*$/;
+
+const NUMERIC_FAMILIES = new Set(['INTEGER', 'NUMBER']);
+const TEMPORAL_FAMILIES = new Set(['DATE', 'TIMESTAMP']);
+
+// Grains réservés aux horodatages : une DATE n'a pas d'heure à tronquer.
+const SUB_DAY_GRAINS = new Set(['HOUR', 'MINUTE', 'SECOND']);
+
+// Agrégations compatibles avec la famille de type de la mesure.
+const allowedAggregations = (typeFamily) => {
+  if (NUMERIC_FAMILIES.has(typeFamily)) return ['SUM', 'AVG', 'MEDIAN', 'MIN', 'MAX', 'MODE', 'COUNT'];
+  if (TEMPORAL_FAMILIES.has(typeFamily)) return ['MIN', 'MAX', 'MODE', 'COUNT'];
+  return ['MODE', 'COUNT'];
+};
+
+// Comparaison NULLS LAST (ordre par défaut de DuckDB, en ASC comme en DESC).
+const compareNullsLast = (a, b, order) => {
+  const aNull = a === null || a === undefined;
+  const bNull = b === null || b === undefined;
+  if (aNull || bNull) return aNull === bNull ? 0 : (aNull ? 1 : -1);
+  const cmp = compare(a, b);
+  return order === 'DESC' ? -cmp : cmp;
+};
+
+/**
+ * Truncates a temporal value to a grain, like `date_trunc` (UTC, ISO week from Monday).
+ *
+ * @param {?string} value - ISO 8601 date or timestamp.
+ * @param {string} grain - `TimeGrain` value.
+ * @param {'DATE'|'TIMESTAMP'} typeFamily - Family of the group column.
+ * @returns {?string} `YYYY-MM-DD` for a DATE, a full ISO timestamp otherwise; null for NULL.
+ */
+const truncateTime = (value, grain, typeFamily) => {
+  if (value === null || value === undefined) return null;
+
+  const isDate = typeFamily === 'DATE';
+  const d = new Date(isDate ? `${String(value).slice(0, 10)}T00:00:00Z` : value);
+  let [y, m, day] = [d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()];
+  let [h, mi, s] = [d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds()];
+
+  // Chaque grain remet à zéro tout ce qui est plus fin que lui
+  switch (grain) {
+    case 'YEAR': m = 0; day = 1; h = 0; mi = 0; s = 0; break;
+    case 'QUARTER': m -= m % 3; day = 1; h = 0; mi = 0; s = 0; break;
+    case 'MONTH': day = 1; h = 0; mi = 0; s = 0; break;
+    case 'WEEK': day -= (d.getUTCDay() + 6) % 7; h = 0; mi = 0; s = 0; break; // lundi ISO
+    case 'DAY': h = 0; mi = 0; s = 0; break;
+    case 'HOUR': mi = 0; s = 0; break;
+    case 'MINUTE': s = 0; break;
+    default: break; // SECOND : les millisecondes tombent seules avec Date.UTC ci-dessous
+  }
+
+  const truncated = new Date(Date.UTC(y, m, day, h, mi, s));
+  return isDate ? truncated.toISOString().slice(0, 10) : truncated.toISOString();
+};
+
+// Médiane interpolée (quantile_cont 0.5 de DuckDB).
+const median = (values) => {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+};
+
+// Valeur la plus fréquente ; à égalité, la première rencontrée.
+const mode = (values) => {
+  const counts = new Map();
+  let best = null;
+  let bestCount = 0;
+  for (const v of values) {
+    const c = (counts.get(v) ?? 0) + 1;
+    counts.set(v, c);
+    if (c > bestCount) { best = v; bestCount = c; }
+  }
+  return best;
+};
+
+// Réducteurs, appliqués aux valeurs NON NULLES d'un groupe : un groupe sans valeur
+// donne null, sauf COUNT (0).
+const REDUCERS = {
+  SUM: (vs) => (vs.length ? vs.reduce((a, b) => a + b, 0) : null),
+  AVG: (vs) => (vs.length ? vs.reduce((a, b) => a + b, 0) / vs.length : null),
+  MEDIAN: (vs) => (vs.length ? median(vs) : null),
+  MIN: (vs) => (vs.length ? vs.reduce((a, b) => (compare(b, a) < 0 ? b : a)) : null),
+  MAX: (vs) => (vs.length ? vs.reduce((a, b) => (compare(b, a) > 0 ? b : a)) : null),
+  MODE: (vs) => (vs.length ? mode(vs) : null),
+  COUNT: (vs) => vs.length,
+};
+
+// Type DuckDB du résultat d'une agrégation.
+const aggregateSqlType = (aggregation, field) => {
+  if (aggregation === 'COUNT') return 'BIGINT';
+  if (aggregation === 'AVG' || aggregation === 'MEDIAN') return 'DOUBLE';
+  if (aggregation === 'SUM') return field.typeFamily === 'INTEGER' ? 'HUGEINT' : 'DOUBLE';
+  return field.sqlType;
+};
+
+// Format d3 du résultat : celui de la mesure, sauf COUNT (`,d`) et la moyenne / médiane
+// d'un entier dont le format finit par `d` (deux décimales : `,d` → `,.2f`).
+const aggregateDisplayFormat = (aggregation, field) => {
+  if (aggregation === 'COUNT') return ',d';
+  const format = field.displayFormat;
+  if (format && field.typeFamily === 'INTEGER' && (aggregation === 'AVG' || aggregation === 'MEDIAN')) {
+    return format.endsWith('d') ? `${format.slice(0, -1)}.2f` : format;
+  }
+  return format ?? null;
+};
+
+// Le résultat d'une agrégation est-il numérique, temporel, ou ni l'un ni l'autre ?
+const resultFamily = (aggregation, field) => {
+  if (['COUNT', 'SUM', 'AVG', 'MEDIAN'].includes(aggregation)) return 'NUMBER';
+  return field.typeFamily;
+};
+
+// [min, max] des valeurs non nulles d'une colonne numérique ou temporelle, sinon null.
+const boundsOf = (values, typeFamily) => {
+  if (!NUMERIC_FAMILIES.has(typeFamily) && !TEMPORAL_FAMILIES.has(typeFamily)) return null;
+  const present = values.filter((v) => v !== null && v !== undefined);
+  if (present.length === 0) return null;
+  return [
+    present.reduce((a, b) => (compare(b, a) < 0 ? b : a)),
+    present.reduce((a, b) => (compare(b, a) > 0 ? b : a)),
+  ];
+};
+
 // Colonne de libellés par défaut d'une colonne de codes : la seule, ou la première
 // par ordre alphabétique (`labelFields` est déjà trié par nom).
 const defaultLabelField = (field) => field.labelFields[0] ?? null;
@@ -196,7 +332,7 @@ const nodesAtLevel = (nodes, level) => (
 );
 
 /**
- * Builds the resolvers of the five operations on top of injected fixtures.
+ * Builds the resolvers of the six operations on top of injected fixtures.
  *
  * @param {Object} fixtures - Fixture bindings.
  * @param {string} fixtures.catalogueId - Catalog id serving the documentary catalogue.
@@ -383,6 +519,165 @@ export function createMockResolvers(fixtures) {
         max: values.length ? values.reduce((a, b) => (b > a ? b : a)) : null,
         distinctCount: new Set(values).size,
         nullCount: rows.length - values.length,
+      };
+    },
+
+    getAggregates: ({
+      catalog, groupBy = [], aggregates, structuredFilters, sort,
+      limit = 100, offset = 0, format = 'OBJECTS', includeRowCount = true,
+    }) => {
+      const dataset = datasetOf(catalog);
+      groupBy = groupBy ?? [];
+
+      // ── Validation des arguments, comme le constructeur SQL de l'API ──────────
+      if (groupBy.length > MAX_GROUP_BY) {
+        throw badUserInput(`groupBy accepte au plus ${MAX_GROUP_BY} colonnes.`);
+      }
+      if (!aggregates || aggregates.length === 0 || aggregates.length > MAX_AGGREGATES) {
+        throw badUserInput(`aggregates attend de 1 à ${MAX_AGGREGATES} agrégats.`);
+      }
+
+      // Colonnes de groupe : grain réservé aux dates, colonne de libellés sans grain.
+      const groups = groupBy.map(({ field: name, grain = null }) => {
+        const field = fieldOf(dataset, name);
+        if (grain && (!TEMPORAL_FAMILIES.has(field.typeFamily)
+          || (field.typeFamily === 'DATE' && SUB_DAY_GRAINS.has(grain)))) {
+          throw badUserInput(`Le grain ${grain} ne s'applique pas à la colonne « ${name} » (${field.sqlType}).`);
+        }
+        const labelField = grain ? null : defaultLabelField(field);
+        return { name, grain: grain ?? null, field, labelField, labelColumn: labelField ? `${name}__label` : null };
+      });
+      if (new Set(groups.map((g) => g.name)).size !== groups.length) {
+        throw badUserInput('Une colonne apparaît au plus une fois dans groupBy.');
+      }
+
+      // Agrégats : agrégation effective (argument, sinon defaultAggregation, sinon SUM
+      // pour une mesure numérique seulement), compatibilité avec la famille, alias.
+      const columnsOut = aggregates.map(({ measure, aggregation, alias }) => {
+        const field = fieldOf(dataset, measure);
+        const effective = aggregation
+          ?? field.defaultAggregation
+          ?? (NUMERIC_FAMILIES.has(field.typeFamily) ? 'SUM' : null);
+        if (!effective) {
+          throw badUserInput(`La mesure « ${measure} » n'est pas numérique : précisez son agrégation.`);
+        }
+        const allowed = allowedAggregations(field.typeFamily);
+        if (!allowed.includes(effective)) {
+          throw badUserInput(`${effective} ne s'applique pas à « ${measure} » ; autorisées : ${allowed.join(', ')}.`);
+        }
+        const name = alias ?? `${measure}_${effective.toLowerCase()}`;
+        if (!ALIAS_PATTERN.test(name)) throw badUserInput(`Alias invalide : « ${name} ».`);
+        return { name, measure, aggregation: effective, field };
+      });
+
+      // Noms de sortie uniques ; en LONG, `measure` et `value` sont réservés.
+      const outputNames = [
+        ...groups.map((g) => g.name),
+        ...groups.filter((g) => g.labelColumn).map((g) => g.labelColumn),
+        ...columnsOut.map((a) => a.name),
+        ...(includeRowCount ? ['row_count'] : []),
+      ];
+      if (new Set(outputNames).size !== outputNames.length) {
+        throw badUserInput('Les noms des colonnes de sortie doivent être uniques.');
+      }
+      if (format === 'LONG' && groups.some((g) => ['measure', 'value'].includes(g.name) || ['measure', 'value'].includes(g.labelColumn))) {
+        throw badUserInput('En format LONG, une colonne de groupe ne peut pas s\'appeler measure ou value.');
+      }
+      for (const { by } of sort ?? []) {
+        if (!outputNames.includes(by)) throw badUserInput(`Tri sur une colonne inconnue : « ${by} ».`);
+      }
+
+      // ── Regroupement sur TOUT le jeu filtré (jamais une page de lignes) ──────
+      const matching = applyFilterNode(dataset.table.data, structuredFilters, (name) => fieldOf(dataset, name));
+      const keyed = new Map();
+      for (const row of matching) {
+        const values = groups.map((g) => {
+          const v = row[g.name] ?? null;
+          return g.grain ? truncateTime(v, g.grain, g.field.typeFamily) : v;
+        });
+        const key = JSON.stringify(values);
+        if (!keyed.has(key)) keyed.set(key, { values, rows: [] });
+        keyed.get(key).rows.push(row);
+      }
+      // Sans groupBy : un agrégat global, une ligne même quand aucune ligne ne passe.
+      if (groups.length === 0 && keyed.size === 0) keyed.set('[]', { values: [], rows: [] });
+
+      // Une ligne OBJECTS par groupe : colonnes de groupe, libellés (ANY_VALUE), alias, row_count.
+      const objects = [...keyed.values()].map(({ values, rows }) => {
+        const out = {};
+        groups.forEach((g, i) => { out[g.name] = values[i]; });
+        for (const g of groups) {
+          if (!g.labelColumn) continue;
+          out[g.labelColumn] = rows.map((r) => r[g.labelField]).find((v) => v !== null && v !== undefined) ?? null;
+        }
+        for (const a of columnsOut) {
+          const present = rows.map((r) => r[a.measure]).filter((v) => v !== null && v !== undefined);
+          out[a.name] = REDUCERS[a.aggregation](present);
+        }
+        if (includeRowCount) out.row_count = rows.length;
+        return out;
+      });
+
+      // Tri demandé, puis chaque colonne de groupe en ordre croissant (départage).
+      const order = [
+        ...(sort ?? []).map(({ by, order: o = 'ASC' }) => ({ by, order: o })),
+        ...groups.map((g) => ({ by: g.name, order: 'ASC' })),
+      ];
+      objects.sort((a, b) => {
+        for (const { by, order: o } of order) {
+          const cmp = compareNullsLast(a[by], b[by], o);
+          if (cmp !== 0) return cmp;
+        }
+        return 0;
+      });
+      const page = objects.slice(offset, offset + limit);
+
+      // ── Sérialisation ────────────────────────────────────────────────────────
+      const labelColumns = groups.filter((g) => g.labelColumn).map((g) => g.labelColumn);
+      const groupColumns = [...groups.map((g) => g.name), ...labelColumns];
+      const rowCount = includeRowCount ? ['row_count'] : [];
+      let columns;
+      let data;
+      if (format === 'LONG') {
+        // Une ligne par (groupe, agrégat), dans l'ordre des agrégats : OBJECTS fondu sur les alias.
+        columns = [...groupColumns, ...rowCount, 'measure', 'value'];
+        data = page.flatMap((row) => columnsOut.map((a) => {
+          const out = {};
+          for (const c of [...groupColumns, ...rowCount]) out[c] = row[c];
+          return { ...out, measure: a.name, value: row[a.name] };
+        }));
+      } else {
+        columns = [...groupColumns, ...columnsOut.map((a) => a.name), ...rowCount];
+        data = format === 'ARRAYS' ? page.map((row) => columns.map((c) => row[c])) : page.map((row) => {
+          const out = {};
+          for (const c of columns) out[c] = row[c];
+          return out;
+        });
+      }
+
+      return {
+        groupBy: groups.map((g) => ({
+          name: g.name,
+          grain: g.grain,
+          labelColumn: g.labelColumn,
+          field: withStats(dataset, g.field),
+          extent: boundsOf(page.map((row) => row[g.name]), g.field.typeFamily),
+        })),
+        aggregates: columnsOut.map((a) => ({
+          alias: a.name,
+          measure: a.measure,
+          aggregation: a.aggregation,
+          sqlType: aggregateSqlType(a.aggregation, a.field),
+          unit: a.aggregation === 'COUNT' ? null : a.field.unit,
+          displayFormat: aggregateDisplayFormat(a.aggregation, a.field),
+          field: withStats(dataset, a.field),
+          extent: boundsOf(page.map((row) => row[a.name]), resultFamily(a.aggregation, a.field)),
+        })),
+        columns,
+        data,
+        total: objects.length,
+        hasNextPage: offset + limit < objects.length,
+        generatedAt: dataset.table.metadata?.generatedAt ?? new Date(0).toISOString(),
       };
     },
   };

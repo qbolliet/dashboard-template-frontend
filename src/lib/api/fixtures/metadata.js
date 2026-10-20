@@ -64,6 +64,8 @@ export const typeFamilyOf = (sqlType) => {
  * @param {string|null} [field.displayFormat] - d3-format string.
  * @param {string|null} [field.family] - Thematic family.
  * @param {string|null} [field.description] - Contextual help.
+ * @param {string|null} [field.defaultAggregation] - `Aggregation` applied by getAggregates
+ *   when the request names none (SUM for a stock, AVG for a rate…).
  * @returns {Object} A `Metadata` object as `getCatalogSchema` returns it.
  */
 export const defineField = ({
@@ -79,6 +81,7 @@ export const defineField = ({
   displayFormat = null,
   family = null,
   description = null,
+  defaultAggregation = null,
 }) => {
   const typeFamily = typeFamilyOf(sqlType);
 
@@ -97,6 +100,6 @@ export const defineField = ({
     displayFormat,
     family,
     description,
-    defaultAggregation: null,
+    defaultAggregation,
   };
 };
