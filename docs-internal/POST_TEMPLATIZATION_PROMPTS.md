@@ -608,6 +608,8 @@ tels quels et sont probablement faux.
 5) Régénérer les captures Playwright UNIQUEMENT pour les pages modifiées volontairement ;
    joindre au résumé la liste des captures changées et pourquoi.
 
+J'ai énuméré dans "a_corriger_dans_F8.txt" à la racine, tout ce que j'ai énuméré dans les prompts précédents et qui est à reprendre ici.
+
 Vérification : npm run verify && npm run build && npm run test:e2e. Ne commite pas ; propose :
 docs: align guides, registry examples and changelog with the 0.3.0 API contract
 ```
