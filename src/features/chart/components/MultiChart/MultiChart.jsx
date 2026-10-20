@@ -40,6 +40,7 @@ import {
 } from '@/features/chart/utils/encoding';
 import { buildStacks } from '@/features/chart/utils/stacking';
 import { resolveFormatter } from '@/features/chart/utils/formatters';
+import { resolveColumnType, formatFromFields } from '@/features/chart/utils/fieldTypes';
 import { measureText, tickCountFor } from '@/features/chart/utils/measureText';
 import { exportSvg, exportPng } from '@/features/chart/utils/exportImage';
 import { xMinimapLayout } from '@/features/chart/utils/minimapGeometry';
@@ -680,7 +681,12 @@ const MultiChartCanvas = ({
  * @param {string|string[]} [props.hue] - Default hue column(s) for datasets that omit it.
  * @param {'none'|'line'|'fill'} [props.fill='line'] - Default fill mode.
  * @param {'none'|'color'|'style'|'marker'|'all'} [props.stack='none'] - Default stacking.
- * @param {object} [props.format] - { x?, y? } d3 spec or function.
+ * @param {Array<object>} [props.fields] - Column metadata (`fields` of
+ *   DatasetWithMetadata). When present, the type of x and y comes from their `typeFamily`
+ *   instead of being sampled, and the `displayFormat` / `unit` of a numeric column format
+ *   its axis and tooltip. Forwarded by <Chart>, which documents the mapping.
+ * @param {object} [props.format] - { x?, y? } d3 spec or function. Wins over `fields`.
+ * @param {string} [props.locale] - Site locale code, driving the formatters built from `fields`.
  * @param {object} [props.labels] - { x?, y? } axis labels.
  * @param {object} [props.maxLabelLength] - { x? } categorical ellipsis.
  * @param {object} [props.maxLines] - { x? } multiline max lines.
@@ -698,9 +704,9 @@ const MultiChartCanvas = ({
  */
 const MultiChart = ({
   data, x, y, hue, fill = 'line', stack = 'none',
-  format = {}, labels = {}, maxLabelLength = {}, maxLines = {},
+  fields, format: formatProp = {}, labels = {}, maxLabelLength = {}, maxLines = {},
   overlap = 'auto', tickDensity = 'normal',
-  title, height = 460, defaults = {}, toolbar = [],
+  title, height = 460, defaults = {}, toolbar = [], locale,
 }) => {
   // Hooks AVANT tout retour/throw anticipé (règles des hooks).
   const [expanded, setExpanded] = useState(!!defaults.expanded);
@@ -713,8 +719,11 @@ const MultiChart = ({
   // ── Jeux résolus + types d'axes partagés ──────────────────────────────────
   const datasets = resolveDatasets(data, fill, stack, hue);
   const rawRows = datasets.flatMap((d) => d.rows);
-  const xType = detectType(rawRows.map((r) => r[x]));
-  const yType = detectType(rawRows.map((r) => r[y]));
+  // Avec `fields`, le type vient de la `typeFamily` des colonnes (cf. <Chart>) ; sans
+  // elles, ou pour une colonne non décrite, il est échantillonné comme avant.
+  const xType = resolveColumnType(fields, x, () => detectType(rawRows.map((r) => r[x])));
+  const yType = resolveColumnType(fields, y, () => detectType(rawRows.map((r) => r[y])));
+  const format = formatFromFields(fields, { x, y }, formatProp, locale);
 
   // Type d'AXE x : catégoriel si naturellement catégoriel OU si TOUS les jeux
   // forcent categorical-x. Sinon l'axe reste continu (les jeux catX se dessinent

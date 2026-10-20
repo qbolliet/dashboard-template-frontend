@@ -116,9 +116,15 @@ const SNIPPET_BUILDERS = { js: snippetFetch, py: snippetPython, curl: snippetCur
  *   `columnsMetadata` is provided; otherwise required. When both are given,
  *   `columns` fixes the order and overrides (by `key`) the derived columns.
  * @param {Array<{name: string, label: string, typeFamily: string, isCategorical: boolean,
- *   isPrimaryKey: boolean}>} [props.columnsMetadata] - API metadata (`fields` of
- *   getFactTableWithMetadata, or getCatalogSchema); auto-derives key/label/type of the
- *   columns.
+ *   isPrimaryKey: boolean, unit: ?string, displayFormat: ?string, labelFields: string[]}>}
+ *   [props.columnsMetadata] - API metadata (`fields` of getFactTableWithMetadata, or
+ *   getCatalogSchema); auto-derives key/label/type of the columns, and formats numeric
+ *   cells with their `displayFormat` and `unit` (without `displayFormat`, the localized
+ *   number as before).
+ * @param {boolean} [props.codeLabels=false] - Shows a code column that has `labelFields`
+ *   as « code — libellé », reading the first label column present in `data`. That label
+ *   column is then folded into the code column and no longer displayed on its own.
+ *   Sort, filters and exports keep the raw code.
  * @param {string} [props.title] - Table header title.
  * @param {{apiBase?: string, operation?: string, catalog?: string, schema?: string,
  *   limit?: number, structuredFilters?: Object}} [props.queryHint] - GraphQL snippet
@@ -159,6 +165,7 @@ const Table = ({
   data,
   columns,
   columnsMetadata,
+  codeLabels = false,
   title,
   queryHint = {},
   defaultFilter = null,
@@ -185,11 +192,22 @@ const Table = ({
     type: (isNumericFamily(m.typeFamily) && !m.isCategorical) ? 'number' : undefined,
     // Famille de type conservée : elle type les valeurs envoyées à l'API (columnCriteria)
     typeFamily: m.typeFamily,
+    // Format d'affichage de l'API : formatCell l'applique aux colonnes numériques.
+    displayFormat: m.displayFormat,
+    unit: m.unit,
+    // Colonne de libellés présente dans les lignes (la première des `labelFields`, triés
+    // par nom) : la colonne de code l'affiche en « code — libellé » si `codeLabels`.
+    labelKey: codeLabels
+      ? (m.labelFields || []).find((name) => data[0] && Object.hasOwn(data[0], name))
+      : undefined,
   }));
   const derivedByKey = new Map(derived.map((c) => [c.key, c]));
-  const resolvedColumns = columns
+  const merged = columns
     ? columns.map((c) => ({ ...(derivedByKey.get(c.key) || {}), ...c }))
     : derived;
+  // Une colonne de libellés repliée dans sa colonne de code ne s'affiche plus à part.
+  const foldedLabels = new Set(merged.map((c) => c.labelKey).filter(Boolean));
+  const resolvedColumns = merged.filter((c) => !foldedLabels.has(c.key));
 
   const {
     visibleColumns,

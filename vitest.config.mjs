@@ -22,7 +22,10 @@ const jsxInJs = {
   name: 'jsx-in-js',
   enforce: 'pre',
   async transform(code, id) {
-    if (!/[\\/]src[\\/].*\.js$/.test(id) || !code.includes('react')) return null;
+    // Un fichier peut contenir du JSX sans importer 'react' (runtime automatique) : on
+    // repère aussi une balise de composant (`<ResetIcon />`).
+    const hasJsx = code.includes('react') || /<[A-Z]\w*[\s/>]/.test(code);
+    if (!/[\\/]src[\\/].*\.js$/.test(id) || !hasJsx) return null;
     const result = await transformWithOxc(code, `${id}x`, { jsx: { runtime: 'automatic' } });
     return { code: result.code, map: result.map };
   },

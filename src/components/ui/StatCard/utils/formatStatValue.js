@@ -6,6 +6,7 @@
 // formatteur fourni sous forme de fonction.
 
 import { formatNumber } from '@/utils/format/formatNumber';
+import { formatValue } from '@/utils/format/formatValue';
 import { EMPTY_PLACEHOLDER } from '@/utils/format/constants';
 
 /**
@@ -15,9 +16,10 @@ import { EMPTY_PLACEHOLDER } from '@/utils/format/constants';
  *
  * @param {number|string|null} [value] - Raw value to format. Strings accept French notation
  *   ('1 234,5' — spaces stripped, comma treated as decimal separator).
- * @param {import('@/utils/format/formatNumber').FormatSpec|Function} [f] - A FormatSpec object,
- *   or a custom formatter fn(value) returning the display string directly. Nullish returns
- *   `value` unchanged.
+ * @param {import('@/utils/format/formatNumber').FormatSpec|Function} [f] - A FormatSpec object
+ *   (which may carry the API's `displayFormat` and `unit` instead of Intl fields — see
+ *   {@link formatValue}), or a custom formatter fn(value) returning the display string
+ *   directly. Nullish returns `value` unchanged.
  * @returns {number|string} The formatted value, or an em dash placeholder when `value` is
  *   null, undefined or an empty string — that guard applies even without a format spec.
  */
@@ -29,5 +31,7 @@ export const formatStatValue = (value, f) => {
     if (f == null) return value;
     if (typeof f === 'function') return f(value);
 
-    return formatNumber(value, f);
+    // Un `displayFormat` (spécificateur d3-format, tel que l'API le fournit) prime sur
+    // les champs Intl de la spec ; sans lui, formatValue rend null et rien ne change.
+    return formatValue(value, f, f.locale) ?? formatNumber(value, f);
 };

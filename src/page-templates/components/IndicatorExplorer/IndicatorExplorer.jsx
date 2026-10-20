@@ -26,7 +26,8 @@ import { useFieldStats } from '@/hooks/fieldStats/useFieldStats';
 import MultiCriterionMenu from '@/features/filter/components/MultiCriterionMenu/MultiCriterionMenu';
 import { CardGrid, StatCard } from '@/components/ui';
 import { formatNumber } from '@/utils/format/formatNumber';
-import { connectorsFrom, resolveOperationLabels } from '@/features/filter/utils/filterTypes';
+import { formatValue } from '@/utils/format/formatValue';
+import { connectorsFrom, isNumericFamily, resolveOperationLabels } from '@/features/filter/utils/filterTypes';
 import { toFilterNode, columnCriteria, andNodes } from '@/features/filter/utils/filterEngine';
 import { metadataToVariables } from '@/features/filter/sources/useVariableMetadata';
 import { interpolate } from '@/utils/i18n/interpolate';
@@ -77,16 +78,20 @@ const extentFromStats = (stats, field) => (
  * Formats an `[min, max]` extent pair into a readable range.
  *
  * @param {Array} [extent] - Two-element `[min, max]` extent (from getFieldStats).
- * @param {boolean} numeric - Whether to run the bounds through the number formatter.
+ * @param {?Object} field - Metadata of the column: a numeric one has its bounds run
+ *   through its `displayFormat` and `unit`, or through one decimal when it has no
+ *   `displayFormat`; any other (a period) shows its bounds as received.
  * @param {string} intlLocale - Full Intl tag, driving the number conventions.
  * @param {string} separator - Range separator, from the dictionary.
  * @returns {string|null} The formatted range, or `null` when the extent is missing.
  */
-const formatExtent = (extent, numeric, intlLocale, separator) => {
+const formatExtent = (extent, field, intlLocale, separator) => {
     if (!Array.isArray(extent) || extent.length < 2) return null;
 
+    const numeric = isNumericFamily(field?.typeFamily);
     const [min, max] = numeric
-        ? extent.map((v) => formatNumber(v, { decimals: 1, locale: intlLocale }))
+        ? extent.map((v) => formatValue(v, field, intlLocale)
+            ?? formatNumber(v, { decimals: 1, locale: intlLocale }))
         : extent;
 
     return `${min}${separator}${max}`;
@@ -196,11 +201,11 @@ const IndicatorExplorer = ({
                         : labels.observationsNote} />
                 <StatCard
                     title={labels.period}
-                    value={formatExtent(extentFromStats(xStats, fieldOf(x)), false, intlLocale, labels.rangeSeparator)}
+                    value={formatExtent(extentFromStats(xStats, fieldOf(x)), fieldOf(x), intlLocale, labels.rangeSeparator)}
                     footerNote={axisLabels.x} />
                 <StatCard
                     title={labels.amplitude}
-                    value={formatExtent(extentFromStats(yStats, fieldOf(y)), true, intlLocale, labels.rangeSeparator)}
+                    value={formatExtent(extentFromStats(yStats, fieldOf(y)), fieldOf(y), intlLocale, labels.rangeSeparator)}
                     footerNote={axisLabels.y} />
             </CardGrid>
 
@@ -226,6 +231,7 @@ const IndicatorExplorer = ({
                 <Chart
                     data={data}
                     x={x} y={y} hue={hue}
+                    fields={schema}
                     format={format}
                     labels={axisLabels}
                     title={name}

@@ -35,6 +35,7 @@ import {
 } from '../../utils/encoding';
 import { buildStacks } from '../../utils/stacking';
 import { resolveFormatter } from '../../utils/formatters';
+import { resolveColumnType, formatFromFields } from '../../utils/fieldTypes';
 import { makeScale } from '../../utils/scales';
 import { exportSvg, exportPng } from '../../utils/exportImage';
 import { useSeriesHover } from '../../hooks/useSeriesHover';
@@ -975,7 +976,15 @@ const ChartCanvas = ({
  * @param {string|string[]} [props.hue] - [0]→color, [1]→style, [2]→marker.
  * @param {'none'|'line'|'fill'} [props.fill='line'] - Fill mode.
  * @param {'none'|'color'|'style'|'marker'|'all'} [props.stack='none'] - Stacking mode.
- * @param {object} [props.format] - { x?, y?, z? } d3 spec or function.
+ * @param {Array<object>} [props.fields] - Column metadata (`fields` of
+ *   DatasetWithMetadata: `name`, `typeFamily`, `isCategorical`, `unit`, `displayFormat`).
+ *   When present, the type of each described column comes from its `typeFamily` (DATE /
+ *   TIMESTAMP → date; INTEGER / NUMBER not categorical → number; otherwise categorical)
+ *   and `detectType` is not called for it, so a code such as '01012100' stays a string.
+ *   The `displayFormat` and `unit` of a numeric column also format its axis and tooltip.
+ *   Without `fields`, the types are sampled from the values as before.
+ * @param {object} [props.format] - { x?, y?, z? } d3 spec or function. Wins over the
+ *   formatting derived from `fields`.
  * @param {object} [props.labels] - { x?, y?, z?, color?, style?, marker? }.
  * @param {object} [props.maxLabelLength] - { x?, y? } categorical ellipsis.
  * @param {object} [props.maxLines] - { x?, y? } multiline max lines.
@@ -1007,7 +1016,7 @@ const ChartCanvas = ({
 const Chart = ({
   data, x, y, z, hue,
   fill = 'line', stack = 'none',
-  format = {}, labels = {}, maxLabelLength = {}, maxLines = {},
+  fields, format: formatProp = {}, labels = {}, maxLabelLength = {}, maxLines = {},
   overlap = 'auto', tickDensity = 'normal',
   'categorical-x': categoricalX = false, 'categorical-y': categoricalY = false,
   title, height = 460,
@@ -1030,9 +1039,14 @@ const Chart = ({
   // Les props `categorical-x/y` forcent un axe en catégoriel (bande) : détection
   // court-circuitée → detectChart produit alors 'bar' / 'bar-h', et `coerce`
   // convertit les valeurs en chaînes (catégories) de façon cohérente.
-  const xType = isList ? null : (categoricalX ? 'categorical' : detectType(data.map((r) => r[x])));
-  const yType = isList ? null : (categoricalY ? 'categorical' : detectType(data.map((r) => r[y])));
-  const zType = (!isList && z) ? detectType(data.map((r) => r[z])) : null;
+  // Avec `fields`, le type d'une colonne décrite vient de sa `typeFamily` : `detectType`
+  // n'est pas appelé, et un code à zéros de tête ('01012100') reste une chaîne. Une
+  // colonne absente de `fields` retombe sur l'échantillonnage.
+  const xType = isList ? null : (categoricalX ? 'categorical' : resolveColumnType(fields, x, () => detectType(data.map((r) => r[x]))));
+  const yType = isList ? null : (categoricalY ? 'categorical' : resolveColumnType(fields, y, () => detectType(data.map((r) => r[y]))));
+  const zType = (!isList && z) ? resolveColumnType(fields, z, () => detectType(data.map((r) => r[z]))) : null;
+  // `displayFormat` / `unit` des colonnes décrites, sans jamais primer sur `format`.
+  const format = formatFromFields(fields, { x, y, z }, formatProp, locale);
   const typedDataRaw = isList ? data : data.map((r) => ({
     ...r,
     [x]: coerce(r[x], xType),
@@ -1059,7 +1073,8 @@ const Chart = ({
       <MultiChart
         data={data} x={x} y={y} hue={hue}
         fill={fill} stack={stack}
-        format={format} labels={labels} maxLabelLength={maxLabelLength} maxLines={maxLines}
+        fields={fields} locale={locale}
+        format={formatProp} labels={labels} maxLabelLength={maxLabelLength} maxLines={maxLines}
         overlap={overlap} tickDensity={tickDensity}
         title={title} height={height} defaults={defaults} toolbar={toolbar}
       />

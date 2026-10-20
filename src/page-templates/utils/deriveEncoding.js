@@ -42,8 +42,9 @@ export const deriveEncoding = (columnsMetadata = []) => {
             ...(yMeta && { y: yMeta.label }),
             ...(hueMeta && { color: hueMeta.label }),
         },
-        // Seul le format de l'axe temporel est déduit ici ; celui des mesures
-        // (`displayFormat`, `unit`) n'est pas encore exploité.
+        // Seul le format de l'axe temporel est déduit ici. Celui des mesures
+        // (`displayFormat`, `unit`) n'a pas à l'être : <Chart fields={columnsMetadata}>
+        // le lit lui-même dans les métadonnées, pour les axes comme pour l'infobulle.
         format: xMeta ? { x: '%Y-%m' } : {},
     };
 };

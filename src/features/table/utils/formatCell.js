@@ -8,7 +8,15 @@
 // partagé avec <StatCard>, qui ne peut pas importer depuis src/features/.
 
 import { formatNumber } from '@/utils/format/formatNumber';
+import { formatValue } from '@/utils/format/formatValue';
 import { EMPTY_PLACEHOLDER, DEFAULT_INTL_LOCALE } from '@/utils/format/constants';
+
+/**
+ * Separator between a code and its label in a « code — libellé » cell.
+ *
+ * @type {string}
+ */
+export const CODE_LABEL_SEPARATOR = ' — ';
 
 // Ré-export : formatNumber fait partie de la surface publique de la feature
 // (cf. `export * from './utils/formatCell'` dans index.js), les consommateurs
@@ -31,6 +39,11 @@ export { formatNumber };
  * @property {function(*, Object): JSX.Element} [render]
  * @property {boolean} [mono]
  * @property {boolean} [strong]
+ * @property {?string} [displayFormat] - d3-format specifier from the API metadata; formats
+ *   a `type: 'number'` column (see {@link formatValue}). Ignored when `format` is set.
+ * @property {?string} [unit] - Unit appended by `displayFormat`.
+ * @property {string} [labelKey] - Key of a label column present in the rows: the cell then
+ *   reads « code — libellé ». Set by `<Table codeLabels>`, from `labelFields`.
  */
 
 /**
@@ -56,9 +69,9 @@ export function isNumericCol(col) {
  * Resolves the display value of a table cell, in priority order:
  * `col.render` (custom node — called even for a null/empty value, since the
  * render function owns its own empty-state handling) > null/empty guard (em
- * dash) > `col.format` function > `col.format` FormatSpec object >
- * column-level defaults (localized number for `type: 'number'`, raw string
- * otherwise).
+ * dash) > `col.format` function > `col.format` FormatSpec object > « code — libellé »
+ * (`col.labelKey`) > column-level defaults (`displayFormat` + `unit` for
+ * `type: 'number'`, else localized number; raw string otherwise).
  *
  * @param {*} value - Raw cell value (`row[col.key]`).
  * @param {ColumnDef} col - Column definition.
@@ -75,7 +88,17 @@ export function formatCell(value, col, row, intlLocale = DEFAULT_INTL_LOCALE) {
   // La locale de la table sert de défaut ; une FormatSpec qui déclare la sienne la
   // conserve, c'est le point d'échappement pour une colonne en devise étrangère.
   if (f && typeof f === 'object') return formatNumber(value, { locale: intlLocale, ...f });
+  // Colonne de code adossée à une colonne de libellés présente dans les données :
+  // « code — libellé ». Un libellé vide laisse le code seul.
+  if (col.labelKey) {
+    const label = row?.[col.labelKey];
+    return label == null || label === '' ? String(value) : `${value}${CODE_LABEL_SEPARATOR}${label}`;
+  }
   if (col.type === 'number') {
+    // Le format de l'API (`displayFormat` + `unit`) prime sur le défaut localisé ; sans
+    // lui, `formatValue` rend `null` et le comportement historique s'applique.
+    const formatted = formatValue(value, col, intlLocale);
+    if (formatted != null) return formatted;
     const n = +value;
     if (Number.isNaN(n)) return String(value);
     return n.toLocaleString(intlLocale);

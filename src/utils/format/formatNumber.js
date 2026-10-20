@@ -77,6 +77,10 @@ const percentSuffixFor = (locale) => {
  *   'currency' branch). Takes precedence over the implicit ' %' / unit suffixes.
  * @property {string} [unit] - Appended as ' ' + unit when no suffix has already been set
  *   (i.e. no explicit `suffix` and style is not 'percent').
+ * @property {string} [displayFormat] - d3-format specifier (e.g. ',.2f', '.1%') from the API
+ *   metadata. Read by `formatValue`, not by this function: where a spec reaches both
+ *   (StatCard), `displayFormat` wins and the Intl fields above are ignored; `unit` is then
+ *   appended by `formatValue`.
  */
 
 /**
