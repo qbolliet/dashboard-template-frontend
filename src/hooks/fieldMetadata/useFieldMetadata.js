@@ -11,10 +11,26 @@ import { GET_CATALOG_SCHEMA } from '@/lib/api/documents';
 // du catalogue : tous les champs d'un même catalogue partagent donc UNE requête, mise
 // en cache, quel que soit le nombre de menus ou de sliders montés.
 //
-// Clé distincte de celle de features/filter/sources/useVariableMetadata : les deux
-// hooks n'y rangent pas la même forme de donnée.
+// Clé et fetcher PARTAGÉS avec features/filter/sources/useVariableMetadata : les deux
+// hooks rangent la même donnée (le tableau `getCatalogSchema`), une seule requête sert
+// donc les deux quand ils sont montés ensemble.
 
-function fetchCatalogFields([, catalog, schema]) {
+/**
+ * SWR key of the metadata of a catalog/schema, shared by every hook reading it.
+ *
+ * @param {string} [catalog] - API catalog.
+ * @param {string} [schema] - API schema within the catalog.
+ * @returns {Array} The SWR key.
+ */
+export const catalogSchemaKey = (catalog, schema) => ['catalogSchema', catalog, schema];
+
+/**
+ * SWR fetcher of {@link catalogSchemaKey}: the `getCatalogSchema` array.
+ *
+ * @param {Array} key - Key built by {@link catalogSchemaKey}.
+ * @returns {Promise<Array<Object>>} Metadata of every column, label columns included.
+ */
+export function fetchCatalogSchema([, catalog, schema]) {
   return request(GET_CATALOG_SCHEMA, { catalog, schema }).then((data) => data.getCatalogSchema);
 }
 
@@ -22,7 +38,7 @@ function fetchCatalogFields([, catalog, schema]) {
  * Fetches the metadata of one field from the catalog schema.
  *
  * Backed by SWR: every field of a catalog shares the same
- * `['fieldMetadata', catalog, schema]` entry.
+ * `['catalogSchema', catalog, schema]` entry (see {@link catalogSchemaKey}).
  *
  * @param {Object}  params
  * @param {string}  [params.fieldName] - API field name; without it nothing is fetched.
@@ -36,8 +52,8 @@ function fetchCatalogFields([, catalog, schema]) {
  *   uses it to stop waiting.
  */
 export function useFieldMetadata({ fieldName, catalog, schema, enabled = true } = {}) {
-  const key = enabled && fieldName ? ['fieldMetadata', catalog, schema] : null;
-  const { data, error, isLoading } = useSWR(key, fetchCatalogFields);
+  const key = enabled && fieldName ? catalogSchemaKey(catalog, schema) : null;
+  const { data, error, isLoading } = useSWR(key, fetchCatalogSchema);
 
   return {
     field: data?.find((f) => f.name === fieldName) ?? null,

@@ -87,7 +87,7 @@ trace plusieurs mesures en format long, avec `hue` = mesure.
 
 ```jsx
 const chart = useAggregatedChart({
-  x: 'country', measures: ['gdp'], fields, rows, structuredFilters,
+  x: 'country', measures: ['gdp'], fields, structuredFilters,
 });
 
 <Chart {...chart.chartProps} />
@@ -95,8 +95,11 @@ const chart = useAggregatedChart({
 
 Le hook choisit lui-même le mode d'après les métadonnées : serveur pour les tracés qui
 regroupent, lignes brutes pour le nuage de points, le violon et la densité, dont le tracé a
-besoin des observations individuelles. Tant que `fields` ne décrit pas toutes les colonnes
-tracées, il retombe sur les lignes brutes — on ne sait pas typer sans elles.
+besoin des observations individuelles. Ces lignes brutes, il les charge lui-même — les seules
+colonnes tracées, sous `structuredFilters`, jusqu'à 1000 lignes — sauf si vous lui passez
+`rows`. Tant que `fields` ne décrit pas toutes les colonnes tracées, il retombe sur les lignes
+brutes — on ne sait pas typer sans elles. Une colonne de groupe qui porte un code (nc8, INSEE)
+s'affiche par son libellé, lu dans la colonne `<nom>__label` que renvoie `getAggregates`.
 
 ## Cas d'usage
 

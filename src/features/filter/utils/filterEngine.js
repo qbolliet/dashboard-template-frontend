@@ -9,7 +9,7 @@
 // La complétude d'un critère est déléguée à filterTypes.js (source unique de vérité,
 // partagée avec le CriterionMenu).
 
-import { isComplete, isNumericFamily, isDateFamily, isIntegerFamily } from './filterTypes';
+import { isComplete, isNumericFamily, isDateFamily, isIntegerFamily, optionIds } from './filterTypes';
 import { parseDate, DEFAULT_DATE_ORDER, DATE_RANGE_SEP } from '@/components/filter/utils/dateParse';
 
 // =================================================================
@@ -58,7 +58,9 @@ export function buildTree(items) {
       connector,
       variable: c.variable,
       operation: c.operation,
-      value: c.value,
+      // Catégoriel : les options choisies ({ value, label }) ne gardent que leur id, seule
+      // donnée utile à l'arbre (FilterNode, aperçu SQL, évaluation sur les lignes)
+      value: c.isCategorical ? optionIds(c.value) : c.value,
       typeFamily: c.typeFamily,
       isCategorical: c.isCategorical,
       complete: isComplete(c),

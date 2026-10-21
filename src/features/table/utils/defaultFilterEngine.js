@@ -17,7 +17,7 @@
 // (égalité brute), faute d'information de type — cas volontairement dégradé,
 // la forme sérialisée n'étant pas la source de vérité pour l'évaluation.
 
-import { isNumericFamily, isDateFamily } from '@/features/filter/utils/filterTypes';
+import { isNumericFamily, isDateFamily, optionIds } from '@/features/filter/utils/filterTypes';
 
 /**
  * Normalizes the many shapes a `defaultFilter` prop can take into a single
@@ -77,7 +77,9 @@ export function evalCriterion(row, leaf) {
   const op = leaf.operation;
   const typeFamily = leaf.typeFamily;
   const isCategorical = leaf.isCategorical;
-  const value = ('value' in leaf) ? leaf.value : leaf.valeur;
+  // Options d'un menu ({ value, label }) ramenées à leur id : un tableau plat de critères
+  // passé tel quel en `defaultFilter` n'a pas traversé buildTree
+  const value = optionIds(('value' in leaf) ? leaf.value : leaf.valeur);
   if (!key || !op) return true; // Critère incomplet → ignoré.
   const cell = row[key];
 

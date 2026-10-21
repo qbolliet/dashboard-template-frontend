@@ -55,6 +55,9 @@ const TableFilterPopover = ({ uniqueValues, valueCounts, filter, onFilterChange,
     catalog: remote?.catalog,
     schema: remote?.schema,
     searchTerm: debouncedSearch,
+    // Liste plate dans tous les cas : le popover n'affiche pas de groupes, et un mode
+    // déduit du schéma rendrait une colonne hiérarchique (pays sous région) vide
+    grouped: false,
     enabled: !!remote,
   });
 

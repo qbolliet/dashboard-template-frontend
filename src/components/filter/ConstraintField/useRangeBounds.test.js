@@ -62,9 +62,9 @@ describe('useRangeBounds', () => {
     expect(result.current.step).toBe(86_400_000);
   });
 
-  it('narrows the bounds to the filtered dataset', async () => {
+  it('narrows the bounds to the scope', async () => {
     const all = renderHook(() => useRangeBounds({ fieldName: 'gdp' }), { wrapper });
-    const filtered = renderHook(() => useRangeBounds({ fieldName: 'gdp', structuredFilters: FRANCE }), { wrapper });
+    const filtered = renderHook(() => useRangeBounds({ fieldName: 'gdp', scopeFilters: FRANCE }), { wrapper });
 
     await waitFor(() => expect(all.result.current.step).toBeDefined());
     await waitFor(() => expect(filtered.result.current.step).toBeDefined());

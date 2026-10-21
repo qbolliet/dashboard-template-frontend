@@ -182,6 +182,37 @@ export const planAggregation = ({
   };
 };
 
+/**
+ * Replaces, in each row, the code of a group column by its label when the API sent one.
+ *
+ * A code column (nc8, INSEE) grouped by getAggregates comes with a `<name>__label`
+ * column (`GroupColumn.labelColumn`): the chart shows the label, under the column's own
+ * name, so that axes, series and tooltips need no extra mapping. A NULL label keeps the
+ * code. The metadata of such a column is retyped as categorical text, since it now holds
+ * labels. Two codes sharing a label would share a category: labels are meant to be unique.
+ *
+ * @param {Array<Object>} rows - Rows of the result (OBJECTS or LONG).
+ * @param {Array<Object>} groupBy - `AggregateResult.groupBy`.
+ * @returns {{rows: Array<Object>, fields: Array<Object>}} Rows showing the labels, and the
+ *   metadata of every group column.
+ */
+export const withGroupLabels = (rows, groupBy) => {
+  const labelled = groupBy.filter((g) => g.labelColumn);
+  const fields = groupBy.map((g) => (g.labelColumn
+    ? { ...g.field, typeFamily: 'TEXT', isCategorical: true }
+    : g.field));
+  if (!labelled.length) return { rows, fields };
+
+  return {
+    rows: rows.map((row) => {
+      const out = { ...row };
+      for (const { name, labelColumn } of labelled) out[name] = row[labelColumn] ?? row[name];
+      return out;
+    }),
+    fields,
+  };
+};
+
 // Famille de type du RÉSULTAT d'une agrégation (un effectif est entier, une moyenne
 // décimale, une somme garde la famille de sa mesure).
 const resultFamily = (aggregation, field) => {
@@ -219,13 +250,14 @@ const valueField = (aggregate, label) => ({
 export const toChartProps = (result, plan, labels = DEFAULT_AGGREGATE_LABELS) => {
   const groupNames = result.groupBy.map((g) => g.name);
   if (!groupNames.includes(plan.posCol)) return null;
+  // Codes remplacés par leurs libellés (colonnes `<name>__label` de l'API)
+  const { rows, fields: groupFields } = withGroupLabels(result.data, result.groupBy);
 
   const aggregationName = (a) => labels.aggregations?.[a] ?? a.toLowerCase();
   const axisLabel = (a) => interpolate(labels.aggregateAxis, {
     label: a.field?.label ?? a.measure,
     aggregation: aggregationName(a.aggregation),
   });
-  const groupFields = result.groupBy.map((g) => g.field);
   const groupLabel = (name) => groupFields.find((f) => f.name === name)?.label ?? name;
   const long = (result.request?.format ?? 'OBJECTS') === 'LONG';
   const aggregates = result.aggregates;
@@ -241,14 +273,14 @@ export const toChartProps = (result, plan, labels = DEFAULT_AGGREGATE_LABELS) =>
   const valueCol = long ? VALUE_COLUMN : aggregates[0].alias;
   columns[plan.valueAxis] = valueCol;
 
-  let data = result.data;
+  let data = rows;
   let fields;
   let valueLabel;
   if (long) {
     // Une ligne par (groupe, mesure) : la mesure est rebaptisée de son alias vers son
     // libellé, qui nomme alors la série dans la légende et la tooltip.
     const labelByAlias = new Map(aggregates.map((a) => [a.alias, a.field?.label ?? a.measure]));
-    data = result.data.map((row) => ({ ...row, [MEASURE_COLUMN]: labelByAlias.get(row[MEASURE_COLUMN]) ?? row[MEASURE_COLUMN] }));
+    data = rows.map((row) => ({ ...row, [MEASURE_COLUMN]: labelByAlias.get(row[MEASURE_COLUMN]) ?? row[MEASURE_COLUMN] }));
     // Un seul format pour l'axe : celui des mesures s'il leur est commun, sinon aucun
     // (une unité commune à des mesures hétérogènes serait fausse).
     const same = (key) => aggregates.every((a) => (a[key] ?? null) === (aggregates[0][key] ?? null));

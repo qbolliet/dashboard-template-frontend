@@ -69,6 +69,19 @@ describe('useAggregatedChart', () => {
     expect(result.current.chartProps).toMatchObject({ data: rows, x: 'observations', y: 'montant' });
   });
 
+  it('nuage de points sans `rows` : charge les seules colonnes tracées, sous le filtre', async () => {
+    const structuredFilters = { children: [{ criterion: { variable: 'sector', operation: 'IN', value: ['Industrie'] } }] };
+    const { result } = renderHook(() => useAggregatedChart({
+      x: 'observations', measures: ['montant'], fields: CATALOGUE, fill: 'none', structuredFilters, catalog: 'catalogue',
+    }), { wrapper });
+
+    expect(result.current.mode).toBe('client');
+    await waitFor(() => expect(result.current.chartProps.data.length).toBeGreaterThan(0));
+    const expected = factTable.data.filter((r) => r.sector === 'Industrie');
+    expect(result.current.chartProps.data).toHaveLength(expected.length);
+    expect(result.current.truncated).toBe(false);
+  });
+
   it("propage l'erreur de l'API sans données de repli", async () => {
     const { result } = renderHook(() => useAggregatedChart({
       x: 'sector', measures: [{ measure: 'montant', aggregation: 'MODE' }, { measure: 'sector' }],

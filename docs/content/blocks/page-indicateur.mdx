@@ -36,9 +36,20 @@ revient à la mesure déduite du schéma.
 
 **Les trois indicateurs** suivent le filtre. « Observations » est `metadata.total`, le nombre de
 lignes retenues (et non la taille de la page) ; quand un filtre est actif, le total d'origine
-passe en note. « Période » et « Amplitude » sont les `min` / `max` de `getFieldStats` sur
-l'abscisse et sur la mesure principale, sous le même filtre, et seulement pour les colonnes
-numériques ou dates.
+passe en note. « Période » et « Amplitude » sont les `MIN` / `MAX` de l'abscisse et de la
+mesure principale, sous le même filtre, et seulement pour les colonnes numériques ou dates :
+les quatre bornes tiennent dans **un seul** `getAggregates` sans `groupBy`, plutôt que deux
+`getFieldStats`.
+
+**Une requête de moins à chaque filtre.** Un changement de filtre relance trois requêtes :
+les lignes du tableau, les agrégats du graphique et les bornes des indicateurs. Les sliders des
+critères numériques ou dates lisent les bornes de **toute** la colonne (en cache pour la
+session) : sous le filtre courant, qui contient leur propre critère, ils se refermeraient sur
+la sélection. Les menus de valeurs connaissent leur mode (plat ou groupé) par la variable, sans
+redemander le schéma, et cherchent localement dans une liste complète.
+
+**Le tri du tableau est fait par l'API** (`onSortChange` → `sort`), sur tout le jeu filtré :
+trier la page chargée n'ordonnerait que ses 100 lignes, et contredirait l'export.
 
 **Le rendu serveur reste tolérant.** Les valeurs sont chargées côté client pour ne pas figer
 les chiffres dans le HTML prérendu ; le serveur ne fournit que le schéma, via `requestSafe`, qui

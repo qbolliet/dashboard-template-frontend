@@ -6,9 +6,10 @@
  * local les calcule lui aussi), et le pas se déduit de la famille de type et du
  * `displayFormat` de la colonne. Une prop explicite resterait prioritaire.
  *
- * Pour recaler les bornes sur le jeu filtré, passez aussi `structuredFilters` : le
- * `FilterNode` produit par `toFilterNode`, le même que celui envoyé à la table et au
- * graphique. Sans lui, ce sont les bornes de toute la table.
+ * Pour borner le slider à un périmètre (le pays de la page, par exemple), passez aussi
+ * `scopeFilters` : un `FilterNode`, envoyé à getFieldStats. Sans lui, ce sont les bornes de
+ * toute la colonne. Un périmètre, jamais le filtre que ce champ alimente : ses bornes se
+ * refermeraient sur la sélection.
  *
  * @item constraint-field
  */

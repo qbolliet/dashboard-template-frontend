@@ -144,6 +144,10 @@ const SNIPPET_BUILDERS = { js: snippetFetch, py: snippetPython, curl: snippetCur
  *   sends them to the API (`columnCriteria` → `structuredFilters`); `data` is shown as
  *   received, and the funnel lists the column's values through getSelectOptions
  *   (include list: nothing ticked = no filter). `defaultFilter` is then ignored.
+ * @param {function(?{key: string, dir: 'asc'|'desc'}): void} [props.onSortChange] - Remote
+ *   mode: receives every sort change, for the caller to send to the API (`sort`). The
+ *   rows are then shown in the order received, sorted over the whole filtered dataset;
+ *   without it a remote table sorts the loaded page only.
  * @param {Array<import('@/components/toolbar/HoverToolbar/HoverToolbar').ToolSpec>} [props.extraTools]
  *   - Extra operations injected at the head of the toolbar (dedicated group).
  * @param {function(Array<Object>, ColumnDef[]): void} [props.onExportParquet] - Custom
@@ -174,6 +178,7 @@ const Table = ({
   enableColumnRemoval = true,
   columnFilters,
   onColumnFiltersChange,
+  onSortChange,
   extraTools = [],
   onExportParquet,
   className,
@@ -240,6 +245,7 @@ const Table = ({
     enableColumnRemoval,
     columnFilters,
     onColumnFiltersChange,
+    onSortChange,
     intlLocale,
   });
   const remote = typeof onColumnFiltersChange === 'function';

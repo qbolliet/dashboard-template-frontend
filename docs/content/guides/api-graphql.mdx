@@ -224,7 +224,7 @@ fait ce calcul, côté serveur, et le hook `useAggregatedChart` fait le pont :
 ```jsx
 const chart = useAggregatedChart({
   x: 'date_obs', measures: ['gdp'], hue: 'country',
-  fields, rows, structuredFilters,
+  fields, structuredFilters,
 });
 
 <Chart {...chart.chartProps} />
@@ -233,7 +233,8 @@ const chart = useAggregatedChart({
 Le hook décide qui agrège : pour les tracés qui regroupent, il interroge `getAggregates`
 (une ligne par groupe, la valeur dans `y`) et pose la prop `aggregate` sur `<Chart>`, qui
 rend alors chaque valeur telle quelle sans jamais la ré-agréger ; pour les autres (nuage,
-violon, densité), il passe les lignes brutes. Chaque mesure est agrégée par sa
+violon, densité), il charge lui-même les lignes brutes des seules colonnes tracées (ou prend
+celles passées en `rows`). Chaque mesure est agrégée par sa
 `defaultAggregation` ; plusieurs mesures sont tracées en format long (une série par mesure).
 `chart.truncated` signale qu'il y avait plus de groupes que le plafond de 1000 d'une requête.
 `<Chart>` lui-même ne fait aucune requête : il reste installable seul depuis le registry.
@@ -317,8 +318,12 @@ serveur par `searchTerm`) et par `getSelectOptionsTree` (arbre `[{ value, label,
 d'une hiérarchie de colonnes, par exemple continent → pays). Le mode groupé est **déduit des
 métadonnées** : un champ qui déclare un `parentName` est servi en arbre, que le serveur remonte
 lui-même d'après la chaîne des parents ; `groupField` ne fait que forcer ce mode, et sa valeur
-n'est pas envoyée à l'API. Dans les deux modes la recherche est faite par le serveur, et
-l'arbre n'a pas de `limit` : l'API rejette un arbre trop grand plutôt que de le tronquer.
+n'est pas envoyée à l'API ; un appelant qui connaît déjà le `parentName` passe `grouped` et
+évite la requête de schéma. L'arbre n'a pas de `limit` — l'API rejette un arbre trop grand
+plutôt que de le tronquer — : chargé une fois, il est complet, et la recherche s'y fait
+localement. Une liste plate est demandée avec une option de plus que les 50 affichées : si
+elle n'arrive pas, la liste est complète et la recherche reste locale ; sinon le terme part
+à l'API. Dans les deux cas la règle est celle du serveur : le code ou le libellé.
 
 ### Les bornes d'une colonne : `getFieldStats`
 
@@ -328,9 +333,15 @@ les bornes d'un slider (`ConstraintField` avec `fieldName`, via `useRangeBounds`
 déduit de la famille de type et du `displayFormat`) et les indicateurs de cadrage d'une page :
 
 - « observations » est `metadata.total` ;
-- la « période » et l'« amplitude » sont les `min` / `max` de `getFieldStats` sur l'abscisse
-  et sur la mesure, **sous le filtre courant**, et seulement pour les colonnes numériques ou
+- la « période » et l'« amplitude » sont les `MIN` / `MAX` de l'abscisse et de la mesure,
+  **sous le filtre courant**, lus dans un seul `getAggregates` sans `groupBy` (quatre agrégats,
+  une ligne) plutôt que dans deux `getFieldStats`, et seulement pour les colonnes numériques ou
   dates — le `min` d'une colonne texte est un minimum lexical, qui ne veut rien dire ici.
+
+Les bornes d'un slider de critère, elles, portent sur toute la colonne : le filtre courant
+contient le critère lui-même, et ses bornes se refermeraient sur la sélection. Un
+`ConstraintField` isolé peut être borné à un périmètre par `scopeFilters` (envoyé en
+`structuredFilters` à `getFieldStats`).
 
 `Metadata.stats` n'est volontairement pas sélectionné dans les documents de faits et de
 schéma : l'API le calcule à la demande, une requête SQL par colonne.

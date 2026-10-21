@@ -26,8 +26,7 @@
 // Importation des modules
 import { useId, useMemo, useState } from 'react';
 import { Table, useFactTableWithMetadata } from '@/features/table';
-import { Chart, ChartsFeatures as F, useAggregatedChart } from '@/features/chart';
-import { useFieldStats } from '@/hooks/fieldStats/useFieldStats';
+import { Chart, ChartsFeatures as F, useAggregatedChart, useAggregates } from '@/features/chart';
 import MultiCriterionMenu from '@/features/filter/components/MultiCriterionMenu/MultiCriterionMenu';
 import SelectMenu from '@/components/filter/SelectMenu/SelectMenu';
 import { CardGrid, StatCard } from '@/components/ui';
@@ -68,22 +67,39 @@ const QUERY_HINT = { operation: 'getFactTableWithMetadata', limit: 100 };
 const BOUNDED_FAMILIES = new Set(['INTEGER', 'NUMBER', 'DATE', 'TIMESTAMP']);
 
 /**
- * Turns the getFieldStats of a column into the `[min, max]` pair `formatExtent` reads.
+ * Lists the `MIN` / `MAX` aggregates giving the bounds of a column, under fixed aliases.
  *
- * @param {?{min: *, max: *}} stats - Stats of the column under the current filter.
- * @param {?{typeFamily: string}} field - Metadata of the column.
- * @returns {Array|null} `[min, max]`, or `null` when stats are missing, empty or not bounds.
+ * @param {string} prefix - Alias prefix (`x`, `y`), matching the API alias pattern.
+ * @param {?{name: string, typeFamily: string}} field - Metadata of the column.
+ * @returns {Array<{measure: string, aggregation: string, alias: string}>} Two aggregates,
+ *   or none when the column is missing or its min / max are not bounds (text).
  */
-const extentFromStats = (stats, field) => (
-    stats && field && BOUNDED_FAMILIES.has(field.typeFamily) && stats.min != null && stats.max != null
-        ? [stats.min, stats.max]
-        : null
+const boundAggregates = (prefix, field) => (
+    field && BOUNDED_FAMILIES.has(field.typeFamily)
+        ? [
+            { measure: field.name, aggregation: 'MIN', alias: `${prefix}_min` },
+            { measure: field.name, aggregation: 'MAX', alias: `${prefix}_max` },
+        ]
+        : []
 );
+
+/**
+ * Reads the `[min, max]` pair of a column from the single getAggregates row.
+ *
+ * @param {?Object} row - The only row of a getAggregates without groupBy.
+ * @param {string} prefix - Alias prefix given to {@link boundAggregates}.
+ * @returns {Array|null} `[min, max]`, or `null` when missing or empty (no row matched).
+ */
+const extentFromRow = (row, prefix) => {
+    const min = row?.[`${prefix}_min`];
+    const max = row?.[`${prefix}_max`];
+    return min != null && max != null ? [min, max] : null;
+};
 
 /**
  * Formats an `[min, max]` extent pair into a readable range.
  *
- * @param {Array} [extent] - Two-element `[min, max]` extent (from getFieldStats).
+ * @param {Array} [extent] - Two-element `[min, max]` extent (MIN / MAX from getAggregates).
  * @param {?Object} field - Metadata of the column: a numeric one has its bounds run
  *   through its `displayFormat` and `unit`, or through one decimal when it has no
  *   `displayFormat`; any other (a period) shows its bounds as received.
@@ -128,6 +144,9 @@ const IndicatorExplorer = ({
     const [filter, setFilter] = useState(null);
     // Sélections des filtres de colonne du tableau (mode distant de <Table>)
     const [columnFilters, setColumnFilters] = useState({});
+    // Tri du tableau (`{ key, dir }`), envoyé à l'API : trier la page chargée n'ordonnerait
+    // que ses 100 lignes, pas le jeu filtré (et contredirait l'export, trié par l'API).
+    const [tableSort, setTableSort] = useState(null);
     // Mesures choisies dans le sélecteur ([{value, label}]) ; `null` tant que le lecteur
     // n'a rien choisi : la mesure déduite du schéma s'applique alors.
     const [measureSelection, setMeasureSelection] = useState(null);
@@ -158,8 +177,9 @@ const IndicatorExplorer = ({
     const tableColumns = (schema ?? []).map((m) => ({ key: m.name, typeFamily: m.typeFamily }));
     const structuredFilters = andNodes(menuNode, columnCriteria(columnFilters, tableColumns));
 
-    // Sans filtre, `structuredFilters` est nul : même clé, donc même requête, que `baseline`.
-    const { data, metadata, loading, error } = useFactTableWithMetadata({ structuredFilters });
+    // Sans filtre ni tri, même clé, donc même requête, que `baseline`.
+    const sort = tableSort ? [{ field: tableSort.key, order: tableSort.dir.toUpperCase() }] : undefined;
+    const { data, metadata, loading, error } = useFactTableWithMetadata({ structuredFilters, sort });
 
     // `labels` de deriveEncoding nomme les AXES du graphique (une colonne → son
     // intitulé) : rien à voir avec les libellés d'interface reçus en prop, d'où le
@@ -177,8 +197,10 @@ const IndicatorExplorer = ({
         : (y ? [y] : []);
 
     // Props du graphique : agrégats de l'API pour les types qui regroupent, lignes brutes
-    // de la page sinon. `labels` du hook nomme les axes et séries agrégés (« Population
-    // (somme) », « Mesure ») ; ceux de deriveEncoding servent en mode lignes brutes.
+    // sinon — chargées par le hook (colonnes tracées, sous le filtre), jamais la page du
+    // tableau, dont le tri et la taille ne concernent pas le graphique. `labels` du hook
+    // nomme les axes et séries agrégés (« Population (somme) », « Mesure ») ; ceux de
+    // deriveEncoding servent en mode lignes brutes.
     const chart = useAggregatedChart({
         x,
         measures,
@@ -186,24 +208,29 @@ const IndicatorExplorer = ({
         fields: schema,
         fill: 'line',
         grain,
-        rows: data,
         structuredFilters,
         labels: dictionary.chart,
     });
     const chartLabels = chart.mode === 'server' && chart.chartProps.labels ? chart.chartProps.labels : axisLabels;
 
     // Les cartes suivent le filtre : `metadata.total` est le nombre de lignes retenues
-    // (et non la taille de la page, `count`), et les bornes de x et y viennent de
-    // getFieldStats sous le même filtre — `metadata.extents` ne couvre que la page
-    // courante. `isFiltered` vaut vrai dès qu'un filtre est envoyé, même s'il laisse
-    // passer toutes les lignes : le total d'origine reste alors affiché, ce qui confirme
-    // au lecteur que son filtre a bien été pris en compte.
+    // (et non la taille de la page, `count`), et les bornes de x et y sont des MIN / MAX
+    // calculés par l'API sous le même filtre — `metadata.extents` ne couvre que la page
+    // courante. Les quatre bornes tiennent dans UN getAggregates sans groupBy (une ligne)
+    // plutôt que deux getFieldStats : une requête de moins à chaque changement de filtre.
+    // `isFiltered` vaut vrai dès qu'un filtre est envoyé, même s'il laisse passer toutes
+    // les lignes : le total d'origine reste alors affiché, ce qui confirme au lecteur que
+    // son filtre a bien été pris en compte.
     const isFiltered = Boolean(structuredFilters);
-    const xStats = useFieldStats({ fieldName: x, structuredFilters, enabled: !!x }).stats;
+    const fieldOf = (column) => schema?.find((m) => m.name === column);
     // L'amplitude suit la mesure principale du graphique (la première choisie).
     const primaryMeasure = measures[0];
-    const yStats = useFieldStats({ fieldName: primaryMeasure, structuredFilters, enabled: !!primaryMeasure }).stats;
-    const fieldOf = (column) => schema?.find((m) => m.name === column);
+    const bounds = useAggregates({
+        aggregates: [...boundAggregates('x', fieldOf(x)), ...boundAggregates('y', fieldOf(primaryMeasure))],
+        structuredFilters,
+        limit: 1,
+    });
+    const boundsRow = bounds.result?.data?.[0];
 
     // Variables du menu de filtres : toutes les colonnes du jeu, sauf les colonnes de
     // libellés (`labelFor`), qui décrivent un code au lieu d'être une variable. Les
@@ -239,11 +266,11 @@ const IndicatorExplorer = ({
                         : labels.observationsNote} />
                 <StatCard
                     title={labels.period}
-                    value={formatExtent(extentFromStats(xStats, fieldOf(x)), fieldOf(x), intlLocale, labels.rangeSeparator)}
+                    value={formatExtent(extentFromRow(boundsRow, 'x'), fieldOf(x), intlLocale, labels.rangeSeparator)}
                     footerNote={axisLabels.x} />
                 <StatCard
                     title={labels.amplitude}
-                    value={formatExtent(extentFromStats(yStats, fieldOf(primaryMeasure)), fieldOf(primaryMeasure), intlLocale, labels.rangeSeparator)}
+                    value={formatExtent(extentFromRow(boundsRow, 'y'), fieldOf(primaryMeasure), intlLocale, labels.rangeSeparator)}
                     footerNote={fieldOf(primaryMeasure)?.label ?? axisLabels.y} />
             </CardGrid>
 
@@ -256,7 +283,6 @@ const IndicatorExplorer = ({
                 dateMask={dateMask}
                 dateOrder={dateOrder}
                 firstDayOfWeek={firstDayOfWeek}
-                structuredFilters={structuredFilters}
                 onChange={setFilter} />
 
             {/* Requête FILTRÉE refusée (BAD_USER_INPUT…) : le menu reste en place pour que
@@ -309,6 +335,7 @@ const IndicatorExplorer = ({
                 columnsMetadata={schema}
                 columnFilters={columnFilters}
                 onColumnFiltersChange={setColumnFilters}
+                onSortChange={setTableSort}
                 locale={locale}
                 labels={dictionary.table}
                 queryHint={{ ...QUERY_HINT, structuredFilters: menuNode }} />

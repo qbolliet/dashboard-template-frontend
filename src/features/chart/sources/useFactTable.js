@@ -19,7 +19,9 @@ import { GET_FACT_TABLE_WITH_METADATA } from '@/lib/api/documents';
 // `schema` sont les coordonnées ducklake, transmises en simples arguments de
 // requête.
 
-function fetchFactTable([, fields, structuredFilters, limit, offset, sort, catalog, schema]) {
+function fetchFactTable([, fields, filtersJson, limit, offset, sort, catalog, schema]) {
+  // L'arbre voyage dans la clé SWR sous forme de JSON (cf. useFactTable)
+  const structuredFilters = filtersJson ? JSON.parse(filtersJson) : undefined;
   return request(
     GET_FACT_TABLE_WITH_METADATA,
     { fields, structuredFilters, limit, offset, sort, format: 'OBJECTS', catalog, schema },
@@ -30,8 +32,9 @@ function fetchFactTable([, fields, structuredFilters, limit, offset, sort, catal
  * Fetches a long-format fact table ready to feed <Chart> (`format: OBJECTS`).
  *
  * Backed by SWR: caches and deduplicates requests sharing the same
- * `['factTable', fields, structuredFilters, limit, offset, sort, catalog, schema]`
- * key across component instances.
+ * `['factTable', fields, JSON(structuredFilters), limit, offset, sort, catalog, schema]`
+ * key across component instances, and keeps the previous rows visible while a new key
+ * (e.g. a new filter) resolves.
  *
  * The returned `rows` are passed AS-IS to `<Chart data={rows} />`: no reshaping —
  * ISO date strings are coerced by the chart itself. `metadata.extents` can
@@ -46,15 +49,19 @@ function fetchFactTable([, fields, structuredFilters, limit, offset, sort, catal
  * @param {Array}    [params.sort] - `[{ field, order }]`.
  * @param {string}   [params.catalog] - Ducklake catalog (query argument).
  * @param {string}   [params.schema]  - Ducklake schema (query argument).
+ * @param {boolean}  [params.enabled=true] - Fetch enabled; `false` sends nothing.
  * @returns {{ columns: string[], rows: Array<object>, fields: Array<object>,
  *   metadata: object|null, loading: boolean, error: (Error|null) }} `fields` are the
  *   column metadata (same names and order as `columns`), ready for `<Chart fields>`.
  */
 export function useFactTable({
-  fields, structuredFilters, limit = 100, offset = 0, sort, catalog, schema,
+  fields, structuredFilters, limit = 100, offset = 0, sort, catalog, schema, enabled = true,
 } = {}) {
-  const key = ['factTable', fields, structuredFilters, limit, offset, sort, catalog, schema];
-  const { data, error, isLoading } = useSWR(key, fetchFactTable);
+  // L'arbre est recréé à chaque rendu du consommateur : sa forme JSON, stable tant que
+  // son contenu ne change pas, sert de clé.
+  const filtersJson = structuredFilters ? JSON.stringify(structuredFilters) : null;
+  const key = enabled ? ['factTable', fields, filtersJson, limit, offset, sort, catalog, schema] : null;
+  const { data, error, isLoading } = useSWR(key, fetchFactTable, { keepPreviousData: true });
 
   // ── Usage optionnel de metadata.extents ───────────────────────────────────
   // Pour fixer les domaines d'axes SANS re-parcourir `rows`, on peut lire

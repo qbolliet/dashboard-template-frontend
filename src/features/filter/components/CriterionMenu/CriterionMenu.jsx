@@ -53,8 +53,6 @@ const DEFAULT_LABELS = {
  *   `FilterOperation` enum value (config/filter/operations.json, flattened by
  *   resolveOperationLabels). A missing label shows the enum value.
  * @param {string} [catalog] - API catalog forwarded to the value primitives.
- * @param {?Object} [structuredFilters] - Current filter tree, forwarded to the value
- *   primitives so numeric and date bounds follow the filtered dataset.
  * @param {boolean} [parentheses] - Enables the grouping brackets.
  * @param {boolean} [footer] - Renders the validity footer (with `validate`).
  * @param {boolean} [validate] - Enables validation (accent color + inline feedback).
@@ -81,7 +79,6 @@ const CriterionMenu = ({
   variables,
   operationLabels,
   catalog,
-  structuredFilters,
   parentheses = false,
   footer = false,
   validate = false,
@@ -105,6 +102,11 @@ const CriterionMenu = ({
   const typeFamily = varMeta?.typeFamily ?? null;
   const isCategorical = varMeta?.isCategorical ?? false;
   const ops = resolveOperations(varMeta, operationLabels);
+  // Métadonnées déjà connues de la variable (metadataToVariables) : le menu de valeurs et
+  // le slider n'ont pas à redemander le schéma. Absentes (variables sans ces clés),
+  // `undefined` les laisse le lire eux-mêmes.
+  const knownGrouped = varMeta && 'parentName' in varMeta ? !!varMeta.parentName : undefined;
+  const knownDisplayFormat = varMeta && 'displayFormat' in varMeta ? varMeta.displayFormat : undefined;
 
   // Verdict de VALEUR remonté par le champ (ConstraintField). null = pas de verdict de
   // champ (types sans validation croisée) → repli sur isComplete. Réinitialisé à chaque
@@ -221,7 +223,8 @@ const CriterionMenu = ({
           onValidityChange={setFieldVerdict}
           fieldName={criterion.variable}
           catalog={catalog}
-          structuredFilters={structuredFilters}
+          grouped={knownGrouped}
+          displayFormat={knownDisplayFormat}
           validate={validate}
           showSlider={showSlider} />
       </CriterionRow>

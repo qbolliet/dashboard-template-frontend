@@ -47,6 +47,10 @@ import { normalizeDefaultFilter, deriveFiltersFromDefault } from '../utils/defau
  *   caller owns the selections and sends them in `structuredFilters` (see
  *   `columnCriteria`). They are then neither seeded from `defaultFilter` nor applied
  *   to `data`, which the server has already filtered.
+ * @param {function(?{key: string, dir: 'asc'|'desc'}): void} [config.onSortChange] -
+ *   Remote mode only: receives every sort change so that the caller sends it to the API
+ *   (`sort` of getFactTableWithMetadata). `data` is then shown in the order received —
+ *   sorting the loaded page would only order its rows, not the dataset.
  * @returns {{
  *   visibleColumns: Array, hiddenColumns: Array,
  *   uniqueValues: Object<string, Array>, valueCounts: Object<string, Object>,
@@ -71,10 +75,13 @@ const useDataTableState = ({
   enableColumnRemoval,
   columnFilters,
   onColumnFiltersChange,
+  onSortChange,
   intlLocale = DEFAULT_INTL_LOCALE,
 }) => {
   // Mode distant : sélections contrôlées par le parent, qui les envoie à l'API.
   const remote = typeof onColumnFiltersChange === 'function';
+  // Tri distant : le parent envoie le tri à l'API, les lignes arrivent déjà triées.
+  const remoteSort = remote && typeof onSortChange === 'function';
 
   // ── Tri : { key, dir } | null ──
   const [sort, setSort] = useState(null);
@@ -88,9 +95,11 @@ const useDataTableState = ({
   // ── Valeurs distinctes par colonne, calculées sur data BRUT ──
   // Tri numérique si la colonne est numérique, sinon localeCompare dans la langue du
   // site — l'ordre alphabétique n'est pas le même partout (le suédois classe å après z).
+  // Mode distant : rien à calculer, le popover lit les valeurs de toute la colonne dans
+  // getSelectOptions — celles de la page chargée seraient incomplètes, et leurs comptes faux.
   const uniqueValues = {};
   const valueCounts = {};
-  for (const c of columns) {
+  for (const c of remote ? [] : columns) {
     const seen = new Set();
     const arr = [];
     const counts = {};
@@ -170,8 +179,9 @@ const useDataTableState = ({
 
   // Tri appliqué après le filtre (l'export respecte donc cet ordre). null en
   // dernier ; comparaison numérique par valeur, sinon localeCompare dans la langue du site.
+  // Tri distant : l'ordre est celui de l'API, sur tout le jeu filtré.
   let sortedRows = filteredRows;
-  if (sort) {
+  if (sort && !remoteSort) {
     const { key, dir } = sort;
     const col = columns.find((c) => c.key === key);
     sortedRows = [...filteredRows].sort((a, b) => {
@@ -188,15 +198,19 @@ const useDataTableState = ({
   }
 
   // ── Actions de tri ── (cycle aucun → asc → desc → aucun)
+  // Le tri suivant est calculé depuis l'état courant (pas en setState fonctionnel) pour
+  // être remonté au parent depuis le handler, jamais depuis un effet.
+  const applySort = (next) => {
+    setSort(next);
+    if (remoteSort) onSortChange(next);
+  };
   const toggleSort = (key) => {
     if (!enableSort) return;
-    setSort((prev) => {
-      if (!prev || prev.key !== key) return { key, dir: 'asc' };
-      if (prev.dir === 'asc') return { key, dir: 'desc' };
-      return null;
-    });
+    if (!sort || sort.key !== key) applySort({ key, dir: 'asc' });
+    else if (sort.dir === 'asc') applySort({ key, dir: 'desc' });
+    else applySort(null);
   };
-  const clearSort = () => setSort(null);
+  const clearSort = () => applySort(null);
 
   // ── Suppression / restauration de colonnes (clone du Set) ──
   const removeColumn = (key) => setHidden((prev) => {
@@ -247,7 +261,7 @@ const useDataTableState = ({
   const resetAll = () => {
     if (remote) onColumnFiltersChange({});
     else setOverrides(Object.fromEntries(columns.map((c) => [c.key, null])));
-    setSort(null);
+    applySort(null);
     setHidden(new Set());
   };
 

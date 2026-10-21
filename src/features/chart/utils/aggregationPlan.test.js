@@ -198,6 +198,29 @@ describe('toChartProps', () => {
     expect(toChartProps(run(plan), other)).toBeNull();
   });
 
+  it('affiche le libellé d\'une colonne de code (`labelColumn`), le code à défaut', () => {
+    const fields = [
+      { name: 'nc8', label: 'Produit', typeFamily: 'INTEGER', isCategorical: true, labelFields: ['nc8_libelle'] },
+      { name: 'valeur', label: 'Valeur', typeFamily: 'NUMBER', isCategorical: false, defaultAggregation: 'SUM' },
+    ];
+    const plan = planAggregation({ x: 'nc8', y: 'valeur', fields });
+    const result = {
+      groupBy: [{ name: 'nc8', grain: null, labelColumn: 'nc8__label', field: fields[0] }],
+      aggregates: [{ alias: 'valeur_sum', measure: 'valeur', aggregation: 'SUM', unit: null, displayFormat: null, field: fields[1] }],
+      data: [
+        { nc8: '01012100', nc8__label: 'Chevaux reproducteurs', valeur_sum: 3 },
+        { nc8: '01012900', nc8__label: null, valeur_sum: 5 },
+      ],
+      request: { format: 'OBJECTS' },
+    };
+    const props = toChartProps(result, plan);
+
+    expect(props.x).toBe('nc8');
+    expect(props.data.map((r) => r.nc8)).toEqual(['Chevaux reproducteurs', '01012900']);
+    // Un libellé n'est pas un nombre : la colonne passe en catégorielle texte
+    expect(props.fields.find((f) => f.name === 'nc8')).toMatchObject({ typeFamily: 'TEXT', isCategorical: true, label: 'Produit' });
+  });
+
   // Garantie d'absence de double agrégation : chaque ligne rendue est seule dans son
   // groupe (position × séries hue), donc la réduction 'none' de <Chart> la lit telle quelle.
   it.each([

@@ -69,7 +69,10 @@ chargées ne dirait rien des autres — et affiche `data` tel que reçu. C'est �
 sélections de colonne, de les convertir en critères `IN` avec `columnCriteria`, de les
 combiner au filtre du dashboard avec `andNodes` et de les envoyer en `structuredFilters` ; les
 listes de valeurs de l'entonnoir d'une colonne viennent alors de `getSelectOptions`. `defaultFilter`
-est ignoré dans ce mode. L'exemple `table-api`, plus bas, est ce montage en entier.
+est ignoré dans ce mode. Passez aussi `onSortChange` pour que le tri parte à l'API (`sort` de
+`getFactTableWithMetadata`) : le tableau affiche alors les lignes dans l'ordre reçu, triées sur
+tout le jeu filtré ; sans lui, il ne trie que la page chargée. L'exemple `table-api`, plus bas,
+est ce montage en entier.
 
 ### Exporter
 

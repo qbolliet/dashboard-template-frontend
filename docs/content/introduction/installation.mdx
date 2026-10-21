@@ -209,9 +209,9 @@ const IndicateursPage = () => {
 
   // Props de <Chart>. Un graphique qui regroupe est tracé depuis `getAggregates`, sur tout le
   // jeu filtré (agrégation déclarée de la mesure) et non depuis la page de lignes du tableau ;
-  // les autres (nuage, violon…) reçoivent les lignes brutes.
+  // les autres (nuage, violon…) chargent leurs propres lignes brutes.
   const chart = useAggregatedChart({
-    x: 'date_obs', measures: ['gdp'], hue: 'country', fields, rows: data, structuredFilters,
+    x: 'date_obs', measures: ['gdp'], hue: 'country', fields, structuredFilters,
   });
 
   return (
@@ -219,7 +219,6 @@ const IndicateursPage = () => {
       <MultiCriterionMenu
         variables={variables}
         operationLabels={OPERATION_LABELS}
-        structuredFilters={structuredFilters}
         onChange={setFilter} />
 
       <Chart {...chart.chartProps} height={420} />

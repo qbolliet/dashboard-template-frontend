@@ -1,6 +1,7 @@
 // Importation des modules
 import { mergeLabels } from '@/utils/i18n/mergeLabels';
 import { useAggregates } from '../sources/useAggregates';
+import { useFactTable } from '../sources/useFactTable';
 import { planAggregation, toChartProps, DEFAULT_AGGREGATE_LABELS } from '../utils/aggregationPlan';
 
 // =================================================================
@@ -11,9 +12,10 @@ import { planAggregation, toChartProps, DEFAULT_AGGREGATE_LABELS } from '../util
 // <Chart> lui-même ne fait aucune requête — il reste installable seul depuis le
 // registry ; sa prop `aggregate`, posée ici, lui dit seulement de ne pas ré-agréger.
 
-// Plafond de groupes d'une requête (API.PAGINATION.MAX_LIMIT) : au-delà, le graphique est
-// tronqué et `truncated` le signale.
+// Plafond de groupes (agrégats) ou de lignes (tracé brut) d'une requête
+// (API.PAGINATION.MAX_LIMIT) : au-delà, le graphique est tronqué et `truncated` le signale.
 const MAX_GROUPS = 1000;
+const MAX_ROWS = 1000;
 
 /**
  * Builds `<Chart>` props from server-side aggregates for grouping charts (bars, stacks,
@@ -29,7 +31,10 @@ const MAX_GROUPS = 1000;
  * @param {?Array<Object>} params.fields - Column metadata (`fields` of DatasetWithMetadata).
  * @param {'none'|'line'|'fill'} [params.fill='line'] - Fill mode passed to `<Chart>`.
  * @param {string} [params.grain] - `TimeGrain` of a date position column (e.g. 'MONTH').
- * @param {Array<Object>} [params.rows=[]] - Raw rows, plotted in client mode.
+ * @param {Array<Object>} [params.rows] - Raw rows, plotted in client mode. Without them
+ *   the hook loads its own: the plotted columns only, under `structuredFilters`, up to
+ *   1000 rows — never the page of a table, whose order and size have nothing to do with
+ *   the chart.
  * @param {?Object} [params.structuredFilters] - Filter tree sent with the aggregates.
  * @param {string} [params.catalog] - API catalog.
  * @param {string} [params.schema] - API schema.
@@ -42,10 +47,24 @@ const MAX_GROUPS = 1000;
  *   `hue`, `fields`, and in server mode `labels` and `aggregate`.
  */
 export function useAggregatedChart({
-  x, y, z, hue, measures, fields, fill = 'line', grain, rows = [],
+  x, y, z, hue, measures, fields, fill = 'line', grain, rows,
   structuredFilters, catalog, schema, categoricalX = false, categoricalY = false, labels,
 }) {
   const plan = planAggregation({ x, y, z, hue, fields, fill, measures, grain, categoricalX, categoricalY });
+
+  // Colonnes du tracé brut : axes et séries, rien d'autre (moins de lignes à transférer).
+  const first = measures?.[0];
+  const rawY = y ?? (typeof first === 'string' ? first : first?.measure);
+  const rawColumns = [...new Set([x, rawY, z, ...(Array.isArray(hue) ? hue : [hue])].filter(Boolean))];
+  // Lignes brutes chargées ici seulement en mode client et sans `rows` fournies.
+  const own = useFactTable({
+    fields: rawColumns,
+    structuredFilters,
+    limit: MAX_ROWS,
+    catalog,
+    schema,
+    enabled: !plan && rows === undefined && rawColumns.length > 0,
+  });
   const { result, loading, error } = useAggregates({
     groupBy: plan?.groupBy,
     aggregates: plan?.aggregates,
@@ -60,15 +79,14 @@ export function useAggregatedChart({
 
   // Lignes brutes : le graphique les réduit lui-même (agrégation par défaut de la mesure)
   // ou n'a rien à réduire (KDE, nuage).
-  const first = measures?.[0];
-  const rawY = y ?? (typeof first === 'string' ? first : first?.measure);
   if (!plan) {
+    const provided = rows !== undefined;
     return {
       mode: 'client',
-      chartProps: { data: rows, x, y: rawY, ...(z ? { z } : {}), hue, fields },
-      loading: false,
-      error: null,
-      truncated: false,
+      chartProps: { data: provided ? rows : own.rows, x, y: rawY, ...(z ? { z } : {}), hue, fields },
+      loading: provided ? false : own.loading,
+      error: provided ? null : own.error,
+      truncated: provided ? false : Boolean(own.metadata?.hasNextPage),
     };
   }
 

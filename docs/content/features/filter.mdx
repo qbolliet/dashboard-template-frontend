@@ -78,9 +78,15 @@ d'enum.
 
 **Valeurs et bornes.** Un menu de valeurs (`fieldName`) lit ses options à l'API :
 `getSelectOptions`, ou `getSelectOptionsTree` quand la colonne a un `parentName` (continent →
-pays, en groupes). Un champ numérique ou date lit ses bornes dans `getFieldStats` ; passez
-`structuredFilters` à la carte pour que ces bornes suivent le jeu **filtré** plutôt que la
-table entière.
+pays, en groupes). Le menu ne va chercher à l'API que ce qu'il n'a pas : un arbre est toujours
+complet, et une liste plate de 50 valeurs ou moins aussi — la recherche s'y fait localement,
+sur le code comme sur le libellé, comme le ferait l'API. Les valeurs choisies gardent leur
+libellé (`{ value, label }`) ; seul le code part dans le filtre. Un champ numérique ou date lit
+ses bornes dans `getFieldStats`, sur toute la colonne : le filtre que les cartes construisent
+contient leur propre critère, et des bornes calculées dessous se refermeraient sur la
+sélection. Seul `<ConstraintField>`, utilisé hors d'un menu de critères, accepte un périmètre
+(`scopeFilters`, par exemple le pays de la page). `metadataToVariables` garde `parentName` et
+`displayFormat` : le menu et le slider n'ont pas à redemander le schéma.
 
 ## Combinaison de critères
 

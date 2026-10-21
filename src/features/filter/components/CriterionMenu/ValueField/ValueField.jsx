@@ -29,8 +29,10 @@ import './ValueField.scss';
  * @param {function(boolean): void} [onValidityChange] - Receives ConstraintField's verdict.
  * @param {?string} fieldName - API field name (= variable id) feeding the primitives' hooks.
  * @param {?string} [catalog] - API catalog forwarded to the primitives.
- * @param {?Object} [structuredFilters] - Current filter tree: numeric and date bounds are
- *   those of the filtered dataset.
+ * @param {boolean} [grouped] - Categorical: the value menu lists grouped options (the
+ *   variable has a `parentName`). Left undefined, the menu reads it from the schema.
+ * @param {?string} [displayFormat] - Numeric: d3-format of the variable, giving the slider
+ *   step. Left undefined, the field reads it from the schema.
  * @param {boolean} [validate] - Enables real-time validation on the field.
  * @param {boolean} [showSlider] - Numeric/date: render the ConstraintField slider bar.
  * @param {string}   [intlLocale] - Full Intl tag, driving number and date formatting.
@@ -51,7 +53,8 @@ const ValueField = ({
   onValidityChange,
   fieldName,
   catalog,
-  structuredFilters,
+  grouped,
+  displayFormat,
   validate = false,
   showSlider = false,
   labels,
@@ -66,36 +69,43 @@ const ValueField = ({
   }
 
   // ── Catégoriel : SelectMenu alimenté par le hook interne (fieldName) ──
+  // La valeur garde les options choisies ({ value, label }) : leur libellé reste affiché
+  // même quand une recherche ou la limite de 50 options les sort de la liste chargée.
+  // Un id nu (critère persisté) reste accepté ; l'arbre n'en retient que l'id (optionIds).
   if (isCategorical) {
     const isMulti = operation === 'IN' || operation === 'NOT_IN';
+    const asOption = (v) => (v !== null && typeof v === 'object' ? v : { value: v });
+    const toOption = ({ value: id, label }) => ({ value: id, label });
 
-    // Multi : value est un tableau d'ids ; les libellés sont résolus par le SelectMenu.
+    // Multi : value est un tableau d'options.
     if (isMulti) {
-      const selVal = Array.isArray(value) ? value.map((id) => ({ value: id })) : [];
+      const selVal = Array.isArray(value) ? value.map(asOption) : [];
       return (
         <SelectMenu
           labels={labels}
           fieldName={fieldName}
           catalog={catalog}
+          grouped={grouped}
           allowMulti
           value={selVal}
           validate={validate}
           placeholder={labels.valuesPlaceholder}
-          onChange={(items) => onChange(items.map((i) => i.value), { debounce: false })} />
+          onChange={(items) => onChange(items.map(toOption), { debounce: false })} />
       );
     }
 
-    // Égalité : value est un id (ou null).
-    const selVal = value != null ? [{ value }] : [];
+    // Égalité : value est une option (ou null).
+    const selVal = value != null ? [asOption(value)] : [];
     return (
       <SelectMenu
         labels={labels}
         fieldName={fieldName}
         catalog={catalog}
+        grouped={grouped}
         value={selVal}
         validate={validate}
         placeholder={labels.valuePlaceholder}
-        onChange={(items) => onChange(items[0]?.value ?? null, { debounce: false })} />
+        onChange={(items) => onChange(items[0] ? toOption(items[0]) : null, { debounce: false })} />
     );
   }
 
@@ -117,7 +127,8 @@ const ValueField = ({
         rangeMode={isRange}
         fieldName={fieldName}
         catalog={catalog}
-        structuredFilters={structuredFilters}
+        typeFamily={typeFamily}
+        displayFormat={displayFormat}
         validate={validate}
         showSlider={showSlider}
         inputsOnTop
@@ -146,7 +157,8 @@ const ValueField = ({
         rangeMode={isRange}
         fieldName={fieldName}
         catalog={catalog}
-        structuredFilters={structuredFilters}
+        typeFamily={typeFamily}
+        displayFormat={displayFormat}
         validate={validate}
         showSlider={showSlider}
         inputsOnTop

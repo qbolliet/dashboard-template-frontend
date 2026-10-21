@@ -1,7 +1,6 @@
 // Importation des modules
 import useSWR from 'swr';
-import { request } from '@/lib/api/client';
-import { GET_CATALOG_SCHEMA } from '@/lib/api/documents';
+import { catalogSchemaKey, fetchCatalogSchema } from '@/hooks/fieldMetadata/useFieldMetadata';
 
 // =================================================================
 // SOURCE — VARIABLE METADATA (métadonnées de champs)
@@ -13,16 +12,15 @@ import { GET_CATALOG_SCHEMA } from '@/lib/api/documents';
 // widget) sans type intermédiaire.
 //
 // `catalog` / `schema` sont les coordonnées ducklake, passées en arguments de requête.
-
-function fetchVariableMetadata([, catalog, schema]) {
-  return request(GET_CATALOG_SCHEMA, { catalog, schema })
-    .then((data) => data.getCatalogSchema);
-}
+// La clé SWR et le fetcher sont ceux de useFieldMetadata : une seule requête
+// getCatalogSchema par catalogue, quel que soit le hook qui la demande.
 
 /**
  * Maps API field metadata to the `variables` shape consumed by CriterionMenu /
- * MultiCriterionMenu: `{ value, label, typeFamily, isCategorical, filterOperations }`
- * (value = field name).
+ * MultiCriterionMenu: `{ value, label, typeFamily, isCategorical, filterOperations,
+ * parentName, displayFormat }` (value = field name). `parentName` tells the value menu
+ * to load grouped options and `displayFormat` gives the slider step, without the cards
+ * requesting the schema again.
  *
  * Label columns (`labelFor` set) are dropped: they carry the label of a code
  * column, not a variable to filter on.
@@ -30,7 +28,7 @@ function fetchVariableMetadata([, catalog, schema]) {
  * @param {Array} fields - Metadata list from {@link useVariableMetadata} (or the
  *   `fields` of `getFactTableWithMetadata`).
  * @returns {{value: string, label: string, typeFamily: string, isCategorical: boolean,
- *   filterOperations: string[]}[]}
+ *   filterOperations: string[], parentName: ?string, displayFormat: ?string}[]}
  */
 export function metadataToVariables(fields = []) {
   return fields
@@ -41,6 +39,8 @@ export function metadataToVariables(fields = []) {
       typeFamily: f.typeFamily,
       isCategorical: f.isCategorical,
       filterOperations: f.filterOperations,
+      parentName: f.parentName ?? null,
+      displayFormat: f.displayFormat ?? null,
     }));
 }
 
@@ -56,7 +56,7 @@ export function metadataToVariables(fields = []) {
  * @returns {{ fields: Array, loading: boolean, error: (Error|null) }}
  */
 export function useVariableMetadata({ catalog, schema } = {}) {
-  const { data, error, isLoading } = useSWR(['catalogSchema', catalog, schema], fetchVariableMetadata);
+  const { data, error, isLoading } = useSWR(catalogSchemaKey(catalog, schema), fetchCatalogSchema);
 
   // En cas d'échec du fetch, on renvoie un état vide + `error` : masquer la panne
   // derrière des données de démonstration tromperait le consommateur.

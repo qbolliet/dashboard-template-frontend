@@ -50,8 +50,13 @@ const DEFAULT_LABELS = {
  * @param {number}   [step]        - Slider step (ms for dates).
  * @param {string}   [fieldName]   - API field name for {@link useRangeBounds}.
  * @param {string}   [catalog]     - API catalog for {@link useRangeBounds}.
- * @param {?Object}  [structuredFilters] - Current filter tree (`FilterNode`): the API bounds
- *   are those of the filtered dataset. Ignored without `fieldName`.
+ * @param {?Object}  [scopeFilters] - Scope of the bounds (`FilterNode`): the API bounds are
+ *   those of this subset (e.g. the country of the page) instead of the whole column.
+ *   Ignored without `fieldName`. A scope, never the filter this field contributes to: the
+ *   bounds would shrink to its own selection.
+ * @param {string}   [typeFamily]  - `typeFamily` of `fieldName`, when the caller knows it.
+ * @param {?string}  [displayFormat] - `displayFormat` of `fieldName`, when the caller knows
+ *   it (`null` = none). With `typeFamily`, spares {@link useRangeBounds} a schema request.
  * @param {boolean}  [validate]    - Enable type + value validation feedback.
  * @param {string|number} [defaultValueLow]  - Initial low value (or single value).
  *   Uncontrolled: only seeds the internal state — remount via `key` to reset.
@@ -84,7 +89,9 @@ const ConstraintField = ({
   step,
   fieldName,
   catalog,
-  structuredFilters,
+  scopeFilters,
+  typeFamily,
+  displayFormat,
   validate = false,
   defaultValueLow,
   defaultValueHigh,
@@ -112,7 +119,9 @@ const ConstraintField = ({
   // ── Bornes : API (hook) court-circuitée par les props explicites ────────
   // Fetch désactivé sans `fieldName` (bornes min/max entièrement statiques : aucun champ
   // à interroger côté API, cf. useSelectOptions/enabled pour le même pattern).
-  const api = useRangeBounds({ fieldName, catalog, structuredFilters, enabled: !!fieldName });
+  const api = useRangeBounds({
+    fieldName, catalog, scopeFilters, typeFamily, displayFormat, enabled: !!fieldName,
+  });
 
   // Convertit une borne (nombre, ou date JJ/MM/AAAA) en nombre de l'axe slider
   const boundToNum = (b) => {

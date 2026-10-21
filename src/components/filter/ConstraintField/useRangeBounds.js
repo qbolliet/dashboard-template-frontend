@@ -5,9 +5,13 @@ import { useFieldStats } from '@/hooks/fieldStats/useFieldStats';
 // =================================================================
 // SOURCE — BORNES DE CHAMP (getFieldStats)
 // =================================================================
-// Les bornes du slider sont les `min` / `max` de getFieldStats, calculés sur le jeu
-// filtré par le filtre courant. L'API ne fournit pas de pas : il se déduit ici de la
-// famille de type du champ (lue dans son `Metadata`).
+// Les bornes du slider sont les `min` / `max` de getFieldStats, sur toute la colonne ou
+// sur le périmètre `scopeFilters` quand l'appelant en donne un. Un périmètre et non « le
+// filtre courant » : celui-ci contient le plus souvent le critère que le champ édite, et
+// les bornes se refermeraient alors sur la sélection. L'API ne fournit
+// pas de pas : il se déduit ici de la famille de type du champ et de son format, fournis
+// par l'appelant quand il les connaît, lus sinon dans le `Metadata` du champ (une requête
+// de schéma, partagée par tout le catalogue).
 
 const MS_PER_DAY = 86_400_000;
 const MS_PER_HOUR = 3_600_000;
@@ -77,8 +81,12 @@ export const stepFor = ({ typeFamily, displayFormat, min, max }) => {
  * @param {string}  params.fieldName            - API field name.
  * @param {string}  [params.catalog]            - API catalog.
  * @param {string}  [params.schema]             - API schema within the catalog.
- * @param {?Object} [params.structuredFilters]  - Current filter tree: the bounds are those
- *   of the filtered dataset.
+ * @param {?Object} [params.scopeFilters]       - Scope of the bounds (`FilterNode`, sent as
+ *   the `structuredFilters` of getFieldStats). Never a tree that holds the criterion being
+ *   edited: its own range would become the bounds, and the slider would close on it.
+ * @param {string}  [params.typeFamily]         - `typeFamily` of the field, when known.
+ * @param {?string} [params.displayFormat]      - `displayFormat` of the field, when known
+ *   (`null` = known to have none). With `typeFamily`, spares the schema request.
  * @param {boolean} [params.enabled] - Fetch activé (défaut true). À `false` quand le
  *   parent ne fournit pas de `fieldName` (bornes `min`/`max` statiques passées en props) :
  *   aucun appel n'est déclenché, les bornes restent `undefined`.
@@ -86,10 +94,17 @@ export const stepFor = ({ typeFamily, displayFormat, min, max }) => {
  *   loading: boolean, error: (Error|null) }} Bounds on the slider axis (epoch ms for
  *   dates), undefined until resolved, loading flag and error.
  */
-export function useRangeBounds({ fieldName, catalog, schema, structuredFilters, enabled = true } = {}) {
-  const { field, error: fieldError } = useFieldMetadata({ fieldName, catalog, schema, enabled });
+export function useRangeBounds({
+  fieldName, catalog, schema, scopeFilters, typeFamily, displayFormat, enabled = true,
+} = {}) {
+  // Famille et format connus de l'appelant : aucune requête de schéma
+  const known = typeFamily !== undefined && displayFormat !== undefined;
+  const { field: fetched, error: fieldError } = useFieldMetadata({
+    fieldName, catalog, schema, enabled: enabled && !known,
+  });
+  const field = known ? { typeFamily, displayFormat } : fetched;
   const { stats, loading, error: statsError } = useFieldStats({
-    fieldName, structuredFilters, catalog, schema, enabled,
+    fieldName, structuredFilters: scopeFilters, catalog, schema, enabled,
   });
 
   const min = boundToNumber(stats?.min, field?.typeFamily);

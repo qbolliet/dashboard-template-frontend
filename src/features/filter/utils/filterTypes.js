@@ -150,6 +150,28 @@ export function toSelectValue(id, options = []) {
   return [options.find((o) => o.value === id) ?? { value: id, label: id }];
 }
 
+/**
+ * Unwraps a categorical value picked in a menu.
+ *
+ * A categorical criterion stores the options it was given (`{ value, label }`), so that
+ * its chips keep their label whatever the menu currently shows; a persisted or
+ * hand-written criterion may hold the bare id. Everything that leaves the UI (FilterNode,
+ * SQL preview, row evaluation) only needs the id.
+ *
+ * @param {*} v - `{ value, label }` option, bare id, or any other value (returned as is).
+ * @returns {*} The id.
+ */
+export const optionId = (v) => (v !== null && typeof v === 'object' && !Array.isArray(v) && 'value' in v ? v.value : v);
+
+/**
+ * Unwraps the value of a categorical criterion: an array of options (`IN` / `NOT_IN`)
+ * or a single option (`EQ`). Other values are returned as is.
+ *
+ * @param {*} value - Criterion value.
+ * @returns {*} The same value, with ids in place of options.
+ */
+export const optionIds = (value) => (Array.isArray(value) ? value.map(optionId) : optionId(value));
+
 // =================================================================
 // e) Valeur initiale vide par (famille, opération)
 // =================================================================

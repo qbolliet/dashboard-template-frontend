@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import VisuallyHidden from '@/components/common/VisuallyHidden';
 import { CheckIcon, CrossIcon, ChevronIcon } from '@/components/icons';
-import { useSelectOptions } from './useSelectOptions';
+import { useSelectOptions, matchesOption } from './useSelectOptions';
 import { useDebouncedValue } from '@/hooks/debounce/useDebouncedValue';
 import { useFloatingPosition } from '@/hooks/floating/useFloatingPosition';
 import { mergeLabels } from '@/utils/i18n/mergeLabels';
@@ -32,12 +32,15 @@ const DEFAULT_LABELS = {
  *
  * @param {string}   fieldName    - Nom du champ API (ex: "country").
  * @param {string}   [catalog]    - Catalogue API (ex: "macroeconomics").
+ * @param {string}   [schema]     - Schéma API dans le catalogue.
  * @param {boolean}  [allowMulti] - Active la sélection multiple.
  * @param {boolean}  [clearable]  - Single uniquement : reclicker l'option déjà choisie la
  *   désélectionne (défaut). À `false`, la valeur reste choisie : pour un champ qui doit
  *   toujours porter une valeur (ex. l'opération d'un critère de filtre).
  * @param {string}   [groupField] - Champ de groupe ; sa présence force le mode groupé. Sans
  *   lui, le mode est déduit de `Metadata.parentName` du champ (un champ hiérarchique est groupé).
+ * @param {boolean}  [grouped]    - Mode groupé (true) ou plat (false) quand l'appelant le
+ *   connaît déjà (`parentName` de la variable) : évite la requête de schéma qui le déduirait.
  * @param {{value: string, label: string}[]} [options] - Liste statique d'options ;
  *   si fournie, court-circuite useSelectOptions (filtrage client uniquement, groupé non supporté).
  * @param {Array}    value        - Tableau des valeurs sélectionnées [{value, label}].
@@ -59,9 +62,11 @@ const DEFAULT_LABELS = {
 const SelectMenu = ({
   fieldName,
   catalog,
+  schema,
   allowMulti = false,
   clearable = true,
   groupField,
+  grouped: groupedProp,
   options,
   value = [],
   onChange,
@@ -103,7 +108,7 @@ const SelectMenu = ({
   // `grouped` vient du hook : champ de groupe explicite, sinon `parentName` du champ.
   // Statique : jamais groupé.
   const { options: hookOptions, groups: hookGroups, grouped: hookGrouped } = useSelectOptions({
-    fieldName, catalog, groupField, searchTerm: debouncedFilter, enabled: !options,
+    fieldName, catalog, schema, grouped: groupedProp, groupField, searchTerm: debouncedFilter, enabled: !options,
   });
 
   // Mode statique : filtrage client sur la prop `options` ; groupé non supporté.
@@ -115,9 +120,10 @@ const SelectMenu = ({
     : null;
 
   // Filtrage d'affichage LOCAL immédiat par-dessus les options déjà chargées par le
-  // hook : la liste se filtre à chaque frappe même si le fetch (amorti) n'a pas encore
-  // répondu pour le terme courant.
-  const localMatch = (o) => o.label.toLowerCase().includes(filter.toLowerCase());
+  // hook : la liste se filtre à chaque frappe même si le terme amorti n'a pas encore
+  // atteint le hook. Même règle que l'API (code OU libellé) : un filtre sur le seul
+  // libellé masquerait les options qu'elle a trouvées par leur code (« 0101 » sur nc8).
+  const localMatch = (o) => matchesOption(o, filter);
   const filteredHookOptions = filter ? hookOptions.filter(localMatch) : hookOptions;
   const filteredHookGroups = filter
     ? hookGroups
