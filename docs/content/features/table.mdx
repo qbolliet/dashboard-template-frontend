@@ -6,9 +6,10 @@ order: 2
 
 # Table
 
-{/* Coquille posée en P4.2 (infrastructure du site de documentation).
-    Contenu rédigé en P4.4. Les deux sous-titres ci-dessous existent pour que le
-    sommaire de page ait de quoi s'afficher tant que la page est vide. */}
+`<Table>` affiche des lignes en format long, avec tri par colonne, filtre par valeurs,
+retrait de colonnes, exports et extraits de requête à copier. Comme `<Chart>`, il ne fait
+aucune requête : il reçoit `data` et, si vous les lui donnez, les métadonnées des colonnes —
+et c'est de ces métadonnées qu'il tire presque tout le reste.
 
 ## Explorer les paramètres
 
@@ -19,15 +20,72 @@ métadonnées ou colonnes manuelles selon le contrôle `columnsMode`.
 
 ## Colonnes et métadonnées
 
-_À rédiger._
+Passez `columnsMetadata` — les `fields` de `getFactTableWithMetadata`, ou `getCatalogSchema` —
+et vous n'avez plus de colonnes à décrire. Pour chaque colonne, le tableau en dérive :
+
+- le **libellé** de l'en-tête (`label`, à défaut le nom) ;
+- l'**alignement** : une colonne `INTEGER` ou `NUMBER` est alignée à droite, en chiffres de
+  chasse fixe ;
+- le **format** des cellules numériques : le `displayFormat` de la colonne (un format d3 :
+  `,.2f`, `.1%`) et son `unit` (`€`, `%`), localisés d'après `locale`. Sans `displayFormat`, le
+  nombre est simplement localisé ;
+- le **tri** et les **valeurs du filtre**, d'après la famille de type.
+
+La prop `columns` reste là pour reprendre la main. Donnée avec `columnsMetadata`, elle fixe
+l'ordre et surcharge, colonne par colonne (par `key`), ce qui est dérivé : un `render` pour un
+badge ou un lien, un `format`, une cellule `mono` ou `strong`.
+
+**Codes et libellés.** Une colonne de codes peut déclarer, dans ses métadonnées, les colonnes
+qui la libellent (`labelFields`). Avec `codeLabels`, elle s'affiche « code — libellé » et la
+colonne de libellé est repliée dans la sienne ; le tri, les filtres et les exports gardent le
+code brut. Si les lignes ne portent pas la colonne de libellé, elle reste affichée telle
+quelle.
 
 ## Données attendues
 
-_À rédiger._
+`data` est un tableau d'objets, clé = nom de colonne : la sortie directe de
+`getFactTableWithMetadata` avec `format: OBJECTS`, sans reformatage. Le hook
+`useFactTableWithMetadata` rend les deux moitiés d'un seul appel :
+
+```jsx
+const { data, columnsMetadata } = useFactTableWithMetadata({ structuredFilters });
+
+<Table data={data} columnsMetadata={columnsMetadata} />
+```
+
+### Données statiques ou données de l'API
+
+Le tableau a deux régimes, qui se choisissent par une seule prop.
+
+**Données statiques** (le défaut). `data` est entièrement en mémoire : le tableau trie,
+filtre et exporte lui-même. `defaultFilter` accepte la sortie d'un `<MultiCriterionMenu>`
+(ou un arbre de critères) et la matérialise en filtres de colonne que le lecteur peut
+modifier ou effacer. L'export CSV porte sur les lignes chargées, et le bouton Parquet est
+masqué tant que vous n'avez pas fourni `onExportParquet`.
+
+**Mode distant**, pour des lignes qui viennent de l'API : passez `columnFilters` et
+`onColumnFiltersChange`. Le tableau n'évalue alors **plus rien** — filtrer les 100 lignes
+chargées ne dirait rien des autres — et affiche `data` tel que reçu. C'est à vous de garder les
+sélections de colonne, de les convertir en critères `IN` avec `columnCriteria`, de les
+combiner au filtre du dashboard avec `andNodes` et de les envoyer en `structuredFilters` ; les
+listes de valeurs de l'entonnoir d'une colonne viennent alors de `getSelectOptions`. `defaultFilter`
+est ignoré dans ce mode. L'exemple `table-api`, plus bas, est ce montage en entier.
+
+### Exporter
+
+Adossé à l'API (mode distant, avec `NEXT_PUBLIC_API_URL` ou `queryHint.apiBase`), les boutons
+CSV et Parquet téléchargent le **jeu filtré complet** par `/api/export`, pas la page affichée :
+les colonnes visibles, dans l'ordre, avec le tri et le filtre courants. Les refus de l'API
+(jeu trop volumineux, trop d'exports simultanés, API injoignable) sont annoncés dans la langue de l'interface.
+La barre d'outils propose aussi de copier la commande cURL de cet export. Renseignez
+`queryHint` avec le `catalog` et le `structuredFilters` du dashboard, pour que les extraits
+copiés et l'export portent sur le jeu affiché.
 
 ## Cas d'usage
 
 <ComponentPreview name="table-default-filter" />
+
+<ComponentPreview name="table-code-labels" />
 
 <ComponentPreview name="table-extra-tools" />
 

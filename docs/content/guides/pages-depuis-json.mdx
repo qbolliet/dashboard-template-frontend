@@ -213,8 +213,8 @@ const GET_CATALOG_SCHEMA = `
     getCatalogSchema(catalog: $catalog, schema: $schema) {
       name
       label
-      sql_type
-      is_categorical
+      typeFamily
+      isCategorical
     }
   }
 `;
@@ -268,8 +268,10 @@ async function buildIndicatorNodes() {
   const { getCatalogSchema } = await query(GET_CATALOG_SCHEMA);
 
   return getCatalogSchema
-    // Les dimensions catégorielles servent à découper, pas à porter une page.
-    .filter((field) => !field.is_categorical)
+    // Les dimensions catégorielles servent à découper, pas à porter une page, et une
+    // colonne de libellés (`labelFor`) décrit un code. Seules les mesures numériques restent.
+    .filter((field) => !field.isCategorical && !field.labelFor
+      && ['INTEGER', 'NUMBER'].includes(field.typeFamily))
     .map((field) => ({
       path: `/${slugify(field.name)}`,
       name: field.label,

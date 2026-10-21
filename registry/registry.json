@@ -3172,10 +3172,32 @@
       ]
     },
     {
+      "name": "chart-aggregated",
+      "type": "registry:block",
+      "title": "Barres agrégées par l'API — useAggregatedChart",
+      "description": "Une barre résume plusieurs lignes : le PIB de « France » est une valeur par pays, pas la ligne d'un trimestre. Calculé sur la page de lignes chargée, ce regroupement serait faux (il ne voit que 100 lignes) et ignorerait l'agrégation voulue de la mesure. `useAggregatedChart` décide, d'après les métadonnées de colonnes (`fields`), qui agrège : pour les barres, les barres horizontales, la heatmap et les lignes, c'est `getAggregates` qui calcule sur tout le jeu filtré, avec la `defaultAggregation` de la mesure (ici AVG pour `gdp`, jamais une somme de taux) ; pour le nuage, le violon et la densité, ce sont les lignes brutes.",
+      "dependencies": [],
+      "registryDependencies": [
+        "chart",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/chart-aggregated.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/chart-aggregated.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "chart"
+      }
+    },
+    {
       "name": "chart-api",
       "type": "registry:block",
       "title": "Données API — branchement direct de useFactTable sur <Chart>",
-      "description": "`useFactTable()` renvoie des lignes au format long (`getFactTableWithMetadata`, `format: OBJECTS`) directement consommables par `<Chart>` : aucun reformatage. La colonne `date_obs` arrive en chaîne ISO — c'est `coerce()`, en interne au composant, qui la convertit en date. Le hook expose aussi `loading`/`error` : le rendu se décompose donc en trois branches (erreur, chargement, succès) plutôt que de masquer l'attente derrière des données de démonstration.",
+      "description": "`useFactTable()` renvoie des lignes au format long (`getFactTableWithMetadata`, `format: OBJECTS`) directement consommables par `<Chart>` : aucun reformatage. Il renvoie aussi `fields`, les métadonnées de ces colonnes, que l'on passe telles quelles à `<Chart fields>` : le type de chaque colonne vient alors de sa `typeFamily` (une chaîne ISO est une date, un code reste un code) au lieu d'être deviné sur un échantillon, et l'axe et l'infobulle d'une mesure suivent son `displayFormat` et son `unit` — plus de `format={{ y: '.1f' }}` écrit à la main. Une prop `format` explicite l'emporterait. Le hook expose aussi `loading`/`error` : le rendu se décompose donc en trois branches (erreur, chargement, succès) plutôt que de masquer l'attente derrière des données de démonstration.",
       "dependencies": [],
       "registryDependencies": [
         "chart",
@@ -3417,7 +3439,7 @@
       "name": "constraint-field-api-bounds",
       "type": "registry:block",
       "title": "Bornes résolues via l'API (useRangeBounds)",
-      "description": "Sans `min`/`max`/`step` explicites, ConstraintField interroge `useRangeBounds` via `fieldName` : les bornes du slider et son pas viennent alors de l'API (ou des fixtures locales en mode démo), pas de props statiques. Une prop explicite resterait prioritaire si elle était fournie.",
+      "description": "Sans `min`/`max`/`step` explicites, ConstraintField interroge `useRangeBounds` via `fieldName` : les bornes du slider sont le `min` / `max` de `getFieldStats` (le mock local les calcule lui aussi), et le pas se déduit de la famille de type et du `displayFormat` de la colonne. Une prop explicite resterait prioritaire.",
       "dependencies": [],
       "registryDependencies": [
         "constraint-field",
@@ -3505,7 +3527,7 @@
       "name": "criterion-menu-basic",
       "type": "registry:block",
       "title": "Critère de filtre unique",
-      "description": "`CriterionMenu` est contrôlé : `criterion` porte la variable, l'opération et la valeur, et `onChange` renvoie l'objet complet. Le champ de saisie s'adapte au `sql_type` et à `is_categorical` de la variable choisie.",
+      "description": "`CriterionMenu` est contrôlé : `criterion` porte la variable, l'opération et la valeur, et `onChange` renvoie l'objet complet. Le champ de saisie s'adapte à la famille de type (`typeFamily`) et au drapeau `isCategorical` de la variable choisie ; les opérations proposées sont celles que l'API accepte sur la colonne (`filterOperations`).",
       "dependencies": [],
       "registryDependencies": [
         "filter",
@@ -3965,7 +3987,7 @@
       "name": "select-menu-grouped",
       "type": "registry:block",
       "title": "Sélection unique groupée, alimentée par l'API",
-      "description": "`groupField` active le mode groupé : les options arrivent déjà réparties en groupes ([{ group, options }]) ; en sélection simple, les en-têtes de groupe sont de simples titres non interactifs (la case à cocher de groupe n'apparaît qu'en `allowMulti`).",
+      "description": "Le mode groupé est déduit des métadonnées : `country` déclare `parentName: 'region'`, donc `getSelectOptionsTree` remonte la hiérarchie côté serveur et les options arrivent réparties en groupes ([{ group, options }]). `groupField` force ce mode sur un champ sans `parentName`, sans que sa valeur soit envoyée à l'API. En sélection simple, les en-têtes de groupe sont de simples titres non interactifs (la case à cocher de groupe n'apparaît qu'en `allowMulti`).",
       "dependencies": [],
       "registryDependencies": [
         "select-menu",
@@ -4143,10 +4165,11 @@
     {
       "name": "table-api",
       "type": "registry:block",
-      "title": "Données API — branchement direct de useFactTableWithMetadata sur <Table>",
-      "description": "Le hook expose `loading`/`error` en plus des lignes et du schéma de colonnes : le rendu se décompose donc en trois branches (erreur, chargement, succès) plutôt que de masquer l'attente derrière des données de démonstration — même principe que chart-api.jsx pour <Chart>.",
+      "title": "Données API — mode distant, filtres de colonne et export complet",
+      "description": "Le hook expose `loading`/`error` en plus des lignes et du schéma de colonnes : le rendu se décompose donc en trois branches (erreur, chargement, succès) plutôt que de masquer l'attente derrière des données de démonstration — même principe que chart-api.jsx.",
       "dependencies": [],
       "registryDependencies": [
+        "filter",
         "table",
         "tokens-global"
       ],
@@ -4166,7 +4189,7 @@
       "name": "table-basic",
       "type": "registry:block",
       "title": "Tableau dérivé des métadonnées",
-      "description": "La forme la plus économique de `<Table>` : on ne décrit aucune colonne, le tableau les dérive de `columnsMetadata` (nom, libellé, type SQL) — ce que renvoie déjà l'API. Tri, filtre et retrait de colonnes sont actifs par défaut.",
+      "description": "La forme la plus économique de `<Table>` : on ne décrit aucune colonne, le tableau les dérive de `columnsMetadata` (nom, libellé, famille de type, `displayFormat`, `unit`) — ce que renvoie déjà l'API dans `fields`. Une colonne numérique est alignée à droite et formatée selon son `displayFormat` ; la famille de type pilote le tri. Tri, filtre et retrait de colonnes sont actifs par défaut.",
       "dependencies": [],
       "registryDependencies": [
         "table",
@@ -4177,6 +4200,28 @@
           "path": "registry/examples/table-basic.jsx",
           "type": "registry:file",
           "target": "~/src/examples/table-basic.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "table"
+      }
+    },
+    {
+      "name": "table-code-labels",
+      "type": "registry:block",
+      "title": "Codes et libellés dans une seule colonne",
+      "description": "Une colonne de codes qui déclare des `labelFields` dans ses métadonnées (ici `nc8`, dont le libellé est `nc8_label`) s'affiche « code — libellé » avec `codeLabels`. La colonne de libellé est alors repliée dans celle du code : sans la prop, les deux colonnes restent séparées. Le tri, les filtres et les exports gardent le code brut ; si les lignes ne portent pas la colonne de libellé, la colonne reste affichée comme avant.",
+      "dependencies": [],
+      "registryDependencies": [
+        "table",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/table-code-labels.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/table-code-labels.jsx"
         }
       ],
       "meta": {
@@ -4211,7 +4256,7 @@
       "name": "table-default-filter",
       "type": "registry:block",
       "title": "Tableau avec filtre par défaut",
-      "description": "`defaultFilter` prend directement la forme que produit `filterEngine.buildTree` : un groupe racine (profondeur 0) dont les feuilles portent `sqlType` / `isCategorical` (jamais un type abstrait) — ici secteur ∈ {Macro, Finance} ET observations > 100. C'est la même forme qu'un `<MultiCriterionMenu>` produit en direct (cf. `table-with-filter`) ; rien n'empêche de la construire à la main.",
+      "description": "`defaultFilter` prend directement la forme que produit `filterEngine.buildTree` : un groupe racine (profondeur 0) dont les feuilles portent `typeFamily` / `isCategorical` (la famille de type de l'API, jamais le type SQL) et une opération de l'enum `FilterOperation`, en majuscules — ici secteur ∈ {Macro, Finance} ET observations > 100. C'est la même forme qu'un `<MultiCriterionMenu>` produit en direct (cf. `table-with-filter`) ; rien n'empêche de la construire à la main.",
       "dependencies": [],
       "registryDependencies": [
         "table",
@@ -4277,7 +4322,7 @@
       "name": "table-readonly",
       "type": "registry:block",
       "title": "Tableau en lecture seule",
-      "description": "`enableSort`, `enableFilter` et `enableColumnRemoval` à `false` : ni tri au clic sur un en-tête, ni entonnoir de filtre par valeurs, ni croix de suppression de colonne au survol. Le reset de la barre d'outils reste masqué (rien à réinitialiser) ; exports CSV/Parquet et copies de requête restent actifs.",
+      "description": "`enableSort`, `enableFilter` et `enableColumnRemoval` à `false` : ni tri au clic sur un en-tête, ni entonnoir de filtre par valeurs, ni croix de suppression de colonne au survol. Le reset de la barre d'outils reste masqué (rien à réinitialiser) ; l'export CSV et les copies de requête restent actifs. Le bouton Parquet, lui, est masqué : sur des données statiques il faut fournir `onExportParquet` (route ou action serveur) pour qu'il apparaisse.",
       "dependencies": [],
       "registryDependencies": [
         "table",
@@ -4299,7 +4344,7 @@
       "name": "table-with-filter",
       "type": "registry:block",
       "title": "Tableau filtré par un MultiCriterionMenu",
-      "description": "Le menu de critères et le tableau se branchent par une seule prop : la sortie structurée de `onChange` alimente `defaultFilter`. Les variables filtrables se dérivent des métadonnées de colonnes, clé primaire exclue.",
+      "description": "Le menu de critères et le tableau se branchent par une seule prop : la sortie structurée de `onChange` alimente `defaultFilter`. Les variables filtrables se dérivent des métadonnées de colonnes, clé primaire exclue. Les lignes étant statiques, le tableau applique lui-même le filtre côté client ; branché sur l'API, c'est `toFilterNode` qui le convertit en `structuredFilters` (cf. `table-api`).",
       "dependencies": [],
       "registryDependencies": [
         "filter",

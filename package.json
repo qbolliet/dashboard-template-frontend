@@ -1,6 +1,6 @@
 {
   "name": "dashboard-template-frontend",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "npm run build:search && npm run build:registry && npm run build:props && npm run build:docs-index && npm run build:tokens && next dev",

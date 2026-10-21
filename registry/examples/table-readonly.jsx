@@ -3,8 +3,10 @@
  *
  * `enableSort`, `enableFilter` et `enableColumnRemoval` à `false` : ni tri au clic sur un
  * en-tête, ni entonnoir de filtre par valeurs, ni croix de suppression de colonne au
- * survol. Le reset de la barre d'outils reste masqué (rien à réinitialiser) ; exports
- * CSV/Parquet et copies de requête restent actifs.
+ * survol. Le reset de la barre d'outils reste masqué (rien à réinitialiser) ; l'export CSV
+ * et les copies de requête restent actifs. Le bouton Parquet, lui, est masqué : sur des
+ * données statiques il faut fournir `onExportParquet` (route ou action serveur) pour
+ * qu'il apparaisse.
  *
  * @item table
  */

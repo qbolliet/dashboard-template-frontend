@@ -109,8 +109,8 @@ Three ways to run the app:
 `@graphql-tools/mock`, serving the API's real schema — vendored at
 `scripts/schema.graphql` — mocked with `@graphql-tools/mock`) alongside
 `next dev` pointed at it. `getFactTableWithMetadata`, `getCatalogSchema`,
-`getSelectOptions` and `getGroupedSelectOptions` — the operations the
-template actually consumes — resolve to the same fixtures as `npm run dev`
+`getSelectOptions`, `getSelectOptionsTree`, `getFieldStats` and `getAggregates`
+— the operations the template actually consumes — resolve to the same fixtures as `npm run dev`
 (and honor `limit` / `offset` / `sort`, so `<Table>`'s pagination is
 genuinely exercised); every other operation in the schema is auto-mocked
 with arbitrary but type-correct values. Run just the server on its own with

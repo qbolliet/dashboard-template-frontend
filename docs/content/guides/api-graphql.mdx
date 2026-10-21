@@ -10,6 +10,11 @@ Brancher vos données tient en une variable d'environnement. Il n'y a **aucun bl
 décommenter**, aucun composant à modifier, aucun hook à réécrire : le choix du transport se
 fait en un seul point du projet, et tout ce qui est en aval l'ignore.
 
+Cette page décrit le contrat **0.3.0** de l'API (`dashboard-template-api`). Si vous aviez
+copié le template avant qu'il ne l'adopte, la dernière section, [Migrer depuis la version
+précédente](#migrer-depuis-la-version-precedente), liste ce qui change et les fichiers à
+reprendre.
+
 ## La seule variable : `NEXT_PUBLIC_API_URL`
 
 `src/lib/api/client.js` sélectionne son transport à partir d'elle, et de rien d'autre :
@@ -34,9 +39,15 @@ une panne d'API derrière des données de démonstration : les hooks renvoient u
 accompagné de leur `error`, et c'est au composant d'en faire quelque chose.
 
 **Les hooks de `sources/` sont identiques dans les deux modes.** Ils appellent
-`client.request(document, variables, options)` sans savoir qui répond. Ils sont donc lintés,
+`client.request(document, variables)` sans savoir qui répond. Ils sont donc lintés,
 exécutés et éprouvés dans les deux modes — contrairement à un bloc commenté, qui pourrit
 sans que personne s'en aperçoive.
+
+**Le catalogue et le schéma sont des arguments de requête.** `catalog` et `schema` (les
+coordonnées ducklake) voyagent dans `variables`, comme n'importe quel autre argument. Le
+transport n'ajoute **aucun en-tête** : l'API ne lit plus `X-Catalog-Id` / `X-Schema-Id`, et
+son CORS ne les autorise pas — les envoyer ferait échouer la requête de pré-vérification du
+navigateur. L'API n'a pas d'authentification, donc pas d'en-tête `Authorization` non plus.
 
 ## Les trois modes de développement
 
@@ -48,83 +59,297 @@ sans que personne s'en aperçoive.
 
 `dev:mock` lance `scripts/mock-api-server.js` (graphql-yoga + `@graphql-tools/mock`) à côté
 du serveur Next pointé sur lui. Ce serveur sert le **SDL réel de l'API**, figé dans
-`scripts/schema.graphql`. Les quatre opérations que le template consomme
-(`getFactTableWithMetadata`, `getCatalogSchema`, `getSelectOptions`,
-`getGroupedSelectOptions`) y résolvent sur les mêmes fixtures que `npm run dev` — et
-honorent `limit`, `offset` et `sort`, de sorte que la pagination du tableau est réellement
-exercée. Toute autre opération du schéma est auto-mockée : valeurs arbitraires, mais
-conformes aux types, ce qui permet d'explorer le reste du contrat sans l'implémenter.
-`npm run mock:api` lance le serveur seul.
+`scripts/schema.graphql`. Les six opérations que le template consomme y résolvent sur les
+mêmes fixtures que `npm run dev` :
+
+| Opération | Ce que le template en tire |
+|---|---|
+| `getFactTableWithMetadata` | les lignes, les métadonnées de leurs colonnes (`fields`) et la pagination |
+| `getCatalogSchema` | les métadonnées de **tous** les champs, qui alimentent le menu de critères |
+| `getSelectOptions` | les options plates d'un menu déroulant, recherchables côté serveur |
+| `getSelectOptionsTree` | les options hiérarchiques (continent → pays) d'un menu groupé |
+| `getFieldStats` | `min` / `max` / cardinalité d'une colonne, éventuellement sous un filtre |
+| `getAggregates` | les valeurs agrégées d'un graphique, calculées sur tout le jeu filtré |
+
+Elles honorent `limit`, `offset`, `sort` et `structuredFilters`, de sorte que la pagination,
+le tri et le filtrage sont réellement exercés — le total d'un jeu filtré (`metadata.total`)
+est celui des lignes retenues, comme sur l'API. Toute autre opération du schéma est
+auto-mockée : valeurs arbitraires, mais conformes aux types, ce qui permet d'explorer le
+reste du contrat sans l'implémenter. `npm run mock:api` lance le serveur seul.
 
 Cette SDL figée sert une seconde fois : `npm run check:gql` **valide chaque document de
 `src/lib/api/documents/` contre elle**, et fait échouer `npm run verify` si l'un d'eux
 demande un champ qui n'existe pas. Vous ne pouvez pas livrer une requête qui ne compile pas
 côté serveur.
 
+## Épingler la version de l'API
+
+Le template est développé et vérifié contre **une version précise** de l'API, jamais contre
+« la dernière ». `scripts/schema.graphql` en est la copie, et elle ne s'édite pas à la main :
+
+```bash
+npm run sync:schema
+```
+
+La commande télécharge l'asset `schema.graphql` de la release épinglée de
+`qbolliet/dashboard-template-api` (avec `gh` s'il est authentifié, par une requête HTTP
+directe sinon), vérifie qu'il compile, puis réécrit le fichier en tête duquel elle consigne
+la version et l'origine. Un SDL tronqué ou une page d'erreur ne remplace jamais la copie
+saine. La version épinglée est `PINNED_REF` en tête de `scripts/sync-schema.js`, **committée** :
+monter de version est un diff à relire, pas un « latest » implicite.
+
+Trois variables d'environnement changent la source, pour la durée d'une commande :
+
+| Variable | Effet |
+|---|---|
+| `API_SCHEMA_REF` | tag d'une autre release à télécharger (`v0.4.0`), au lieu de `PINNED_REF` |
+| `API_SCHEMA_PATH` | chemin d'un `schema.graphql` local — typiquement un clone voisin de l'API, pour développer contre une version non publiée. L'en-tête du fichier signale alors « source locale » |
+| `API_SCHEMA_REPO` | dépôt d'où télécharger, `qbolliet/dashboard-template-api` par défaut |
+
+Pour passer à une nouvelle version de l'API :
+
+```bash
+API_SCHEMA_REF=v0.4.0 npm run sync:schema   # récupère le nouveau contrat
+npm run check:gql                           # liste les documents qui ne compilent plus
+```
+
+Corrigez les documents signalés (et les résolveurs mock correspondants), puis changez
+`PINNED_REF` pour que l'équipe entière se synchronise sur la même version. Si votre API
+est un fork, pointez `API_SCHEMA_REPO` dessus, ou donnez `API_SCHEMA_PATH` ; l'important est
+que le fichier reste une copie, régénérée, du schéma que votre serveur sert réellement.
+
 ## Ce que chaque feature attend
 
 Les hooks de `sources/` ne reformatent rien : ils passent aux composants exactement ce que
 l'API renvoie. Savoir ce qu'ils attendent, c'est donc savoir ce que votre API doit produire.
 
-### Chart — `useFactTable`
+### Les métadonnées de colonne
 
-`getFactTableWithMetadata(format: OBJECTS)` renvoie `columns`, `data` et `metadata`. `data`
-est un tableau d'**objets** dont les clés sont les noms de colonnes — le format long, passé
-**tel quel** à `<Chart data={rows} />`. Aucune transformation : le graphique détecte les
-types lui-même et convertit les dates ISO.
+Tout part de `Metadata`, l'objet qui décrit une colonne. Il arrive de deux façons — le champ
+`fields` de `getFactTableWithMetadata` (les colonnes du jeu de résultats, alignées sur
+`columns`) et `getCatalogSchema` (toutes les colonnes du catalogue) — avec la même forme,
+en **camelCase** :
+
+```json
+[
+  { "name": "gdp", "label": "Croissance du PIB (%)",
+    "sqlType": "DOUBLE", "typeFamily": "NUMBER",
+    "filterOperations": ["EQ", "NEQ", "GT", "GTE", "LT", "LTE", "BETWEEN", "NOT_BETWEEN",
+                         "IN", "NOT_IN", "IS_NULL", "IS_NOT_NULL"],
+    "isCategorical": false, "isPrimaryKey": false,
+    "unit": "%", "displayFormat": ",.1f", "defaultAggregation": "AVG",
+    "labelFor": null, "labelFields": [], "parentName": null },
+  { "name": "country", "label": "Pays",
+    "sqlType": "VARCHAR", "typeFamily": "TEXT",
+    "filterOperations": ["EQ", "NEQ", "IEQ", "CONTAINS", "…", "IN", "NOT_IN", "IS_NULL", "IS_NOT_NULL"],
+    "isCategorical": true, "isPrimaryKey": true,
+    "unit": null, "displayFormat": null, "defaultAggregation": null,
+    "labelFor": null, "labelFields": [], "parentName": "region" }
+]
+```
+
+Le template **ne lit jamais `sqlType`** : c'est le type physique de la base (`DOUBLE`,
+`UBIGINT`, `DECIMAL(18,2)`…), affiché tel quel au mieux. Les décisions se prennent sur la
+**famille de type**, que le serveur calcule :
+
+| `typeFamily` | Types SQL | Widget de valeur du filtre | Traitement par le graphique |
+|---|---|---|---|
+| `INTEGER` | `TINYINT` … `UHUGEINT` | champ numérique, pas entier | nombre |
+| `NUMBER` | `FLOAT`, `DOUBLE`, `DECIMAL` | champ numérique | nombre |
+| `DATE` | `DATE` | sélecteur de date | date |
+| `TIMESTAMP` | `TIMESTAMP` et variantes | sélecteur de date | date |
+| `TEXT` | `VARCHAR` | saisie texte ou menu si `isCategorical` | catégorie |
+| `BOOLEAN` | `BOOLEAN` | saisie texte (`EQ` seul) | catégorie |
+| `OTHER` | `TIME`, `INTERVAL`, `UUID`… | aucun (seuls `IS_NULL` / `IS_NOT_NULL` existent) | catégorie |
+
+Un entier ou un nombre marqué `isCategorical` est traité en catégorie par le graphique, comme
+un texte. Les autres champs, dans l'ordre où ils servent :
+
+- `filterOperations` — les opérations que **l'API accepte sur cette colonne**, en
+  majuscules (`EQ`, `GT`, `BETWEEN`, `IN`, `CONTAINS`…). C'est la source de vérité de ce que
+  le menu de critères propose ; plus aucune liste d'opérations par type n'est écrite côté
+  client.
+- `isCategorical` — la colonne a peu de valeurs distinctes : le menu de critères propose un
+  menu de valeurs (`IN`) plutôt qu'une saisie libre, et le graphique la traite en catégorie.
+- `unit` et `displayFormat` — l'unité (`%`, `€`) et un format d3 (`,.1f`, `.1%`) qui
+  mettent en forme les axes, les infobulles et les cellules numériques.
+- `defaultAggregation` — l'agrégation naturelle d'une mesure (`SUM` d'un stock, `AVG` d'un
+  taux). Elle dit à `getAggregates` comment regrouper quand on ne précise rien.
+- `labelFor` / `labelFields` — une colonne de libellés (`labelFor: "indicator"`) décrit le
+  code d'une autre ; le code, lui, liste ses colonnes de libellés. Un libellé n'est pas une
+  variable à filtrer : le menu de critères l'écarte, le tableau peut le replier dans la colonne
+  du code (`codeLabels`).
+- `parentName` — la colonne parente dans une hiérarchie (`country` → `region`). Un champ qui
+  a un parent est servi en menu groupé.
+
+### Chart — `useFactTable`, `useAggregatedChart`
+
+`getFactTableWithMetadata(format: OBJECTS)` renvoie `columns`, `fields`, `data` et
+`metadata`. `data` est un tableau d'**objets** dont les clés sont les noms de colonnes — le
+format long, passé **tel quel** à `<Chart data={rows} />`. Passez aussi `fields` à
+`<Chart fields={fields} />` : le type de chaque colonne vient alors de sa `typeFamily`, au
+lieu d'être deviné sur un échantillon de valeurs (un code `'01012100'` reste une chaîne), et
+l'axe et l'infobulle d'une mesure suivent son `displayFormat` et son `unit`. Sans `fields`,
+le comportement antérieur — détection sur les valeurs — s'applique ; une prop `format`
+explicite l'emporte toujours.
 
 ```json
 {
-  "columns": ["date_obs", "pays", "gdp"],
+  "columns": ["date_obs", "country", "gdp"],
+  "fields": [ { "name": "date_obs", "typeFamily": "DATE" }, "…" ],
   "data": [
-    { "date_obs": "2024-01-01", "pays": "France", "gdp": 101.4 },
-    { "date_obs": "2024-04-01", "pays": "France", "gdp": 102.8 }
+    { "date_obs": "2024-01-01", "country": "France", "gdp": 101.4 },
+    { "date_obs": "2024-04-01", "country": "France", "gdp": 102.8 }
   ],
   "metadata": {
-    "count": 2,
+    "count": 2, "total": 240,
     "extents": { "gdp": [98.0, 112.2], "date_obs": ["2024-01-01", "2024-04-01"] },
-    "total": 240, "hasNextPage": true, "currentPage": 1, "totalPages": 120,
+    "hasNextPage": true, "currentPage": 1, "totalPages": 120,
     "generatedAt": "2026-08-07T09:12:00Z"
   }
 }
 ```
 
-`metadata.extents` donne les bornes par colonne — `[min, max]` pour une mesure, `[premier,
-dernier]` pour une dimension. Utile pour aligner plusieurs graphiques sur une même échelle
-sans reparcourir les lignes.
+Deux nombres se ressemblent et ne disent pas la même chose : `metadata.count` est le nombre de
+lignes **de la page**, `metadata.total` celui des lignes **retenues par le filtre**. Pour un
+texte « sur N au total », c'est `total`. De même, `metadata.extents` donne les bornes
+`[min, max]` des colonnes numériques et des dates **de la page seulement**. Les bornes du jeu
+entier — ou du jeu filtré — viennent de `getFieldStats` (voir plus bas).
+
+**Un graphique qui regroupe ne se trace pas depuis une page de lignes.** Des barres, un
+empilement, une heatmap ou une série temporelle agrégée doivent porter sur tout le jeu
+filtré : une page de 100 lignes en donnerait une image fausse. C'est `getAggregates` qui
+fait ce calcul, côté serveur, et le hook `useAggregatedChart` fait le pont :
+
+```jsx
+const chart = useAggregatedChart({
+  x: 'date_obs', measures: ['gdp'], hue: 'country',
+  fields, rows, structuredFilters,
+});
+
+<Chart {...chart.chartProps} />
+```
+
+Le hook décide qui agrège : pour les tracés qui regroupent, il interroge `getAggregates`
+(une ligne par groupe, la valeur dans `y`) et pose la prop `aggregate` sur `<Chart>`, qui
+rend alors chaque valeur telle quelle sans jamais la ré-agréger ; pour les autres (nuage,
+violon, densité), il passe les lignes brutes. Chaque mesure est agrégée par sa
+`defaultAggregation` ; plusieurs mesures sont tracées en format long (une série par mesure).
+`chart.truncated` signale qu'il y avait plus de groupes que le plafond de 1000 d'une requête.
+`<Chart>` lui-même ne fait aucune requête : il reste installable seul depuis le registry.
+
+Sur des **lignes brutes**, un tracé qui regroupe (barres, heatmap) réduit lui-même ses
+lignes avec la `defaultAggregation` de la mesure, et la moyenne quand elle n'en déclare pas
+— c'était l'unique comportement avant.
 
 ### Table — `useFactTableWithMetadata`
 
-Le tableau a besoin de deux choses que l'API ne renvoie pas dans le même appel : les
-**lignes** et le **schéma de colonnes**. Ce hook lance donc les deux requêtes en parallèle
-et fusionne leurs réponses. `data` alimente la prop `data`, `columnsMetadata` alimente la
-prop du même nom — c'est elle qui permet au tableau de dériver ses colonnes, ses libellés
-et ses filtres tout seul.
+Le tableau a besoin des **lignes** et du **schéma de colonnes**, et un seul appel suffit :
+`fields` de `getFactTableWithMetadata`. Le hook les expose sous `data` et `columnsMetadata`,
+passés tels quels aux props du même nom de `<Table>` — c'est ce qui lui permet de dériver
+ses colonnes, ses libellés, l'alignement des nombres, leur `displayFormat` et leur `unit`, et
+ses filtres tout seul. `codeLabels` replie une colonne de libellés dans celle de son code
+(« 01012100 — Chevaux reproducteurs ») ; le tri, les filtres et les exports gardent le code.
+
+**Mode distant.** Quand les lignes viennent de l'API, le filtrage doit se faire sur
+l'API : filtrer les 100 lignes chargées ne dirait rien des 10 000 autres. Passez
+`columnFilters` et `onColumnFiltersChange` pour que le tableau cesse de rien évaluer et
+affiche ce qu'il reçoit. Vous gardez les sélections de colonne, les convertissez avec
+`columnCriteria`, les combinez au filtre du menu avec `andNodes`, et envoyez le tout en
+`structuredFilters` (voir la section suivante). L'entonnoir d'une colonne liste alors ses
+valeurs par `getSelectOptions`. Le montage complet est dans l'exemple `table-api`, et
+`IndicatorExplorer` en est la version de production.
+
+### Filtrer côté serveur : `structuredFilters`
+
+Aucun filtre n'est évalué sur les lignes chargées. Le menu de critères produit un arbre, que
+`toFilterNode` convertit en **`FilterNode`**, l'argument `structuredFilters` de
+`getFactTableWithMetadata`, `getAggregates` et `getFieldStats`. Un nœud est soit une feuille
+(`criterion`), soit un groupe (`children`) ; le connecteur est porté par le nœud, il lie
+celui-ci au précédent du même groupe, et se lit avec la précédence SQL (`ET` avant `OU`).
+Les sous-groupes sont parenthésés, `negate` inverse un nœud.
+
+```json
+{
+  "children": [
+    { "criterion": { "variable": "country", "operation": "IN", "value": ["France", "Italie"] } },
+    { "connector": "AND",
+      "criterion": { "variable": "gdp", "operation": "BETWEEN", "value": { "min": -2, "max": 5 } } },
+    { "connector": "OR",
+      "criterion": { "variable": "date_obs", "operation": "AFTER", "value": "2024-01-01" } }
+  ]
+}
+```
+
+La forme de `value` dépend de l'opération : un scalaire pour une comparaison, un tableau non
+vide pour `IN` / `NOT_IN`, un objet `{ min, max }` pour `BETWEEN`, rien pour `IS_NULL`. Les
+dates sont des chaînes ISO 8601 — `toFilterNode` convertit la saisie selon l'ordre de la
+langue (`dateOrder`) — et les entiers au-delà de 2^53 voyagent en chaînes pour ne pas perdre
+de précision. L'API **rejette** un critère incomplet : `toFilterNode` les omet, avec les
+groupes qu'ils laissent vides, et une expression dont les parenthèses ne se ferment pas ne
+donne aucun filtre.
+
+Les filtres de colonne du tableau (`columnCriteria`, un critère `IN` par colonne) se combinent
+au filtre du menu par `andNodes`, qui garde le filtre du menu en sous-groupe pour que le `OU`
+d'un côté ne contamine pas le `ET` de l'autre. Graphique, tableau et indicateurs reçoivent
+alors **le même** `structuredFilters` et montrent donc le même sous-jeu.
 
 ### Filter — `useVariableMetadata`
 
-`getCatalogSchema(catalog, schema)` est la **seule opération d'introspection de champs** de
-l'API. Elle décrit chaque champ, et ces métadonnées pilotent directement le menu de
-critères : le type détermine les opérations offertes, et l'opération détermine le widget de
-saisie.
+`getCatalogSchema(catalog, schema)` décrit chaque champ, et ces métadonnées pilotent
+directement le menu de critères : la famille de type détermine le widget de saisie, et
+`filterOperations` les opérations offertes.
 
-```json
-[
-  { "name": "gdp", "label": "Croissance du PIB (%)", "python_type": "float",
-    "sql_type": "double precision", "is_categorical": false, "is_primary_key": false },
-  { "name": "pays", "label": "Pays", "python_type": "str",
-    "sql_type": "text", "is_categorical": true, "is_primary_key": false }
-]
-```
+`metadataToVariables()` transpose les métadonnées en la forme attendue par `CriterionMenu` et
+`MultiCriterionMenu` — `{ value, label, typeFamily, isCategorical, filterOperations }` — en
+écartant les colonnes de libellés. Les **libellés** des opérations ne viennent pas de l'API
+mais de `config/filter/operations.json`, indexé par valeur de l'enum : le fichier ne dit pas
+*quelles* opérations proposer (c'est `filterOperations`), il dit comment les nommer.
+`resolveOperationLabels` l'aplatit dans la langue courante et le résultat se passe à la prop
+`operationLabels`. Une opération sans libellé s'affiche sous sa valeur d'enum (`NOT_BETWEEN`).
+Le composant propose l'intersection de ce que l'API accepte et de ce que son widget sait
+saisir ; ainsi une colonne `OTHER` ne propose aucune opération.
 
-Deux champs font tout le travail, et il n'y a **pas de type abstrait intermédiaire** :
-`sql_type` et `is_categorical` sont consommés directement. `metadataToVariables()` les
-transpose en la forme `value` / `label` / `sql_type` / `is_categorical` attendue par
-`CriterionMenu` et `MultiCriterionMenu`.
+### Les options des menus déroulants
 
-Les menus déroulants de valeurs, eux, sont servis par `getSelectOptions` (options plates,
-filtrables côté serveur par `searchTerm`) et `getGroupedSelectOptions` (deux niveaux, par
-exemple continent → pays).
+Les menus de valeurs sont servis par `getSelectOptions` (options plates, recherchables côté
+serveur par `searchTerm`) et par `getSelectOptionsTree` (arbre `[{ value, label, children? }]`
+d'une hiérarchie de colonnes, par exemple continent → pays). Le mode groupé est **déduit des
+métadonnées** : un champ qui déclare un `parentName` est servi en arbre, que le serveur remonte
+lui-même d'après la chaîne des parents ; `groupField` ne fait que forcer ce mode, et sa valeur
+n'est pas envoyée à l'API. Dans les deux modes la recherche est faite par le serveur, et
+l'arbre n'a pas de `limit` : l'API rejette un arbre trop grand plutôt que de le tronquer.
+
+### Les bornes d'une colonne : `getFieldStats`
+
+`getFieldStats(fieldName, structuredFilters)` renvoie `min`, `max`, `distinctCount` et
+`nullCount` d'**une** colonne, sur tout le jeu ou sur le jeu filtré. C'est de là que viennent
+les bornes d'un slider (`ConstraintField` avec `fieldName`, via `useRangeBounds` ; son pas se
+déduit de la famille de type et du `displayFormat`) et les indicateurs de cadrage d'une page :
+
+- « observations » est `metadata.total` ;
+- la « période » et l'« amplitude » sont les `min` / `max` de `getFieldStats` sur l'abscisse
+  et sur la mesure, **sous le filtre courant**, et seulement pour les colonnes numériques ou
+  dates — le `min` d'une colonne texte est un minimum lexical, qui ne veut rien dire ici.
+
+`Metadata.stats` n'est volontairement pas sélectionné dans les documents de faits et de
+schéma : l'API le calcule à la demande, une requête SQL par colonne.
+
+### L'export du jeu complet
+
+Une page de lignes n'est pas le jeu. Quand le tableau est adossé à l'API — mode distant, et
+`NEXT_PUBLIC_API_URL` ou `queryHint.apiBase` défini —, ses boutons CSV et Parquet
+téléchargent le **jeu filtré entier** par `/api/export` de l'API, avec les colonnes visibles
+dans l'ordre, le tri et le filtre courants. La requête est un `GET` dont l'URL se copie et se
+partage ; au-delà de 4000 caractères (une longue liste `IN`), elle passe en `POST` avec les mêmes
+paramètres dans un corps JSON. Les refus de l'API sont annoncés dans la langue de
+l'interface : jeu trop volumineux (filtrez-le), trop d'exports simultanés (réessayez dans N
+secondes), API injoignable. La barre d'outils offre aussi de copier la commande cURL de
+l'export complet, à côté des extraits `fetch`, Python et cURL de la requête GraphQL.
+
+Sur des **données statiques**, sans API, l'export CSV porte sur les lignes chargées, côté
+client, et le bouton Parquet est masqué tant que vous ne fournissez pas `onExportParquet`
+(une route ou une action serveur).
 
 ### Le rendu serveur : `requestSafe`
 
@@ -147,16 +372,19 @@ vérificateur de l'extraire.
 
 **2 — L'export**, dans `documents/index.js`. C'est le point d'entrée unique des hooks.
 
-**3 — Le résolveur mock**, dans `transports/mock.js`, indexé par **nom d'opération** —
-l'identifiant qui suit `query` en tête du document. Sans lui, le mode par défaut lève sur
-votre nouvelle opération.
+**3 — Le résolveur mock**, en deux endroits. La logique vit dans `transports/mockResolvers.js`,
+dans l'objet que renvoie `createMockResolvers`, indexée par **champ racine** du schéma
+(`getLastRefresh`). `transports/mock.js` associe ensuite le **nom d'opération** du document
+— l'identifiant qui suit `query` — à ce champ racine, dans son objet `OPERATIONS`. Sans cette
+ligne, le mode par défaut lève sur votre nouvelle opération. Le serveur `npm run dev:mock`
+réutilise les mêmes résolveurs : il n'y a rien à ajouter pour lui.
 
-**4 — Le résolveur du serveur mock** (facultatif), dans `scripts/mock-api-server.js`, si
-vous voulez que `npm run dev:mock` serve vos fixtures plutôt que des valeurs auto-mockées.
+**4 — Un test du résolveur** (facultatif mais recommandé), à côté, sur le modèle de
+`mockResolvers.aggregates.test.js`.
 
 Puis `npm run check:gql` valide le document contre `scripts/schema.graphql`. Si votre API
-diverge de cette SDL, remplacez le fichier par la vôtre — c'est une copie du schéma de
-l'API, versionnée ici pour que la validation soit possible hors ligne.
+diverge de cette SDL, régénérez le fichier (voir [Épingler la version de
+l'API](#epingler-la-version-de-l-api)) plutôt que de l'éditer.
 
 ## Exemple complet
 
@@ -194,16 +422,25 @@ export { GET_LAST_REFRESH } from './lastRefresh';
 ```
 
 ```js
-// 3 — src/lib/api/transports/mock.js — ajouter le résolveur au registre RESOLVERS.
-// La clé est le NOM D'OPÉRATION du document (`query GetLastRefresh`), pas le nom du
-// champ racine. Résolveur `async` : la réponse arrive dans une microtâche, ce qui fait
-// passer les composants par le même cycle `loading -> données` que l'API réelle.
-GetLastRefresh: async ({ catalog }) => ({
-  getLastRefresh: {
-    refreshedAt: isCatalogue(catalog) ? '2026-08-01T04:00:00Z' : '2026-08-06T04:00:00Z',
-    rowCount: isCatalogue(catalog) ? 18 : 240,
-  },
-}),
+// 3a — src/lib/api/transports/mockResolvers.js — dans l'objet renvoyé par
+// createMockResolvers. La clé est le CHAMP RACINE du schéma. Le résolveur reçoit les
+// arguments de la requête ; `catalogueId` désigne le catalogue documentaire, tout autre
+// catalogue retombe sur le panel macro, comme le fait `datasetOf`.
+getLastRefresh: ({ catalog }) => {
+  const isCatalogue = catalog === catalogueId;
+  return {
+    refreshedAt: isCatalogue ? '2026-08-01T04:00:00Z' : '2026-08-06T04:00:00Z',
+    rowCount: isCatalogue ? 18 : 240,
+  };
+},
+
+// 3b — src/lib/api/transports/mock.js — nom d'OPÉRATION (`query GetLastRefresh`) → champ racine.
+// La réponse arrive dans une microtâche, ce qui fait passer les composants par le même
+// cycle `loading -> données` que l'API réelle.
+const OPERATIONS = {
+  // …
+  GetLastRefresh: 'getLastRefresh',
+};
 ```
 
 ```js
@@ -217,10 +454,11 @@ import { GET_LAST_REFRESH } from '@/lib/api/documents';
 // =================================================================
 // Le transport est choisi une fois pour toutes dans lib/api/client.js : ce hook est
 // identique en mode fixtures et en mode API. `catalog` / `schema` sont les coordonnées
-// ducklake, transmises en arguments de requête ET en en-têtes X-Catalog-Id / X-Schema-Id.
+// ducklake, de simples arguments de requête : ils voyagent dans `variables`, jamais en
+// en-têtes.
 
 function fetchLastRefresh([, catalog, schema]) {
-  return request(GET_LAST_REFRESH, { catalog, schema }, { catalog, schema })
+  return request(GET_LAST_REFRESH, { catalog, schema })
     .then((data) => data.getLastRefresh);
 }
 
@@ -282,5 +520,52 @@ npm run check:gql
 ```
 
 Cette dernière commande échouera tant que `getLastRefresh` n'existe pas dans
-`scripts/schema.graphql` — c'est précisément son rôle. Mettez la SDL à jour depuis votre
-API, et la vérification passe.
+`scripts/schema.graphql` — c'est précisément son rôle. Cette copie ne s'édite pas : elle
+vient de l'API, et `npm run sync:schema` la rafraîchit. Quand l'API publie la nouvelle
+opération, montez la version épinglée, et la vérification passe.
+
+## Migrer depuis la version précédente
+
+Cette section s'adresse à qui a **copié le template avant le contrat 0.3.0** (ou installé
+des items du registry) et souhaite le rattraper. Le détail, version par version, est dans
+le `CHANGELOG.md` ; voici ce qui compte pour s'y retrouver.
+
+**Ce qui a changé dans les données.**
+
+| Avant | Maintenant |
+|---|---|
+| métadonnées en `snake_case` : `sql_type`, `is_categorical`, `is_primary_key`, `python_type` | `camelCase` : `sqlType`, `isCategorical`, `isPrimaryKey` ; `python_type` disparaît |
+| décisions sur le **type SQL** (`double precision`, `integer`, `character varying`…) | décisions sur la **famille de type** : `typeFamily` (`INTEGER`, `NUMBER`, `DATE`, `TIMESTAMP`, `TEXT`, `BOOLEAN`, `OTHER`) |
+| opérations en minuscules (`gte`, `between`, `in`) | valeurs de l'enum `FilterOperation`, en majuscules (`GTE`, `BETWEEN`, `IN`) |
+| `operations.json` : listes d'opérations **par type SQL**, prop `operationsByType` | `operations.json` : **libellés** seuls, indexés par opération ; prop `operationLabels` ; les opérations offertes viennent de `filterOperations` |
+| en-têtes `X-Catalog-Id` / `X-Schema-Id` | `catalog` / `schema` en arguments de requête, aucun en-tête |
+| `request(document, variables, { catalog, schema })` | `request(document, variables)` |
+| `getGroupedSelectOptions` | `getSelectOptionsTree` ; mode groupé déduit de `parentName` |
+| deux requêtes parallèles (lignes + schéma) | un seul appel : `fields` accompagne les lignes |
+| filtre évalué sur les lignes chargées (`evalFilterNode`) | filtre envoyé à l'API en `structuredFilters` |
+| export des lignes chargées | export du jeu filtré entier par `/api/export` |
+| formatage par type deviné, `format` à la main | `displayFormat` / `unit` des métadonnées, via `fields` |
+| moyenne des lignes pour un graphique qui regroupe | `defaultAggregation` de la mesure, calculée par `getAggregates` |
+
+**Les fichiers à reprendre**, par ordre d'importance :
+
+1. `scripts/schema.graphql` (par `npm run sync:schema`) et `scripts/sync-schema.js`, puis
+   `npm run check:gql` : il énumère précisément les documents qui ne compilent plus.
+2. `src/lib/api/documents/` — tous les documents. Si vous en avez ajouté, adaptez-les à
+   `camelCase` et aux nouveaux arguments.
+3. `src/lib/api/transports/` — le transport GraphQL ne pose plus d'en-têtes ; le mock
+   (`mock.js`, `mockResolvers.js`) et `fixtures/` suivent le nouveau contrat. Si vous avez
+   branché des fixtures à vous, donnez-leur `typeFamily` et `filterOperations`
+   (`fixtures/metadata.js` rejoue la dérivation du serveur).
+4. `src/features/filter/utils/filterTypes.js`, `filterEngine.js` et
+   `config/filter/operations.json` — le catalogue d'opérations par type SQL disparaît.
+5. Les hooks `sources/` de `chart`, `table` et `filter`, puis `Table`, `Chart`, `CriterionMenu`
+   et `MultiCriterionMenu` qui lisent les nouveaux noms.
+
+**Dans votre propre code**, remplacez `operationsByType={…}` par `operationLabels={…}`
+(`resolveOperationLabels(operations, locale, defaultLocale)`), `sql_type` / `is_categorical`
+par `typeFamily` / `isCategorical` dans les variables, les opérations minuscules par leurs
+équivalents majuscules dans les critères initiaux, et supprimez tout filtrage côté client de
+données qui viennent de l'API — il faut désormais passer `structuredFilters` au hook. Un
+critère initial en minuscules n'est plus reconnu : son libellé retombe sur la valeur brute
+et l'opération n'est pas sélectionnée.

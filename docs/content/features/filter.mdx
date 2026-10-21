@@ -6,10 +6,6 @@ order: 3
 
 # Filter
 
-{/* Coquille posée en P4.2 (infrastructure du site de documentation).
-    Contenu rédigé en P4.4. Les deux sous-titres ci-dessous existent pour que le
-    sommaire de page ait de quoi s'afficher tant que la page est vide. */}
-
 ## Explorer les paramètres
 
 ### CriterionMenu
@@ -38,11 +34,77 @@ order: 3
 
 ## Critère simple
 
-_À rédiger._
+Un `<CriterionMenu>` est une carte de trois lignes — variable, opération, valeur — dont l'état
+vit entièrement chez vous : vous lui passez le `criterion` courant et il vous rend l'objet
+complet à chaque changement.
+
+```jsx
+const criterion = {
+  variable: 'gdp',
+  operation: 'BETWEEN',
+  value: { min: -2, max: 5 },
+  typeFamily: 'NUMBER',
+  isCategorical: false,
+};
+
+<CriterionMenu
+  criterion={criterion}
+  onChange={setCriterion}
+  variables={variables}
+  operationLabels={operationLabels} />
+```
+
+**Les variables** sont celles des métadonnées de l'API, mises à la forme du menu par
+`metadataToVariables` : `{ value, label, typeFamily, isCategorical, filterOperations }`. C'est
+la **famille de type** — `INTEGER`, `NUMBER`, `DATE`, `TIMESTAMP`, `TEXT`, `BOOLEAN`, `OTHER` —
+qui choisit le widget de saisie : un champ numérique avec un slider, un sélecteur de date, un
+menu de valeurs pour une colonne catégorielle, une saisie de texte sinon. Le type SQL n'est
+jamais lu.
+
+**Les opérations** sont des valeurs de l'enum `FilterOperation` de l'API, **en majuscules**
+(`EQ`, `GT`, `BETWEEN`, `IN`, `BEFORE`, `CONTAINS`…). Celles qu'une colonne propose sont
+l'intersection de ce que l'API accepte sur elle (`filterOperations`) et de ce que son widget
+sait saisir : une colonne numérique offre `EQ`, `GT`, `GTE`, `LT`, `LTE` et `BETWEEN`, une
+date `EQ`, `BEFORE`, `AFTER` et `BETWEEN`, une colonne catégorielle `IN`, `NOT_IN` et `EQ`,
+un texte `EQ`, `CONTAINS` et `STARTS`. Une colonne de type `OTHER` n'en offre aucune. L'opération
+détermine ensuite la forme de la valeur — un tableau pour `IN`, un objet `{ min, max }` pour
+`BETWEEN`, un scalaire sinon.
+
+**Les libellés** des opérations ne viennent pas de l'API mais de `config/filter/operations.json`,
+indexé par valeur d'enum. Le fichier accepte une chaîne (le symbole `≥` ne se traduit pas) ou
+un objet `{ fr, en }` ; `resolveOperationLabels` l'aplatit dans la langue courante, et le
+résultat se passe à `operationLabels`. Une opération sans libellé s'affiche sous sa valeur
+d'enum.
+
+**Valeurs et bornes.** Un menu de valeurs (`fieldName`) lit ses options à l'API :
+`getSelectOptions`, ou `getSelectOptionsTree` quand la colonne a un `parentName` (continent →
+pays, en groupes). Un champ numérique ou date lit ses bornes dans `getFieldStats` ; passez
+`structuredFilters` à la carte pour que ces bornes suivent le jeu **filtré** plutôt que la
+table entière.
 
 ## Combinaison de critères
 
-_À rédiger._
+`<MultiCriterionMenu>` empile des cartes reliées par des connecteurs `ET` / `OU` et des
+parenthèses. Son `onChange` renvoie `{ criteria, tree, balanced, serial }` : la liste à plat,
+l'arbre, un drapeau qui dit si les parenthèses se referment, et une forme lisible sans champs
+internes.
+
+Pour filtrer des données de l'API, c'est l'arbre qui compte. `toFilterNode(tree, { balanced,
+dateOrder })` le convertit en **`FilterNode`**, la valeur de `structuredFilters` que reçoivent
+`getFactTableWithMetadata`, `getAggregates` et `getFieldStats` : un critère incomplet est omis
+avec son connecteur, une expression déséquilibrée ne donne aucun filtre, et les dates saisies
+dans l'ordre de la langue (`dateOrder`) sont envoyées en ISO 8601. Le même `FilterNode`
+alimente le tableau, le graphique et les bornes des champs, qui montrent donc tous le même
+sous-jeu. Évalué par le serveur, le filtre porte sur tout le jeu de données, pas sur la page
+de lignes chargée.
+
+```jsx
+const menuNode = filter ? toFilterNode(filter.tree, { balanced: filter.balanced }) : null;
+const structuredFilters = andNodes(menuNode, columnCriteria(columnFilters, columns));
+```
+
+`treeToSQL` produit en plus une clause `WHERE` lisible, utile pour afficher le filtre mais pas
+pour l'envoyer : l'API ne reçoit jamais de SQL.
 
 ## Cas d'usage
 

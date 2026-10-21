@@ -22,24 +22,33 @@ import operations from '@config/filter/operations.json';
 import { resolveOperationLabels } from '@/features/filter/utils/filterTypes';
 import { DEFAULT_LOCALE } from '@/i18n/config';
 
-// Les libellés d'opérateurs de config/filter/operations.json acceptent la forme
-// `{ fr, en }` depuis P5.4 : on les aplatit avant de les passer au composant, qui
-// n'attend que des chaînes. Le site de documentation étant monolingue, il résout dans
-// la langue par défaut.
-const localizedOperations = resolveOperationLabels(operations, DEFAULT_LOCALE, DEFAULT_LOCALE);
+// config/filter/operations.json donne le libellé de chaque opération, indexé par valeur de
+// l'enum FilterOperation de l'API (EQ, BETWEEN…) ; il ne dit pas lesquelles proposer, c'est
+// le rôle de `filterOperations` dans les métadonnées de la colonne. Un libellé peut être une
+// chaîne ou un objet `{ fr, en }` : on l'aplatit avant de le passer au composant, qui
+// n'attend que des chaînes. Le site de documentation étant monolingue, il résout dans la
+// langue par défaut.
+const operationLabels = resolveOperationLabels(operations, DEFAULT_LOCALE, DEFAULT_LOCALE);
 
-// Variable catégorielle : la resolution des opérations passe par le bucket
-// "categorical", quel que soit son sql_type (cf. resolveOperations).
+// Variable catégorielle : le widget (menu de valeurs) découle de `isCategorical`, quelle que
+// soit sa famille de type ; les opérations offertes sont l'intersection de
+// `filterOperations` (côté API) et de ce que ce widget sait saisir (cf. resolveOperations).
 const VARIABLES = [
-  { value: 'indicator', label: 'Indicateur', sql_type: 'character varying', is_categorical: true },
+  {
+    value: 'indicator',
+    label: 'Indicateur',
+    typeFamily: 'TEXT',
+    isCategorical: true,
+    filterOperations: ['EQ', 'IN', 'NOT_IN'],
+  },
 ];
 
 const INITIAL = {
   variable: 'indicator',
-  operation: 'in',
+  operation: 'IN',
   value: [],
-  sql_type: 'character varying',
-  is_categorical: true,
+  typeFamily: 'TEXT',
+  isCategorical: true,
   bracketLeft: false,
   bracketRight: false,
 };
@@ -53,7 +62,7 @@ const CriterionMenuBrackets = () => {
         criterion={criterion}
         onChange={setCriterion}
         variables={VARIABLES}
-        operationsByType={localizedOperations}
+        operationLabels={operationLabels}
         parentheses
         showLabels
       />

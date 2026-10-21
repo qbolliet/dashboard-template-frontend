@@ -2,8 +2,9 @@
  * Tableau avec filtre par défaut
  *
  * `defaultFilter` prend directement la forme que produit `filterEngine.buildTree` : un
- * groupe racine (profondeur 0) dont les feuilles portent `sqlType` / `isCategorical`
- * (jamais un type abstrait) — ici secteur ∈ {Macro, Finance} ET observations > 100.
+ * groupe racine (profondeur 0) dont les feuilles portent `typeFamily` / `isCategorical`
+ * (la famille de type de l'API, jamais le type SQL) et une opération de l'enum
+ * `FilterOperation`, en majuscules — ici secteur ∈ {Macro, Finance} ET observations > 100.
  * C'est la même forme qu'un `<MultiCriterionMenu>` produit en direct
  * (cf. `table-with-filter`) ; rien n'empêche de la construire à la main.
  *
@@ -35,9 +36,9 @@ const DEFAULT_FILTER = {
         group: 0,
         connector: null,
         variable: 'sector',
-        operation: 'in',
+        operation: 'IN',
         value: ['Macro', 'Finance'],
-        sqlType: 'text',
+        typeFamily: 'TEXT',
         isCategorical: true,
         complete: true,
       },
@@ -47,9 +48,9 @@ const DEFAULT_FILTER = {
         group: 0,
         connector: 'AND',
         variable: 'observations',
-        operation: 'gt',
+        operation: 'GT',
         value: 100,
-        sqlType: 'integer',
+        typeFamily: 'INTEGER',
         isCategorical: false,
         complete: true,
       },

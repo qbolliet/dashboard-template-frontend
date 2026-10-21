@@ -185,7 +185,7 @@ const ENDPOINT = process.env.NEXT_PUBLIC_API_URL;
 
 const GET_CATALOG_SCHEMA = `
   query GetCatalogSchema {
-    getCatalogSchema { name label sql_type is_categorical }
+    getCatalogSchema { name label sqlType isCategorical }
   }
 `;
 
@@ -236,7 +236,7 @@ async function buildFieldEntries(pages) {
       title: field.label,
       path: target.path,
       type: 'field',
-      description: `Variable du catalogue (${field.sql_type}).`,
+      description: `Variable du catalogue (${field.sqlType}).`,
       // Le nom technique rejoint les mots-clés : cherché, jamais affiché.
       keywords: [field.name],
       // Le fil d'Ariane de la page visée, pour que la suggestion se situe comme les

@@ -69,7 +69,8 @@ src/features/[feature]/
 
 Deux sous-dossiers méritent qu'on s'y arrête. **`sources/`** est le seul endroit d'une
 feature qui parle à l'API : chaque fichier y expose un hook SWR qui construit sa clé de
-cache et normalise la forme de retour. **`_tokens.scss` et `_colors.scss` à la racine de
+cache et déplie la réponse GraphQL (sans la reformater : les composants reçoivent ce que
+l'API renvoie, en camelCase). **`_tokens.scss` et `_colors.scss` à la racine de
 la feature** sont le niveau 3 de la cascade — ils portent ce qui est partagé par plusieurs
 composants de la feature, et rien d'autre.
 
@@ -79,7 +80,7 @@ Quatre dossiers de `src/` ne participent pas à cette hiérarchie, et c'est dél
 
 | Dossier | Rôle |
 |---|---|
-| `lib/` | La plomberie transverse, ni UI ni métier. Aujourd'hui `lib/api/` : le client GraphQL, ses deux transports, les documents de requête et les fixtures. Ne dépend ni de `features/` ni de `components/`. |
+| `lib/` | La plomberie transverse, ni UI ni métier. Aujourd'hui `lib/api/` : le client GraphQL, ses deux transports (`graphql` pour l'API réelle, `mock` pour les fixtures et leurs résolveurs), les documents de requête et les fixtures. Ils sont validés contre `scripts/schema.graphql`, la copie épinglée du SDL de l'API (voir [Brancher l'API GraphQL](/guides/api-graphql)). Ne dépend ni de `features/` ni de `components/`. |
 | `page-templates/` | Les gabarits rendus par la route générée, un par type de nœud du manifeste (`home`, `indicator`, `indicator_group`, `about`…) — voir [Générer des pages depuis un JSON](/guides/pages-depuis-json). Il n'y a pas de dossier par URL : un gabarit reçoit le nœud résolu en props et assemble `features/` et `components/`, sans porter d'état propre. Il vit au même niveau que `features/` et `components/`, mais n'est ni l'un ni l'autre — c'est du câblage applicatif, comme `app/`. La même règle de couche s'y applique : `components/` ne doit jamais l'importer. |
 | `config/` | Le registre `pageTypes.js`, qui associe un type de nœud du manifeste au composant de `page-templates/` qui le rend. À ne pas confondre avec le dossier `config/` de la racine du dépôt, qui contient les fichiers JSON eux-mêmes. |
 | `app/` | Les routes et layouts de l'App Router de Next. Les pages y sont **générées** depuis le manifeste, pas écrites une par une — voir [Générer des pages depuis un JSON](/guides/pages-depuis-json). |

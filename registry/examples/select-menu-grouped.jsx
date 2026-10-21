@@ -3,9 +3,12 @@
 /**
  * Sélection unique groupée, alimentée par l'API
  *
- * `groupField` active le mode groupé : les options arrivent déjà réparties en groupes
- * ([{ group, options }]) ; en sélection simple, les en-têtes de groupe sont de simples
- * titres non interactifs (la case à cocher de groupe n'apparaît qu'en `allowMulti`).
+ * Le mode groupé est déduit des métadonnées : `country` déclare `parentName: 'region'`, donc
+ * `getSelectOptionsTree` remonte la hiérarchie côté serveur et les options arrivent réparties
+ * en groupes ([{ group, options }]). `groupField` force ce mode sur un champ sans
+ * `parentName`, sans que sa valeur soit envoyée à l'API. En sélection simple, les en-têtes
+ * de groupe sont de simples titres non interactifs (la case à cocher de groupe n'apparaît
+ * qu'en `allowMulti`).
  *
  * @item select-menu
  */
@@ -19,8 +22,7 @@ const SelectMenuGrouped = () => {
 
   return (
     <SelectMenu
-      fieldName="demo"
-      groupField="group"
+      fieldName="country"
       value={selection}
       onChange={setSelection}
       placeholder="Choisir une option…"

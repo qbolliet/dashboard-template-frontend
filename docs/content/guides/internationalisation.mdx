@@ -179,8 +179,9 @@ Trois fichiers sont concernés — `config/site.config.json` (titre, description
 navigation), `config/content/home.json` (page d'accueil) et
 `config/filter/operations.json` (libellés d'opérateurs).
 
-Ce qui ne se traduit **jamais** : les `path` d'URL, les `value` d'opérateurs et de
-connecteurs (ce sont des identifiants sérialisés dans le filtre), les chemins d'images.
+Ce qui ne se traduit **jamais** : les `path` d'URL, les clés d'`operations.json` (les valeurs
+de l'enum `FilterOperation` de l'API : `EQ`, `BETWEEN`… — ce sont des identifiants envoyés
+tels quels à l'API), les `value` des connecteurs, les chemins d'images.
 
 ```bash
 npm run validate:config   # la langue par défaut est-elle présente partout ?

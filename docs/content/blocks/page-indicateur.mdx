@@ -6,14 +6,57 @@ order: 1
 
 # Page indicateur
 
-{/* Coquille posée en P4.2 (infrastructure du site de documentation).
-    Contenu rédigé en P4.4. Les deux sous-titres ci-dessous existent pour que le
-    sommaire de page ait de quoi s'afficher tant que la page est vide. */}
+Une page d'indicateur assemble, pour un nœud `indicator` du manifeste, un en-tête, trois
+indicateurs de cadrage, un menu de filtres, un graphique et un tableau. Ce n'est pas un
+composant de plus à maintenir : c'est le montage de référence des features `filter`, `chart`
+et `table` sur le contrat de l'API, et le plus court chemin pour voir comment elles se
+branchent ensemble. Il vit dans `src/page-templates/` : `IndicatorPage` (côté serveur,
+la structure) et `IndicatorExplorer` (l'îlot client, l'interactif).
 
 ## Composition
 
-_À rédiger._
+**Un seul filtre pour tout.** Le menu de critères produit un arbre, `toFilterNode` le convertit
+en `FilterNode`, et les filtres de colonne du tableau s'y ajoutent en `ET`. Le résultat,
+`structuredFilters`, part tel quel vers l'API pour les lignes du tableau, les agrégats du
+graphique, les bornes des champs et les indicateurs. Rien n'est filtré sur les lignes
+chargées : graphique, tableau et cartes montrent le même jeu filtré, pas la première page.
+
+**Le schéma décide de ce qui est tracé.** Un nœud du manifeste ne décrit aucun jeu de données :
+le gabarit déduit l'encodage des seules métadonnées de colonnes — la première date en `x`, la
+première mesure continue en `y`, la première dimension catégorielle en `hue` — en lisant la
+famille de type (`typeFamily`), jamais le type SQL. Sans mesure continue, le graphique est
+omis et le tableau reste.
+
+**Qui agrège.** Les tracés qui regroupent (lignes, barres, heatmap) sont dessinés depuis
+`getAggregates`, sur tout le jeu filtré et avec l'agrégation déclarée de chaque mesure — la
+somme d'un stock, la moyenne d'un taux — et non depuis la page de 100 lignes du tableau
+(`useAggregatedChart`). Un sélecteur de mesures, affiché dès qu'il y a un choix, permet d'en
+tracer une ou plusieurs ; plusieurs mesures donnent une série chacune. Vider le sélecteur
+revient à la mesure déduite du schéma.
+
+**Les trois indicateurs** suivent le filtre. « Observations » est `metadata.total`, le nombre de
+lignes retenues (et non la taille de la page) ; quand un filtre est actif, le total d'origine
+passe en note. « Période » et « Amplitude » sont les `min` / `max` de `getFieldStats` sur
+l'abscisse et sur la mesure principale, sous le même filtre, et seulement pour les colonnes
+numériques ou dates.
+
+**Le rendu serveur reste tolérant.** Les valeurs sont chargées côté client pour ne pas figer
+les chiffres dans le HTML prérendu ; le serveur ne fournit que le schéma, via `requestSafe`, qui
+renvoie `null` plutôt que de faire échouer le build quand l'API est injoignable. L'îlot refait
+alors la requête au montage.
 
 ## Adapter le block
 
-_À rédiger._
+- **Choisir ce qui est tracé** — `deriveEncoding` est la seule fonction à remplacer pour
+  imposer vos colonnes de `x`, `y` et `hue`. Tant que le manifeste ne porte pas de descripteur
+  de jeu de données, tous les nœuds `indicator` affichent le même graphique.
+- **Changer les libellés d'opérations** — `config/filter/operations.json`, indexé par valeur de
+  l'enum `FilterOperation` (voir [Filter](/features/filter)).
+- **Pointer un autre catalogue** — `catalog` et `schema` sont de simples arguments de requête
+  que les hooks transmettent ; aucun en-tête n'est à poser (voir [Brancher l'API
+  GraphQL](/guides/api-graphql)).
+- **Changer d'indicateurs de cadrage** — `IndicatorExplorer` les calcule depuis `metadata.total`
+  et `useFieldStats` ; ajouter une carte, c'est ajouter un appel à ce hook sur une autre
+  colonne.
+- **Exports** — l'export du jeu complet n'apparaît qu'adossé à l'API ; sur fixtures, le
+  tableau n'exporte que les lignes chargées, en CSV.

@@ -6,9 +6,11 @@ order: 1
 
 # Chart
 
-{/* Coquille posée en P4.2. La prose reste à rédiger en P4.4 ; les deux surfaces de
-    démonstration ci-dessous sont, elles, câblées en P4.3 et servent de vérification de
-    bout en bout du playground et de l'aperçu. */}
+`<Chart>` trace une variable `y` en fonction de `x`, avec une troisième dimension `z` et des
+canaux de série `hue` facultatifs. Vous ne choisissez pas le type de graphique : il se déduit
+du type des colonnes branchées. Il ne fait aucune requête — il reçoit des lignes (ou des
+valeurs déjà agrégées) et les métadonnées de leurs colonnes, ce qui permet de l'installer
+seul depuis le registry.
 
 ## Explorer les paramètres
 
@@ -20,7 +22,81 @@ dans le code — seul ce que vous avez changé s'y trouve, imports et jeu de don
 
 ## Choix automatique du tracé
 
-_À rédiger._
+Chaque colonne est d'un des trois types **date**, **nombre** ou **catégorie**, et la
+combinaison de `x`, `y` et `z` décide du tracé :
+
+| `x` | `y` | `z` | Tracé |
+|---|---|---|---|
+| date ou nombre | nombre | — | ligne (`fill="none"` : nuage de points) |
+| catégorie | nombre ou date | — | barres verticales |
+| date ou nombre | catégorie | — | barres horizontales |
+| catégorie | catégorie | nombre | heatmap |
+| catégorie | nombre ou date | nombre | violon vertical |
+| nombre ou date | catégorie | nombre | violon horizontal |
+| nombre ou date | nombre ou date | nombre | densité |
+
+`z` doit être numérique, sinon `<Chart>` lève. Les propriétés `categorical-x` et
+`categorical-y` forcent le traitement d'un axe en catégorie — utile pour un entier qui est un
+code (une année vue comme une étiquette, un numéro de département).
+
+## Typer et formater avec les métadonnées : `fields`
+
+Sans autre indication, `<Chart>` devine le type d'une colonne en échantillonnant ses valeurs,
+et une chaîne comme `'01012100'` ou `'2024'` peut être prise pour un nombre ou une date. Avec
+la prop `fields` — les métadonnées de colonnes renvoyées par l'API, avec les lignes —, le
+type de chaque colonne décrite vient de sa **famille de type** :
+
+| `typeFamily` | Type de colonne |
+|---|---|
+| `DATE`, `TIMESTAMP` | date |
+| `INTEGER`, `NUMBER`, non catégoriel | nombre |
+| tout le reste (`TEXT`, `BOOLEAN`, `OTHER`, ou une colonne `isCategorical`) | catégorie |
+
+La détection sur les valeurs n'est alors même pas appelée pour cette colonne. `fields` règle
+aussi la mise en forme : le `displayFormat` (un format d3 : `,.1f`, `.1%`) et l'`unit` d'une
+colonne numérique mettent en forme son axe et son infobulle. Une prop `format={{ y: '.1f' }}`
+explicite l'emporte toujours sur ce qui est déduit.
+
+```jsx
+const { rows, fields } = useFactTable();
+
+<Chart data={rows} fields={fields} x="date_obs" y="gdp" hue="country" />
+```
+
+Une colonne que `fields` ne décrit pas retombe sur la détection par échantillon, comme avant.
+
+## Agréger côté serveur
+
+Un tracé qui **regroupe** — barres, barres horizontales, heatmap, ligne agrégée — réduit
+plusieurs lignes à une valeur par groupe. Fait sur les lignes chargées, ce calcul ne voit
+qu'une page de données (100 lignes) et ne sait rien de l'agrégation voulue de la mesure : la
+moyenne d'un taux n'est pas sa somme. Il y a donc deux façons de le faire, selon d'où viennent
+les lignes.
+
+**Lignes brutes en mémoire.** Le graphique réduit lui-même ses lignes avec la
+`defaultAggregation` de la mesure (`SUM`, `AVG`…) déclarée dans `fields`, et la moyenne quand
+elle n'en déclare pas.
+
+**Valeurs agrégées par l'API.** `useAggregatedChart` interroge `getAggregates` sur **tout** le
+jeu filtré et rend les props de `<Chart>`, dont `aggregate`. Cette prop dit au graphique que
+`data` contient déjà une ligne par groupe — la valeur dans `y` (`x` pour des barres
+horizontales, `z` pour une heatmap) — et qu'il ne doit ni la regrouper ni la recalculer. Pour
+`aggregate`, l'agrégation de la mesure ne sert qu'à décider comment les minimaps d'une heatmap
+projettent les cellules (sommées pour `SUM` / `COUNT`, moyennées sinon). Un tableau de mesures
+trace plusieurs mesures en format long, avec `hue` = mesure.
+
+```jsx
+const chart = useAggregatedChart({
+  x: 'country', measures: ['gdp'], fields, rows, structuredFilters,
+});
+
+<Chart {...chart.chartProps} />
+```
+
+Le hook choisit lui-même le mode d'après les métadonnées : serveur pour les tracés qui
+regroupent, lignes brutes pour le nuage de points, le violon et la densité, dont le tracé a
+besoin des observations individuelles. Tant que `fields` ne décrit pas toutes les colonnes
+tracées, il retombe sur les lignes brutes — on ne sait pas typer sans elles.
 
 ## Cas d'usage
 
@@ -33,6 +109,22 @@ installe, montré tel quel.
 
 <ComponentPreview name="chart-api" />
 
+<ComponentPreview name="chart-aggregated" />
+
 ## Données attendues
 
-_À rédiger._
+`data` est un tableau d'objets au **format long**, une ligne par observation, dont les clés
+sont les noms de colonnes — exactement ce que renvoie `getFactTableWithMetadata` avec
+`format: OBJECTS`. Les dates peuvent arriver en chaînes ISO 8601 : le graphique les convertit.
+
+| Prop | Rôle |
+|---|---|
+| `x`, `y` | colonnes de l'abscisse et de l'ordonnée (`y` est obligatoire) |
+| `z` | troisième dimension : heatmap, violon, densité |
+| `hue` | colonne(s) de série : couleur, puis style de trait, puis marqueur |
+| `fields` | métadonnées de colonnes : types, `displayFormat`, `unit`, agrégation par défaut |
+| `aggregate` | `data` est déjà agrégé par l'API : ne pas ré-agréger |
+| `format`, `labels` | formats d3 et intitulés d'axes, qui l'emportent sur ce qui est déduit |
+
+La table complète des props est générée depuis le code ; les formats d3 passent par la locale
+du site (`locale`), jamais par un format américain écrit en dur.

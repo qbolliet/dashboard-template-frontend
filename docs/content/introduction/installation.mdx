@@ -168,60 +168,68 @@ echo 'NEXT_PUBLIC_API_URL=https://mon-api.exemple.org/graphql' >> .env.local
 'use client';
 
 import { useState } from 'react';
-import { Chart } from '@/features/chart';
-import { Table, useFactTableWithMetadata, normalizeDefaultFilter, evalFilterNode } from '@/features/table';
+import { Chart, useAggregatedChart } from '@/features/chart';
+import { Table, useFactTableWithMetadata } from '@/features/table';
 import { MultiCriterionMenu } from '@/features/filter';
+import { toFilterNode, columnCriteria, andNodes } from '@/features/filter/utils/filterEngine';
+import { metadataToVariables } from '@/features/filter/sources/useVariableMetadata';
 
-// Opérations proposées par le menu de critères, indexées par `sql_type` de l'API ;
-// la clé `categorical` s'applique à tout champ marqué `is_categorical`. Le dépôt modèle
-// livre la liste complète en `config/filter/operations.json` — l'item de registry, non,
-// car c'est un choix éditorial : à vous de dire quelles opérations vous exposez.
-const OPERATIONS = {
-  categorical: [
-    { value: 'in', label: 'IN' },
-    { value: 'not_in', label: 'NOT IN' },
-  ],
-  'double precision': [
-    { value: 'gte', label: '≥' },
-    { value: 'lte', label: '≤' },
-    { value: 'between', label: 'Entre' },
-  ],
+// Libellés des opérations, indexés par valeur de l'enum FilterOperation de l'API. Ils ne
+// disent PAS quelles opérations proposer : cette liste vient de `filterOperations`, dans les
+// métadonnées de chaque colonne. Le dépôt modèle livre un catalogue complet, bilingue, en
+// `config/filter/operations.json` — l'item de registry, non, car c'est un choix éditorial.
+// Une opération sans libellé s'affiche sous sa valeur d'enum.
+const OPERATION_LABELS = {
+  EQ: '=', GT: '>', GTE: '≥', LT: '<', LTE: '≤',
+  BETWEEN: 'Entre', IN: 'IN', NOT_IN: 'NOT IN',
 };
 
 const IndicateursPage = () => {
   // Valeur structurée du menu de critères — un ARBRE de critères, pas une liste plate.
   const [filter, setFilter] = useState(null);
+  // Sélections des filtres de colonne du tableau (mode distant de <Table>)
+  const [columnFilters, setColumnFilters] = useState({});
 
-  // Lignes + schéma de colonnes en un seul hook, identique en mode fixtures et en mode API.
-  const { data, columnsMetadata } = useFactTableWithMetadata();
+  // Schéma des colonnes (`fields` de l'API : nom, libellé, famille de type, opérations
+  // acceptées, format…). Requête non filtrée, dont la clé SWR est aussi celle de la requête
+  // filtrée tant qu'aucun filtre n'est posé.
+  const { columnsMetadata: fields } = useFactTableWithMetadata();
 
-  // Variables filtrables : toutes les colonnes sauf la clé primaire, qui n'a pas de sens
-  // comme critère.
-  const variables = columnsMetadata
-    .filter((column) => !column.is_primary_key)
-    .map(({ name, label, sql_type, is_categorical }) => ({
-      value: name, label, sql_type, is_categorical,
-    }));
+  // Le filtre est envoyé à l'API, jamais appliqué aux lignes chargées : le menu et les
+  // filtres de colonne forment ensemble un seul FilterNode (`structuredFilters`).
+  const menuNode = filter ? toFilterNode(filter.tree, { balanced: filter.balanced }) : null;
+  const columns = fields.map(({ name, typeFamily }) => ({ key: name, typeFamily }));
+  const structuredFilters = andNodes(menuNode, columnCriteria(columnFilters, columns));
 
-  // <Table> applique `defaultFilter` lui-même ; <Chart> reçoit des lignes brutes. On lui
-  // applique donc le MÊME filtre, avec le moteur du tableau plutôt qu'une réimplémentation,
-  // pour que les deux vues montrent toujours le même sous-jeu.
-  const filterTree = normalizeDefaultFilter(filter);
-  const chartData = filterTree ? data.filter((row) => evalFilterNode(row, filterTree)) : data;
+  // Page de lignes du jeu filtré, pour le tableau.
+  const { data } = useFactTableWithMetadata({ structuredFilters });
+
+  // Variables filtrables : toutes les colonnes sauf les colonnes de libellés.
+  const variables = metadataToVariables(fields);
+
+  // Props de <Chart>. Un graphique qui regroupe est tracé depuis `getAggregates`, sur tout le
+  // jeu filtré (agrégation déclarée de la mesure) et non depuis la page de lignes du tableau ;
+  // les autres (nuage, violon…) reçoivent les lignes brutes.
+  const chart = useAggregatedChart({
+    x: 'date_obs', measures: ['gdp'], hue: 'country', fields, rows: data, structuredFilters,
+  });
 
   return (
     <main>
       <MultiCriterionMenu
         variables={variables}
-        operationsByType={OPERATIONS}
+        operationLabels={OPERATION_LABELS}
+        structuredFilters={structuredFilters}
         onChange={setFilter} />
 
-      <Chart data={chartData} x="date_obs" y="gdp" hue="pays" height={420} />
+      <Chart {...chart.chartProps} height={420} />
 
       <Table
         data={data}
-        columnsMetadata={columnsMetadata}
-        defaultFilter={filter}
+        columnsMetadata={fields}
+        columnFilters={columnFilters}
+        onColumnFiltersChange={setColumnFilters}
+        queryHint={{ operation: 'getFactTableWithMetadata', structuredFilters: menuNode }}
         title="Indicateurs macroéconomiques" />
     </main>
   );
@@ -230,10 +238,15 @@ const IndicateursPage = () => {
 export default IndicateursPage;
 ```
 
-Deux points que cet exemple illustre et qui valent au-delà de lui : le filtre est un
-**arbre**, pas une liste plate, et il est appliqué **côté client** par le moteur du tableau
-— rien n'est renvoyé à l'API tant que vous ne passez pas vous-même `structuredFilters` au
-hook. Le gabarit `IndicatorPage` du dépôt modèle est exactement ce montage, en plus complet.
+Trois points que cet exemple illustre et qui valent au-delà de lui. Le filtre est un
+**arbre**, pas une liste plate, et il est évalué **par l'API** : `toFilterNode` le convertit en
+`structuredFilters`, que reçoivent le tableau, le graphique et le champ de bornes du menu —
+tous montrent donc le même sous-jeu, y compris au-delà de la première page. Les types ne sont
+pas devinés : `fields` porte la famille de type de chaque colonne, que le menu, le tableau et le
+graphique lisent. Et l'agrégation d'un graphique qui regroupe est faite par l'API aussi. Le
+gabarit `IndicatorPage` du dépôt modèle est exactement ce montage, en plus complet — sélecteur
+de mesures, indicateurs de cadrage, export, textes localisés. Le détail du contrat est dans
+[Brancher l'API GraphQL](/guides/api-graphql).
 
 Les props de chaque composant sont dans sa page, lues dans le code au build plutôt que
 rédigées : [Chart](/features/chart), [Table](/features/table), [Filter](/features/filter).

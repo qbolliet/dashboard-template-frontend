@@ -46,7 +46,9 @@ function fetchFactTable([, fields, structuredFilters, limit, offset, sort, catal
  * @param {Array}    [params.sort] - `[{ field, order }]`.
  * @param {string}   [params.catalog] - Ducklake catalog (query argument).
  * @param {string}   [params.schema]  - Ducklake schema (query argument).
- * @returns {{ columns: string[], rows: Array<object>, metadata: object|null, loading: boolean, error: (Error|null) }}
+ * @returns {{ columns: string[], rows: Array<object>, fields: Array<object>,
+ *   metadata: object|null, loading: boolean, error: (Error|null) }} `fields` are the
+ *   column metadata (same names and order as `columns`), ready for `<Chart fields>`.
  */
 export function useFactTable({
   fields, structuredFilters, limit = 100, offset = 0, sort, catalog, schema,
@@ -68,12 +70,13 @@ export function useFactTable({
   // En cas d'échec du fetch, on renvoie un état vide + `error` : masquer la panne
   // derrière des données de démonstration tromperait le consommateur.
   if (error) {
-    return { columns: [], rows: [], metadata: null, loading: isLoading, error };
+    return { columns: [], rows: [], fields: [], metadata: null, loading: isLoading, error };
   }
 
   return {
     columns: data?.columns ?? [],
     rows: data?.data ?? [],
+    fields: data?.fields ?? [],
     metadata: data?.metadata ?? null,
     loading: isLoading,
     error: null,

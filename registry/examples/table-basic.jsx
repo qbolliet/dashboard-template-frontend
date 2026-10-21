@@ -2,8 +2,10 @@
  * Tableau dérivé des métadonnées
  *
  * La forme la plus économique de `<Table>` : on ne décrit aucune colonne, le
- * tableau les dérive de `columnsMetadata` (nom, libellé, type SQL) — ce que
- * renvoie déjà l'API. Tri, filtre et retrait de colonnes sont actifs par défaut.
+ * tableau les dérive de `columnsMetadata` (nom, libellé, famille de type, `displayFormat`,
+ * `unit`) — ce que renvoie déjà l'API dans `fields`. Une colonne numérique est alignée
+ * à droite et formatée selon son `displayFormat` ; la famille de type pilote le tri.
+ * Tri, filtre et retrait de colonnes sont actifs par défaut.
  *
  * @item table
  */
