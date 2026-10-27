@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { flagCdnSrc } from '../languages';
+import { defaultFlagSrc } from '../languages';
 import './FlagChip.scss';
 
 /**
@@ -9,22 +9,37 @@ import './FlagChip.scss';
  * @param {Object} props - Component props.
  * @param {string} [props.country] - ISO 3166-1 alpha-2 country code. Also
  *   used as the always-rendered textual fallback.
- * @param {function(string): ?string} [props.flagSrc] - Resolves the flag
- *   image URL from a country code; defaults to flagcdn.com.
+ * @param {function(string): (string|string[]|null)} [props.flagSrc] - Resolves
+ *   the flag image URL, or an ordered list of candidates tried one after the
+ *   other on load failure, from a country code; defaults to the local
+ *   `public/flags/<iso2>.svg` file, then flagcdn.com.
  * @param {string} [props.className] - Additional class name appended to the
  *   root element (e.g. to shrink the badge inside a `<LanguageOption>`).
  * @returns {JSX.Element} The rendered flag badge.
  */
-const FlagChip = ({ country, flagSrc = flagCdnSrc, className = '' }) => {
-    // Résolue une fois : si `flagSrc` renvoie `null` (pas de pays connu), seul
-    // le repli textuel est rendu, sans balise <img> ni requête réseau inutile.
-    const src = flagSrc(country);
+const FlagChip = ({ country, flagSrc = defaultFlagSrc, className = '' }) => {
+    // Résolue une fois : `flagSrc` renvoie une url, une liste d'urls à essayer dans
+    // l'ordre, ou `null` (pas de pays connu). Sans aucun candidat, seul le repli
+    // textuel est rendu, sans balise <img> ni requête réseau inutile.
+    const resolved = flagSrc(country);
+    const candidates = (Array.isArray(resolved) ? resolved : [resolved]).filter(Boolean);
+    const candidatesKey = candidates.join('|');
 
-    // État local minimal : l'issue du chargement de CETTE url. Stocker l'url avec
-    // l'issue (et non un simple booléen) évite de garder « chargée » ou « échouée »
-    // quand `flagSrc` ou le pays change : une autre url repart de « en attente ».
-    const [outcome, setOutcome] = useState({ src: null, status: 'pending' });
-    const status = outcome.src === src ? outcome.status : 'pending';
+    // État local minimal : l'indice du candidat courant et l'issue de son chargement,
+    // liés à la liste (clé = candidats joints) et non à un simple booléen. Une autre
+    // liste (autre pays, autre `flagSrc`) repart de l'indice 0 en « en attente ».
+    const [outcome, setOutcome] = useState({ key: null, index: 0, status: 'pending' });
+    const current = outcome.key === candidatesKey ? outcome : { index: 0, status: 'pending' };
+    const { index } = current;
+    const exhausted = index >= candidates.length;
+    const src = exhausted ? null : candidates[index];
+    // Tant que tous les candidats n'ont pas échoué, l'état courant est celui du candidat affiché.
+    const status = exhausted ? 'failed' : current.status;
+
+    // Un candidat en échec laisse la place au suivant (reparti en « en attente ») ;
+    // le dernier en échec épuise la liste et ne laisse que le repli textuel.
+    const handleError = () => setOutcome({ key: candidatesKey, index: index + 1, status: 'pending' });
+    const handleLoad = () => setOutcome({ key: candidatesKey, index, status: 'loaded' });
 
     return (
         // aria-hidden : le nom de la langue est déjà porté par le texte de
@@ -46,9 +61,9 @@ const FlagChip = ({ country, flagSrc = flagCdnSrc, className = '' }) => {
 
                 `data-status` plutôt qu'un rendu conditionnel pour « en attente » : le
                 nœud <img> doit exister pour charger. Il est en revanche retiré du DOM
-                sur 'failed'. */}
-            {src && status !== 'failed' && (
-                // Décision D4 : <img> brut et non next/image, car l'image absente doit se replier
+                quand tous les candidats ont échoué. */}
+            {src && (
+                // <img> brut et non next/image, car l'image absente doit se replier
                 // en CSS sur la pastille textuelle (onError + data-status), ce que le loader
                 // d'optimisation de next/image ne permet pas.
                 // eslint-disable-next-line @next/next/no-img-element
@@ -59,16 +74,20 @@ const FlagChip = ({ country, flagSrc = flagCdnSrc, className = '' }) => {
                     loading="lazy"
                     decoding="async"
                     data-status={status}
-                    onLoad={() => setOutcome({ src, status: 'loaded' })}
-                    onError={() => setOutcome({ src, status: 'failed' })}
-                    // Image déjà chargée AVANT l'hydratation (rendu serveur, cache) : son
-                    // `load` est parti sans gestionnaire et ne reviendra pas. On lit alors
-                    // l'état du navigateur au montage. Seul « chargée » est déduit ici :
-                    // une image complète sans largeur pourrait être un SVG sans dimensions
-                    // intrinsèques, pas une erreur — elle reste cachée, repli visible.
+                    onLoad={handleLoad}
+                    onError={handleError}
+                    // Image déjà terminée avant l'hydratation (rendu serveur, cache) : son
+                    // `load` ou son `error` est parti sans gestionnaire et ne reviendra pas.
+                    // On lit alors l'état du navigateur au montage. « Chargée » : complète
+                    // et avec une largeur. « Échouée » : complète SANS largeur — sans quoi un
+                    // fichier local absent bloquerait l'image en « en attente » et le repli CDN
+                    // ne serait jamais tenté. Un SVG sans dimensions intrinsèques, lui aussi
+                    // complet sans largeur, passe alors au candidat suivant : repli bénin, au
+                    // pire le code pays.
                     ref={(img) => {
-                        if (img?.complete && img.naturalWidth > 0 && status === 'pending') {
-                            setOutcome({ src, status: 'loaded' });
+                        if (img?.complete && status === 'pending') {
+                            if (img.naturalWidth > 0) handleLoad();
+                            else handleError();
                         }
                     }} />
             )}

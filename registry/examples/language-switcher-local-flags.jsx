@@ -1,30 +1,18 @@
 /**
- * Drapeaux auto-hébergés
+ * Drapeaux distants uniquement
  *
- * `flagSrc` remplace la source des drapeaux : ici des SVG locaux servis depuis
- * `public/flags/<iso2>.svg`, résolus via `withBasePath` pour rester valides une
- * fois le site déployé sous un sous-chemin — la couture qui permet de se passer
- * de flagcdn.com. Les huit drapeaux des langues par défaut sont fournis avec
- * l'exemple ; pour une autre langue, ajoutez simplement `public/flags/<iso2>.svg`
- * (sans fichier, la pastille retombe sur le code pays).
+ * Par défaut, chaque drapeau est cherché dans `public/flags/<iso2>.svg` puis, à défaut,
+ * sur flagcdn.com (`defaultFlagSrc`). Passer `flagSrc={flagCdnSrc}` court-circuite le
+ * fichier local et ne garde que le CDN, avec le code pays en texte si celui-ci est
+ * injoignable : la couture dans l'autre sens, utile pour un site qui ne veut pas
+ * embarquer de SVG. `flagSrc` accepte aussi une liste d'URL, essayées dans l'ordre.
  *
  * @item language-switcher
- * @asset /flags/de.svg
- * @asset /flags/es.svg
- * @asset /flags/fr.svg
- * @asset /flags/gb.svg
- * @asset /flags/it.svg
- * @asset /flags/jp.svg
- * @asset /flags/nl.svg
- * @asset /flags/pt.svg
  */
 
 // Importation des modules
-import { LanguageSwitcher } from '@/features/i18n/components/LanguageSwitcher';
-import { withBasePath } from '@/utils/url/withBasePath';
+import { LanguageSwitcher, flagCdnSrc } from '@/features/i18n/components/LanguageSwitcher';
 
-const LanguageSwitcherLocalFlags = () => (
-  <LanguageSwitcher flagSrc={(country) => withBasePath(`/flags/${country.toLowerCase()}.svg`)} />
-);
+const LanguageSwitcherLocalFlags = () => <LanguageSwitcher flagSrc={flagCdnSrc} />;
 
 export default LanguageSwitcherLocalFlags;

@@ -845,7 +845,6 @@
         "swr"
       ],
       "registryDependencies": [
-        "api-client",
         "constraint-field",
         "date-parse",
         "filter-feature-tokens",
@@ -1903,9 +1902,50 @@
       "registryDependencies": [
         "icons",
         "tokens-global",
-        "utils-i18n"
+        "utils-i18n",
+        "utils-url"
       ],
       "files": [
+        {
+          "path": "public/flags/de.svg",
+          "type": "registry:file",
+          "target": "~/public/flags/de.svg"
+        },
+        {
+          "path": "public/flags/es.svg",
+          "type": "registry:file",
+          "target": "~/public/flags/es.svg"
+        },
+        {
+          "path": "public/flags/fr.svg",
+          "type": "registry:file",
+          "target": "~/public/flags/fr.svg"
+        },
+        {
+          "path": "public/flags/gb.svg",
+          "type": "registry:file",
+          "target": "~/public/flags/gb.svg"
+        },
+        {
+          "path": "public/flags/it.svg",
+          "type": "registry:file",
+          "target": "~/public/flags/it.svg"
+        },
+        {
+          "path": "public/flags/jp.svg",
+          "type": "registry:file",
+          "target": "~/public/flags/jp.svg"
+        },
+        {
+          "path": "public/flags/nl.svg",
+          "type": "registry:file",
+          "target": "~/public/flags/nl.svg"
+        },
+        {
+          "path": "public/flags/pt.svg",
+          "type": "registry:file",
+          "target": "~/public/flags/pt.svg"
+        },
         {
           "path": "src/features/i18n/components/LanguageSwitcher/_colors.scss",
           "type": "registry:file",
@@ -3858,8 +3898,8 @@
     {
       "name": "language-switcher-local-flags",
       "type": "registry:block",
-      "title": "Drapeaux auto-hébergés",
-      "description": "`flagSrc` remplace la source des drapeaux : ici des SVG locaux servis depuis `public/flags/<iso2>.svg`, résolus via `withBasePath` pour rester valides une fois le site déployé sous un sous-chemin — la couture qui permet de se passer de flagcdn.com. Les huit drapeaux des langues par défaut sont fournis avec l'exemple ; pour une autre langue, ajoutez simplement `public/flags/<iso2>.svg` (sans fichier, la pastille retombe sur le code pays).",
+      "title": "Drapeaux distants uniquement",
+      "description": "Par défaut, chaque drapeau est cherché dans `public/flags/<iso2>.svg` puis, à défaut, sur flagcdn.com (`defaultFlagSrc`). Passer `flagSrc={flagCdnSrc}` court-circuite le fichier local et ne garde que le CDN, avec le code pays en texte si celui-ci est injoignable : la couture dans l'autre sens, utile pour un site qui ne veut pas embarquer de SVG. `flagSrc` accepte aussi une liste d'URL, essayées dans l'ordre.",
       "dependencies": [],
       "registryDependencies": [
         "language-switcher",
@@ -3870,46 +3910,6 @@
           "path": "registry/examples/language-switcher-local-flags.jsx",
           "type": "registry:file",
           "target": "~/src/examples/language-switcher-local-flags.jsx"
-        },
-        {
-          "path": "public/flags/de.svg",
-          "type": "registry:file",
-          "target": "~/public/flags/de.svg"
-        },
-        {
-          "path": "public/flags/es.svg",
-          "type": "registry:file",
-          "target": "~/public/flags/es.svg"
-        },
-        {
-          "path": "public/flags/fr.svg",
-          "type": "registry:file",
-          "target": "~/public/flags/fr.svg"
-        },
-        {
-          "path": "public/flags/gb.svg",
-          "type": "registry:file",
-          "target": "~/public/flags/gb.svg"
-        },
-        {
-          "path": "public/flags/it.svg",
-          "type": "registry:file",
-          "target": "~/public/flags/it.svg"
-        },
-        {
-          "path": "public/flags/jp.svg",
-          "type": "registry:file",
-          "target": "~/public/flags/jp.svg"
-        },
-        {
-          "path": "public/flags/nl.svg",
-          "type": "registry:file",
-          "target": "~/public/flags/nl.svg"
-        },
-        {
-          "path": "public/flags/pt.svg",
-          "type": "registry:file",
-          "target": "~/public/flags/pt.svg"
         }
       ],
       "meta": {

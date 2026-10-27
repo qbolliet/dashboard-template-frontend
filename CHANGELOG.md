@@ -13,6 +13,15 @@ since the copy they took.
 
 ## [Unreleased]
 
+### Changed
+
+- **`LanguageSwitcher` flags fall back local file → flagcdn.com → country code.** `flagSrc`
+  may now return `string | string[] | null`; `<FlagChip>` tries each candidate on load
+  failure. The new default `defaultFlagSrc` returns `[/flags/<iso2>.svg, flagcdn.com URL]`.
+  A single-string `flagSrc` behaves as before. The eight `public/flags/*.svg` now ship with
+  the `language-switcher` registry unit; the `language-switcher-local-flags` example became
+  "remote flags only" (`flagSrc={flagCdnSrc}`).
+
 ## [0.2.0] - 2026-10-20
 
 This release moves the template onto the **0.3.0 contract of the API**

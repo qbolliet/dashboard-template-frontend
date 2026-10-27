@@ -16,8 +16,8 @@ import './LanguageOption.scss';
  *   language (checkmark, bold text, `aria-selected`).
  * @param {boolean} [props.active=false] - Whether this is the row currently
  *   under the keyboard/mouse cursor (highlight only).
- * @param {function(string): ?string} [props.flagSrc] - Resolves the flag
- *   image URL from a country code; forwarded to `<FlagChip>`.
+ * @param {function(string): (string|string[]|null)} [props.flagSrc] - Resolves the
+ *   flag image URL, or an ordered list of candidate URLs, from a country code; forwarded to `<FlagChip>`.
  * @param {function} [props.onSelect] - Called on click.
  * @param {function} [props.onHover] - Called on mouse enter, to sync the
  *   keyboard cursor onto the hovered row.

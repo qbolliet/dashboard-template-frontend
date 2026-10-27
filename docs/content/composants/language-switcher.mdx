@@ -51,14 +51,22 @@ procédure complète est dans [Internationalisation](/guides/internationalisatio
 
 ## Drapeaux
 
-Chaque drapeau passe par une fonction `flagSrc`, qui résout un code pays en URL
-d'image ; le défaut interroge flagcdn.com, un CDN public de drapeaux SVG. Fournir une
-autre fonction — pointant vers des fichiers `public/flags/<iso2>.svg` par exemple —
-bascule sur des drapeaux auto-hébergés sans toucher au composant, comme le montre
-l'exemple *Drapeaux auto-hébergés* ci-dessus. Les huit drapeaux des langues par défaut
-(`public/flags/{de,es,fr,gb,it,jp,nl,pt}.svg`) sont livrés avec cet exemple et
-s'installent avec lui depuis le registry ; pour une langue de plus, déposez son
-`<iso2>.svg` au même endroit.
+Chaque drapeau passe par une fonction `flagSrc`, qui résout un code pays en une URL
+d'image, ou en une liste d'URL (`string | string[] | null`). Le défaut, `defaultFlagSrc`,
+renvoie `[/flags/<iso2>.svg, https://flagcdn.com/<iso2>.svg]`, et `<FlagChip>` les essaie
+dans l'ordre :
+
+1. le fichier local `public/flags/<iso2>.svg` (préfixé par le `basePath` du déploiement) ;
+2. à défaut, le SVG de flagcdn.com ;
+3. si les deux échouent, le code pays en texte.
+
+Une chaîne seule garde son comportement d'avant : `flagSrc={flagCdnSrc}` ne garde que le
+CDN, comme le montre l'exemple *Drapeaux distants uniquement* ci-dessus, et une fonction
+sur mesure peut renvoyer son propre tableau. Un fichier local absent coûte une requête
+404 avant le repli CDN : aucune liste de drapeaux disponibles n'est tenue en dur. Pour
+ajouter un drapeau, déposez simplement `public/flags/<iso2>.svg`. Les huit drapeaux des
+langues par défaut (`{de,es,fr,gb,it,jp,nl,pt}.svg`) sont livrés avec le composant et
+s'installent avec lui depuis le registry.
 
 Le code pays est toujours rendu en texte, sous l'image, dans la même cellule de grille :
 la pastille garde donc exactement la même boîte que le drapeau soit chargé, en attente
@@ -66,7 +74,7 @@ ou en échec. Le repli n'est pourtant pas du CSS pur : un `<img alt="">` qui éc
 **pas** invisible — dès que le CSS lui impose une taille, Chromium y peint l'icône
 d'image cassée, par-dessus le texte. `<FlagChip>` garde donc un état local minimal :
 l'image reste cachée jusqu'à son `onLoad`, et elle est retirée du DOM sur `onError`
-(ou n'est jamais rendue si `flagSrc` renvoie `null`). Tant que le drapeau n'est pas
+(ou n'est jamais rendue si `flagSrc` renvoie `null`) une fois tous les candidats épuisés. Tant que le drapeau n'est pas
 arrivé, ou s'il n'arrive jamais, c'est le code pays qui s'affiche.
 
 ## Props

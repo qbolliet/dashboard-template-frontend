@@ -1,6 +1,6 @@
 {
   "$comment": "Généré par scripts/build-inventory.js — ne pas éditer à la main.",
-  "generatedAt": "2026-10-20T17:13:31.106Z",
+  "generatedAt": "2026-10-27T13:05:54.001Z",
   "unitCount": 54,
   "fileCount": 522,
   "fanoutThreshold": 3,
@@ -1277,7 +1277,6 @@
       "npmAsyncOnly": [],
       "asyncOnlyFiles": [],
       "internal": [
-        "api-client",
         "constraint-field",
         "date-parse",
         "filter-feature-tokens",
@@ -1290,7 +1289,6 @@
         "utils-i18n"
       ],
       "internalCode": [
-        "api-client",
         "constraint-field",
         "date-parse",
         "hooks-debounce",
@@ -2510,11 +2508,13 @@
       "internal": [
         "icons",
         "tokens-global",
-        "utils-i18n"
+        "utils-i18n",
+        "utils-url"
       ],
       "internalCode": [
         "icons",
-        "utils-i18n"
+        "utils-i18n",
+        "utils-url"
       ],
       "internalTokens": [
         "tokens-global"
@@ -2522,10 +2522,20 @@
       "internalResolved": [
         "icons",
         "tokens-global",
-        "utils-i18n"
+        "utils-i18n",
+        "utils-url"
       ],
       "styleGlobals": [],
-      "assets": [],
+      "assets": [
+        "/flags/de.svg",
+        "/flags/es.svg",
+        "/flags/fr.svg",
+        "/flags/gb.svg",
+        "/flags/it.svg",
+        "/flags/jp.svg",
+        "/flags/nl.svg",
+        "/flags/pt.svg"
+      ],
       "externalConfig": [],
       "warnings": []
     },
@@ -4133,21 +4143,6 @@
         ]
       },
       {
-        "unit": "filter",
-        "count": 9,
-        "dependencies": [
-          "api-client",
-          "constraint-field",
-          "date-parse",
-          "hooks-debounce",
-          "icons",
-          "select-menu",
-          "tooltip",
-          "type-aware-input",
-          "utils-i18n"
-        ]
-      },
-      {
         "unit": "pages",
         "count": 9,
         "dependencies": [
@@ -4174,6 +4169,20 @@
           "icons",
           "select-menu",
           "utils-format",
+          "utils-i18n"
+        ]
+      },
+      {
+        "unit": "filter",
+        "count": 8,
+        "dependencies": [
+          "constraint-field",
+          "date-parse",
+          "hooks-debounce",
+          "icons",
+          "select-menu",
+          "tooltip",
+          "type-aware-input",
           "utils-i18n"
         ]
       },

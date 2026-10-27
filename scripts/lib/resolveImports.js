@@ -254,6 +254,23 @@ function parseJsFile(code, filePath) {
           assets.add(node.value);
         }
         break;
+      case 'TemplateLiteral': {
+        // Gabarit `/flags/${iso2}.svg` : le nom exact n'est connu qu'à l'exécution,
+        // mais le DOSSIER et l'extension le sont. On émet un motif `/flags/*.svg`
+        // que build-inventory développe contre public/ — le dossier fait foi, pas
+        // une liste tenue à la main. Un gabarit sans dossier (`/${name}.svg`) est
+        // ignoré : il ramasserait toute la racine de public/.
+        const first = node.quasis[0].value.cooked ?? '';
+        const last = node.quasis[node.quasis.length - 1].value.cooked ?? '';
+        if (node.expressions.length > 0
+          && first.startsWith('/')
+          && first.lastIndexOf('/') > 0
+          && ASSET_EXTENSIONS.test(last)) {
+          const extension = last.match(ASSET_EXTENSIONS)[0];
+          assets.add(`${first.slice(0, first.lastIndexOf('/') + 1)}*${extension}`);
+        }
+        break;
+      }
       default:
         break;
     }

@@ -5,7 +5,7 @@ import { useId } from 'react';
 import { interpolate } from '@/utils/i18n/interpolate';
 import { mergeLabels } from '@/utils/i18n/mergeLabels';
 import useLanguageMenu from '@/features/i18n/hooks/useLanguageMenu';
-import { DEFAULT_LANGUAGES, flagCdnSrc } from '../languages';
+import { DEFAULT_LANGUAGES, defaultFlagSrc } from '../languages';
 import LanguageButton from '../LanguageButton/LanguageButton';
 import LanguageMenu from '../LanguageMenu/LanguageMenu';
 import LanguageOption from '../LanguageOption/LanguageOption';
@@ -46,8 +46,10 @@ const DEFAULT_LABELS = {
  * @param {boolean} [props.compact=false] - Round button showing the flag alone, without
  *   the country badge nor the chevron.
  * @param {'left'|'right'} [props.menuAlign='left'] - Button edge the menu aligns to.
- * @param {function(string): ?string} [props.flagSrc=flagCdnSrc] - Resolves the flag
- *   image URL from a country code; swap it to serve self-hosted flags.
+ * @param {function(string): (string|string[]|null)} [props.flagSrc=defaultFlagSrc] -
+ *   Resolves the flag image URL(s) from a country code. An array is tried in order;
+ *   the default is the local `public/flags/<iso2>.svg` file, then flagcdn.com, then
+ *   the country code as text.
  * @param {{button: string, list: string}} [props.labels] - Partial ARIA labels, merged
  *   over the French defaults. `button` accepts a `{language}` placeholder.
  * @param {string} [props.className] - Extra class names on the root element.
@@ -62,7 +64,7 @@ const LanguageSwitcher = ({
     size = 'md',
     compact = false,
     menuAlign = 'left',
-    flagSrc = flagCdnSrc,
+    flagSrc = defaultFlagSrc,
     labels,
     className,
     style,

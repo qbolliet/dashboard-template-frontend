@@ -18,8 +18,8 @@ import './LanguageButton.scss';
  *   `aria-controls`.
  * @param {string} [props.label] - `aria-label`, already interpolated by the
  *   parent (this component imports no dictionary).
- * @param {function(string): ?string} [props.flagSrc] - Resolves the flag
- *   image URL from a country code; forwarded to `<FlagChip>`.
+ * @param {function(string): (string|string[]|null)} [props.flagSrc] - Resolves the
+ *   flag image URL, or an ordered list of candidate URLs, from a country code; forwarded to `<FlagChip>`.
  * @param {function} [props.onClick] - Toggles the menu open state.
  * @param {function} [props.onKeyDown] - Handles keyboard opening (↓ ↑ Enter Space).
  * @param {React.Ref<HTMLButtonElement>} [props.ref] - Exposed so the parent can

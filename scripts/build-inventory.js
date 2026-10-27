@@ -229,6 +229,28 @@ const UNIT_DEFINITIONS = [
 // Racines balayées pour constituer l'inventaire. src/app/ en est exclu : c'est
 // le consommateur des unités, pas une unité distribuable. Ses imports npm sont
 // tout de même relevés à part, pour le calcul des dépendances orphelines.
+/**
+ * Expands an asset reference found in code into the files it designates.
+ *
+ * A literal path (`/globe/earth-day.jpg`) is returned as is. A pattern emitted for a
+ * template literal (`/flags/*.svg`) lists the matching files of that public/ folder,
+ * non-recursively, so adding a file to the folder is enough for it to ship with the unit.
+ *
+ * @param {string} asset - Site-absolute path or `dir/*.ext` pattern.
+ * @returns {string[]} Site-absolute paths; empty when the folder does not exist.
+ */
+const expandAssetPattern = (asset) => {
+  if (!asset.includes('*')) return [asset];
+  const directory = asset.slice(0, asset.lastIndexOf('/') + 1);
+  const extension = asset.slice(asset.indexOf('*') + 1).toLowerCase();
+  const absoluteDir = toAbsolute(`public${directory}`);
+  if (!fs.existsSync(absoluteDir)) return [];
+  return fs
+    .readdirSync(absoluteDir)
+    .filter((entry) => entry.toLowerCase().endsWith(extension))
+    .map((entry) => `${directory}${entry}`);
+};
+
 const SCANNED_ROOTS = [
   'src/components',
   'src/features',
@@ -505,7 +527,9 @@ function build() {
 
     const analysis = analyseFile(repoPath);
     if (analysis.clientBoundary) unit.clientBoundary = true;
-    for (const asset of analysis.assets) unit.assets.add(asset);
+    for (const asset of analysis.assets) {
+      for (const resolved of expandAssetPattern(asset)) unit.assets.add(resolved);
+    }
     fileEdges.set(repoPath, []);
     filePackages.set(repoPath, new Set());
 

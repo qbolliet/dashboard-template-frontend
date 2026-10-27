@@ -3,6 +3,8 @@
 // être importé aussi bien par un composant client (LanguageSwitcher) que par un
 // script de build ou un test, sans traîner de dépendance à `src/i18n/` — la présentation ne lit jamais le dictionnaire.
 
+import { withBasePath } from '@/utils/url/withBasePath';
+
 /**
  * @typedef {Object} Language
  * @property {string} code - Code langue ISO 639-1 (ex. "fr"). Sert de valeur
@@ -36,3 +38,16 @@ export const DEFAULT_LANGUAGES = [
  * @returns {?string} The flagcdn.com SVG URL, or null when no country is given.
  */
 export const flagCdnSrc = (country) => (country ? `https://flagcdn.com/${country.toLowerCase()}.svg` : null);
+
+/**
+ * Resolves the ordered flag image candidates for a given country code: the local
+ * file first, then flagcdn.com. `<FlagChip>` tries them in order and falls back to
+ * the country code as text once all have failed.
+ *
+ * @param {string} [country] - ISO 3166-1 alpha-2 country code (case-insensitive).
+ * @returns {?string[]} `[localUrl, cdnUrl]`, or null when no country is given.
+ */
+export const defaultFlagSrc = (country) =>
+  // Le gabarit `/flags/${…}.svg` est lu par l'inventaire du registry, qui embarque tout le
+  // dossier public/flags/ avec l'unité : déposer un SVG dans ce dossier suffit.
+  country ? [withBasePath(`/flags/${country.toLowerCase()}.svg`), flagCdnSrc(country)] : null;

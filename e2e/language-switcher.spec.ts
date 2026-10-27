@@ -7,8 +7,10 @@ import { playgroundFrame, clickUntil } from './helpers/previewFrame';
 // =================================================================
 // Ce que seul un vrai navigateur vérifie :
 //
-//   C5  — quand flagcdn.com est injoignable, la pastille montre le CODE PAYS et non
-//         l'icône d'image cassée de Chromium, sans décaler la mise en page.
+//   C5  — ordre de résolution des drapeaux : fichier local → flagcdn.com → CODE PAYS.
+//         flagcdn.com injoignable : les drapeaux locaux s'affichent ; fichier local absent :
+//         drapeau du CDN ; les deux hors d'atteinte : le code pays et non l'icône d'image
+//         cassée de Chromium, sans décaler la mise en page.
 //   C18 — `menuAlign="right"` colle le menu au bord droit du BOUTON, y compris dans le
 //         header de la démo à 375 px, et le cadre d'aperçu du playground contient le
 //         menu ouvert (une seule barre de défilement, pas deux).
@@ -31,15 +33,27 @@ const FAKE_FLAG_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="20" viewBox="0 0 30 20">' +
   '<rect width="30" height="20" fill="#2a6cb0"/></svg>';
 
-type Mode = 'served' | 'blocked';
+const LOCAL_FLAG_URL = '**/flags/**';
 
-/** Serves the flags (deterministic baseline) or aborts every flagcdn.com request. */
+// served        : fichiers locaux réels + faux drapeau CDN (ligne de base déterministe)
+// cdn-blocked   : flagcdn.com injoignable, fichiers locaux servis
+// local-missing : fichiers locaux en 404, flagcdn.com servi
+// all-blocked   : fichiers locaux ET flagcdn.com injoignables
+type Mode = 'served' | 'cdn-blocked' | 'local-missing' | 'all-blocked';
+
+/** Routes the local flag files and flagcdn.com according to `mode`. */
 async function routeFlags(page: Page, mode: Mode): Promise<void> {
+  const cdnUp = mode === 'served' || mode === 'local-missing';
   await page.route(FLAG_URL, (route) =>
-    mode === 'blocked'
-      ? route.abort('connectionrefused')
-      : route.fulfill({ status: 200, contentType: 'image/svg+xml', body: FAKE_FLAG_SVG }),
+    cdnUp
+      ? route.fulfill({ status: 200, contentType: 'image/svg+xml', body: FAKE_FLAG_SVG })
+      : route.abort('connectionrefused'),
   );
+  if (mode === 'all-blocked') {
+    await page.route(LOCAL_FLAG_URL, (route) => route.abort('connectionrefused'));
+  } else if (mode === 'local-missing') {
+    await page.route(LOCAL_FLAG_URL, (route) => route.fulfill({ status: 404, body: 'not found' }));
+  }
 }
 
 interface ChipReport {
@@ -136,9 +150,9 @@ const SURFACES: Surface[] = [
   },
 ];
 
-test.describe('LanguageSwitcher — flagcdn.com injoignable (C5)', () => {
+test.describe('LanguageSwitcher — drapeaux injoignables, repli sur le code pays (C5)', () => {
   for (const surface of SURFACES) {
-    test(`${surface.name} : le code pays remplace l'image cassée, sans décalage`, async ({ browser, baseURL }) => {
+    test(`${surface.name} : fichier local et CDN injoignables, le code pays remplace l'image cassée, sans décalage`, async ({ browser, baseURL }) => {
       // Un CONTEXTE par passe, pas une page rechargée : WebKit sert un drapeau déjà vu
       // depuis son cache mémoire sans repasser par `page.route`, de sorte que la passe
       // « bloquée » aurait peint le faux drapeau de la passe précédente et ne prouverait
@@ -170,9 +184,9 @@ test.describe('LanguageSwitcher — flagcdn.com injoignable (C5)', () => {
       expect(chipsServedButton.length).toBeGreaterThan(0);
       expect(chipsServedMenu.length).toBeGreaterThan(1);
 
-      // --- Même page, flagcdn.com abandonné ----------------------------------------
+      // --- Même page, fichiers locaux ET flagcdn.com abandonnés ----------------------------------------
       await served.context.close();
-      const blocked = await open('blocked');
+      const blocked = await open('all-blocked');
       const blockedRoot = surface.root(blocked.page);
       await expect(blockedRoot).toBeVisible();
       await stylesApplied(blockedRoot);
@@ -216,6 +230,42 @@ test.describe('LanguageSwitcher — flagcdn.com injoignable (C5)', () => {
       );
 
       await blocked.context.close();
+    });
+  }
+});
+
+test.describe('LanguageSwitcher — ordre de résolution des drapeaux (C5)', () => {
+  const cases: Array<{ mode: Mode; expected: RegExp; label: string }> = [
+    { mode: 'cdn-blocked', expected: /\/flags\/[a-z]{2}\.svg$/, label: 'flagcdn.com injoignable : drapeaux locaux' },
+    { mode: 'local-missing', expected: /^https:\/\/flagcdn\.com\/[a-z]{2}\.svg$/, label: 'fichier local absent : drapeau du CDN' },
+  ];
+
+  for (const { mode, expected, label } of cases) {
+    test(label, async ({ browser, baseURL }) => {
+      // Contexte neuf : cache vide, voir la note du test précédent.
+      const context = await browser.newContext({ baseURL, reducedMotion: 'reduce' });
+      const page = await context.newPage();
+      await routeFlags(page, mode);
+      await page.goto('/demo/fr', { waitUntil: 'networkidle' });
+
+      const root = page.getByRole('banner').locator('.lang-switch');
+      await expect(root).toBeVisible();
+      await stylesApplied(root);
+      await openMenu(root);
+
+      // Le drapeau se peint (visible) depuis la bonne source, sans retomber sur le texte.
+      await expect(async () => {
+        const chips = await readChips(root);
+        expect(chips.length).toBeGreaterThan(1);
+        expect(chips.every((chip) => chip.imgState === 'visible')).toBe(true);
+      }).toPass({ timeout: 5_000 });
+
+      const sources = await root.locator('.lang-switch-flag img').evaluateAll((imgs) =>
+        imgs.map((img) => (img as HTMLImageElement).getAttribute('src') ?? ''),
+      );
+      for (const src of sources) expect(src).toMatch(expected);
+
+      await context.close();
     });
   }
 });
