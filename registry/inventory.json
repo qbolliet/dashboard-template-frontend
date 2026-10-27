@@ -1,8 +1,8 @@
 {
   "$comment": "Généré par scripts/build-inventory.js — ne pas éditer à la main.",
-  "generatedAt": "2026-10-27T13:05:54.001Z",
+  "generatedAt": "2026-10-27T13:37:21.670Z",
   "unitCount": 54,
-  "fileCount": 522,
+  "fileCount": 529,
   "fanoutThreshold": 3,
   "units": {
     "accessible-icon": {
@@ -287,7 +287,7 @@
         "src/features/chart"
       ],
       "clientBoundary": true,
-      "fileCount": 91,
+      "fileCount": 98,
       "files": [
         {
           "path": "src/features/chart/components/Chart/_colors.scss",
@@ -362,6 +362,14 @@
           "kind": "style"
         },
         {
+          "path": "src/features/chart/components/ChartLegend/SizeLegend/SizeLegend.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/ChartLegend/SizeLegend/SizeLegend.scss",
+          "kind": "style"
+        },
+        {
           "path": "src/features/chart/components/ChartMinimap/_colors.scss",
           "kind": "tokens"
         },
@@ -427,6 +435,14 @@
         },
         {
           "path": "src/features/chart/components/marks/BarMarks/BarMarks.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/features/chart/components/marks/BubbleMarks/BubbleMarks.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/features/chart/components/marks/BubbleMarks/BubbleMarks.scss",
           "kind": "style"
         },
         {
@@ -546,6 +562,10 @@
           "kind": "hook"
         },
         {
+          "path": "src/features/chart/hooks/useCssLength.js",
+          "kind": "hook"
+        },
+        {
           "path": "src/features/chart/hooks/useFeatureState.js",
           "kind": "hook"
         },
@@ -610,7 +630,15 @@
           "kind": "util"
         },
         {
+          "path": "src/features/chart/utils/bubble.js",
+          "kind": "util"
+        },
+        {
           "path": "src/features/chart/utils/datasetList.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/chart/utils/dodge.js",
           "kind": "util"
         },
         {
@@ -678,6 +706,8 @@
         "d3-geo"
       ],
       "asyncOnlyFiles": [
+        "src/features/chart/components/marks/BubbleMarks/BubbleMarks.jsx",
+        "src/features/chart/components/marks/BubbleMarks/BubbleMarks.scss",
         "src/features/chart/components/marks/DensityMarks/DensityMarks.jsx",
         "src/features/chart/components/marks/DensityMarks/DensityMarks.scss",
         "src/features/chart/components/marks/HeatmapMarks/HeatmapMarks.jsx",

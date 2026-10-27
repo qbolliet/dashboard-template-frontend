@@ -19,7 +19,8 @@ const MAX_ROWS = 1000;
 
 /**
  * Builds `<Chart>` props from server-side aggregates for grouping charts (bars, stacks,
- * heatmap, lines), or from the raw rows for the others (scatter, violin, density).
+ * heatmap, lines, bubbles on two categorical axes), or from the raw rows for the others
+ * (scatter, violin, density, other bubbles).
  *
  * @param {Object} params
  * @param {string} params.x - Abscissa column.
@@ -40,17 +41,22 @@ const MAX_ROWS = 1000;
  * @param {string} [params.schema] - API schema.
  * @param {boolean} [params.categoricalX=false] - Same as `<Chart categorical-x>`.
  * @param {boolean} [params.categoricalY=false] - Same as `<Chart categorical-y>`.
+ * @param {'density'|'bubble'} [params.zMark='density'] - Same as `<Chart zMark>`; it
+ *   drives the plan and is returned in `chartProps`, so that `<Chart>` detects the same kind.
  * @param {Object} [params.labels] - Wording of the aggregated axes and series (see
  *   `DEFAULT_AGGREGATE_LABELS`), filled by the i18n layer.
  * @returns {{mode: ('server'|'client'), chartProps: Object, loading: boolean,
  *   error: (Error|null), truncated: boolean}} `chartProps` holds `data`, `x`, `y`, `z`,
- *   `hue`, `fields`, and in server mode `labels` and `aggregate`.
+ *   `hue`, `fields`, `zMark` (when z is given), and in server mode `labels` and `aggregate`.
  */
 export function useAggregatedChart({
   x, y, z, hue, measures, fields, fill = 'line', grain, rows,
   structuredFilters, catalog, schema, categoricalX = false, categoricalY = false, labels,
+  zMark = 'density',
 }) {
-  const plan = planAggregation({ x, y, z, hue, fields, fill, measures, grain, categoricalX, categoricalY });
+  const plan = planAggregation({ x, y, z, hue, fields, fill, measures, grain, categoricalX, categoricalY, zMark });
+  // La marque de z suit les props : <Chart> doit détecter le même kind que le plan
+  const zProps = z ? { z, zMark } : {};
 
   // Colonnes du tracé brut : axes et séries, rien d'autre (moins de lignes à transférer).
   const first = measures?.[0];
@@ -83,7 +89,7 @@ export function useAggregatedChart({
     const provided = rows !== undefined;
     return {
       mode: 'client',
-      chartProps: { data: provided ? rows : own.rows, x, y: rawY, ...(z ? { z } : {}), hue, fields },
+      chartProps: { data: provided ? rows : own.rows, x, y: rawY, ...zProps, hue, fields },
       loading: provided ? false : own.loading,
       error: provided ? null : own.error,
       truncated: provided ? false : Boolean(own.metadata?.hasNextPage),
@@ -93,10 +99,11 @@ export function useAggregatedChart({
   // Agrégats : aucun graphique tant qu'aucun résultat de CE plan n'est arrivé (des lignes
   // brutes affichées entre-temps seraient des valeurs d'une autre nature).
   const mapped = result ? toChartProps(result, plan, mergeLabels(DEFAULT_AGGREGATE_LABELS, labels)) : null;
+  const zMarkProps = plan.z ? { zMark } : {};
   return {
     mode: 'server',
-    chartProps: mapped ?? {
-      data: [], x: plan.x, y: plan.y, ...(plan.z ? { z: plan.z } : {}), hue: plan.hue, fields,
+    chartProps: mapped ? { ...mapped, ...zMarkProps } : {
+      data: [], x: plan.x, y: plan.y, ...(plan.z ? { z: plan.z } : {}), ...zMarkProps, hue: plan.hue, fields,
     },
     loading,
     error,

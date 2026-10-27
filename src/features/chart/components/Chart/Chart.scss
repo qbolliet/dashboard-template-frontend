@@ -95,3 +95,21 @@
   min-width: var(--chart-legend-right-min-width);
   max-width: var(--chart-legend-right-max-width);
 }
+
+// Légende de taille (bulles) à côté des légendes de canaux : empilées à droite,
+// alignées en ligne en haut (mode agrandi).
+.chart-legend-right--stack {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--chart-legend-group-gap);
+}
+.chart-legend-top--stack {
+  gap: var(--chart-legend-group-gap-h);
+}
+
+// ── Message de tracé vide (bulles sans aucune valeur de z positive) ──────
+.chart-empty-message {
+  fill: hsl(var(--chart-empty-message-color));
+  font-size: var(--font-size-sm);
+}

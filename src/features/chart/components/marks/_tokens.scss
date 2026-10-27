@@ -35,4 +35,13 @@
   // Contour du corps de violon : aire pleine (fin) vs ligne (épais).
   --chart-marks-violin-fill-width: 1;
   --chart-marks-violin-line-width: 1.6;
+
+  // Contour de bulle (BubbleMarks) : remplie (fin) vs contour seul (épais).
+  --chart-marks-bubble-fill-width: 1;
+  --chart-marks-bubble-line-width: 1.6;
+
+  // Rayon de la PLUS GRANDE bulle sur deux axes continus (lu en JS : il entre dans
+  // l'aire des marqueurs). Sur un axe en bande, il est en plus plafonné à la
+  // demi-bande (demi-slot de dodge).
+  --chart-bubble-max-radius: 1.5rem;
 }

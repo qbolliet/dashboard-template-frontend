@@ -1,0 +1,29 @@
+// =================================================================
+// BUBBLE MARKS — 3e dimension en taille (aire ∝ z), plein ou contour
+// =================================================================
+// On tokenise ici l'estompage au survol, l'opacité de remplissage (les chevauchements
+// restent lisibles) et l'épaisseur de contour par mode. La couleur (data-driven) et
+// l'aire de chaque bulle restent dans le JSX.
+@use '@/features/chart/tokens' as *;
+@use '@/features/chart/colors' as *;
+@use '../tokens' as *;
+@use '../colors' as *;
+
+// ── Estompage des séries au survol ──────────────────────────────
+.chart-marks-series {
+  transition: opacity var(--chart-marks-fade-duration);
+}
+.chart-marks-bubble .chart-marks-series.is-faded {
+  opacity: var(--chart-marks-bubble-faded-opacity);
+}
+
+// ── Corps de la bulle ───────────────────────────────────────────
+// Pleine (fill='fill') : remplissage translucide, trait fin. Contour (fill='line') :
+// trait plus épais, sans remplissage. Le trait ne grossit pas avec la bulle.
+.chart-marks-bubble-body--fill {
+  fill-opacity: var(--chart-marks-bubble-fill-opacity);
+  stroke-width: var(--chart-marks-bubble-fill-width);
+}
+.chart-marks-bubble-body--line {
+  stroke-width: var(--chart-marks-bubble-line-width);
+}

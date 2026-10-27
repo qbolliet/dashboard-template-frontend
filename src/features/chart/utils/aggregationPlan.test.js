@@ -65,6 +65,14 @@ describe('aggregationMode / chartKindOf', () => {
     expect(chartKindOf({ x: 'date', y: 'population', categoricalX: true, fields: GEOGRAPHY })).toBe('bar');
   });
 
+  it('bulles : serveur sur deux axes catégoriels, client sinon (comme le kind remplacé)', () => {
+    expect(aggregationMode({ chartKind: 'bubble', fill: 'fill', xType: 'categorical', yType: 'categorical' })).toBe('server');
+    expect(aggregationMode({ chartKind: 'bubble', fill: 'fill', xType: 'categorical', yType: 'number' })).toBe('client');
+    expect(aggregationMode({ chartKind: 'bubble', fill: 'fill', xType: 'number', yType: 'categorical' })).toBe('client');
+    expect(aggregationMode({ chartKind: 'bubble', fill: 'fill', xType: 'number', yType: 'date' })).toBe('client');
+    expect(chartKindOf({ x: 'region', y: 'departement', z: 'population', zMark: 'bubble', fields: GEOGRAPHY })).toBe('bubble');
+  });
+
   it("renonce (null) quand une colonne tracée n'est pas décrite", () => {
     expect(chartKindOf({ x: 'region', y: 'nope', fields: GEOGRAPHY })).toBeNull();
     expect(chartKindOf({ x: 'region', y: 'population' })).toBeNull();
@@ -108,6 +116,26 @@ describe('planAggregation', () => {
       groupBy: [{ field: 'region' }, { field: 'departement' }],
       aggregates: [{ measure: 'population' }],
     });
+  });
+
+  it('bulles catégorielles : une bulle par (x, y, série), mesure z, première mesure seule', () => {
+    const plan = planAggregation({
+      x: 'region', y: 'departement', z: 'population', hue: ['year', 'departement'],
+      measures: ['population', 'density'], zMark: 'bubble', fields: GEOGRAPHY,
+    });
+    expect(plan).toMatchObject({
+      chartKind: 'bubble', valueAxis: 'z', posCol: 'region',
+      // y n'est pas une série : il est déjà un axe
+      groupBy: [{ field: 'region' }, { field: 'departement' }, { field: 'year' }],
+      aggregates: [{ measure: 'population' }],
+      format: 'OBJECTS',
+      hue: ['year'],
+    });
+  });
+
+  it('bulles sur un axe continu : lignes brutes (null), une bulle par ligne', () => {
+    expect(planAggregation({ x: 'region', y: 'density', z: 'population', zMark: 'bubble', fields: GEOGRAPHY })).toBeNull();
+    expect(planAggregation({ x: 'year', y: 'density', z: 'population', zMark: 'bubble', fields: GEOGRAPHY })).toBeNull();
   });
 
   it('plusieurs mesures : format LONG, hue = measure puis les séries', () => {
@@ -160,6 +188,24 @@ describe('toChartProps', () => {
     const props = toChartProps(run(plan), plan);
 
     expect(props.fields.find((f) => f.name === props.y)).toMatchObject({ typeFamily: 'INTEGER', unit: null, displayFormat: ',d' });
+  });
+
+  it('bulles : z = alias, x et y gardent leur nom, les colonnes hue restent des séries', () => {
+    const plan = planAggregation({
+      x: 'sector', y: 'status', z: 'montant', hue: 'source', zMark: 'bubble', fields: CATALOGUE,
+    });
+    const props = toChartProps(run(plan), plan);
+
+    expect(props).toMatchObject({ x: 'sector', y: 'status', z: 'montant_sum', hue: ['source'] });
+    expect(props.aggregate).toEqual({ measure: 'montant', aggregation: 'SUM' });
+    // Une ligne par (secteur, statut, source) présente dans le jeu
+    const cells = new Set(factTable.data.map((r) => `${r.sector}|${r.status}|${r.source}`));
+    expect(props.data).toHaveLength(cells.size);
+  });
+
+  it('heatmap : aucune série, même avec des colonnes de groupe x et y', () => {
+    const plan = planAggregation({ x: 'sector', y: 'status', z: 'montant', fields: CATALOGUE });
+    expect(toChartProps(run(plan), plan).hue).toBeUndefined();
   });
 
   it('LONG : y = value, séries nommées par le libellé de chaque mesure', () => {

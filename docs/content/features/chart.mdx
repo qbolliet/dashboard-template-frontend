@@ -34,10 +34,52 @@ combinaison de `x`, `y` et `z` décide du tracé :
 | catégorie | nombre ou date | nombre | violon vertical |
 | nombre ou date | catégorie | nombre | violon horizontal |
 | nombre ou date | nombre ou date | nombre | densité |
+| (toute combinaison) | | nombre, `zMark="bubble"` | bulles |
 
 `z` doit être numérique, sinon `<Chart>` lève. Les propriétés `categorical-x` et
 `categorical-y` forcent le traitement d'un axe en catégorie — utile pour un entier qui est un
 code (une année vue comme une étiquette, un numéro de département).
+
+## Troisième dimension : densité ou bulles
+
+Par défaut (`zMark="density"`), `z` se lit en **couleur ou en densité** : heatmap, violon ou
+densité 2-D selon les types de `x` et `y`. Avec `zMark="bubble"`, il se lit en **taille** :
+chaque observation devient un marqueur centré en (x, y) dont l'**aire** est proportionnelle à
+`z` — doubler `z` double l'aire, pas le rayon. Un `z` nul, négatif ou absent n'est pas dessiné
+(une aire négative n'a pas de sens) ; si aucun `z` n'est positif, un message remplace le tracé.
+
+```jsx
+// Deux catégories : une bulle par cellule (et par série), comme une case de heatmap
+<Chart data={rows} x="Mois" y="Pays" z="Inflation" zMark="bubble" />
+
+// Une catégorie, un nombre : une bulle par ligne, séries décalées dans la bande
+<Chart data={rows} x="Modèle" y="RMSE" z="Échantillon" zMark="bubble" hue="Jeu" />
+
+// Deux nombres : un nuage de bulles, survol au plus proche (voronoï)
+<Chart data={rows} x="ChômageTaux" y="EmploiTaux" z="Densité" zMark="bubble" hue="Type" />
+```
+
+- **Position** : centre de la bande sur un axe catégoriel — du slot de la série quand le
+  canal couleur est actif —, valeur exacte sur un axe continu.
+- **Taille** : la plus grande bulle a le rayon du token `--chart-bubble-max-radius`
+  (`marks/_tokens.scss`), plafonné à la demi-bande (demi-slot) d'un axe catégoriel. Les
+  plus grandes sont dessinées d'abord ; leur remplissage est translucide
+  (`--chart-marks-bubble-fill-opacity`).
+- **Canaux** : la couleur remplit (`fill="fill"`) ou trace le contour (`fill="line"`) ; le
+  style hachure ou pointille ; le marqueur change la forme à aire égale. `fill="none"`
+  retombe sur `"fill"`, comme pour les autres tracés à `z`.
+- **Zoom, brush, mini-vues** : ceux du tracé remplacé (heatmap, violon ou densité). Zoomer
+  déplace les bulles sans les redimensionner.
+- **Légende** : trois cercles de référence, au format de `z`, titrés par `labels.z`.
+- **Agrégation** : sur deux catégories, `useAggregatedChart({ …, zMark: 'bubble' })` fait
+  regrouper l'API par x, y et les colonnes `hue` (une bulle par cellule et par série) ; sur
+  des lignes brutes, `<Chart>` réduit chaque cellule avec l'agrégation par défaut de `z`.
+  Ailleurs, chaque ligne est une bulle. Avec `aggregate`, `z` est lu tel quel.
+
+Une bulle proche du bord d'un axe continu peut être rognée par le cadre, comme un point du
+nuage. `zMark` ne vaut que pour un jeu unique : une liste de jeux ignore `z`.
+
+<ComponentPreview name="chart-bubble" />
 
 ## Typer et formater avec les métadonnées : `fields`
 
@@ -123,7 +165,8 @@ sont les noms de colonnes — exactement ce que renvoie `getFactTableWithMetadat
 | Prop | Rôle |
 |---|---|
 | `x`, `y` | colonnes de l'abscisse et de l'ordonnée (`y` est obligatoire) |
-| `z` | troisième dimension : heatmap, violon, densité |
+| `z` | troisième dimension : heatmap, violon, densité — ou bulles avec `zMark="bubble"` |
+| `zMark` | `'density'` (défaut) ou `'bubble'` : marque de la troisième dimension |
 | `hue` | colonne(s) de série : couleur, puis style de trait, puis marqueur |
 | `fields` | métadonnées de colonnes : types, `displayFormat`, `unit`, agrégation par défaut |
 | `aggregate` | `data` est déjà agrégé par l'API : ne pas ré-agréger |

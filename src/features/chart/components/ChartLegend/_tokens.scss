@@ -23,4 +23,7 @@
   --chart-seq-bar-v-thickness: 0.75rem;    // 12px (orientation verticale)
   --chart-seq-bar-v-height: 10rem;         // 160px
   --chart-seq-scale-font-size: 10.5px;     // Sous le barème
+
+  // ===== Légende de taille (SizeLegend, graphe à bulles) =====
+  --chart-size-legend-stroke-width: 1;     // Unité px (stroke-width)
 }

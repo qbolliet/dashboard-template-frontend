@@ -263,6 +263,7 @@ const en = {
         exportPng: 'Export as PNG',
         expand: 'Expand (full width)',
         collapse: 'Collapse',
+        noPositiveZ: 'No positive z value to plot',
         expandMinimap: 'Expand the minimap',
         collapseMinimap: 'Collapse the minimap',
         showMinimaps: 'Show the minimaps',

@@ -300,6 +300,7 @@ const fr = {
         exportPng: 'Exporter en PNG',
         expand: 'Agrandir (pleine largeur)',
         collapse: 'Replier',
+        noPositiveZ: 'Aucune valeur positive de z à représenter',
         expandMinimap: 'Déplier la mini-vue',
         collapseMinimap: 'Replier la mini-vue',
         showMinimaps: 'Afficher les mini-vues',

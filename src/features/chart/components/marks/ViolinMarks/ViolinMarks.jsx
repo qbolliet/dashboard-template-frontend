@@ -1,9 +1,9 @@
 // Importation des modules
 import { useId, useMemo } from 'react';
-import { scaleBand } from '@visx/scale';
 import { mean } from 'd3-array';
 import { groupSeries, seriesKey, PALETTE } from '@/features/chart/utils/encoding';
 import { epanechnikovKDE } from '@/features/chart/utils/kde';
+import { dodgeScale, dodgeSlot } from '@/features/chart/utils/dodge';
 import HatchPatterns from '../shared/HatchPatterns';
 import SeriesMarker from '../shared/SeriesMarker';
 import './ViolinMarks.scss';
@@ -237,11 +237,7 @@ const ViolinMarks = ({
 
   // Sous-échelle pour le dodge (un slot par série), inactive en split/overlay.
   const dodge = hueActive && !stackActive;
-  const subScale = scaleBand({
-    domain: seriesKeys,
-    range: [0, bandwidth],
-    padding: seriesKeys.length > 1 ? 0.12 : 0.25,
-  });
+  const subScale = dodgeScale(seriesKeys, bandwidth);
 
   const defaultFill = (PALETTE && PALETTE[0]) || 'hsl(207, 74.4%, 22.9%)';
 
@@ -503,14 +499,10 @@ const ViolinMarks = ({
 
               // Pas d'empilage : dodge côte à côte si canal couleur actif, sinon un
               // violon symétrique centré sur la bande.
-              let center, half;
-              if (dodge) {
-                const slot = subScale.bandwidth();
-                center = bandStart + (subScale(gMeta.key) ?? 0) + slot / 2;
-                half = slot * 0.46;
-              } else {
-                center = bandCenter; half = bandwidth * 0.46;
-              }
+              const { center, slotW } = dodgeSlot({
+                bandStart, bandwidth, subScale: dodge ? subScale : null, key: gMeta.key,
+              });
+              const half = slotW * 0.46;
 
               const st = statsOf(g.vals);
               const dash = (!isFillMode && channels.style) ? styleScale(gMeta.styleVal) : null;

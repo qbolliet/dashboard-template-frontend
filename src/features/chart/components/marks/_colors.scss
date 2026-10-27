@@ -19,6 +19,10 @@
   // Opacité des couches ESTOMPÉES au survol (density, violin).
   --chart-marks-density-faded-opacity: 0.18;
   --chart-marks-violin-faded-opacity: 0.18;
+  --chart-marks-bubble-faded-opacity: 0.15;
+
+  // Opacité de remplissage des bulles (fill='fill') : les chevauchements restent lisibles.
+  --chart-marks-bubble-fill-opacity: 0.6;
 
   // Opacité du trait blanc de séparation des cellules pleines (HeatmapMarks).
   --chart-marks-heatmap-fill-stroke-opacity: 0.4;

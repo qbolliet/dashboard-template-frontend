@@ -46,22 +46,39 @@ export function coerce(value, type) {
   return String(value);
 }
 
+// Marques possibles de la 3e dimension (prop `zMark` de <Chart>).
+const Z_MARKS = ['density', 'bubble'];
+
 /**
  * Determines which chart kind to render from the detected column types.
+ *
+ * With a numeric z, `zMark` picks how the third dimension is drawn:
+ *   - `'density'` (default): heatmap (categorical × categorical), violin (categorical ×
+ *     continuous, `'violin-v'` / `'violin-h'`) or 2-D density (continuous × continuous);
+ *   - `'bubble'`: a single `'bubble'` kind for the three combinations — one marker per
+ *     observation (per cell × series on two categorical axes), its AREA proportional to
+ *     z. The position scales then follow xType / yType as for any other kind, and
+ *     `layoutKindOf` tells which kind it borrows its zoom, brush and minimaps from.
  *
  * @param {object} params - Detection input.
  * @param {'date'|'number'|'categorical'} params.xType - Detected type of x.
  * @param {'date'|'number'|'categorical'} params.yType - Detected type of y.
  * @param {'date'|'number'|'categorical'} [params.zType] - Detected type of z.
  * @param {boolean} params.hasZ - Whether a z column was supplied.
- * @returns {'line'|'bar'|'bar-h'|'heatmap'|'violin-v'|'violin-h'|'density'} Chart kind.
- * @throws {Error} When z is supplied but is not numeric.
+ * @param {'density'|'bubble'} [params.zMark='density'] - Mark of the third dimension.
+ * @returns {'line'|'bar'|'bar-h'|'heatmap'|'violin-v'|'violin-h'|'density'|'bubble'} Chart kind.
+ * @throws {Error} When z is supplied but is not numeric, or `zMark` is unknown.
  */
-export function detectChart({ xType, yType, zType, hasZ }) {
+export function detectChart({ xType, yType, zType, hasZ, zMark = 'density' }) {
   if (hasZ) {
     if (zType !== 'number') {
       throw new Error("L'argument z doit être numérique.");
     }
+    if (!Z_MARKS.includes(zMark)) {
+      throw new Error(`L'argument zMark doit valoir ${Z_MARKS.map((m) => `'${m}'`).join(' ou ')}.`);
+    }
+    // Bulles : un seul kind, les échelles se déduisent ensuite des types d'axes
+    if (zMark === 'bubble') return 'bubble';
     if (xType === 'categorical' && yType === 'categorical') return 'heatmap';
     if (xType === 'categorical' && (yType === 'number' || yType === 'date')) return 'violin-v';
     if (yType === 'categorical' && (xType === 'number' || xType === 'date')) return 'violin-h';
@@ -75,3 +92,24 @@ export function detectChart({ xType, yType, zType, hasZ }) {
   if (yType === 'number' && (xType === 'number' || xType === 'date')) return 'line';
   return 'line';
 }
+
+/**
+ * Kind whose layout (band padding, zoom, brush, minimaps, aggregation mode) a chart kind
+ * follows. Every kind follows itself, except `'bubble'`, which behaves like the kind it
+ * replaces: `'heatmap'` on two categorical axes, `'violin-v'` / `'violin-h'` on one
+ * categorical axis, `'density'` on two continuous axes.
+ *
+ * @param {?string} chartKind - Kind returned by `detectChart`.
+ * @param {'date'|'number'|'categorical'} xType - Type of x.
+ * @param {'date'|'number'|'categorical'} yType - Type of y.
+ * @returns {?string} The layout kind.
+ */
+export const layoutKindOf = (chartKind, xType, yType) => {
+  if (chartKind !== 'bubble') return chartKind;
+  const xCat = xType === 'categorical';
+  const yCat = yType === 'categorical';
+  if (xCat && yCat) return 'heatmap';
+  if (xCat) return 'violin-v';
+  if (yCat) return 'violin-h';
+  return 'density';
+};

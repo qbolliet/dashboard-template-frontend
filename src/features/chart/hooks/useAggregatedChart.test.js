@@ -91,4 +91,26 @@ describe('useAggregatedChart', () => {
     await waitFor(() => expect(result.current.error).toBeTruthy());
     expect(result.current.chartProps.data).toEqual([]);
   });
+
+  it('bulles catégorielles : agrégats du serveur par série, zMark renvoyé à <Chart>', async () => {
+    const { result } = renderHook(() => useAggregatedChart({
+      x: 'sector', y: 'status', z: 'montant', hue: 'source', zMark: 'bubble',
+      fields: CATALOGUE, catalog: 'catalogue',
+    }), { wrapper });
+
+    expect(result.current.mode).toBe('server');
+    expect(result.current.chartProps.zMark).toBe('bubble');
+    await waitFor(() => expect(result.current.chartProps.data.length).toBeGreaterThan(0));
+    expect(result.current.chartProps).toMatchObject({ z: 'montant_sum', hue: ['source'], zMark: 'bubble' });
+  });
+
+  it('bulles sur un axe continu : lignes brutes fournies, zMark renvoyé', () => {
+    const rows = factTable.data.slice(0, 5);
+    const { result } = renderHook(() => useAggregatedChart({
+      x: 'sector', y: 'observations', z: 'montant', zMark: 'bubble', fields: CATALOGUE, rows,
+    }), { wrapper });
+
+    expect(result.current.mode).toBe('client');
+    expect(result.current.chartProps).toMatchObject({ data: rows, z: 'montant', zMark: 'bubble' });
+  });
 });

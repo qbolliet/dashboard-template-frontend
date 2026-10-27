@@ -6,9 +6,10 @@
 // (date × série). Fait côté client, ce calcul ne voit que la page chargée (100 lignes)
 // et ignore l'agrégation déclarée de la mesure. L'API le fait sur TOUT le jeu filtré
 // (getAggregates). Ce module décide, à partir des seules métadonnées de colonnes :
-//   - QUI agrège : le serveur pour barres, barres horizontales, heatmap et lignes ; le
-//     client (lignes brutes) pour le nuage de points, le violon et la densité, dont le
-//     tracé (KDE, points) a besoin des observations individuelles ;
+//   - QUI agrège : le serveur pour barres, barres horizontales, heatmap, lignes et bulles
+//     sur deux axes catégoriels ; le client (lignes brutes) pour le nuage de points, le
+//     violon, la densité et les autres bulles, dont le tracé (KDE, points, une bulle par
+//     ligne) a besoin des observations individuelles ;
 //   - COMMENT : colonnes de groupe (position, tronquée à un grain si c'est une date,
 //     puis séries hue), mesures, format (OBJECTS pour une mesure, LONG pour plusieurs,
 //     avec hue = measure) ;
@@ -17,7 +18,7 @@
 // Importation des modules
 import { interpolate } from '@/utils/i18n/interpolate';
 import { resolveColumnType, fieldOf } from './fieldTypes';
-import { detectChart } from './typeDetection';
+import { detectChart, layoutKindOf } from './typeDetection';
 
 /**
  * Chart kinds whose grouped values are computed by the API.
@@ -57,16 +58,41 @@ export const DEFAULT_AGGREGATE_LABELS = {
 /**
  * Decides who aggregates a chart kind.
  *
+ * A kind is judged on its layout kind (`layoutKindOf`): bubbles on two categorical axes
+ * are aggregated like a heatmap, the others plot their raw rows like a violin / density.
+ *
  * @param {Object} params
  * @param {?string} params.chartKind - Kind returned by `detectChart` (null when unknown).
  * @param {'none'|'line'|'fill'} [params.fill='line'] - Fill mode; `'none'` turns a line
  *   chart into a scatter plot, which plots the raw observations.
- * @returns {'server'|'client'} `'server'` for bar, bar-h, heatmap and line (not scatter);
- *   `'client'` (raw rows) for scatter, violin, density and an unknown kind.
+ * @param {'date'|'number'|'categorical'} [params.xType] - Type of x (bubble only).
+ * @param {'date'|'number'|'categorical'} [params.yType] - Type of y (bubble only).
+ * @returns {'server'|'client'} `'server'` for bar, bar-h, heatmap, line (not scatter) and
+ *   categorical × categorical bubbles; `'client'` (raw rows) for scatter, violin, density,
+ *   the other bubbles and an unknown kind.
  */
-export const aggregationMode = ({ chartKind, fill = 'line' }) => {
-  if (!SERVER_KINDS.has(chartKind)) return 'client';
-  return chartKind === 'line' && fill === 'none' ? 'client' : 'server';
+export const aggregationMode = ({ chartKind, fill = 'line', xType, yType }) => {
+  const kind = layoutKindOf(chartKind, xType, yType);
+  if (!SERVER_KINDS.has(kind)) return 'client';
+  return kind === 'line' && fill === 'none' ? 'client' : 'server';
+};
+
+// Kind et types d'axes déduits des seules métadonnées ; null si une colonne tracée n'est
+// pas décrite par `fields` ou si z n'est pas numérique.
+const resolveKind = ({ x, y, z, fields, categoricalX = false, categoricalY = false, zMark }) => {
+  // Une colonne non décrite ne se type pas sans lignes : on renonce (repli client)
+  const typeOf = (column) => (column == null ? null : resolveColumnType(fields, column, () => null));
+  const xType = categoricalX ? 'categorical' : typeOf(x);
+  const yType = categoricalY ? 'categorical' : typeOf(y);
+  const zType = z ? typeOf(z) : null;
+  if (!xType || !yType || (z && !zType)) return null;
+
+  try {
+    return { chartKind: detectChart({ xType, yType, zType, hasZ: Boolean(z), zMark }), xType, yType };
+  } catch {
+    // z non numérique (ou zMark inconnu) : <Chart> lèvera lui-même, rien à agréger ici
+    return null;
+  }
 };
 
 /**
@@ -79,24 +105,11 @@ export const aggregationMode = ({ chartKind, fill = 'line' }) => {
  * @param {?Array<Object>} params.fields - Column metadata.
  * @param {boolean} [params.categoricalX=false] - Same as `<Chart categorical-x>`.
  * @param {boolean} [params.categoricalY=false] - Same as `<Chart categorical-y>`.
+ * @param {'density'|'bubble'} [params.zMark='density'] - Same as `<Chart zMark>`.
  * @returns {?string} The `detectChart` kind, or `null` when a plotted column is not
  *   described by `fields` (its type would have to be sampled from the rows).
  */
-export const chartKindOf = ({ x, y, z, fields, categoricalX = false, categoricalY = false }) => {
-  // Une colonne non décrite ne se type pas sans lignes : on renonce (repli client)
-  const typeOf = (column) => (column == null ? null : resolveColumnType(fields, column, () => null));
-  const xType = categoricalX ? 'categorical' : typeOf(x);
-  const yType = categoricalY ? 'categorical' : typeOf(y);
-  const zType = z ? typeOf(z) : null;
-  if (!xType || !yType || (z && !zType)) return null;
-
-  try {
-    return detectChart({ xType, yType, zType, hasZ: Boolean(z) });
-  } catch {
-    // z non numérique : <Chart> lèvera lui-même, rien à agréger ici
-    return null;
-  }
-};
+export const chartKindOf = (params) => resolveKind(params)?.chartKind ?? null;
 
 // Une mesure s'écrit 'population' ou { measure: 'population', aggregation: 'AVG' }.
 const toAggregateInput = (m) => {
@@ -111,7 +124,7 @@ const toAggregateInput = (m) => {
  * @param {string} params.x - Abscissa column.
  * @param {string} [params.y] - Ordinate column. Defaults to the first measure for the
  *   kinds whose value axis is y.
- * @param {string} [params.z] - Third dimension (heatmap value).
+ * @param {string} [params.z] - Third dimension (heatmap value, bubble size).
  * @param {string|string[]} [params.hue] - Series columns, as `<Chart hue>`.
  * @param {?Array<Object>} params.fields - Column metadata (`fields` of DatasetWithMetadata).
  * @param {'none'|'line'|'fill'} [params.fill='line'] - Fill mode of the chart.
@@ -122,6 +135,9 @@ const toAggregateInput = (m) => {
  *   a date (e.g. 'MONTH').
  * @param {boolean} [params.categoricalX=false] - Same as `<Chart categorical-x>`.
  * @param {boolean} [params.categoricalY=false] - Same as `<Chart categorical-y>`.
+ * @param {'density'|'bubble'} [params.zMark='density'] - Same as `<Chart zMark>`. Bubbles
+ *   on two categorical axes are grouped by x, y AND the hue columns (one bubble per cell
+ *   and series), first measure only; the other bubbles plot raw rows (`null`).
  * @returns {?{chartKind: string, valueAxis: 'x'|'y'|'z', posCol: string,
  *   x: string, y: string, z: (string|undefined), groupBy: Array<Object>,
  *   aggregates: Array<Object>, format: 'OBJECTS'|'LONG', hue: (string[]|undefined)}}
@@ -130,17 +146,17 @@ const toAggregateInput = (m) => {
  */
 export const planAggregation = ({
   x, y, z, hue, fields, fill = 'line', measures, grain,
-  categoricalX = false, categoricalY = false,
+  categoricalX = false, categoricalY = false, zMark = 'density',
 }) => {
   const measureList = (measures ?? []).filter(Boolean);
   const first = measureList.length ? toAggregateInput(measureList[0]).measure : undefined;
 
   // Le type de graphique se lit sur la mesure principale quand y n'est pas fourni
   const yCol = y ?? first;
-  const chartKind = chartKindOf({ x, y: yCol, z, fields, categoricalX, categoricalY });
-  if (aggregationMode({ chartKind, fill }) === 'client') return null;
+  const { chartKind = null, xType, yType } = resolveKind({ x, y: yCol, z, fields, categoricalX, categoricalY, zMark }) ?? {};
+  if (aggregationMode({ chartKind, fill, xType, yType }) === 'client') return null;
 
-  const valueAxis = chartKind === 'heatmap' ? 'z' : (chartKind === 'bar-h' ? 'x' : 'y');
+  const valueAxis = (chartKind === 'heatmap' || chartKind === 'bubble') ? 'z' : (chartKind === 'bar-h' ? 'x' : 'y');
   const columns = { x, y: yCol, z };
   const valueColumn = columns[valueAxis];
   const aggregates = (measureList.length ? measureList : [valueColumn]).map(toAggregateInput);
@@ -166,6 +182,20 @@ export const planAggregation = ({
 
   const posCol = chartKind === 'bar-h' ? yCol : x;
   const hueCols = [...new Set(hue ? (Array.isArray(hue) ? hue : [hue]) : [])].filter((h) => h && h !== posCol);
+
+  // Bulles (deux axes catégoriels) : une bulle par (x, y, série) — la heatmap, plus les
+  // colonnes hue. Une seule mesure : plusieurs mesures sur une même échelle d'aire
+  // seraient hétérogènes.
+  if (chartKind === 'bubble') {
+    const seriesCols = hueCols.filter((h) => h !== yCol).slice(0, MAX_HUE);
+    return {
+      chartKind, valueAxis, posCol, x, y: yCol, z,
+      groupBy: [groupOf(x), groupOf(yCol), ...seriesCols.map((field) => ({ field }))],
+      aggregates: aggregates.slice(0, 1),
+      format: 'OBJECTS',
+      hue: seriesCols.length ? seriesCols : undefined,
+    };
+  }
   const multi = aggregates.length > 1;
   // Plusieurs mesures : la mesure devient la 1re série. Les canaux hue étant limités à
   // trois, une colonne en trop n'est PAS regroupée (l'API l'agrège avec le reste) —
@@ -262,9 +292,11 @@ export const toChartProps = (result, plan, labels = DEFAULT_AGGREGATE_LABELS) =>
   const long = (result.request?.format ?? 'OBJECTS') === 'LONG';
   const aggregates = result.aggregates;
 
-  // Séries : les colonnes de groupe hors position (hors axe y pour la heatmap), la mesure
-  // en tête au format LONG.
-  const seriesCols = plan.chartKind === 'heatmap' ? [] : groupNames.filter((n) => n !== plan.posCol);
+  // Séries : les colonnes de groupe hors axes — hors position, et hors x ET y quand la
+  // valeur est en z (heatmap : aucune ; bulles : les colonnes hue) —, la mesure en tête
+  // au format LONG.
+  const axisCols = plan.valueAxis === 'z' ? [plan.x, plan.y] : [plan.posCol];
+  const seriesCols = groupNames.filter((n) => !axisCols.includes(n));
   const hue = long ? [MEASURE_COLUMN, ...seriesCols] : seriesCols;
 
   // Axes : la position et (heatmap) l'autre colonne de groupe gardent leur nom ; l'axe de

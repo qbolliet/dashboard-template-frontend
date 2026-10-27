@@ -13,7 +13,25 @@ since the copy they took.
 
 ## [Unreleased]
 
+### Added
+
+- **`<Chart zMark="bubble">` — the third dimension as bubble size.** With a numeric `z`,
+  `zMark` (`'density'` by default, rendering unchanged) can be set to `'bubble'`: one marker
+  per row (per cell × hue series on two categorical axes) centered on (x, y), its AREA
+  proportional to z; z ≤ 0 or null draws nothing, and a message replaces the plot when no
+  z is positive. A single new kind `'bubble'` (`detectChart`) and mark
+  (`marks/BubbleMarks/`); zoom, brush and minimaps follow the kind it replaces
+  (`layoutKindOf`), bubble sizes never change with the zoom. New `SizeLegend`, tokens
+  `--chart-bubble-max-radius`, `--chart-marks-bubble-*`, `--chart-size-legend-*`,
+  `--chart-empty-message-color`, and the `chart.noPositiveZ` UI label. `planAggregation` /
+  `useAggregatedChart` take `zMark`: categorical × categorical bubbles are aggregated by the
+  API grouped by x, y and the hue columns. New registry example `chart-bubble`.
+  `aggregationMode` now accepts `xType` / `yType` (needed for `'bubble'` only).
+
 ### Changed
+
+- **Chart dodge geometry shared.** Violins and bubbles dodge their series through
+  `utils/dodge.js` (`dodgeScale`, `dodgeSlot`); rendering unchanged.
 
 - **`LanguageSwitcher` flags fall back local file → flagcdn.com → country code.** `flagSrc`
   may now return `string | string[] | null`; `<FlagChip>` tries each candidate on load

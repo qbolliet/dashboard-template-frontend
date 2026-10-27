@@ -21,14 +21,16 @@
 ═══════════════════════════════════════════════════════════════════════════ */
 
 // Importation des modules
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { ParentSize } from '@visx/responsive';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { extent, mean } from 'd3-array';
 
 import { isDatasetList } from '../../utils/datasetList';
-import { detectType, coerce, detectChart } from '../../utils/typeDetection';
+import { detectType, coerce, detectChart, layoutKindOf } from '../../utils/typeDetection';
+import { dodgeScale, dodgeSlot } from '../../utils/dodge';
+import { bubbleArea, bubbleMaxRadius, bubbleZMax, layoutBubbles } from '../../utils/bubble';
 import {
   PALETTE, colorScale, sequentialScale, styleScale, hatchScale, markerScale,
   distinctVals, groupSeries, seriesKey, xKeyOf,
@@ -45,6 +47,7 @@ import { mergeLabels } from '@/utils/i18n/mergeLabels';
 import { useMinimapState, resolveMinimapsVisible } from '../../hooks/useMinimapState';
 import { useBrushZoom, zoomTransformOf } from '../../hooks/useBrushZoom';
 import { useFeatureState } from '../../hooks/useFeatureState';
+import { useCssLength } from '../../hooks/useCssLength';
 import { nextFreeChannel, REAL_DIST_MARKER } from '../../toolbar-features/channelAssign';
 import { normalizeRefs } from '../../toolbar-features/normalize';
 
@@ -52,6 +55,7 @@ import ChartAxisBottom from '../ChartAxis/ChartAxisBottom/ChartAxisBottom';
 import ChartAxisLeft from '../ChartAxis/ChartAxisLeft/ChartAxisLeft';
 import ChannelLegend from '../ChartLegend/ChannelLegend/ChannelLegend';
 import SequentialLegend from '../ChartLegend/SequentialLegend/SequentialLegend';
+import SizeLegend from '../ChartLegend/SizeLegend/SizeLegend';
 // LineMarks / BarMarks restent STATIQUES : ce sont les types détectés par défaut,
 // présents sur quasi toutes les pages, et leurs dépendances (@visx/shape, @visx/scale,
 // d3-array, d3-color) sont déjà dans le graphe partagé — les splitter n'éviterait aucune
@@ -71,7 +75,7 @@ import './Chart.scss';
    littéraux, analysables par le bundler). Ils ne sont téléchargés qu'à l'affichage
    effectif du type correspondant.
 
-   • HeatmapMarks / DensityMarks / ViolinMarks — seules les MARKS sont
+   • HeatmapMarks / DensityMarks / ViolinMarks / BubbleMarks — seules les MARKS sont
      paresseuses ici : <Chart> a déjà rendu le cadre, les axes, la légende et la
      barre d'outils avant même de choisir le renderer de marks. ssr: false +
      fallback null est donc sans risque de trou : ce qui est visible pendant les
@@ -80,6 +84,7 @@ import './Chart.scss';
        - DensityMarks → d3-geo + d3-interpolate + d3-contour (KDE 2-D)
        - ViolinMarks  → d3-contour (KDE Epanechnikov)
        - HeatmapMarks → léger, mais type rare (uniformise le traitement)
+       - BubbleMarks  → léger, type rare (même traitement)
 
    • MultiChart — cas différent : sur la branche isDatasetList(data), <Chart>
      délègue TOUT (cadre, axes, légende, barre d'outils) à <MultiChart>, qui EST
@@ -90,6 +95,7 @@ import './Chart.scss';
 const HeatmapMarks = dynamic(() => import('../marks/HeatmapMarks/HeatmapMarks'), { ssr: false });
 const DensityMarks = dynamic(() => import('../marks/DensityMarks/DensityMarks'), { ssr: false });
 const ViolinMarks = dynamic(() => import('../marks/ViolinMarks/ViolinMarks'), { ssr: false });
+const BubbleMarks = dynamic(() => import('../marks/BubbleMarks/BubbleMarks'), { ssr: false });
 const MultiChart = dynamic(() => import('../MultiChart/MultiChart'));
 
 /* ────────────────────────── Cibles de survol (coordonnées de BASE) ────────
@@ -119,7 +125,7 @@ function computeBaseHoverTargets({
    en coordonnées directes). ─────────────────────────────────────────────── */
 function computeHoverTargets({
   chartKind, filteredData, channels, xScale, yScale, x, y, z,
-  stack, stackMain, innerWidth, innerHeight, fill, groups, reduce,
+  stack, stackMain, innerWidth, innerHeight, fill, groups, reduce, bubble,
 }) {
   const out = [];
 
@@ -270,9 +276,7 @@ function computeHoverTargets({
     }
     const bandwidth = bandScale.bandwidth ? bandScale.bandwidth() : 40;
     const dodge = hueActive && !stackActiveV;
-    const subScale = scaleBand({
-      domain: seriesKeys, range: [0, bandwidth], padding: seriesKeys.length > 1 ? 0.12 : 0.25,
-    });
+    const subScale = dodgeScale(seriesKeys, bandwidth);
     // Centroïde à la médiane de chaque groupe, positionné selon le mode :
     // dodge (slot dédié par série), split (moitié gauche/droite) ou simple
     // (violon centré plein) — même géométrie transversale que ViolinMarks.
@@ -286,18 +290,15 @@ function computeHoverTargets({
         const med = sorted[Math.floor(sorted.length * 0.5)];
         const valPos = valScale(med);
         let center, slotStart, slotW;
-        if (dodge) {
-          const slot = subScale.bandwidth();
-          slotStart = bandStart + (subScale(gMeta.key) ?? 0);
-          slotW = slot;
-          center = slotStart + slot / 2;
-        } else if (splitMode) {
+        if (splitMode && !dodge) {
           const leftSide = splitVals.indexOf(gg.stackVal) === 0;
           slotStart = leftSide ? bandStart : bandCenter;
           slotW = bandwidth / 2;
           center = slotStart + slotW / 2;
         } else {
-          center = bandCenter; slotStart = bandStart; slotW = bandwidth;
+          ({ center, slotStart, slotW } = dodgeSlot({
+            bandStart, bandwidth, subScale: dodge ? subScale : null, key: gMeta.key,
+          }));
         }
         const px = horizontal ? valPos : center;
         const py = horizontal ? center : valPos;
@@ -308,6 +309,17 @@ function computeHoverTargets({
         if (z != null && gg.zs.length) row[z] = mean(gg.zs);
         out.push({ px, py, row, hit });
       }
+    }
+  } else if (chartKind === 'bubble') {
+    // Bulles sur axe(s) en bande (le cas continu × continu passe par la couche zoom) :
+    // même géométrie que BubbleMarks, centroïde au centre de la bulle, zone de survol =
+    // son disque (8 px minimum pour rester attrapable). Plus grandes d'abord : les
+    // petites, posées par-dessus, gardent la main au survol.
+    for (const b of layoutBubbles({ data: filteredData, x, y, z, channels, xScale, yScale, ...bubble })) {
+      out.push({
+        px: b.px, py: b.py, row: b.row,
+        hit: { type: 'circle', r: Math.max(8, Math.sqrt(b.area / Math.PI)) },
+      });
     }
   }
 
@@ -340,6 +352,7 @@ const DEFAULT_UI_LABELS = {
   exportPng: 'Exporter en PNG',
   expand: 'Agrandir (pleine largeur)',
   collapse: 'Replier',
+  noPositiveZ: 'Aucune valeur positive de z à représenter',
 };
 
 const ChartCanvas = ({
@@ -357,7 +370,16 @@ const ChartCanvas = ({
   // sinon l'agrégation par défaut de la colonne de valeur ; et mode de projection de la
   // heatmap dans ses mini-vues ('SUM' pour une agrégation additive, 'AVG' sinon).
   reduce, projectionMode,
+  // Bulles : plus grand z positif (données complètes) et remontée du rayon maximal vers
+  // <Chart>, qui en dessine la légende de taille.
+  bubbleZ = 0, onBubbleRadius,
 }) => {
+  // Kind de mise en page : celui du graphique, sauf 'bubble' qui reprend le zoom, le
+  // brush, les mini-vues et le padding de bande du kind qu'il remplace (heatmap, violon
+  // ou densité selon les types d'axes).
+  const layoutKind = layoutKindOf(chartKind, xType, yType);
+  const isBubble = chartKind === 'bubble';
+
   // Modèle d'état des mini-vues, partagé avec <MultiChart> : interrupteur maître
   // (barre d'outils) + pli par axe (pastilles). Cf. useMinimapState. Persiste tant
   // que la largeur reste > 0.
@@ -375,7 +397,7 @@ const ChartCanvas = ({
     yMinimapW, yMinimapX, yToggleW,
   } = useChartGeometry({
     locale,
-    chartKind, data, x, y, xType, yType, format, labels, maxLabelLength, maxLines,
+    chartKind: layoutKind, data, x, y, xType, yType, format, labels, maxLabelLength, maxLines,
     overlap, tickDensity, width, height, minimapsVisible, xMinimapOpen, yMinimapOpen,
   });
 
@@ -393,7 +415,7 @@ const ChartCanvas = ({
   const [isBrushing, setIsBrushing] = useState(false);
   const active = voronoiRow; // la row sous le curseur
 
-  const has2DBrush = chartKind === 'heatmap' || chartKind === 'density';
+  const has2DBrush = layoutKind === 'heatmap' || layoutKind === 'density';
   const isBarH = chartKind === 'bar-h';
   const posKey = chartKind === 'bar-h' ? y : x;
   const valKey = chartKind === 'bar-h' ? x : y;
@@ -466,7 +488,7 @@ const ChartCanvas = ({
       baseXScale = scaleLinear({ domain: ext, range: [0, innerWidth], nice: true });
     }
   } else {
-    baseXScale = makeScale(xType, data, x, innerWidth, 'x', chartKind);
+    baseXScale = makeScale(xType, data, x, innerWidth, 'x', layoutKind);
   }
   let baseYScale;
   if ((chartKind === 'line' || chartKind === 'bar') && yType === 'number') {
@@ -482,8 +504,31 @@ const ChartCanvas = ({
       baseYScale = scaleLinear({ domain: ext, range: [innerHeight, 0], nice: true });
     }
   } else {
-    baseYScale = makeScale(yType, data, y, innerHeight, 'y', chartKind);
+    baseYScale = makeScale(yType, data, y, innerHeight, 'y', layoutKind);
   }
+
+  // ── Bulles : échelle d'aire (indépendante du zoom) ─────────────────────────
+  // Rayon maximal = token CSS, plafonné à la demi-bande (demi-slot de dodge) des axes en
+  // bande, calculé sur les échelles de BASE : zoomer déplace les bulles sans les
+  // redimensionner. Les séries ne sont décalées (dodge) que si le canal couleur est actif
+  // et qu'un axe est en bande.
+  const bubbleTokenPx = useCssLength(svgRef, '--chart-bubble-max-radius', isBubble);
+  const bubbleDodgeKeys = isBubble && channels.color && layoutKind !== 'density' ? seriesOrder : null;
+  const bubbleRMax = isBubble
+    ? bubbleMaxRadius({ xScale: baseXScale, yScale: baseYScale, dodgeKeys: bubbleDodgeKeys, tokenPx: bubbleTokenPx })
+    : 0;
+  const bubbleOpts = {
+    areaOf: bubbleArea({ zMax: bubbleZ, rMax: bubbleRMax }),
+    dodgeKeys: bubbleDodgeKeys,
+    // Deux axes catégoriels : une bulle par (cellule × série), comme une case de heatmap
+    cells: layoutKind === 'heatmap',
+    reduce,
+  };
+  // La légende de taille vit hors du canevas (dans <Chart>) : on lui remonte le rayon,
+  // qui dépend de la largeur sur un axe en bande. Effet seulement quand il change.
+  useEffect(() => {
+    if (onBubbleRadius) onBubbleRadius(bubbleRMax);
+  }, [bubbleRMax, onBubbleRadius]);
 
   // ── Zoom (brush + molette) : la molette n'est active que si l'outil zoom est ON.
   const zoomTool = tools.find((t) => t.isZoom);
@@ -498,7 +543,7 @@ const ChartCanvas = ({
     xSel, ySel, setXSel, setYSel, previewXSel, previewYSel,
     xScale, yScale, filteredData, axisZoom, resetZoom, canReset,
   } = useBrushZoom({
-    data, x, y, xType, yType, chartKind,
+    data, x, y, xType, yType, chartKind: layoutKind,
     baseXScale, baseYScale, innerWidth, innerHeight,
     marginLeft: margins.left, marginTop: margins.top, width, svgRef, zoomOn,
     previewTargets: [previewMarksRef, previewOverlaysRef, previewZoomLayerRef],
@@ -512,11 +557,13 @@ const ChartCanvas = ({
   const needsFilteredGroups = chartKind === 'bar' || chartKind === 'bar-h' || isViolinKind;
   const groupsFiltered = needsFilteredGroups ? groupSeries(filteredData, channels) : null;
 
-  // Graphiques « nuage » (line, density) : voronoï + KDE 2-D dans une couche
-  // zoomée par transform (coordonnées de base, non recalculés au zoom). Pendant
-  // un geste de brush, ce transform est réécrit par frame par la preview
-  // impérative (previewZoomLayerRef) puis repris par React au relâchement.
-  const zoomLayer = chartKind === 'line' || chartKind === 'density';
+  // Graphiques « nuage » (line, density, bulles sur deux axes continus) : voronoï + KDE
+  // 2-D dans une couche zoomée par transform (coordonnées de base, non recalculés au
+  // zoom). Les bulles, elles, restent dans les marks (positions zoomées, tailles fixes) :
+  // seul leur survol vit dans cette couche. Pendant un geste de brush, ce transform est
+  // réécrit par frame par la preview impérative (previewZoomLayerRef) puis repris par
+  // React au relâchement.
+  const zoomLayer = chartKind === 'line' || layoutKind === 'density';
   const zoomTransform = zoomTransformOf(zx, zy);
 
   // ── Empilage des marks affichés (données filtrées par le brush) ───────────
@@ -616,6 +663,7 @@ const ChartCanvas = ({
   const hoverTargets = (zoomLayer || isBrushing) ? [] : computeHoverTargets({
     chartKind, filteredData, channels, xScale, yScale, x, y, z,
     stack, stackMain, innerWidth, innerHeight, fill, groups: groupsFiltered, reduce,
+    bubble: bubbleOpts,
   });
 
   // Ancrage adaptatif : bulle du côté OPPOSÉ au point (flip près des bords). En
@@ -660,12 +708,13 @@ const ChartCanvas = ({
     color: activeColor,
     dash: channels.style ? styleScaleFn(active[channels.style]) : null,
     hatch: channels.style ? hatchScaleFn(active[channels.style]) : null,
-    marker: channels.marker ? markerScaleFn(active[channels.marker]) : null,
+    // Bulle sans canal marqueur : son disque est le marqueur 'circle'
+    marker: channels.marker ? markerScaleFn(active[channels.marker]) : (isBubble ? 'circle' : null),
   } : null;
 
   let tooltipModel = null;
   if (active) {
-    const is3D = chartKind === 'heatmap' || chartKind === 'density';
+    const is3D = chartKind === 'heatmap' || chartKind === 'density' || isBubble;
     const isProj = !!active.__isProjection;
     const xFmt = resolveFormatter(format.x, xType, undefined, locale);
     const yFmt = resolveFormatter(format.y, yType, undefined, locale);
@@ -748,6 +797,8 @@ const ChartCanvas = ({
     marks = <HeatmapMarks data={mData} x={x} y={y} z={z} xScale={mXScale} yScale={mYScale} colorScale={cScale} fill={effFill} aggregate={reduce} />;
   } else if (isViolinKind) {
     marks = <ViolinMarks data={data} x={x} y={y} z={z} channels={channels} xScale={mXScale} yScale={mYScale} xScaleBase={baseXScale} yScaleBase={baseYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} orient={chartKind === 'violin-h' ? 'h' : 'v'} fill={effFill} stack={stack} hovered={hovered} />;
+  } else if (isBubble) {
+    marks = <BubbleMarks data={mData} x={x} y={y} z={z} channels={channels} xScale={mXScale} yScale={mYScale} colorScale={cScale} styleScale={styleScaleFn} hatchScale={hatchScaleFn} markerScale={markerScaleFn} {...bubbleOpts} fill={effFill} hovered={hovered} />;
   }
 
   // Densité (KDE 2-D) rendue en coordonnées de BASE puis zoomée par le transform.
@@ -764,22 +815,22 @@ const ChartCanvas = ({
     const yMini = baseYScale.copy().range([miniH, 0]);
     xMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="v" fill={fill} stack={stackMini} groups={groupsFull} mini aggregate={reduce} />}{renderMiniCI(baseXScale, yMini)}</>;
   } else if (has2DBrush) {
-    xMiniContent = <MiniProjection data={data} posCol={x} posType={xType} valCol={z} posScale={baseXScale} width={innerWidth} height={miniH} direction="x" mode={chartKind === 'heatmap' ? projectionMode : 'AVG'} />;
-  } else if (chartKind === 'violin-v') {
+    xMiniContent = <MiniProjection data={data} posCol={x} posType={xType} valCol={z} posScale={baseXScale} width={innerWidth} height={miniH} direction="x" mode={layoutKind === 'heatmap' ? projectionMode : 'AVG'} />;
+  } else if (layoutKind === 'violin-v') {
     xMiniContent = <MiniProjection data={data} posCol={x} posType={xType} valCol={y} posScale={baseXScale} width={innerWidth} height={miniH} direction="x" mode="AVG" />;
-  } else if (chartKind === 'violin-h') {
+  } else if (layoutKind === 'violin-h') {
     xMiniContent = <MiniProjection data={data} posCol={x} posType={xType} valCol={x} posScale={baseXScale} width={innerWidth} height={miniH} direction="x" mode="COUNT" />;
   }
 
   let yMiniContent = null;
   if (has2DBrush) {
-    yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={z} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode={chartKind === 'heatmap' ? projectionMode : 'AVG'} />;
+    yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={z} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode={layoutKind === 'heatmap' ? projectionMode : 'AVG'} />;
   } else if (isBarH) {
     const miniX = baseXScale.copy().range([0, Math.max(2, yMinimapW - 2)]);
     yMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={miniX} yScale={baseYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="h" fill={fill} stack={stackMini} groups={groupsFull} mini aggregate={reduce} />}{renderMiniCI(miniX, baseYScale)}</>;
-  } else if (chartKind === 'violin-v') {
+  } else if (layoutKind === 'violin-v') {
     yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={y} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="COUNT" />;
-  } else if (chartKind === 'violin-h') {
+  } else if (layoutKind === 'violin-h') {
     yMiniContent = <MiniProjection data={data} posCol={y} posType={yType} valCol={x} posScale={baseYScale} width={yMinimapW} height={innerHeight} direction="y" mode="COUNT" />;
   }
 
@@ -885,6 +936,13 @@ const ChartCanvas = ({
             </g>
           </g>
 
+          {/* Bulles sans aucune valeur de z positive : rien à dessiner, on le dit. */}
+          {isBubble && !(bubbleZ > 0) && (
+            <text className="chart-empty-message" x={innerWidth / 2} y={innerHeight / 2} textAnchor="middle" dominantBaseline="middle">
+              {uiLabels.noPositiveZ}
+            </text>
+          )}
+
           {/* Survol direct / proximité (charts à bandes). */}
           {!zoomLayer && hoverTargets.length > 0 && (voronoiOn
             ? <VoronoiOverlay points={hoverTargets} innerWidth={innerWidth} innerHeight={innerHeight} onHover={(t) => handleHover(t, false)} />
@@ -978,7 +1036,18 @@ const ChartCanvas = ({
  * @param {Array<object>} props.data - Array<Row> (long format) | Array<Dataset>.
  * @param {string} props.x - Abscissa column.
  * @param {string} props.y - Ordinate column (required).
- * @param {string} [props.z] - Third dimension (heatmap / violin / density).
+ * @param {string} [props.z] - Third dimension, numeric. Drawn as a heatmap, a violin or a
+ *   2-D density (`zMark='density'`), or as bubbles whose area is proportional to z
+ *   (`zMark='bubble'`).
+ * @param {'density'|'bubble'} [props.zMark='density'] - Mark of the third dimension.
+ *   `'density'` keeps the heatmap (categorical × categorical), violin (categorical ×
+ *   continuous) and 2-D density (continuous × continuous). `'bubble'` draws one marker
+ *   per row — per cell × hue series on two categorical axes, reduced like a heatmap cell
+ *   (read as is with `aggregate`) — centered on (x, y) and dodged inside a band when the
+ *   color channel is active, its AREA proportional to z: z ≤ 0 or null draws nothing (a
+ *   message replaces the plot when no z is positive). Zoom, brush and minimaps follow the
+ *   kind it replaces; bubble sizes never change with the zoom. A size legend joins the
+ *   channel legends. Single-dataset path only (a dataset list ignores z).
  * @param {string|string[]} [props.hue] - [0]→color, [1]→style, [2]→marker.
  * @param {'none'|'line'|'fill'} [props.fill='line'] - Fill mode.
  * @param {'none'|'color'|'style'|'marker'|'all'} [props.stack='none'] - Stacking mode.
@@ -1034,7 +1103,7 @@ const ChartCanvas = ({
  */
 const Chart = ({
   data, x, y, z, hue,
-  fill = 'line', stack = 'none',
+  fill = 'line', stack = 'none', zMark = 'density',
   fields, aggregate, format: formatProp = {}, labels = {}, maxLabelLength = {}, maxLines = {},
   overlap = 'auto', tickDensity = 'normal',
   'categorical-x': categoricalX = false, 'categorical-y': categoricalY = false,
@@ -1072,7 +1141,9 @@ const Chart = ({
     [y]: coerce(r[y], yType),
     ...(z ? { [z]: coerce(r[z], zType) } : {}),
   }));
-  const chartKind = isList ? null : detectChart({ xType, yType, zType, hasZ: !!z });
+  // Seule lecture de `zMark` : la détection (elle produit 'bubble', branché ensuite comme
+  // n'importe quel autre kind).
+  const chartKind = isList ? null : detectChart({ xType, yType, zType, hasZ: !!z, zMark });
 
   // État des features (avant tout retour : hooks au top-level). `supports`
   // reçoit un kind null pour la branche multi-jeux → aucune option retenue.
@@ -1084,6 +1155,8 @@ const Chart = ({
   const [expanded, setExpanded] = useState(!!defaults.expanded);
   const [voronoiOn, setVoronoiOn] = useState(!!defaults.voronoi);
   const [tooltipsOn, setTooltipsOn] = useState(defaults.tooltips != null ? !!defaults.tooltips : true);
+  // Rayon de la plus grande bulle, remonté par <ChartCanvas> (dépend de la largeur).
+  const [bubbleRMax, setBubbleRMax] = useState(0);
 
   // Branche « data = liste de jeux » → délégation à <MultiChart> (axes partagés,
   // échelles de canaux coordonnées entre jeux, une section de légende par jeu).
@@ -1103,14 +1176,17 @@ const Chart = ({
 
   const isViolinKind = chartKind === 'violin-v' || chartKind === 'violin-h';
   const isContinuousZ = chartKind === 'heatmap' || chartKind === 'density' || isViolinKind;
-  // z continu : 'none' (option scatter des charts X-Y) retombe sur 'fill'.
-  const effFill = isContinuousZ ? (fill === 'line' ? 'line' : 'fill') : fill;
+  const isBubble = chartKind === 'bubble';
+  // Kinds à z (couleur continue ou taille) : 'none' (option scatter des charts X-Y)
+  // retombe sur 'fill'.
+  const hasZMark = isContinuousZ || isBubble;
+  const effFill = hasZMark ? (fill === 'line' ? 'line' : 'fill') : fill;
 
   // ── Canaux (le nombre est inféré de la longueur de `hue`) ─────────────────
   let channels;
   if (chartKind === 'heatmap') {
     channels = { color: null, style: null, marker: null };
-  } else if (fill === 'none' && !isContinuousZ) {
+  } else if (fill === 'none' && !hasZMark) {
     // Nuage X-Y : 2e hue → forme (marqueur), 3e → plein/pointillé (style).
     channels = { color: hueCols[0] || null, marker: hueCols[1] || null, style: hueCols[2] || null };
   } else {
@@ -1124,7 +1200,7 @@ const Chart = ({
   // Agrégats de l'API (`aggregate`) : une ligne par groupe, rendue telle quelle
   // ('none' — aucune double agrégation). Lignes brutes : agrégation par défaut de la
   // colonne de valeur (SUM d'une population, AVG d'un taux), la moyenne sans métadonnée.
-  const valueCol = chartKind === 'heatmap' ? z : valKey;
+  const valueCol = (chartKind === 'heatmap' || isBubble) ? z : valKey;
   const aggregateList = aggregate ? (Array.isArray(aggregate) ? aggregate : [aggregate]) : [];
   const reduce = aggregateList.length ? 'none' : clientAggregation(fields, valueCol);
   // Agrégation effective de la mesure, pour projeter la heatmap dans ses mini-vues : des
@@ -1209,6 +1285,7 @@ const Chart = ({
     ((chartKind === 'bar' || chartKind === 'bar-h') && fill !== 'none')
     || (isViolinKind && effFill === 'fill')
     || (chartKind === 'density' && effFill === 'fill')
+    || (isBubble && effFill === 'fill')
   ) ? 'hatch' : 'dash';
 
   // ── Canaux libres des features « encoder » (profondeur de hue +1) ──────────
@@ -1254,6 +1331,19 @@ const Chart = ({
 
   const legendInline = expanded;
 
+  // ── Bulles : plus grand z positif + légende de taille ─────────────────────
+  // z max sur les données complètes (même réduction que les marks) : l'échelle d'aire,
+  // donc la légende, ne bouge pas au zoom.
+  const bubbleZ = isBubble
+    ? bubbleZMax({ data: typedData, x, y, z, channels, cells: layoutKindOf(chartKind, xType, yType) === 'heatmap', reduce })
+    : 0;
+  const sizeLegend = (isBubble && bubbleZ > 0 && bubbleRMax > 0) ? (
+    <SizeLegend
+      zMax={bubbleZ} rMax={bubbleRMax} label={labels.z || z}
+      formatValue={resolveFormatter(format.z, zType, undefined, locale)}
+    />
+  ) : null;
+
   // `hover-toolbar-host` : contrat CSS qui révèle <HoverToolbar> au survol /
   // focus du cadre (cf. components/toolbar/HoverToolbar).
   return (
@@ -1263,13 +1353,16 @@ const Chart = ({
       </figcaption>
 
       {/* Légende du haut (mode agrandi). */}
-      {legendInline && hasAnyLegend && !isSequentialZ && (
-        <div className="chart-legend-top">
-          <ChannelLegend
-            groups={allLegendGroups} layout="horizontal"
-            hovered={hovered} hoveredCI={ciHover && ciHover.value}
-            onHover={onLegendHover} styleGlyph={styleGlyphKind}
-          />
+      {legendInline && ((hasAnyLegend && !isSequentialZ) || sizeLegend) && (
+        <div className={'chart-legend-top' + (sizeLegend ? ' chart-legend-top--stack' : '')}>
+          {hasAnyLegend && (
+            <ChannelLegend
+              groups={allLegendGroups} layout="horizontal"
+              hovered={hovered} hoveredCI={ciHover && ciHover.value}
+              onHover={onLegendHover} styleGlyph={styleGlyphKind}
+            />
+          )}
+          {sizeLegend}
         </div>
       )}
       {legendInline && isSequentialZ && (
@@ -1309,19 +1402,23 @@ const Chart = ({
               voronoiOn={voronoiOn} setVoronoiOn={setVoronoiOn}
               tooltipsOn={tooltipsOn} setTooltipsOn={setTooltipsOn}
               reduce={reduce} projectionMode={projectionMode}
+              bubbleZ={bubbleZ} onBubbleRadius={setBubbleRMax}
             />
           ) : null
         )}
       </ParentSize>
 
       {/* Légende de droite (mode par défaut). */}
-      {!legendInline && hasAnyLegend && !isSequentialZ && (
-        <aside className="chart-legend-right">
-          <ChannelLegend
-            groups={allLegendGroups} layout="vertical"
-            hovered={hovered} hoveredCI={ciHover && ciHover.value}
-            onHover={onLegendHover} styleGlyph={styleGlyphKind}
-          />
+      {!legendInline && ((hasAnyLegend && !isSequentialZ) || sizeLegend) && (
+        <aside className={'chart-legend-right' + (sizeLegend ? ' chart-legend-right--stack' : '')}>
+          {hasAnyLegend && (
+            <ChannelLegend
+              groups={allLegendGroups} layout="vertical"
+              hovered={hovered} hoveredCI={ciHover && ciHover.value}
+              onHover={onLegendHover} styleGlyph={styleGlyphKind}
+            />
+          )}
+          {sizeLegend}
         </aside>
       )}
       {!legendInline && isSequentialZ && (

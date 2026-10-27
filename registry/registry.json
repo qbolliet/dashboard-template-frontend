@@ -361,6 +361,16 @@
           "target": "~/src/features/chart/components/ChartLegend/SequentialLegend/SequentialLegend.scss"
         },
         {
+          "path": "src/features/chart/components/ChartLegend/SizeLegend/SizeLegend.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartLegend/SizeLegend/SizeLegend.jsx"
+        },
+        {
+          "path": "src/features/chart/components/ChartLegend/SizeLegend/SizeLegend.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/ChartLegend/SizeLegend/SizeLegend.scss"
+        },
+        {
           "path": "src/features/chart/components/ChartMinimap/_colors.scss",
           "type": "registry:file",
           "target": "~/src/features/chart/components/ChartMinimap/_colors.scss"
@@ -444,6 +454,16 @@
           "path": "src/features/chart/components/marks/BarMarks/BarMarks.scss",
           "type": "registry:file",
           "target": "~/src/features/chart/components/marks/BarMarks/BarMarks.scss"
+        },
+        {
+          "path": "src/features/chart/components/marks/BubbleMarks/BubbleMarks.jsx",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/marks/BubbleMarks/BubbleMarks.jsx"
+        },
+        {
+          "path": "src/features/chart/components/marks/BubbleMarks/BubbleMarks.scss",
+          "type": "registry:file",
+          "target": "~/src/features/chart/components/marks/BubbleMarks/BubbleMarks.scss"
         },
         {
           "path": "src/features/chart/components/marks/DensityMarks/DensityMarks.jsx",
@@ -591,6 +611,11 @@
           "target": "~/src/features/chart/hooks/useChartGeometry.js"
         },
         {
+          "path": "src/features/chart/hooks/useCssLength.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/hooks/useCssLength.js"
+        },
+        {
           "path": "src/features/chart/hooks/useFeatureState.js",
           "type": "registry:file",
           "target": "~/src/features/chart/hooks/useFeatureState.js"
@@ -671,9 +696,19 @@
           "target": "~/src/features/chart/utils/aggregationPlan.js"
         },
         {
+          "path": "src/features/chart/utils/bubble.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/utils/bubble.js"
+        },
+        {
           "path": "src/features/chart/utils/datasetList.js",
           "type": "registry:file",
           "target": "~/src/features/chart/utils/datasetList.js"
+        },
+        {
+          "path": "src/features/chart/utils/dodge.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/utils/dodge.js"
         },
         {
           "path": "src/features/chart/utils/encoding.js",
@@ -3314,6 +3349,28 @@
           "path": "registry/examples/chart-basic.jsx",
           "type": "registry:file",
           "target": "~/src/examples/chart-basic.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "chart"
+      }
+    },
+    {
+      "name": "chart-bubble",
+      "type": "registry:block",
+      "title": "Bulles — la 3e dimension en taille plutôt qu'en densité",
+      "description": "`zMark=\"bubble\"` remplace heatmap, violon et densité par un marqueur par observation, centré en (x, y), dont l'AIRE est proportionnelle à `z` (z ≤ 0 n'est pas dessiné). Les trois cas : deux catégories (une bulle par cellule), une catégorie et un nombre (séries décalées dans la bande par le canal couleur), deux nombres (nuage, survol au plus proche). Une légende de taille rejoint celle des canaux ; zoomer déplace les bulles sans les redimensionner.",
+      "dependencies": [],
+      "registryDependencies": [
+        "chart",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/chart-bubble.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/chart-bubble.jsx"
         }
       ],
       "meta": {
