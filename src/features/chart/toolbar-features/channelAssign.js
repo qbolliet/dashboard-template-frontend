@@ -11,7 +11,7 @@
 
 // Importation des modules
 import { LINE_STYLES } from '@/utils/encoding/scales';
-import { HATCH_TYPES, MARKER_TYPES } from '../utils/encoding';
+import { HATCH_TYPES, MARKER_TYPES } from '@/utils/encoding/scales';
 
 /**
  * Picks the next free visual channel for an "encoder" feature, never the color

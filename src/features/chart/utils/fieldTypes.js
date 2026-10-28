@@ -7,37 +7,14 @@
 // DatasetWithMetadata), le type vient de la famille calculée par l'API et la détection
 // n'a plus lieu. Ce module est la frontière : il ne dépend ni de la feature filtre ni de
 // React.
+//
+// `fieldOf` et `typeFromField`, purs et sans lien avec la configuration du site, sont
+// promus dans src/utils/format/fields.js (second consommateur : le globe) et
+// réexportés ici pour les modules du chart qui les importent depuis ce fichier.
 
 import { valueFormatter } from '@/utils/format/formatValue';
+import { fieldOf, typeFromField } from '@/utils/format/fields';
 import { intlLocaleFor } from '@/i18n/formats';
-
-const DATE_FAMILIES = new Set(['DATE', 'TIMESTAMP']);
-const NUMERIC_FAMILIES = new Set(['INTEGER', 'NUMBER']);
-
-/**
- * Maps a column's metadata to the chart's column type.
- *
- * @param {{typeFamily: ?string, isCategorical: ?boolean}} field - Column metadata.
- * @returns {'date'|'number'|'categorical'} DATE/TIMESTAMP → date; INTEGER/NUMBER that is
- *   not categorical → number; anything else (text, boolean, categorical code) → categorical.
- */
-export const typeFromField = (field) => {
-  if (DATE_FAMILIES.has(field.typeFamily)) return 'date';
-  if (NUMERIC_FAMILIES.has(field.typeFamily) && !field.isCategorical) return 'number';
-  return 'categorical';
-};
-
-/**
- * Looks a column up in the metadata.
- *
- * @param {?Array<Object>} fields - Column metadata (`fields` of DatasetWithMetadata).
- * @param {string} [name] - Column name.
- * @returns {?Object} The metadata entry, or `null` without `fields` or when the column is
- *   not described.
- */
-export const fieldOf = (fields, name) => (
-  name != null && Array.isArray(fields) ? (fields.find((f) => f.name === name) ?? null) : null
-);
 
 /**
  * Resolves the type of a column: from its metadata when `fields` describes it, by sampling
@@ -54,6 +31,8 @@ export const resolveColumnType = (fields, name, detect) => {
   const field = fieldOf(fields, name);
   return field ? typeFromField(field) : detect();
 };
+
+export { fieldOf, typeFromField };
 
 /**
  * Completes the `format` prop of a chart with the formatters of the described columns.

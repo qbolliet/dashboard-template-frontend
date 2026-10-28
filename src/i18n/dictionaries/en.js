@@ -319,7 +319,6 @@ const en = {
         noDataToHover: 'No data to hover',
         tooltipsOn: 'Tooltips enabled',
         tooltipsOff: 'Tooltips disabled',
-        flowIntensity: 'Flow intensity',
         expand: 'Expand (full width)',
         collapse: 'Collapse',
         noLegendToMove: 'Already full width: no legend',

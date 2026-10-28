@@ -5,38 +5,44 @@
 // =================================================================
 // Partage des rôles, strict et sans zone grise :
 //   • React possède le CADRE (bordure, fond spatial, hauteur — rendu côté
-//     serveur, donc zéro CLS), l'état des interrupteurs et la toolbar ;
-//   • le moteur Three.js possède TOUT le contenu du stage (canvas WebGL,
-//     overlay des pastilles, tooltip), qu'il positionne à chaque frame en
-//     impératif — jamais d'état React par frame.
-// La communication est descendante : un geste de toolbar met à jour l'état du
-// bouton PUIS le pousse vers le moteur via `applyOption`. Rien ne remonte du
-// moteur vers React.
+//     serveur, donc zéro CLS), l'état des interrupteurs, la toolbar, la légende
+//     et le CONTENU de la tooltip ;
+//   • le moteur Three.js possède TOUT le contenu du stage (canvas WebGL, overlay
+//     des pastilles), qu'il positionne à chaque frame en impératif — jamais
+//     d'état React par frame. Il déplace aussi l'hôte de la tooltip (son seul
+//     `transform`), sans jamais toucher à son contenu.
+// La communication est descendante (un geste de toolbar met à jour l'état du
+// bouton PUIS le pousse vers le moteur via `applyOption`), à UNE exception près,
+// de basse fréquence : le moteur signale la cible survolée (`onHover`) au
+// CHANGEMENT de cible, et React rend la bulle partagée avec <Chart>.
 
 // Importation des modules
 import { useEffect, useRef, useState } from 'react';
 import useGlobeEngine from '../../hooks/useGlobeEngine';
 import { prefersReducedMotion } from '@/utils/accessibility/a11y';
 import { useCssLength } from '@/hooks/cssLength/useCssLength';
-import { intlLocaleFor } from '@/i18n/formats';
 import GlobeToolbar, { TOOL_KEYS } from '../GlobeToolbar/GlobeToolbar';
 import ChannelLegend from '@/components/legend/ChannelLegend/ChannelLegend';
 import SizeLegend from '@/components/legend/SizeLegend/SizeLegend';
-import { resolveArcEncoding } from '../../utils/arcEncoding';
-import { resolvePointSize } from '../../utils/pointSize';
+import DataTooltip from '@/components/tooltip/DataTooltip/DataTooltip';
+import { normalizeArcs, normalizePoints } from '../../utils/layers';
+import { parseDash, resolveHueEncoding } from '../../utils/hueEncoding';
+import { resolveZ } from '../../utils/zScale';
+import { zFormatter } from '../../utils/zFormat';
+import { arcTooltipModel, pointTooltipModel } from '../../utils/tooltipModel';
 import './Globe.scss';
-// Styles du DOM injecté par le moteur : les pastilles et la tooltip ne sont
-// rendues par aucun composant React, leurs feuilles doivent donc être tirées
-// par la frontière cliente qui monte le moteur — sans quoi elles ne seraient
-// jamais incluses dans le bundle CSS de la page.
+// Styles du DOM injecté par le moteur : les pastilles ne sont rendues par aucun
+// composant React, leur feuille doit donc être tirée par la frontière cliente qui
+// monte le moteur — sans quoi elle ne serait jamais incluse dans le bundle CSS de
+// la page.
 import '../GlobeMarkers/GlobeMarkers.scss';
-import '../GlobeTooltip/GlobeTooltip.scss';
 import { mergeLabels } from '@/utils/i18n/mergeLabels';
 
 // Libellés d'interface : défauts français, surchargeables par la prop `uiLabels` (cf.
 // src/utils/i18n/mergeLabels.js), comme sur <Chart>. Ils couvrent le globe ET sa barre
 // d'outils : c'est <Globe> qui les fusionne une fois et les redistribue, pour que la
-// surcharge se fasse en un seul point. La prop `labels`, elle, titre les DONNÉES.
+// surcharge se fasse en un seul point. Les `labels` de chaque calque, eux, titrent les
+// DONNÉES.
 const DEFAULT_UI_LABELS = {
   label: 'Globe terrestre interactif',
   toolbar: 'Outils du globe',
@@ -61,7 +67,6 @@ const DEFAULT_UI_LABELS = {
   expand: 'Agrandir (pleine largeur)',
   collapse: 'Replier',
   noLegendToMove: 'Déjà en pleine largeur : aucune légende',
-  flowIntensity: 'Intensité du flux',
   legend: 'Légende du globe',
 };
 
@@ -92,89 +97,76 @@ const TOGGLES = {
 };
 
 /**
- * WebGL earth globe (Three.js): realistic day/night textures blended with the
- * theme, mouse drag, slow auto-rotation, wheel zoom, conditional data points
- * with tooltips, great-circle flows (arrows, undirected lines or a decorative
- * glow, static or animated), and an animated globe ⇄ flat-map morph that
- * preserves center and zoom. A hover toolbar (top-right zone) toggles every
- * behaviour. The API follows `<Chart>`: `defaults` sets the initial state of each
- * tool, `labels` titles the data (legends, tooltip), `uiLabels` overrides the
- * interface wording, and the expand tool moves the legend from the right of the
- * globe to above it.
+ * WebGL earth globe (Three.js) showing two data layers, points and great-circle
+ * flows, with the vocabulary of `<Chart>`. It serves both as a decorative visual (a
+ * home-page hero: icon badges, glowing animated flows, no toolbar) and as a data
+ * visualization (bubbles and flows encoded by hue and size, legends, tooltips).
  *
- * ### Points
- * `pointVariant` picks the look of the points: `badge` (default) is a dot with a
- * halo ring and the `iconFor` icon, `dot` a plain disc with a thin border, no ring
- * and no icon. `pointPulse` adds or removes the animated halo on either variant.
- * `pointSize` sets the diameter: a number of px for every point, or the key of a
- * numeric value each point's AREA is proportional to, like the bubbles of `<Chart>`
- * (the largest reaches `--globe-marker-max-size`; a point without a positive value
- * is not drawn) — a size legend then joins the legend.
+ * Realistic day/night textures blended with the theme, mouse drag, slow
+ * auto-rotation, wheel zoom and an animated globe ⇄ flat-map morph that preserves
+ * center and zoom. A hover toolbar (top-right zone) toggles every behaviour.
  *
- * ### Flow drawing
- * `arcVariant` picks how flows are drawn: `arrow` (default) is a solid stroke of
- * constant on-screen width with a head at the destination, `line` the same stroke
- * without a head (undirected flows), `glow` a thin additive stroke growing brighter
- * towards the destination (the decorative look). `value` ∈ [0,1] drives the arc
- * height, the comet speed and the stroke width (between the `--globe-arc-width-min`
- * and `--globe-arc-width-max` tokens; the mean of both when absent), or the stroke
- * brightness in the `glow` variant.
+ * ### Layers
+ * `points` and `arcs` each take a layer spec, a "mini-Chart": `data`, `mark`,
+ * `hue`, `z`, `labels`, `format`. An array alone is a shorthand for `{ data }`.
+ * - **`hue`** is encoded like the hue channels of `<Chart>`: `hue[0]` → color (the
+ *   categorical palette minus its blue hues, which blend into the ocean), `hue[1]` →
+ *   style, `hue[2]` → shape. A flow encodes color and dash style; a `bubble` point
+ *   color, style (a hatch when filled, a dashed outline with `fill: 'line'`) and
+ *   marker shape, like the bubbles of `<Chart>`; a `badge` point its color only.
+ * - **`z`** names a numeric key. A point's AREA is proportional to it (the largest
+ *   reaches `--globe-marker-max-size`; a point without a positive value is not
+ *   drawn) and a size legend joins the legend. A flow's stroke width, arc height and
+ *   comet speed (its brightness in the `glow` mark) grow linearly with it. Values
+ *   are used as is: any scale works, the globe divides by the largest one.
+ * - **`labels`** titles the encoded data (`color`, `style`, `marker`, `z`), each
+ *   defaulting to the key; **`format.z`** formats `z` (d3 specifier or function),
+ *   else the `displayFormat`/`unit` of the column in `fields`, as on `<Chart>`.
  *
- * ### Flow encoding
- * `arcHue` names keys of the `arcs` objects, encoded like the hue channels of
- * `<Chart>`: the first one picks the stroke color in the categorical palette minus
- * its blue hues (they blend into the ocean), the second one the dash style (an
- * arrow head always stays solid). The chart's channel legend is then shown on the
- * right of the globe, or above it in expanded mode (toolbar, `defaults.expanded`)
- * and whenever the frame would get narrower than `--globe-frame-min-width`;
- * hovering one of its items emphasizes the matching flows. Without `arcHue`, every
- * flow takes the `--globe-arc` token color, with a solid stroke.
+ * ### Marks
+ * - Points: `badge` (default) is a dot with a halo ring and the `icon` icon — the
+ *   decorative look; `bubble` the data mark described above.
+ * - Flows: `arrow` (default) is a solid stroke of constant on-screen width with a
+ *   head at the destination, `line` the same stroke without a head (undirected
+ *   flows), `glow` a thin additive stroke growing brighter towards the destination
+ *   (the decorative look).
+ *
+ * ### Legend and tooltip
+ * The channel legends of `<Chart>` are shown on the right of the globe, or above it
+ * in expanded mode (toolbar, `defaults.expanded`) and whenever the frame would get
+ * narrower than `--globe-frame-min-width`; hovering one of their items emphasizes
+ * the matching points or flows. Hovering a point or a flow shows the tooltip of
+ * `<Chart>` (glyph, hue values, formatted `z`), toggled by the `tooltips` tool.
  *
  * ### HTML trust boundary
- * The tooltip and the point badges are injected with `innerHTML` by the engine,
- * so the split is explicit and uniform:
- * - **Data** — everything read off the `points` / `arcs` objects (`label`, `sub`,
- *   `value`, the `arcHue` values) is HTML-escaped by the feature's default templates. Untrusted input
- *   (a database row served through the GraphQL API) is safe as-is.
- * - **Accessors** — `iconFor` and `tooltipFor` return TRUSTED HTML, injected
- *   verbatim. They are host code, not data: `iconFor` returns inline SVG and could
- *   not be escaped anyway. An accessor that interpolates data must escape it
- *   itself with `escapeHtml`, re-exported by this feature
- *   (`import { escapeHtml } from '@/features/globe'`).
+ * Tooltips and legends render data through JSX: values read off the layers are
+ * never injected as HTML. The only HTML injected by the engine is the badge icon:
+ * `points.icon` returns TRUSTED inline SVG, host code rather than data. An icon that
+ * interpolates data must escape it itself with `escapeHtml`, re-exported by this
+ * feature (`import { escapeHtml } from '@/features/globe'`).
  *
  * @param {object} props
- * @param {Array<{id: string, label: string, lat: number, lon: number,
- *   value?: number, sub?: string}>} [props.points] - Points to place (fixed at mount).
- *   `label`/`sub`/`value` are escaped by the default tooltip template. Any other key
- *   can be named by `pointSize`.
- * @param {Array<{from: string, to: string, value?: number}>} [props.arcs] - Flows;
- *   from/to = point ids, value ∈ [0,1] drives stroke width, arc height and comet
- *   speed. Any other key can be named by `arcHue` (fixed at mount).
- * @param {?(string|string[])} [props.arcHue] - Keys of the `arcs` objects encoded
- *   visually: `arcHue[0]` → stroke color (categorical palette, as `<Chart>`),
- *   `arcHue[1]` → dash style. A single string encodes the color only. Null = one
- *   `--globe-arc` color and solid strokes, no flow legend.
- * @param {'arrow'|'line'|'glow'} [props.arcVariant='arrow'] - Flow drawing (fixed at
- *   mount): directed arrows, undirected lines, or the decorative glow.
- * @param {'badge'|'dot'} [props.pointVariant='badge'] - Point look (fixed at mount):
- *   badge with ring and icon, or sober dot.
- * @param {boolean} [props.pointPulse=true] - Animated pulse halo behind each point
- *   (fixed at mount; never animated when the user prefers reduced motion).
- * @param {?(number|string)} [props.pointSize] - Point diameter in px, or the key of a
- *   numeric value the point AREA is proportional to (fixed at mount). Absent = the
- *   variant default (`--globe-marker-size`, `--globe-marker-dot-size`).
- * @param {?function(Object): string} [props.iconFor] - Returns an inline SVG string
- *   centered in the point badge — conditional on any point value. TRUSTED HTML:
- *   injected as-is (see the trust boundary above). Ignored by the `dot` variant.
- * @param {?function(Object): string} [props.colorFor] - Returns the point CSS color.
- *   Applied through `element.style.setProperty('--c', …)` on the marker element,
- *   never interpolated into markup. Default: the --globe-marker-accent token.
- * @param {?function(Object): string} [props.tooltipFor] - Tooltip HTML for a point.
- *   TRUSTED HTML: injected as-is, so escape any data interpolated into it.
- *   Default: tooltipTemplates.point (label + sub + value, all escaped).
- * @param {{color?: string, style?: string, size?: string}} [props.labels] - Titles of
- *   the encoded data, as `labels` on `<Chart>`: flow color and dash channels (legend
- *   and tooltip), point size (size legend). Each defaults to the key name.
+ * @param {string} [props.title] - Globe title, shown as the figure caption and used
+ *   as the accessible name of the stage, as `title` on `<Chart>`.
+ * @param {Array<object>|{data: Array<{id: string, lat: number, lon: number,
+ *   label?: string, sub?: string}>, mark?: 'badge'|'bubble', hue?: (string|string[]),
+ *   z?: string, fill?: 'fill'|'line', pulse?: boolean, icon?: function(Object): string,
+ *   labels?: {color?: string, style?: string, marker?: string, z?: string},
+ *   format?: {z?: (string|function(*): string)}}} [props.points] - Points layer
+ *   (fixed at mount). `label` titles the tooltip, `sub` is its subtitle. `fill`
+ *   applies to bubbles ('fill' default). `pulse` adds the animated halo (default:
+ *   on for a badge, off for a bubble; never animated when the user prefers reduced
+ *   motion). `icon` returns the inline SVG of a badge (TRUSTED HTML).
+ * @param {Array<object>|{data: Array<{from: string, to: string}>,
+ *   mark?: 'arrow'|'line'|'glow', hue?: (string|string[]), z?: string,
+ *   labels?: {color?: string, style?: string, z?: string},
+ *   format?: {z?: (string|function(*): string)}}} [props.arcs] - Flows layer (fixed
+ *   at mount); `from`/`to` are point ids.
+ * @param {Array<Object>} [props.fields] - Column metadata (`fields` of
+ *   DatasetWithMetadata, as on `<Chart>`): the `displayFormat` and `unit` of a `z`
+ *   column format it in the tooltip and the size legend, unless `format.z` is set.
+ * @param {string} [props.locale] - Site locale code. Formats the `z` values; without
+ *   it they fall back to the template's default language.
  * @param {object} [props.defaults] - Initial state of each tool, keyed like `toolbar`:
  *   `mode` ('globe' | 'plane', default 'globe'), `rotate` (true), `wheelZoom` (true),
  *   `points` (true), `arcs` (true), `arcsDynamic` (false), `tooltips` (true) and
@@ -184,40 +176,58 @@ const TOGGLES = {
  * @param {string[]} [props.toolbar=TOOL_KEYS] - Exposed tool keys (order-insensitive:
  *   grouping is fixed). Empty array = no toolbar, no hover zone.
  * @param {number} [props.height=460] - Height of the globe frame in px (inline
- *   style), legend excluded.
- * @param {string} [props.locale] - Site locale code. Formats the values of the size
- *   legend; without it they fall back to the template's default language.
- * @param {Object} [props.uiLabels] - Interface wording overrides (toolbar, tooltip,
- *   accessible names), merged over the French defaults. Distinct from `labels`, which
- *   titles the data.
- * @param {string} [props.ariaLabel] - Accessible name naming THIS globe; falls back to
- *   `uiLabels.label`, the generic wording of the WebGL stage.
+ *   style), legend and caption excluded.
+ * @param {Object} [props.uiLabels] - Interface wording overrides (toolbar, accessible
+ *   names), merged over the French defaults. Distinct from the layers' `labels`,
+ *   which title the data.
+ * @param {string} [props.ariaLabel] - Accessible name of the stage WITHOUT a visible
+ *   caption (decorative hero); falls back to `title`, then to `uiLabels.label`.
  * @param {string} [props.className] - Additional class(es) on the root figure.
  * @returns {JSX.Element}
  */
 const Globe = ({
-  points = [],
-  arcs = [],
-  arcHue = null,
-  arcVariant = 'arrow',
-  pointVariant = 'badge',
-  pointPulse = true,
-  pointSize = null,
-  iconFor = null,
-  colorFor = null,
-  tooltipFor = null,
-  labels = null,
+  title,
+  points,
+  arcs,
+  fields,
+  locale,
   defaults = null,
   toolbar = TOOL_KEYS,
   height = 460,
-  locale,
   uiLabels: uiLabelOverrides,
   ariaLabel,
   className,
 }) => {
   const ui = mergeLabels(DEFAULT_UI_LABELS, uiLabelOverrides);
-  const dataLabels = labels ?? {};
   const stageRef = useRef(null);
+  const tooltipHostRef = useRef(null);
+
+  // ── Calques : spécification normalisée, encodages hue et taille ──
+  // Résolus au rendu : la légende et la tooltip les consomment ici, le moteur n'en
+  // reçoit que les accesseurs (couleur CSS -> THREE.Color une fois à la
+  // construction, jamais par frame). Capturés au premier rendu par le hook, comme
+  // les données — même contrat de données figées au montage.
+  const pointLayer = normalizePoints(points);
+  const arcLayer = normalizeArcs(arcs);
+  const pointEncoding = resolveHueEncoding(pointLayer.data, pointLayer.hue, pointLayer.channels, {
+    layer: 'points', labels: pointLayer.labels,
+  });
+  // Les flux poursuivent la palette des points (cf. `colorDomain`) : deux colonnes
+  // différentes ne partagent pas leurs teintes, une modalité commune garde la sienne.
+  const arcEncoding = resolveHueEncoding(arcLayer.data, arcLayer.hue, arcLayer.channels, {
+    layer: 'arcs', labels: arcLayer.labels, colorDomain: pointEncoding.colorDomain,
+  });
+  const pointZ = resolveZ(pointLayer.data, pointLayer.z);
+  const arcZ = resolveZ(arcLayer.data, arcLayer.z);
+  // Valeur `z` telle que la lisent la tooltip et la légende de taille : clé, titre,
+  // formateur (format.z > fields > nombre localisé, comme sur <Chart>).
+  const zInfo = (layer, z) => ({
+    key: z.key,
+    label: layer.labels.z ?? null,
+    format: zFormatter({ format: layer.format.z, fields, key: z.key, locale }),
+  });
+  const pointZInfo = zInfo(pointLayer, pointZ);
+  const arcZInfo = zInfo(arcLayer, arcZ);
 
   // État unique des interrupteurs, initialisé depuis la seule prop `defaults`.
   // Basse fréquence (un clic de toolbar) : un objet suffit, aucun besoin d'un
@@ -241,50 +251,84 @@ const Globe = ({
   // Mode agrandi : pure mise en page React (légende au-dessus du cadre), que le
   // moteur ignore. Hors de `st`, qui est spread tel quel dans sa config.
   const [expanded, setExpanded] = useState(() => !!(defaults?.expanded ?? DEFAULT_TOOL_STATE.expanded));
+  // Cible survolée signalée par le moteur (au changement seulement) : point ou flux,
+  // null sinon. Le setter, d'identité stable, peut être capturé par la config.
+  const [hoverTarget, setHoverTarget] = useState(null);
 
   // Options du moteur : `st` est lu tel quel car le hook capture cette config au
   // premier rendu. Les noms des champs d'état SONT ceux des options du moteur,
   // ce qui rend `applyOption` uniforme — c'est ce spread qui l'autorise.
-  // Encodage hue des flux, résolu au rendu : la légende le consomme ici, le
-  // moteur n'en reçoit que les accesseurs (couleur CSS -> THREE.Color une fois à
-  // la construction, jamais par frame). Capturé au premier rendu par le hook,
-  // comme `arcs` — même contrat de données figées au montage.
-  const arcEncoding = resolveArcEncoding(arcs, arcHue, dataLabels);
   const { engineRef, applyOption } = useGlobeEngine(stageRef, {
-    points, arcs, arcVariant, pointVariant, pointPulse, pointSize,
-    iconFor, colorFor, tooltipFor, labels: ui, ...st,
-    arcColorFor: arcEncoding.active ? arcEncoding.colorFor : null,
-    arcDashFor: arcEncoding.active ? arcEncoding.dashFor : null,
-    arcHueFields: arcEncoding.fields,
-  });
-  // Groupes vides écartés : un canal dont aucun flux ne porte la clé n'a rien à
-  // légender (et sans flux du tout, aucun groupe ne survit).
-  const legendGroups = arcEncoding.legend.filter((g) => g.items.length > 0);
+    points: pointLayer.data,
+    arcs: arcLayer.data,
+    pointMark: pointLayer.mark,
+    pointFill: pointLayer.fill,
+    pointPulse: pointLayer.pulse,
+    // Un badge porte une icône ; une bulle, jamais.
+    pointIcon: pointLayer.mark === 'badge' ? pointLayer.icon : null,
+    pointRatioFor: pointZ.key ? pointZ.ratioFor : null,
+    pointColorFor: pointEncoding.colorFor,
+    pointHatchFor: pointEncoding.hatchFor,
+    pointDashFor: pointEncoding.dashFor,
+    pointMarkerFor: pointEncoding.markerFor,
+    arcMark: arcLayer.mark,
+    arcRatioFor: arcZ.key ? arcZ.ratioFor : null,
+    arcColorFor: arcEncoding.colorFor,
+    // Le shader des flux lit des longueurs en px, pas un dash-array SVG.
+    arcDashFor: (arc) => parseDash(arcEncoding.dashFor(arc)),
+    onHover: setHoverTarget,
+    ...st,
+  }, tooltipHostRef);
+
+  // ── Légendes ──
+  // Groupes vides écartés : un canal dont aucune ligne ne porte la clé n'a rien à
+  // légender (et sans données, aucun groupe ne survit).
+  const pointGroups = pointEncoding.legend.filter((g) => g.items.length > 0);
+  const arcGroups = arcEncoding.legend.filter((g) => g.items.length > 0);
 
   // Taille des points par valeur : légende de taille, comme pour les bulles du
   // chart. Le diamètre maximal est un token, lu en px une fois le cadre monté
   // (null avant) : le moteur lit le même, à sa construction.
-  const sizing = resolvePointSize(points, pointSize);
-  const sizeByValue = sizing.mode === 'value' && sizing.max > 0;
+  const sizeByValue = pointZ.key != null && pointZ.max > 0;
   const maxDiameter = useCssLength(stageRef, '--globe-marker-max-size', sizeByValue);
-  const formatSize = (v) => new Intl.NumberFormat(intlLocaleFor(locale)).format(v);
   const sizeLegend = sizeByValue && maxDiameter > 0 ? (
     <SizeLegend
-      zMax={sizing.max} rMax={maxDiameter / 2} formatValue={formatSize}
-      label={dataLabels.size ?? sizing.key} />
+      zMax={pointZ.max} rMax={maxDiameter / 2} formatValue={pointZInfo.format}
+      label={pointZInfo.label ?? pointZ.key} />
   ) : null;
   // La place de la légende est réservée dès le rendu serveur (cf. Globe.scss) :
   // la légende de taille n'arrive qu'au montage, sans décaler le globe.
-  const hasLegend = legendGroups.length > 0 || sizeByValue;
-  // Modalité survolée dans la légende : estompe les autres items (comme sur le
-  // chart) et met en avant les flux correspondants dans la scène. Le moteur peut
-  // être encore en cours de chargement : le survol est alors simplement perdu,
-  // sans conséquence (il ne dure que le temps du geste).
+  const hasLegend = pointGroups.length > 0 || arcGroups.length > 0 || sizeByValue;
+
+  // Modalité survolée dans une légende, avec son calque : estompe les autres items
+  // de CETTE légende (comme sur le chart) et met en avant les points ou les flux
+  // correspondants dans la scène. Le moteur peut être encore en cours de
+  // chargement : le survol est alors simplement perdu, sans conséquence (il ne dure
+  // que le temps du geste).
   const [legendHover, setLegendHover] = useState(null);
   const handleLegendHover = (key, group) => {
-    setLegendHover(key);
-    engineRef.current?.setArcHighlight(key == null ? null : arcEncoding.matcher(group.channel, key));
+    setLegendHover(key == null ? null : { layer: group.layer, key });
+    const engine = engineRef.current;
+    if (!engine) return;
+    if (group.layer === 'points') {
+      engine.setPointHighlight(key == null ? null : pointEncoding.matcher(group.channel, key));
+    } else {
+      engine.setArcHighlight(key == null ? null : arcEncoding.matcher(group.channel, key));
+    }
   };
+  const hoveredIn = (layer) => (legendHover?.layer === layer ? legendHover.key : null);
+
+  // ── Tooltip : modèle de <DataTooltip>, construit au changement de cible ──
+  // `st.tooltips` est aussi vérifié ici : le moteur cesse d'en signaler dès que
+  // l'outil est coupé, mais une cible déjà reçue ne doit pas survivre au clic.
+  let tooltipModel = null;
+  if (st.tooltips && hoverTarget) {
+    tooltipModel = hoverTarget.layer === 'point'
+      ? pointTooltipModel(hoverTarget.point, { encoding: pointEncoding, mark: pointLayer.mark, z: pointZInfo })
+      : arcTooltipModel(hoverTarget.arc, hoverTarget.from, hoverTarget.to, {
+        encoding: arcEncoding, mark: arcLayer.mark, z: arcZInfo,
+      });
+  }
 
   /**
    * Applies a toolbar gesture: mirrors it in the React state (button look and
@@ -388,13 +432,23 @@ const Globe = ({
     // spatial et la légende, qui se lit HORS de la scène, comme celle du chart.
     <figure
       className={`globe${hasLegend ? ' globe--legend' : ''}${expanded ? ' globe--expanded' : ''}${className ? ` ${className}` : ''}`}>
-      {/* Cadre spatial (bordure, fond, hauteur) : hôte positionné du stage et de
-          la toolbar, distinct de la figure pour que la légende reste dehors. */}
+      {/* Cadre spatial (bordure, fond, hauteur) : hôte positionné du stage, de la
+          tooltip et de la toolbar, distinct de la figure pour que la légende reste
+          dehors. */}
       <div className="globe-frame" style={{ height }}>
         {/* Point de montage du moteur : un sous-arbre possédé par Three.js, que
             React ne réconcilie jamais. `role="img"` donne un équivalent textuel
             au canvas, invisible des technologies d'assistance. */}
-        <div className="globe-stage" ref={stageRef} role="img" aria-label={ariaLabel ?? ui.label} />
+        <div className="globe-stage" ref={stageRef} role="img" aria-label={ariaLabel ?? title ?? ui.label} />
+        {/* Hôte de la tooltip : React en rend le contenu (la bulle du chart), le
+            moteur n'en écrit que le `transform`. Frère du stage et non enfant :
+            React ne doit jamais réconcilier le sous-arbre de Three.js. La classe de
+            calque fixe la couleur `currentColor` des glyphes sans canal couleur. */}
+        <div
+          ref={tooltipHostRef}
+          className={`globe-tooltip-host${hoverTarget ? ` globe-tooltip-host--${hoverTarget.layer}` : ''}`}>
+          {tooltipModel && <DataTooltip model={tooltipModel} />}
+        </div>
         {visibleTools.length > 0 && (
           // `hasPoints`/`hasArcs`/`hasLegend` sont dérivés au rendu et NON rangés
           // dans `st` : `st` est le miroir des options du moteur (il est spread tel
@@ -407,26 +461,46 @@ const Globe = ({
             tools={visibleTools}
             state={{
               ...st, expanded,
-              hasPoints: points.length > 0, hasArcs: arcs.length > 0, hasLegend,
+              hasPoints: pointLayer.data.length > 0, hasArcs: arcLayer.data.length > 0, hasLegend,
             }}
             onAction={handleToolAction} />
         )}
       </div>
-      {/* Légendes des flux (couleur, style de trait) et de la taille des points :
-          les composants de légende du chart. Elles ne suivent pas les
-          interrupteurs « points / flux affichés » : comme la toolbar, elles
+      {/* Légendes des points (couleur, style, forme), des flux (couleur, style de
+          trait) et de la taille des points : les composants de légende du chart,
+          une légende par calque pour que chacune garde son glyphe de style
+          (hachure d'une bulle pleine, pointillé d'un flux). Elles ne suivent pas
+          les interrupteurs « points / flux affichés » : comme la toolbar, elles
           décrivent la donnée reçue, pas l'état de la scène. */}
       {hasLegend && (
         <aside className="globe-legend" aria-label={ui.legend}>
-          {legendGroups.length > 0 && (
+          {pointGroups.length > 0 && (
             <ChannelLegend
-              groups={legendGroups}
+              className="globe-legend-points"
+              groups={pointGroups}
               layout={expanded ? 'horizontal' : 'vertical'}
-              hovered={legendHover}
+              styleGlyph={pointLayer.fill === 'line' ? 'dash' : 'hatch'}
+              hovered={hoveredIn('points')}
+              onHover={handleLegendHover} />
+          )}
+          {arcGroups.length > 0 && (
+            <ChannelLegend
+              className="globe-legend-arcs"
+              groups={arcGroups}
+              layout={expanded ? 'horizontal' : 'vertical'}
+              hovered={hoveredIn('arcs')}
               onHover={handleLegendHover} />
           )}
           {sizeLegend}
         </aside>
+      )}
+      {/* Légende de la figure, comme le titre de <Chart>. DERNIÈRE dans le DOM : la
+          figure s'enroule en `wrap-reverse` (cf. Globe.scss), sa dernière ligne
+          s'affiche donc en haut. */}
+      {title && (
+        <figcaption className="globe-caption">
+          <h3 className="globe-title">{title}</h3>
+        </figcaption>
       )}
     </figure>
   );

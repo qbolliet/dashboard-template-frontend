@@ -13,13 +13,11 @@
 
 // Importation des modules
 import { Globe } from '@/features/globe';
-import { GLOBE_POINTS, demoPointIcon, pointColor } from '@/features/globe/sources/demoData';
+import { GLOBE_POINTS, demoPointIcon } from '@/features/globe/sources/demoData';
 
 const GlobePointsOnly = () => (
   <Globe
-    points={GLOBE_POINTS}
-    iconFor={demoPointIcon}
-    colorFor={pointColor}
+    points={{ data: GLOBE_POINTS, icon: demoPointIcon }}
     defaults={{ rotate: false }}
     toolbar={['mode', 'points', 'rotate', 'wheelZoom', 'resetZoom', 'tooltips']}
     height={420}

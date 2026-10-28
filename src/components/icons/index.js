@@ -32,5 +32,6 @@ export { default as SortDescIcon } from './SortDescIcon/SortDescIcon';
 export { default as SortNoneIcon } from './SortNoneIcon/SortNoneIcon';
 export { default as SunMoonIcon } from './SunMoonIcon/SunMoonIcon';
 export { default as TableIcon } from './TableIcon/TableIcon';
+export { default as TooltipIcon } from './TooltipIcon/TooltipIcon';
 export { default as TrendArrowIcon } from './TrendArrowIcon/TrendArrowIcon';
 export { default as UsersIcon } from './UsersIcon/UsersIcon';

@@ -55,10 +55,26 @@
   min-width: 0;
   max-width: none;
 }
-// Sans canal couleur, les glyphes de style reçoivent `currentColor` (cf.
-// arcEncoding.js) : ils prennent ici le token des flux, qui suit le thème. La
-// classe `.legend-glyph` appartient à ChannelLegend (src/components/legend/).
-.globe-legend .legend-glyph { color: hsl(var(--globe-arc)); }
+// Sans canal couleur, les glyphes de style et de forme reçoivent `currentColor`
+// (cf. hueEncoding.js) : ils prennent ici le token de leur calque, qui suit le
+// thème. La classe `.legend-glyph` appartient à ChannelLegend
+// (src/components/legend/) ; les classes de calque sont posées par <Globe>.
+.globe-legend-points .legend-glyph { color: hsl(var(--globe-marker-accent)); }
+.globe-legend-arcs .legend-glyph { color: hsl(var(--globe-arc)); }
+
+// ── Titre (prop `title`), comme celui de <Chart> ──
+// Seul sur sa ligne et DERNIER dans le DOM : avec `wrap-reverse`, il s'affiche
+// au-dessus de la légende agrandie et du cadre.
+.globe-caption {
+  flex-basis: 100%;
+}
+.globe-title {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: hsl(var(--globe-title-color));
+}
 
 // ── Cadre : fond spatial + bordure, hauteur pilotée en style inline (prop height) ──
 .globe-frame {
@@ -81,7 +97,7 @@
 }
 
 // ── Point de montage du moteur : sous-arbre possédé par Three.js, jamais
-// réconcilié par React (canvas WebGL + overlay de points + tooltip injectés) ──
+// réconcilié par React (canvas WebGL + overlay de points injectés) ──
 //
 // `isolation: isolate` — le moteur écrit un z-index PAR FRAME sur chaque
 // pastille, dérivé de sa profondeur écran pour les trier d'avant en arrière.
@@ -94,13 +110,27 @@
 // profondeur des pastilles est préservé À L'INTÉRIEUR, mais tout le sous-arbre
 // du moteur passe désormais sous les frères positifs du cadre.
 //
-// Conséquence assumée : la tooltip, elle aussi injectée dans le stage, passe
-// sous la toolbar. Seul cas où les deux coexistent : la barre maintenue visible
-// au clavier (`.toolbar:focus-within`) pendant qu'une pastille haute est
-// survolée à la souris — la bulle est alors masquée par la barre. Hors de ce
-// cas, la barre n'apparaît qu'au survol du coin haut-droit, où plus aucune
-// tooltip ne peut être déclenchée (cf. GlobeToolbar.scss).
 .globe-stage { position: absolute; inset: 0; isolation: isolate; }
+
+// ── Hôte de la tooltip : rendu par React (<DataTooltip>), déplacé par le moteur ──
+// Ancré au coin haut-gauche du cadre, qui est aussi celui du stage : le moteur y
+// écrit un `transform` en px du stage, la bulle se plaçant dans le quadrant opposé à
+// la cible (ancrage adaptatif de <Chart>, cf. GlobeEngine._moveTip). Frère suivant du stage, sans z-index : il se peint au-dessus de tout le
+// sous-arbre du moteur et sous la toolbar (z-index positif). Seul cas où les deux
+// coexistent : la barre maintenue visible au clavier (`.toolbar:focus-within`)
+// pendant qu'une pastille haute est survolée à la souris — la bulle est alors
+// masquée par la barre. Hors de ce cas, la barre n'apparaît qu'au survol du coin
+// haut-droit, où plus aucune tooltip ne peut être déclenchée (cf. GlobeToolbar.scss).
+.globe-tooltip-host {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+// Glyphe sans canal couleur (`currentColor`, cf. tooltipModel.js) : token du calque
+// survolé, comme dans la légende.
+.globe-tooltip-host--point .data-tooltip-glyph { color: hsl(var(--globe-marker-accent)); }
+.globe-tooltip-host--arc .data-tooltip-glyph { color: hsl(var(--globe-arc)); }
 
 .globe-canvas {
   display: block;

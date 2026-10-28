@@ -22,9 +22,8 @@ import {
   pointAtDistance,
   writeArcDistances,
 } from './arcGeometry';
-import { markerHtml } from '../components/GlobeMarkers/markerTemplate';
-import { resolvePointSize } from '../utils/pointSize';
-import { arcTooltipHtml, pointTooltipHtml } from '../components/GlobeTooltip/tooltipTemplates';
+import { bubbleHtml, markerHtml } from '../components/GlobeMarkers/markerTemplate';
+import { bubbleDiameter } from '../utils/zScale';
 import { clamp } from '@/utils/math/clamp';
 import { lerp } from '@/utils/math/lerp';
 import { withBasePath } from '@/utils/url/withBasePath';
@@ -87,18 +86,21 @@ const TEX = {
 
 class GlobeEngine {
   /**
-   * Framework-agnostic Three.js globe renderer. Owns the WebGL canvas, the DOM
-   * point overlay and the tooltip inside `container`. No React, no theme
-   * observation: the host drives it through explicit setters.
+   * Framework-agnostic Three.js globe renderer. Owns the WebGL canvas and the DOM
+   * point overlay inside `container`. No React, no theme observation: the host
+   * drives it through explicit setters. The tooltip CONTENT belongs to the host:
+   * the engine only reports the hovered target (`onHover`, on change, never per
+   * frame) and moves the host's `tooltipHost` element under it.
    *
    * @param {HTMLElement} container - Positioned element the engine renders into.
    * @param {object} [opts] - Engine options, all frozen at construction.
    * @param {Array<{id: string, label: string, lat: number, lon: number,
    *   value?: number, sub?: string}>} [opts.points] - Points to place.
-   * @param {Array<{from: string, to: string, value?: number}>} [opts.arcs] - Flows
-   *   between point ids; `value` ∈ [0,1] drives arc height, comet speed and the
-   *   stroke width (between the `--globe-arc-width-min/max` tokens), or its
-   *   brightness in the `glow` variant.
+   * @param {Array<{from: string, to: string}>} [opts.arcs] - Flows between point ids.
+   * @param {?function(Object): ?number} [opts.arcRatioFor] - Size ratio of a flow in
+   *   [0,1] (its `z` value over the largest one), driving arc height, comet speed
+   *   and the stroke width (between the `--globe-arc-width-min/max` tokens), or its
+   *   brightness in the `glow` mark; null/absent = 0.5.
    * @param {'globe'|'plane'} [opts.mode='globe'] - Initial projection.
    * @param {boolean} [opts.autoRotate=true] - Slow permanent rotation of the globe
    *   and of the star field (both are ambient motion, driven by this single switch).
@@ -108,7 +110,7 @@ class GlobeEngine {
    * @param {boolean} [opts.tooltips=true] - Hover tooltips enabled.
    * @param {boolean} [opts.arcsDynamic=false] - Animated arcs (a comet-shaped
    *   opacity modulation running along each stroke).
-   * @param {'arrow'|'line'|'glow'} [opts.arcVariant='arrow'] - Flow drawing:
+   * @param {'arrow'|'line'|'glow'} [opts.arcMark='arrow'] - Flow drawing:
    *   `arrow` = solid stroke with a head at the destination, `line` = the same
    *   stroke without a head (undirected flows), `glow` = thin additive stroke whose
    *   brightness grows towards the destination (decorative). Unknown values fall
@@ -118,19 +120,32 @@ class GlobeEngine {
    *   theme-dependent `--globe-arc` token.
    * @param {?function(Object): ?number[]} [opts.arcDashFor] - Dash / gap lengths
    *   of an arc in CSS px (at most 4 entries); null/absent = solid stroke.
-   * @param {Array<{key: string, label: string}>} [opts.arcHueFields] - Hue fields
-   *   listed in the arc tooltip.
-   * @param {'badge'|'dot'} [opts.pointVariant='badge'] - Point look: `badge` = dot
-   *   with a halo ring and the `iconFor` icon; `dot` = plain disc with a thin border,
-   *   no ring, no icon.
+   * @param {'badge'|'bubble'} [opts.pointMark='badge'] - Point look: `badge` = disc
+   *   with a halo ring and the `pointIcon` icon; `bubble` = data mark whose color,
+   *   hatch or dash and shape follow the hue accessors, like the bubbles of <Chart>.
+   * @param {'fill'|'line'} [opts.pointFill='fill'] - Bubble body: filled (style =
+   *   hatch) or outlined (style = dashed outline).
    * @param {boolean} [opts.pointPulse=true] - Animated pulse halo behind each point.
-   * @param {?(number|string)} [opts.pointSize] - Diameter in px of every point, or
-   *   the key of a value each point's AREA is proportional to (the largest one
-   *   reaching `--globe-marker-max-size`; no positive value = point not drawn).
-   *   Absent = the variant default (`--globe-marker-size` / `--globe-marker-dot-size`).
-   * @param {?function(Object): string} [opts.iconFor] - Inline SVG for a badge.
-   * @param {?function(Object): string} [opts.colorFor] - CSS colour of a badge.
-   * @param {?function(Object): string} [opts.tooltipFor] - Point tooltip HTML.
+   * @param {?function(Object): ?number} [opts.pointRatioFor] - Size ratio of a point
+   *   in [0,1]: its AREA is proportional to it, the largest one reaching
+   *   `--globe-marker-max-size`, 0 = point not drawn. Null/absent = the mark default
+   *   (`--globe-marker-size` / `--globe-marker-dot-size`).
+   * @param {?function(Object): string} [opts.pointIcon] - Inline SVG of a badge
+   *   (TRUSTED HTML, injected as is).
+   * @param {?function(Object): ?string} [opts.pointColorFor] - CSS colour of a point;
+   *   null/absent = the `--globe-marker-accent` token.
+   * @param {?function(Object): ?string} [opts.pointHatchFor] - Hatch type of a filled
+   *   bubble (HATCH_TYPES); null = no hatch.
+   * @param {?function(Object): ?string} [opts.pointDashFor] - SVG dash-array of an
+   *   outlined bubble; null = solid outline.
+   * @param {?function(Object): ?string} [opts.pointMarkerFor] - Marker shape of a
+   *   bubble (MARKER_TYPES); null = disc.
+   * @param {?function(?({layer: 'point', point: Object}|{layer: 'arc', arc: Object,
+   *   from: Object, to: Object})): void} [opts.onHover] - Called when the hovered
+   *   target changes (null when nothing is hovered any more), never per frame.
+   * @param {?HTMLElement} [opts.tooltipHost] - Host element of the tooltip, positioned
+   *   absolutely over the stage; the engine writes its `transform` (per frame for a
+   *   point, per mouse move for a flow).
    * @param {boolean} [opts.initialDark=false] - Theme at construction; later
    *   changes come exclusively through setTheme().
    * @param {{day: string, night: string, spec: string}} [opts.textures] - Texture
@@ -155,10 +170,11 @@ class GlobeEngine {
     this.o = Object.assign({
       points: [], arcs: [], mode: 'globe',
       autoRotate: true, wheelZoom: true, showPoints: true, showArcs: true,
-      tooltips: true, arcsDynamic: false, arcVariant: 'arrow',
-      pointVariant: 'badge', pointPulse: true, pointSize: null,
-      iconFor: null, colorFor: null, tooltipFor: null,
-      arcColorFor: null, arcDashFor: null, arcHueFields: [],
+      tooltips: true, arcsDynamic: false, arcMark: 'arrow',
+      pointMark: 'badge', pointFill: 'fill', pointPulse: true, pointRatioFor: null,
+      pointIcon: null, pointColorFor: null, pointHatchFor: null, pointDashFor: null, pointMarkerFor: null,
+      arcColorFor: null, arcDashFor: null, arcRatioFor: null,
+      onHover: null, tooltipHost: null,
       initialDark: false, textures: null,
     }, opts);
     // Les deux jeux de donnees viennent d'une base via l'API GraphQL : une
@@ -187,6 +203,14 @@ class GlobeEngine {
 
     this.raf = null; this.time = 0; this.lastT = performance.now();
     this.markers = []; this.hovered = null;
+    // Derniere cible signalee a l'hote (onHover) : il n'est rappele qu'au changement.
+    this._hoverTarget = null;
+    // Predicat de mise en avant des points pose par la legende de l'hote.
+    this._pointHighlight = null;
+    // Identifiant propre a l'instance : prefixe des <pattern> de hachure des bulles,
+    // qui doivent rester uniques dans tout le document (plusieurs globes par page).
+    GlobeEngine._instances = (GlobeEngine._instances ?? 0) + 1;
+    this._uid = 'gb' + GlobeEngine._instances;
     this._sunVec = new THREE.Vector3();
     // Vecteurs de travail REUTILISES, jamais realloues : les deux chemins chauds
     // (positionnement des pastilles par frame, test de survol des arcs par
@@ -228,10 +252,9 @@ class GlobeEngine {
     // Tokens dimensionnels (flux et pastilles), lus UNE fois eux aussi : ils ne
     // dependent pas du theme, setTheme n'a donc pas a les relire.
     this._style = readGlobeArcStyle(this.c);
-    // Taille des points (prop pointSize), resolue une fois : _buildArcs en tire le
-    // rayon de la pastille de destination, _buildMarkers le diametre de chacune.
-    this._dot = this.o.pointVariant === 'dot';
-    this._sizing = resolvePointSize(this.o.points, this.o.pointSize);
+    // Mark des points, fige comme les donnees : _buildArcs en tire le rayon de la
+    // pastille de destination (halo compris pour un badge), _buildMarkers le dessin.
+    this._bubble = this.o.pointMark === 'bubble';
     this._buildStars();
     this._buildEarth(pal);
     this._buildArcs(pal);
@@ -242,7 +265,7 @@ class GlobeEngine {
     if (this.o.onReady) this.o.onReady(this);
   }
 
-  // Renderer, caméra, group porteur et couches DOM (overlay de points, tooltip).
+  // Renderer, caméra, group porteur et couche DOM (overlay de points).
   _initScene() {
     const c = this.c;
     // Dimensions du cadre MEMORISEES ici et reecrites par resize(). Les deux
@@ -272,14 +295,30 @@ class GlobeEngine {
     this.group.rotation.order = 'YXZ';
     this.scene.add(this.group);
 
-    // overlay DOM pour points + tooltips
+    // overlay DOM des points. La tooltip, elle, appartient a l'hote (tooltipHost) :
+    // le moteur ne fait que la deplacer.
     this.overlay = document.createElement('div');
     this.overlay.className = 'globe-overlay';
     c.appendChild(this.overlay);
-    this.tooltip = document.createElement('div');
-    this.tooltip.className = 'globe-tooltip';
-    this.tooltip.style.opacity = '0';
-    c.appendChild(this.tooltip);
+    this.tooltipHost = this.o.tooltipHost ?? null;
+    // Taille de la bulle, tenue a jour par un ResizeObserver plutot que lue dans
+    // _moveTip : celui-ci tourne a chaque frame, juste apres les ecritures de style
+    // des pastilles, et un offsetWidth y forcerait un recalcul de layout complet.
+    // A chaque changement (nouveau contenu rendu par l'hote), la bulle est replacee
+    // sur sa derniere ancre.
+    this._tipSize = { w: 0, h: 0 };
+    this._tipAnchor = null;
+    if (this.tooltipHost && typeof ResizeObserver !== 'undefined') {
+      this._tipRo = new ResizeObserver(([entry]) => {
+        const box = entry.borderBoxSize?.[0];
+        this._tipSize = box
+          ? { w: box.inlineSize, h: box.blockSize }
+          : { w: entry.contentRect.width, h: entry.contentRect.height };
+        const a = this._tipAnchor;
+        if (a) this._moveTip(a.x, a.y, a.gap);
+      });
+      this._tipRo.observe(this.tooltipHost);
+    }
   }
 
   // Densité de pixels du tampon de dessin, plafonnée à 2 (au-delà, le coût en
@@ -457,7 +496,7 @@ class GlobeEngine {
     const st = this._style;
     // Variante de dessin, figee a la construction comme les donnees : elle
     // choisit le programme (define ARC_GLOW) et la fusion de chaque materiau.
-    const variant = ARC_VARIANTS.includes(this.o.arcVariant) ? this.o.arcVariant : 'arrow';
+    const variant = ARC_VARIANTS.includes(this.o.arcMark) ? this.o.arcMark : 'arrow';
     const glow = variant === 'glow';
     // Seule la variante "arrow" porte une pointe : _updateArcLengths ne la pose
     // que dans ce cas, et la coupe du ruban a sa base avec elle.
@@ -490,8 +529,11 @@ class GlobeEngine {
     this.o.arcs.forEach((arc, i) => {
       const a = byId.get(arc.from), b = byId.get(arc.to);
       if (!a || !b) return;
-      const { geo, pts, midLon, samples, distAttr } = this._arcGeometry(a, b, arc.value);
-      const v = clamp(arc.value ?? 0.5, 0, 1);
+      // Rapport de taille du flux (z / max z, cf. utils/zScale.js) ; sans `z`, la
+      // moyenne : epaisseur, hauteur et vitesse intermediaires.
+      const ratio = this.o.arcRatioFor ? this.o.arcRatioFor(arc) : null;
+      const v = clamp(ratio ?? 0.5, 0, 1);
+      const { geo, pts, midLon, samples, distAttr } = this._arcGeometry(a, b, v);
       // Couleur hue resolue UNE fois en THREE.Color (lineaire, comme pal.arc) ;
       // sans couleur hue, l'arc suit le token --globe-arc et setTheme le recolore.
       const css = this.o.arcColorFor ? this.o.arcColorFor(arc) : null;
@@ -504,7 +546,7 @@ class GlobeEngine {
         uniforms: {
           ...this._arcU,
           uColor: { value: themed ? pal.arc.clone() : cssColor(css) },
-          // "glow" : trait fin CONSTANT, et `value` passe a la luminosite (meme
+          // "glow" : trait fin CONSTANT, et le rapport passe a la luminosite (meme
           // loi que le rendu d'avant les fleches). Cet uOpacity propre a l'arc
           // remplace alors celui, partage, du spread ci-dessus.
           uWidth: { value: glow ? st.glowWidth : lerp(st.widthMin, st.widthMax, v) },
@@ -549,7 +591,7 @@ class GlobeEngine {
       // Rayon de la pastille de destination (px CSS, a l'echelle 1) : la pointe
       // s'arrete a son bord au lieu de disparaitre dessous. Meme diametre que
       // celui que pose _buildMarkers, halo compris pour un badge.
-      const tipRadius = this._markerDiameter(b) / 2 + (this._dot ? 0 : st.markerRing);
+      const tipRadius = this._markerDiameter(b) / 2 + (this._bubble ? 0 : st.markerRing);
       this.arcHit.push({
         mat, mesh, arc, a, b, pts, midLon, themed, samples, distAttr, tipRadius,
         // Longueur ecran utile seulement a la pointe et aux pointilles : un trait
@@ -621,12 +663,18 @@ class GlobeEngine {
     return (out ?? new THREE.Vector3()).set(plon, lat + elev * PLANE_LIFT, elev * PLANE_DEPTH).lerp(s, m);
   }
 
-  // Diametre (px CSS, a l'echelle 1) de la pastille d'un point : celui de
-  // pointSize s'il en fixe un, sinon le token de la variante. 0 = point non dessine.
+  // Diametre (px CSS, a l'echelle 1) de la pastille d'un point : aire ∝ z s'il est
+  // encode, sinon le token du mark. 0 = point non dessine.
   _markerDiameter(p) {
-    const d = this._sizing.diameterFor(p, this._style.markerMaxSize);
+    const d = this._pointDiameter(p);
     if (d != null) return d;
-    return this._dot ? this._style.dotSize : this._style.markerSize;
+    return this._bubble ? this._style.dotSize : this._style.markerSize;
+  }
+
+  // Diametre encode par z, ou null sans encodage de taille (repli CSS).
+  _pointDiameter(p) {
+    const ratio = this.o.pointRatioFor ? this.o.pointRatioFor(p) : null;
+    return bubbleDiameter(ratio, this._style.markerMaxSize);
   }
 
   // `pal` est TOUJOURS fourni par l'appelant (constructeur ou setTheme), qui
@@ -634,27 +682,28 @@ class GlobeEngine {
   _buildMarkers(pal) {
     // Reconstruction DESTRUCTIVE de l'overlay : une pastille peut etre survolee a cet
     // instant (bascule de theme sous le curseur). Detacher l'element ne declenche pas de
-    // `mouseleave` fiable ; sans ce _hideTip(), la tooltip resterait figee a opacity 1
+    // `mouseleave` fiable ; sans ce _hideTip(), l'hote garderait sa tooltip affichee
     // (plus aucune pastille vivante ne satisfait `this._tipEl === el` dans _updateMarkers,
-    // donc rien ne la repositionne ni ne la masque) et `this.hovered`, reste non nul,
+    // donc rien ne la repositionne ni ne signale sa fin) et `this.hovered`, reste non nul,
     // tuerait le survol des ARCS pour toute la session (_onHoverMove sort immediatement).
     this._hideTip();
     this.overlay.innerHTML = '';
     this.markers = [];
-    // Pastilles plates, entierement pilotables : colorFor / iconFor / pointSize,
-    // variante (badge ou point) et halo pulse.
-    const variant = this._dot ? 'dot' : 'badge';
-    this.o.points.forEach((p) => {
-      const d = this._sizing.diameterFor(p, this._style.markerMaxSize);
+    // Pastilles plates, entierement pilotees par les accesseurs de l'hote : couleur
+    // (hue[0]), taille (z), mark (badge ou bulle) et halo pulse ; une bulle porte en
+    // plus sa forme, sa hachure ou son contour pointille (hue[1], hue[2]).
+    const o = this.o;
+    const mark = this._bubble ? 'bubble' : 'badge';
+    const line = o.pointFill === 'line';
+    o.points.forEach((p, i) => {
+      const d = this._pointDiameter(p);
       // Taille par valeur sans valeur positive : le point n'est pas dessine, comme
       // une bulle de z <= 0 dans le chart. Ses flux, eux, restent traces.
       if (d === 0) return;
       const el = document.createElement('div');
-      el.className = `globe-marker globe-marker--flat globe-marker--${variant}`;
-      const color = this.o.colorFor ? this.o.colorFor(p) : pal.accent;
-      // Un point sobre ne porte jamais d'icone, meme si l'hote fournit iconFor.
-      const icon = !this._dot && this.o.iconFor ? this.o.iconFor(p) : null;
-      // `--d` n'est posé QUE si pointSize fixe un diamètre : à défaut, le repli CSS
+      el.className = `globe-marker globe-marker--flat globe-marker--${mark}`;
+      const color = (o.pointColorFor && o.pointColorFor(p)) || pal.accent;
+      // `--d` n'est posé QUE si z fixe un diamètre : à défaut, le repli CSS
       // `var(--d, var(--globe-marker-size))` (GlobeMarkers.scss) doit rester
       // libre de jouer son rôle. Poser systématiquement une valeur inline ici
       // — même recopiée du token — rendrait --globe-marker-size invisible du
@@ -669,7 +718,20 @@ class GlobeEngine {
       // hors ecran) laisserait les 13 pastilles empilees en haut-gauche du cadre
       // a pleine opacite jusqu'a la reprise de la boucle.
       el.style.opacity = '0';
-      el.innerHTML = markerHtml({ icon, pulse: !!this.o.pointPulse });
+      // Gabarits a valeurs CONSTANTES (formes, motifs, dash-arrays des echelles du
+      // repo, nombres calcules) : aucune donnee n'y est interpolee, hormis l'icone
+      // de confiance du badge. Une bulle ne porte jamais d'icone.
+      el.innerHTML = this._bubble
+        ? bubbleHtml({
+          marker: (o.pointMarkerFor && o.pointMarkerFor(p)) || 'circle',
+          diameter: this._markerDiameter(p),
+          line,
+          hatch: line ? null : (o.pointHatchFor && o.pointHatchFor(p)) || null,
+          dash: line ? (o.pointDashFor && o.pointDashFor(p)) || null : null,
+          patternId: `${this._uid}-h${i}`,
+          pulse: !!o.pointPulse,
+        })
+        : markerHtml({ icon: o.pointIcon ? o.pointIcon(p) : null, pulse: !!o.pointPulse });
       el.addEventListener('mouseenter', () => this._showTip(p, el));
       el.addEventListener('mouseleave', () => this._hideTip());
       this.overlay.appendChild(el);
@@ -686,25 +748,70 @@ class GlobeEngine {
       });
     });
     this._applyPointVisibility();
+    // Reconstruction (bascule de theme) : la mise en avant posee par la legende survit.
+    this._applyPointEmphasis();
   }
 
-  // Tooltip de point : contenu de l'hote (tooltipFor) ou template par defaut.
+  // Estompe les pastilles que le predicat de la legende n'a pas retenues. Au
+  // changement de predicat ou a la reconstruction seulement, jamais par frame.
+  // L'opacite des enfants, et non celle de la pastille : _updateMarkers ecrit la
+  // sienne a chaque frame (fondu du limbe).
+  _applyPointEmphasis() {
+    const test = this._pointHighlight;
+    for (const mk of this.markers) mk.el.classList.toggle('is-faded', test !== null && !test(mk.p));
+  }
+
+  // Signale a l'hote la cible survolee, au CHANGEMENT seulement : c'est l'unique
+  // canal montant du moteur, et il reste de basse frequence (React rend la bulle
+  // a chaque appel, jamais par frame).
+  _emitHover(target) {
+    if (target === this._hoverTarget) return;
+    this._hoverTarget = target;
+    if (this.o.onHover) this.o.onHover(target);
+  }
+
+  // Deplace l'hote de la tooltip pres d'un point ecran (px du stage). Seule
+  // ecriture du moteur sur un element qu'il ne possede pas : son transform.
+  // Ancrage adaptatif, comme <Chart> : la bulle se place de preference dans le
+  // quadrant OPPOSE au point (a gauche d'un point de la moitie droite, au-dessus d'un
+  // point de la moitie basse), a `gap` px de lui. Le cadre coupe tout debordement
+  // (`overflow: hidden`) et une bulle a plusieurs lignes (hue, z) y tient mal : si le
+  // cote prefere manque de place, elle passe de l'autre cote, et si aucun ne suffit
+  // (cadre etroit), elle se cale contre le bord. Sa taille vient du ResizeObserver
+  // de _initScene (`_tipSize`) : aucune mesure du DOM ici, appele a chaque frame.
+  _moveTip(x, y, gap) {
+    if (!this.tooltipHost) return;
+    // Derniere ancre, rejouee quand la bulle change de taille (nouveau contenu).
+    this._tipAnchor = { x, y, gap };
+    const { w, h } = this._tipSize;
+    const place = (p, size, extent, flip) => {
+      const before = p - gap - size, after = p + gap;
+      const fitsBefore = before >= 0, fitsAfter = after + size <= extent;
+      if (flip ? fitsBefore : !fitsAfter && fitsBefore) return before;
+      if (fitsAfter) return after;
+      // Aucun cote ne suffit : bulle centree sur le point, bornee au cadre.
+      return clamp(p - size / 2, 0, Math.max(0, extent - size));
+    };
+    const px = place(x, w, this._w, x > this._w / 2);
+    const py = place(y, h, this._h, y > this._h / 2);
+    this.tooltipHost.style.transform = `translate(${px.toFixed(1)}px,${py.toFixed(1)}px)`;
+  }
+
+  // Tooltip de point : l'hote en construit le contenu, le moteur la place (cf.
+  // _updateMarkers, qui la fait suivre la pastille a chaque frame).
   _showTip(p, el) {
     if (!this.o.tooltips || !this.o.showPoints) return;
     this._clearArcHover();
     this.hovered = p;
-    const html = this.o.tooltipFor ? this.o.tooltipFor(p) : pointTooltipHtml(p);
-    this.tooltip.className = 'globe-tooltip';
-    this.tooltip.innerHTML = html;
-    this.tooltip.style.opacity = '1';
     el.classList.add('is-hover');
     this._tipEl = el;
+    this._emitHover({ layer: 'point', point: p });
   }
   _hideTip() {
     this.hovered = null;
     if (this._tipEl) { this._tipEl.classList.remove('is-hover'); this._tipEl = null; }
     // Un arc peut rester survolé sous la pastille : on ne masque qu'à défaut.
-    if (!this._arcHover) this.tooltip.style.opacity = '0';
+    if (!this._arcHover) this._emitHover(null);
   }
 
   /* ---- Survol des arcs : détection en espace écran + tooltip style Chart ---- */
@@ -749,18 +856,15 @@ class GlobeEngine {
     else this._clearArcHover();
   }
 
-  // Affichage/deplacement de la tooltip d'arc : contenu recree seulement au
-  // changement d'arc survole, la position suit la souris a chaque mouvement.
+  // Affichage/deplacement de la tooltip d'arc : cible signalee a l'hote seulement
+  // au changement d'arc survole, la position suit la souris a chaque mouvement.
   _showArcTip(hit, mx, my) {
     if (this._arcHover !== hit) {
       this._arcHover = hit;
       this._applyArcEmphasis();
-      this.tooltip.className = 'globe-tooltip globe-tooltip--arc';
-      this.tooltip.innerHTML = arcTooltipHtml(hit.arc, hit.a, hit.b, this.o.labels, this.o.arcHueFields);
-      this.tooltip.style.opacity = '1';
+      this._emitHover({ layer: 'arc', arc: hit.arc, from: hit.a, to: hit.b });
     }
-    this.tooltip.style.transform =
-      `translate(-50%,-100%) translate(${mx.toFixed(1)}px,${(my - 14).toFixed(1)}px)`;
+    this._moveTip(mx, my, 14);
   }
   _clearArcHover() {
     if (this._arcHover) {
@@ -768,7 +872,7 @@ class GlobeEngine {
       this._applyArcEmphasis();
     }
     // Symetrique de _hideTip : une pastille survolee garde la main sur la tooltip.
-    if (!this._tipEl) this.tooltip.style.opacity = '0';
+    if (!this._tipEl) this._emitHover(null);
   }
 
   // Mise en avant des flux, depuis ses deux sources : l'arc survole a la souris
@@ -1081,7 +1185,7 @@ class GlobeEngine {
         // session (_onHoverMove sort immediatement) — le meme scenario que celui
         // dont _buildMarkers se protege deja lors d'une bascule de theme.
         if (behind || vis <= 0.5) this._hideTip();
-        else this.tooltip.style.transform = `translate(-50%,-100%) translate(${sx.toFixed(1)}px,${(sy - 22).toFixed(1)}px)`;
+        else this._moveTip(sx, sy, 16);
       }
     }
   }
@@ -1178,6 +1282,16 @@ class GlobeEngine {
    * @returns {void}
    */
   setArcHighlight(test) { this._arcHighlight = test ?? null; this._applyArcEmphasis(); }
+
+  /**
+   * Fades the points a predicate does not select, the counterpart of
+   * `setArcHighlight` for the host's legend hover on a point channel.
+   *
+   * @param {?function(Object): boolean} test - Called with each point object; null
+   *   restores every point.
+   * @returns {void}
+   */
+  setPointHighlight(test) { this._pointHighlight = test ?? null; this._applyPointEmphasis(); }
 
   /**
    * Applies a theme change: animates the sun direction and the star field, and
@@ -1289,10 +1403,13 @@ class GlobeEngine {
     // forceContextLoss() rend le contexte au navigateur IMMEDIATEMENT, sans
     // attendre le ramassage du canvas par le GC.
     this.renderer.forceContextLoss();
-    // DOM injecte : canvas WebGL, overlay des pastilles, tooltip.
+    // DOM injecte : canvas WebGL et overlay des pastilles. L'hote de la tooltip
+    // appartient a React, qui le demonte lui-meme ; on n'y appelle plus personne.
     if (this.c.contains(this.canvas)) this.c.removeChild(this.canvas);
     if (this.c.contains(this.overlay)) this.c.removeChild(this.overlay);
-    if (this.c.contains(this.tooltip)) this.c.removeChild(this.tooltip);
+    this.o.onHover = null;
+    if (this._tipRo) this._tipRo.disconnect();
+    this.tooltipHost = null;
   }
 }
 

@@ -1,0 +1,101 @@
+// =================================================================
+// DATA TOOLTIP — bulle de survol (chart, multichart, globe)
+// =================================================================
+@use './tokens' as *;
+@use './colors' as *;
+
+.data-tooltip {
+  position: absolute;
+  z-index: var(--data-tooltip-z);
+  min-width: var(--data-tooltip-min-width);
+  max-width: var(--data-tooltip-max-width);
+  padding: var(--data-tooltip-padding-y) var(--data-tooltip-padding-x);
+  background: hsl(var(--data-tooltip-bg));
+  border: 1px solid hsl(var(--data-tooltip-border));
+  border-radius: var(--data-tooltip-radius);
+  box-shadow: var(--shadow-lg);
+  pointer-events: none;
+  font-size: var(--data-tooltip-font-size);
+  color: hsl(var(--data-tooltip-title-color));
+  font-variant-numeric: tabular-nums;
+}
+// Mode hébergé : aucune coordonnée propre, la bulle suit son parent (positionné
+// en impératif par l'hôte). `relative` et non `absolute` : le parent doit prendre
+// la taille de la bulle pour que ses translate(-50%, -100%) la centrent.
+.data-tooltip--hosted {
+  position: relative;
+  z-index: auto;
+}
+
+.data-tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: var(--data-tooltip-header-gap);
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid hsl(var(--data-tooltip-border));
+  font-weight: 600;
+  font-size: var(--data-tooltip-font-size);
+}
+// En-tête seul (aucun rang) : pas de séparateur sous un corps vide.
+.data-tooltip-header--alone {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: 0;
+}
+.data-tooltip-glyph { display: inline-flex; align-items: center; flex-shrink: 0; }
+.data-tooltip-glyph svg { display: block; }
+.data-tooltip-heading { display: flex; flex-direction: column; min-width: 0; }
+.data-tooltip-title { color: hsl(var(--data-tooltip-title-color)); letter-spacing: -0.005em; }
+.data-tooltip-subtitle {
+  margin-top: var(--spacing-2px);
+  color: hsl(var(--data-tooltip-label-color));
+  font-family: var(--font-mono);
+  font-size: var(--data-tooltip-label-font-size);
+  font-weight: 400;
+}
+
+.data-tooltip-body { margin: 0; }
+
+.data-tooltip-row--hue .data-tooltip-value {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: hsl(var(--data-tooltip-hue-value-color));
+}
+
+.data-tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--spacing-md);
+  padding: var(--spacing-2px) 0;
+}
+// Séparateur sous le dernier rang « hue » : sépare visuellement le groupe des
+// hues du reste des rangs (règle après `.data-tooltip-row` : même spécificité,
+// doit gagner en ordre de cascade pour surcharger son `padding-bottom`).
+.data-tooltip-row--hue-last {
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  border-bottom: 1px dashed hsl(var(--data-tooltip-border));
+}
+// La valeur garde sa ligne (bornes d'IC « [a ; b] ») ; c'est le libellé qui
+// cède la place et se tronque par ellipse.
+.data-tooltip-label {
+  margin: 0;
+  color: hsl(var(--data-tooltip-label-color));
+  font-size: var(--data-tooltip-label-font-size);
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.data-tooltip-value {
+  margin: 0;
+  color: hsl(var(--data-tooltip-value-color));
+  font-weight: 500;
+  font-family: var(--font-mono);
+  font-size: var(--data-tooltip-value-font-size);
+  flex: 0 0 auto;
+  white-space: nowrap;
+}

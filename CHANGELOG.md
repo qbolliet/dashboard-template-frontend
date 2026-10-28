@@ -13,6 +13,57 @@ since the copy they took.
 
 ## [Unreleased]
 
+### Breaking
+
+- **`<Globe>` — layer API aligned on `<Chart>`.** `points` and `arcs` now each take a
+  layer spec, a "mini-Chart": `{ data, mark, hue, z, labels, format }` (plus `fill`,
+  `pulse` and `icon` for points). An array alone is still accepted as a shorthand for
+  `{ data }`, so `<Globe points={rows} arcs={flows} />` keeps working. The flat props of
+  the earlier entries below (`arcHue`, `arcVariant`, `pointVariant`, `pointSize`,
+  `pointPulse`, `labels`) are gone, with no alias:
+
+  | Before | After |
+  |---|---|
+  | `pointVariant="badge" \| "dot"` | `points.mark = 'badge' \| 'bubble'` (the sober dot is a bubble without `hue` or `z`) |
+  | `pointSize="key"` | `points.z = 'key'` |
+  | `pointSize={12}` (px) | removed: `--globe-marker-size` / `--globe-marker-dot-size` tokens |
+  | `pointPulse` | `points.pulse` (default: on for a badge, off for a bubble) |
+  | `iconFor` | `points.icon` (badge only) |
+  | `colorFor` | removed: `points.hue[0]` — precompute a categorical column to color by thresholds |
+  | `tooltipFor` | removed: structured tooltip of `<Chart>`, toggled by the `tooltips` tool |
+  | `arcVariant` | `arcs.mark` |
+  | `arcHue` | `arcs.hue` |
+  | `arc.value` ∈ [0, 1] | `arcs.z = 'key'`, any scale (divided by the largest value) |
+  | `labels.color` / `labels.style` (flows) | `arcs.labels.color` / `arcs.labels.style` |
+  | `labels.size` | `points.labels.z` |
+
+  New in the same move: `points.hue` on bubbles encodes color, style (hatch when filled,
+  dashed outline with `fill: 'line'`) and marker shape with the grammar of
+  `<BubbleMarks>` — badges take `hue[0]` as color; both layers share `GLOBE_PALETTE`
+  (PALETTE minus its blue hues) without collision: the flow colors continue after the
+  point categories, and a category found in both layers keeps one color. One `ChannelLegend` per layer; hovering an item
+  emphasizes the matching points (new engine method `setPointHighlight`) or flows.
+  `title` (figure caption and accessible name, as on `<Chart>`), `fields` and
+  `format.z` (formatting of `z` in the tooltip and the size legend, same precedence as
+  `<Chart>`). The tooltip is now the chart's, rendered by React: the engine only reports
+  the hovered target (`onHover`, on change) and moves the host element, so no data is
+  injected as HTML any more — the badge icon is the only trusted HTML left. The
+  `globe.flowIntensity` UI label is gone. New registry examples `globe-bubble-hue` and
+  `globe-hero`; the others are migrated. Engine options renamed accordingly
+  (`arcMark`, `pointMark`, `pointRatioFor`, `arcRatioFor`, `point*For` accessors).
+- **`ChartTooltip` promoted to `src/components/tooltip/DataTooltip/`** (second consumer:
+  the globe), with an optional `subtitle` and an optional `position` (without it the
+  host positions the bubble). Classes `.chart-tooltip*` → `.data-tooltip*`, tokens
+  `--chart-tooltip-*` → `--data-tooltip-*`. `GlobeTooltip` (HTML templates and their
+  styles) is removed.
+- **Shared encoding and toolbar primitives.** `hatchScale`, `markerScale`, `HATCH_TYPES`
+  and `MARKER_TYPES` moved from `src/features/chart/utils/encoding.js` to
+  `src/utils/encoding/scales.js` (still re-exported by `@/features/chart`); `fieldOf`
+  and `typeFromField` to `src/utils/format/fields.js` (still re-exported by
+  `fieldTypes.js`). New `tooltipTool()` factory in `src/components/toolbar/tools.js` and
+  `TooltipIcon`, shared by the chart and globe toolbars; `ToolIcon.Tooltip` and
+  `GlobeToolIcon.tip` are removed. `ChannelLegend` accepts a `className`.
+
 ### Added
 
 - **`<Chart zMark="bubble">` — the third dimension as bubble size.** With a numeric `z`,

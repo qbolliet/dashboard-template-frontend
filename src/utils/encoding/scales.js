@@ -2,11 +2,12 @@
 // SCALES — palette catégorielle, rampe séquentielle, styles de trait et
 // échelles ordinales associées
 // =================================================================
-// Promu depuis src/features/chart/utils/encoding.js : le globe (flux colorés et
-// pointillés par `arcHue`) est le second consommateur, sans lien avec le chart.
-// Seules vivent ici les primitives qu'ils partagent ; les helpers propres au
-// chart (hachures, marqueurs, séries multi-canaux, rampe séquentielle)
-// restent dans la feature.
+// Promu depuis src/features/chart/utils/encoding.js : le globe (flux et bulles
+// encodés par `hue`) est le second consommateur, sans lien avec le chart.
+// Seules vivent ici les primitives qu'ils partagent (palette, styles de trait,
+// hachures et marqueurs — encodés aussi par les bulles du globe) ; les helpers
+// propres au chart (séries multi-canaux, rampe séquentielle) restent dans la
+// feature.
 //
 // Exception documentée aux deux conventions couleur du repo (HSL + déclaration
 // dans styles/globals/primitives/colors.scss) : PALETTE/SEQUENTIAL restent des CONSTANTES
@@ -90,6 +91,42 @@ export function colorScale(domain, range = PALETTE) {
  */
 export function styleScale(domain) {
   return scaleOrdinal().domain(domain).range(LINE_STYLES);
+}
+
+/* ─────────────────────── Style (line) + Marker channels ──────────────────
+   Encodage à 3 canaux, calqué sur l'implémentation de référence :
+     • couleur   → série principale (toujours)
+     • style     → 1er hue secondaire (trait plein, pointillé, …)
+     • marqueur  → 2e hue secondaire (point, triangle, carré, …)
+   ───────────────────────────────────────────────────────────────────────── */
+
+// Motifs de hachures — équivalent « barres » des pointillés du linechart.
+export const HATCH_TYPES = [null, 'diag', 'diag-rev', 'cross', 'horizontal', 'vertical', 'grid'];
+
+// Types de marqueurs d3-symbol — l'exigence décroît encore : 5 formes
+// nettement distinctes (la confusion visuelle apparaît plus vite sur les
+// symboles que sur les couleurs/hachures).
+export const MARKER_TYPES = ['circle', 'square', 'triangle', 'diamond', 'star'];
+
+/**
+ * Builds the hatch-pattern ordinal scale, parallel to styleScale (same domain
+ * → same index, so a series' dash-style and hatch always pair up).
+ *
+ * @param {Array<*>} domain - Distinct secondary hue values.
+ * @returns {(value: *) => (string|null)} Ordinal hatch-type scale.
+ */
+export function hatchScale(domain) {
+  return scaleOrdinal().domain(domain).range(HATCH_TYPES);
+}
+
+/**
+ * Builds the marker-shape ordinal scale over the given domain.
+ *
+ * @param {Array<*>} domain - Distinct tertiary hue values.
+ * @returns {(value: *) => string} Ordinal marker-type scale.
+ */
+export function markerScale(domain) {
+  return scaleOrdinal().domain(domain).range(MARKER_TYPES);
 }
 
 /**

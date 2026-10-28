@@ -13,14 +13,12 @@
 
 // Importation des modules
 import { Globe } from '@/features/globe';
-import { GLOBE_POINTS, GLOBE_ARCS, demoPointIcon, pointColor } from '@/features/globe/sources/demoData';
+import { GLOBE_POINTS, GLOBE_ARCS, demoPointIcon } from '@/features/globe/sources/demoData';
 
 const GlobeToolbarRestricted = () => (
   <Globe
-    points={GLOBE_POINTS}
+    points={{ data: GLOBE_POINTS, icon: demoPointIcon }}
     arcs={GLOBE_ARCS}
-    iconFor={demoPointIcon}
-    colorFor={pointColor}
     defaults={{ mode: 'plane' }}
     toolbar={['mode', 'rotate', 'resetZoom']}
     height={420}

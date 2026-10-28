@@ -15,7 +15,7 @@
 
 // Importation des modules
 import HoverToolbar from '@/components/toolbar/HoverToolbar/HoverToolbar';
-import { expandTool, resetZoomTool } from '@/components/toolbar/tools';
+import { expandTool, resetZoomTool, tooltipTool } from '@/components/toolbar/tools';
 import GlobeToolIcon from './GlobeToolIcon/GlobeToolIcon';
 import './GlobeToolbar.scss';
 import { mergeLabels } from '@/utils/i18n/mergeLabels';
@@ -158,9 +158,8 @@ const buildTool = (key, state, onAction, labels) => {
       const hoverablePoints = state.showPoints && state.hasPoints;
       const hoverableArcs = state.showArcs && state.hasArcs;
       const nothingToHover = !hoverablePoints && !hoverableArcs;
-      return {
-        id: 'tooltips',
-        icon: GlobeToolIcon.tip,
+      // Factory partagée avec le chart : même icône, même modèle de tooltip.
+      return tooltipTool({
         // Deux causes distinctes de grisage, donc deux libellés : soit la donnée
         // existe et il suffit de la réafficher, soit le globe n'a reçu ni points
         // ni flux et aucune manipulation de la barre n'y changera quoi que ce
@@ -173,7 +172,7 @@ const buildTool = (key, state, onAction, labels) => {
         active: state.tooltips && !nothingToHover,
         disabled: nothingToHover,
         onClick,
-      };
+      });
     }
     // Même bouton que sur le chart (factory partagée) : agrandi, le globe prend
     // toute la largeur et la légende passe au-dessus. Sans légende, le globe

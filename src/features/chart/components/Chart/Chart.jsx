@@ -31,10 +31,10 @@ import { isDatasetList } from '../../utils/datasetList';
 import { detectType, coerce, detectChart, layoutKindOf } from '../../utils/typeDetection';
 import { dodgeScale, dodgeSlot } from '../../utils/dodge';
 import { bubbleArea, bubbleMaxRadius, bubbleZMax, layoutBubbles } from '../../utils/bubble';
-import { PALETTE, colorScale, styleScale, distinctVals } from '@/utils/encoding/scales';
 import {
-  sequentialScale, hatchScale, markerScale, groupSeries, seriesKey, xKeyOf,
-} from '../../utils/encoding';
+  PALETTE, colorScale, styleScale, hatchScale, markerScale, distinctVals,
+} from '@/utils/encoding/scales';
+import { sequentialScale, groupSeries, seriesKey, xKeyOf } from '../../utils/encoding';
 import { buildStacks } from '../../utils/stacking';
 import { reduceValues, clientAggregation, isAdditive } from '../../utils/aggregate';
 import { resolveFormatter } from '../../utils/formatters';
@@ -63,7 +63,7 @@ import SizeLegend from '@/components/legend/SizeLegend/SizeLegend';
 import LineMarks from '../marks/LineMarks/LineMarks';
 import BarMarks from '../marks/BarMarks/BarMarks';
 import { VoronoiOverlay, DirectHoverOverlay, ActiveMark } from '../overlays/HoverOverlays/HoverOverlays';
-import ChartTooltip from '../ChartTooltip/ChartTooltip';
+import DataTooltip from '@/components/tooltip/DataTooltip/DataTooltip';
 import ChartToolbar from '../ChartToolbar/ChartToolbar';
 import BrushMinimap from '../ChartMinimap/BrushMinimap/BrushMinimap';
 import MiniProjection from '../ChartMinimap/MiniProjection/MiniProjection';
@@ -1020,7 +1020,7 @@ const ChartCanvas = ({
       )}
 
       {tooltipsOn && active && activePos && tooltipModel && (
-        <ChartTooltip model={tooltipModel} position={activePos} />
+        <DataTooltip model={tooltipModel} position={activePos} />
       )}
     </>
   );

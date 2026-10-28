@@ -1,6 +1,5 @@
 // =================================================================
-// ENCODING — rampe séquentielle, échelles de hachure/marqueur et
-// helpers de série multi-canaux
+// ENCODING — rampe séquentielle et helpers de série multi-canaux
 // =================================================================
 
 // @visx/scale n'expose pas `scaleSequential` (contrairement à d3-scale) : la
@@ -9,14 +8,13 @@
 // non bornée, sans clamp — cf. sequentialScale ci-dessous), en s'appuyant
 // uniquement sur `interpolateRgbBasis` de d3-interpolate.
 //
-// PALETTE, SEQUENTIAL, LINE_STYLES, colorScale, styleScale et distinctVals ont été
-// promus dans src/utils/encoding/scales.js (second consommateur : les flux du
-// globe), D3_SYMBOL et markerPath dans src/utils/encoding/markers.js (avec la
+// PALETTE, SEQUENTIAL, LINE_STYLES, HATCH_TYPES, MARKER_TYPES, colorScale, styleScale,
+// hatchScale, markerScale et distinctVals ont été promus dans src/utils/encoding/scales.js (second consommateur : les flux et
+// les bulles du globe), D3_SYMBOL et markerPath dans src/utils/encoding/markers.js (avec la
 // légende par canaux, partagée elle aussi avec le globe). Ce fichier ne garde que les helpers propres au chart ; l'API publique
 // de la feature les réexporte toujours (cf. src/features/chart/index.js).
 
 // Importation des modules
-import { scaleOrdinal } from '@visx/scale';
 import { interpolateRgbBasis } from 'd3-interpolate';
 import { SEQUENTIAL } from '@/utils/encoding/scales';
 
@@ -38,42 +36,6 @@ export function sequentialScale(domain) {
   // (SequentialLegend) lisent les bornes sans les re-passer séparément.
   scale.domain = () => [d0, d1];
   return scale;
-}
-
-/* ─────────────────────── Style (line) + Marker channels ──────────────────
-   Encodage à 3 canaux, calqué sur l'implémentation de référence :
-     • couleur   → série principale (toujours)
-     • style     → 1er hue secondaire (trait plein, pointillé, …)
-     • marqueur  → 2e hue secondaire (point, triangle, carré, …)
-   ───────────────────────────────────────────────────────────────────────── */
-
-// Motifs de hachures — équivalent « barres » des pointillés du linechart.
-export const HATCH_TYPES = [null, 'diag', 'diag-rev', 'cross', 'horizontal', 'vertical', 'grid'];
-
-// Types de marqueurs d3-symbol — l'exigence décroît encore : 5 formes
-// nettement distinctes (la confusion visuelle apparaît plus vite sur les
-// symboles que sur les couleurs/hachures).
-export const MARKER_TYPES = ['circle', 'square', 'triangle', 'diamond', 'star'];
-
-/**
- * Builds the hatch-pattern ordinal scale, parallel to styleScale (same domain
- * → same index, so a series' dash-style and hatch always pair up).
- *
- * @param {Array<*>} domain - Distinct secondary hue values.
- * @returns {(value: *) => (string|null)} Ordinal hatch-type scale.
- */
-export function hatchScale(domain) {
-  return scaleOrdinal().domain(domain).range(HATCH_TYPES);
-}
-
-/**
- * Builds the marker-shape ordinal scale over the given domain.
- *
- * @param {Array<*>} domain - Distinct tertiary hue values.
- * @returns {(value: *) => string} Ordinal marker-type scale.
- */
-export function markerScale(domain) {
-  return scaleOrdinal().domain(domain).range(MARKER_TYPES);
 }
 
 /* ─────────────────────── Multi-channel series helpers ────────────────────

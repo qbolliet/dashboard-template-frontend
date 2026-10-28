@@ -4,7 +4,8 @@
 // Promu depuis src/features/chart/utils/encoding.js avec la légende par canaux
 // (src/components/legend/) : son glyphe de canal « marqueur » dessine ces formes,
 // et la légende sert désormais aussi au globe. L'échelle ordinale des marqueurs
-// (markerScale, MARKER_TYPES) reste dans le chart, seul à encoder ce canal.
+// (markerScale, MARKER_TYPES) vit dans ./scales.js, partagée par le chart et les
+// bulles du globe.
 
 // Importation des modules
 import { symbol, symbolCircle, symbolSquare, symbolTriangle, symbolDiamond, symbolCross, symbolStar, symbolWye } from 'd3-shape';

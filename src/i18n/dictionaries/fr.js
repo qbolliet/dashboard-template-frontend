@@ -358,7 +358,6 @@ const fr = {
         noDataToHover: 'Aucune donnée à survoler',
         tooltipsOn: 'Tooltips activées',
         tooltipsOff: 'Tooltips désactivées',
-        flowIntensity: 'Intensité du flux',
         expand: 'Agrandir (pleine largeur)',
         collapse: 'Replier',
         noLegendToMove: 'Déjà en pleine largeur : aucune légende',

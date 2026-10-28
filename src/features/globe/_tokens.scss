@@ -1,7 +1,7 @@
 // ===== TOKENS DIMENSIONNELS — FEATURE GLOBE =====
 // Valeurs MUTUALISÉES entre tous les composants de la feature globe (et le moteur). Chaque
 // composant définit ses propres tokens préfixés (--globe-frame-*, --globe-
-// marker-*, --globe-tooltip-*, …) dans son propre _tokens.scss.
+// marker-*, …) dans son propre _tokens.scss.
 //
 // ⚠️ RÈGLE : une dimension propre à UN seul composant vit dans le _tokens.scss
 // de ce composant, pas ici (cf. features/chart/_tokens.scss pour le précédent).
@@ -17,12 +17,12 @@
 // acceptés. Les rapports et opacités sont des NOMBRES sans unité (pas de calc()).
 
 :root {
-  // ---- Épaisseur du trait, interpolée selon `value` ∈ [0, 1] ----
-  // Proche des traits du Chart. Sans `value`, la moyenne des deux (2,75 px).
-  --globe-arc-width-min: 0.09375rem;       // 1,5px à value = 0
-  --globe-arc-width-max: var(--spacing-xs); // 4px à value = 1
-  // Variante décorative (arcVariant="glow") : trait fin constant, `value` y
-  // pilote la luminosité et non l'épaisseur.
+  // ---- Épaisseur du trait, interpolée selon le rapport z / max z ∈ [0, 1] ----
+  // Proche des traits du Chart. Sans `arcs.z`, la moyenne des deux (2,75 px).
+  --globe-arc-width-min: 0.09375rem;       // 1,5px pour le plus petit flux
+  --globe-arc-width-max: var(--spacing-xs); // 4px pour le plus grand
+  // Mark décoratif (arcs.mark="glow") : trait fin constant, `z` y pilote la
+  // luminosité et non l'épaisseur.
   --globe-arc-glow-width: var(--spacing-px); // 1px
 
   // ---- Pointe : multiples de l'épaisseur du trait (variante "arrow") ----

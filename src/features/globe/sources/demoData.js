@@ -10,11 +10,13 @@
 // SURFACE DE DÉMONSTRATION, PAS DE PRODUIT : aucune page de l'application ne l'importe.
 // `npm run eject` le supprime avec le reste de la surface de documentation.
 //
-// Porté À L'IDENTIQUE de design-system/project/scripts/globe/globe-data.jsx et
-// des accesseurs de démo de globe.html (lignes 98-108) : mêmes capitales/sources
-// statistiques, mêmes flux, mêmes seuils de couleur/taille. Données + fonctions
-// pures (accesseurs = fonctions, donc non sérialisables depuis un Server Component —
-// tout consommateur qui les importe doit être ou descendre d'une frontière 'use client').
+// Porté de design-system/project/scripts/globe/globe-data.jsx et des accesseurs de
+// démo de globe.html (lignes 98-108) : mêmes capitales/sources statistiques, mêmes
+// flux. Les seuils de couleur du prototype sont devenus une colonne catégorielle
+// (`niveau`), encodée par `hue` comme sur <Chart>, et l'intensité des flux un volume
+// brut (`volume`), normalisé par le globe lui-même. Données + une fonction pure
+// (accesseur d'icône, donc non sérialisable depuis un Server Component — tout
+// consommateur qui l'importe doit être ou descendre d'une frontière 'use client').
 
 // Icônes de points — petits SVG inline (24×24, stroke = currentColor), choisis
 // conditionnellement à une valeur par `demoPointIcon`.
@@ -27,51 +29,58 @@ export const GLOBE_ICONS = {
   pulse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l3 8 4-16 3 8h6"/></svg>',
 };
 
-// Points de démo — capitales & sources de données statistiques.
+// Points de démo — capitales & sources de données statistiques. Colonnes encodables
+// par `points.hue` / `points.z` :
+//   • `region`  — continent (couleur) ;
+//   • `niveau`  — palier d'activité, ex-seuils de couleur du prototype (≥ 80 fort,
+//                 < 45 faible) ;
+//   • `type`    — nature de la source (forme d'une bulle) ;
+//   • `value`   — score d'activité (taille).
 export const GLOBE_POINTS = [
-  { id: 'par', label: 'Paris', sub: 'INSEE', lat: 48.85, lon: 2.35, value: 92 },
-  { id: 'fra', label: 'Francfort', sub: 'BCE', lat: 50.11, lon: 8.68, value: 100 },
-  { id: 'lux', label: 'Luxembourg', sub: 'Eurostat', lat: 49.61, lon: 6.13, value: 74 },
-  { id: 'lon', label: 'Londres', sub: 'ONS', lat: 51.51, lon: -0.13, value: 61 },
-  { id: 'mad', label: 'Madrid', sub: 'INE', lat: 40.42, lon: -3.70, value: 48 },
-  { id: 'rom', label: 'Rome', sub: 'ISTAT', lat: 41.90, lon: 12.50, value: 38 },
-  { id: 'ber', label: 'Berlin', sub: 'Destatis', lat: 52.52, lon: 13.40, value: 83 },
-  { id: 'nyc', label: 'New York', sub: 'BLS', lat: 40.71, lon: -74.01, value: 88 },
-  { id: 'was', label: 'Washington', sub: 'Fed / BEA', lat: 38.90, lon: -77.04, value: 95 },
-  { id: 'tok', label: 'Tokyo', sub: 'e-Stat', lat: 35.68, lon: 139.69, value: 57 },
-  { id: 'sgp', label: 'Singapour', sub: 'SingStat', lat: 1.35, lon: 103.82, value: 44 },
-  { id: 'syd', label: 'Sydney', sub: 'ABS', lat: -33.87, lon: 151.21, value: 33 },
-  { id: 'sao', label: 'São Paulo', sub: 'IBGE', lat: -23.55, lon: -46.63, value: 29 },
+  { id: 'par', label: 'Paris', sub: 'INSEE', lat: 48.85, lon: 2.35, value: 92, region: 'Europe', niveau: 'fort', type: 'institut national' },
+  { id: 'fra', label: 'Francfort', sub: 'BCE', lat: 50.11, lon: 8.68, value: 100, region: 'Europe', niveau: 'fort', type: 'banque centrale' },
+  { id: 'lux', label: 'Luxembourg', sub: 'Eurostat', lat: 49.61, lon: 6.13, value: 74, region: 'Europe', niveau: 'moyen', type: 'office européen' },
+  { id: 'lon', label: 'Londres', sub: 'ONS', lat: 51.51, lon: -0.13, value: 61, region: 'Europe', niveau: 'moyen', type: 'institut national' },
+  { id: 'mad', label: 'Madrid', sub: 'INE', lat: 40.42, lon: -3.70, value: 48, region: 'Europe', niveau: 'moyen', type: 'institut national' },
+  { id: 'rom', label: 'Rome', sub: 'ISTAT', lat: 41.90, lon: 12.50, value: 38, region: 'Europe', niveau: 'faible', type: 'institut national' },
+  { id: 'ber', label: 'Berlin', sub: 'Destatis', lat: 52.52, lon: 13.40, value: 83, region: 'Europe', niveau: 'fort', type: 'institut national' },
+  { id: 'nyc', label: 'New York', sub: 'BLS', lat: 40.71, lon: -74.01, value: 88, region: 'Amériques', niveau: 'fort', type: 'institut national' },
+  { id: 'was', label: 'Washington', sub: 'Fed / BEA', lat: 38.90, lon: -77.04, value: 95, region: 'Amériques', niveau: 'fort', type: 'banque centrale' },
+  { id: 'tok', label: 'Tokyo', sub: 'e-Stat', lat: 35.68, lon: 139.69, value: 57, region: 'Asie-Pacifique', niveau: 'moyen', type: 'institut national' },
+  { id: 'sgp', label: 'Singapour', sub: 'SingStat', lat: 1.35, lon: 103.82, value: 44, region: 'Asie-Pacifique', niveau: 'faible', type: 'institut national' },
+  { id: 'syd', label: 'Sydney', sub: 'ABS', lat: -33.87, lon: 151.21, value: 33, region: 'Asie-Pacifique', niveau: 'faible', type: 'institut national' },
+  { id: 'sao', label: 'São Paulo', sub: 'IBGE', lat: -23.55, lon: -46.63, value: 29, region: 'Amériques', niveau: 'faible', type: 'institut national' },
 ];
 
-// Flux (arcs) entre points — value ∈ [0,1] pilote l'épaisseur du trait (entre les
-// tokens --globe-arc-width-min/max, ou sa luminosité en variante "glow"), la
-// hauteur de l'arc et la vitesse de la comète.
-// `mode` et `kind` sont des colonnes de démonstration pour `arcHue` : couleur par
-// mode d'acheminement, style de trait (plein / pointillé) par régularité du flux.
+// Flux (arcs) entre points. Colonnes encodables par `arcs.hue` / `arcs.z` :
+//   • `mode`   — mode d'acheminement (couleur) ;
+//   • `kind`   — régularité du flux (style de trait : plein / pointillé) ;
+//   • `volume` — volume échangé, valeur brute (taille : épaisseur du trait, hauteur
+//                de l'arc et vitesse de la comète, ou luminosité en mark "glow").
 export const GLOBE_ARCS = [
-  { from: 'fra', to: 'par', value: 0.9, mode: 'rail', kind: 'régulier' },
-  { from: 'fra', to: 'ber', value: 0.8, mode: 'rail', kind: 'régulier' },
-  { from: 'fra', to: 'lux', value: 0.7, mode: 'rail', kind: 'régulier' },
-  { from: 'fra', to: 'rom', value: 0.5, mode: 'rail', kind: 'ponctuel' },
-  { from: 'fra', to: 'mad', value: 0.55, mode: 'aérien', kind: 'ponctuel' },
-  { from: 'par', to: 'lon', value: 0.6, mode: 'rail', kind: 'régulier' },
-  { from: 'was', to: 'nyc', value: 0.85, mode: 'rail', kind: 'régulier' },
-  { from: 'was', to: 'fra', value: 0.75, mode: 'aérien', kind: 'régulier' },
-  { from: 'nyc', to: 'lon', value: 0.65, mode: 'aérien', kind: 'ponctuel' },
-  { from: 'fra', to: 'tok', value: 0.5, mode: 'aérien', kind: 'régulier' },
-  { from: 'tok', to: 'sgp', value: 0.45, mode: 'maritime', kind: 'ponctuel' },
-  { from: 'sgp', to: 'syd', value: 0.4, mode: 'maritime', kind: 'régulier' },
-  { from: 'nyc', to: 'sao', value: 0.5, mode: 'maritime', kind: 'ponctuel' },
+  { from: 'fra', to: 'par', volume: 900, mode: 'rail', kind: 'régulier' },
+  { from: 'fra', to: 'ber', volume: 800, mode: 'rail', kind: 'régulier' },
+  { from: 'fra', to: 'lux', volume: 700, mode: 'rail', kind: 'régulier' },
+  { from: 'fra', to: 'rom', volume: 500, mode: 'rail', kind: 'ponctuel' },
+  { from: 'fra', to: 'mad', volume: 550, mode: 'aérien', kind: 'ponctuel' },
+  { from: 'par', to: 'lon', volume: 600, mode: 'rail', kind: 'régulier' },
+  { from: 'was', to: 'nyc', volume: 850, mode: 'rail', kind: 'régulier' },
+  { from: 'was', to: 'fra', volume: 750, mode: 'aérien', kind: 'régulier' },
+  { from: 'nyc', to: 'lon', volume: 650, mode: 'aérien', kind: 'ponctuel' },
+  { from: 'fra', to: 'tok', volume: 500, mode: 'aérien', kind: 'régulier' },
+  { from: 'tok', to: 'sgp', volume: 450, mode: 'maritime', kind: 'ponctuel' },
+  { from: 'sgp', to: 'syd', volume: 400, mode: 'maritime', kind: 'régulier' },
+  { from: 'nyc', to: 'sao', volume: 500, mode: 'maritime', kind: 'ponctuel' },
 ];
 
-// Titres des données encodées de la démonstration (prop `labels`) : canaux hue
-// des flux, et taille des points quand `pointSize="value"`.
-export const GLOBE_LABELS = { color: 'Acheminement', style: 'Régularité', size: 'Activité' };
+// Titres des données encodées de la démonstration, un objet par calque (prop
+// `labels` de `points` et de `arcs`), comme `labels` sur <Chart>.
+export const GLOBE_POINT_LABELS = { color: 'Région', style: 'Niveau', marker: 'Type de source', z: 'Activité' };
+export const GLOBE_ARC_LABELS = { color: 'Acheminement', style: 'Régularité', z: 'Volume' };
 
 /**
  * Picks a point's icon conditionally on its source/value — demonstrates a
- * value-dependent `iconFor` accessor.
+ * value-dependent `points.icon` accessor (badge mark).
  *
  * @param {{sub?: string, value?: number}} pt - Point (see GLOBE_POINTS).
  * @returns {string} One of the GLOBE_ICONS SVG strings.
@@ -83,16 +92,4 @@ export const demoPointIcon = (pt) => {
   if (pt.value >= 80) return GLOBE_ICONS.up;
   if (pt.value < 40) return GLOBE_ICONS.down;
   return GLOBE_ICONS.pulse;
-};
-
-/**
- * Picks a point's badge color conditionally on its value (thresholds 80/45).
- *
- * @param {{value?: number}} pt - Point (see GLOBE_POINTS).
- * @returns {string} An oklch() CSS color — demo data, not a design token.
- */
-export const pointColor = (pt) => {
-  if (pt.value >= 80) return 'oklch(0.62 0.15 150)'; // fort — vert
-  if (pt.value < 45) return 'oklch(0.68 0.15 55)'; // faible — ambre
-  return 'oklch(0.55 0.15 250)'; // moyen — bleu
 };

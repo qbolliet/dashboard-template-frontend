@@ -39,7 +39,7 @@
 }
 
 // ── Pastille plate — diamètre pilotable via --d (posé par le moteur depuis
-// pointSize), repli sur --globe-marker-size si la prop est absente ──
+// points.z), repli sur --globe-marker-size sans encodage de taille ──
 .globe-marker-dot {
   display: grid;
   place-items: center;
@@ -71,21 +71,61 @@
   height: var(--d, var(--globe-marker-size));
 }
 
-// ── Variante sobre (pointVariant="dot") : disque plein, fin liseré clair ──
+// ── Bulle (points.mark="bubble") : marque de donnée, grammaire de <BubbleMarks> ──
 // Le token de diamètre est REDÉFINI sur l'élément : tous les replis
-// `var(--d, var(--globe-marker-size))` ci-dessus (pastille, calque, halo pulsé)
-// prennent ainsi la taille du point sans dupliquer une seule règle. Pas
-// d'anneau coloré au repos ; le survol garde le sien, comme retour visuel.
-.globe-marker--dot {
+// `var(--d, var(--globe-marker-size))` ci-dessus (calque, halo pulsé) prennent ainsi
+// la taille d'une bulle sans z sans dupliquer une seule règle. La forme, d'aire égale
+// au disque de ce diamètre, est dessinée en SVG par le moteur (markerTemplate.js) et
+// teintée par --c : pleine (hachurée si hue[1]) ou en contour (pointillé si hue[1]).
+.globe-marker--bubble {
   --globe-marker-size: var(--globe-marker-dot-size);
 }
-.globe-marker--dot .globe-marker-dot {
-  background: var(--c);
-  border-color: hsl(var(--color-white) / .85);
-  box-shadow: 0 1px 3px hsl(var(--color-black) / .3);
+.globe-marker-bubble {
+  display: block;
+  width: 100%;
+  height: 100%;
+  // Les pointes d'une étoile ou d'un triangle dépassent le disque équivalent.
+  overflow: visible;
+  // Ombre portée noire (physique, non thémable — cf. _colors.scss), comme la pastille.
+  filter: drop-shadow(0 1px 2px hsl(var(--color-black) / .3));
+  transition: transform var(--transition-fast) ease;
+}
+// Corps plein : couleur de la donnée, liseré clair qui détache la bulle de la Terre.
+.globe-marker-bubble-body {
+  fill: var(--c);
+  fill-opacity: var(--globe-marker-bubble-fill-opacity);
+  stroke: hsl(var(--color-white) / .85);
+  stroke-width: var(--globe-marker-bubble-stroke-width);
+  stroke-linejoin: round;
+}
+// Corps hachuré : remplissage éclairci pour que les hachures restent lisibles.
+.globe-marker-bubble-body--hatched {
+  fill-opacity: var(--globe-marker-bubble-hatched-fill-opacity);
+  stroke: var(--c);
+}
+.globe-marker-hatch {
+  fill: none;
+  stroke: var(--c);
+  stroke-width: var(--globe-marker-bubble-hatch-width);
+}
+.globe-marker-bubble-hatch { stroke: none; }
+// Contour (fill="line") : trait coloré plus épais, à peine rempli.
+.globe-marker-bubble-body--line {
+  fill-opacity: var(--globe-marker-bubble-line-fill-opacity);
+  stroke: var(--c);
+  stroke-width: var(--globe-marker-bubble-line-width);
+}
+.globe-marker.is-hover .globe-marker-bubble { transform: scale(1.14); }
+
+// ── Estompage (survol d'une modalité de la légende, cf. setPointHighlight) ──
+// Sur les ENFANTS : l'opacité de la pastille elle-même est réécrite par frame par le
+// moteur (fondu du limbe).
+.globe-marker.is-faded > * {
+  opacity: var(--globe-marker-faded-opacity);
+  transition: opacity var(--transition-fast) ease;
 }
 
-// ── Halo pulsé derrière la pastille (pointPulse) ──────────────────────────
+// ── Halo pulsé derrière la pastille (points.pulse) ──────────────────────────
 .globe-marker-pulse {
   position: absolute;
   top: 50%;

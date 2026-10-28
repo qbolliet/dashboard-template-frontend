@@ -114,6 +114,11 @@ const UNIT_DEFINITIONS = [
   { name: 'legend-glyph', type: 'component', roots: ['src/components/legend/LegendGlyph'] },
   { name: 'size-legend', type: 'component', roots: ['src/components/legend/SizeLegend'] },
 
+  // ---- src/components/tooltip ----------------------------------------------
+  // Bulle de survol du chart, promue quand le globe (tooltips des points et des flux)
+  // en est devenu le second consommateur. Ses tokens vivent dans son dossier.
+  { name: 'data-tooltip', type: 'component', roots: ['src/components/tooltip/DataTooltip'] },
+
   // ---- src/components/toolbar ----------------------------------------------
   {
     name: 'toolbar-tokens',
@@ -224,8 +229,8 @@ const UNIT_DEFINITIONS = [
   // Mesure de texte au canvas : axes du chart et légende de taille (chart, globe).
   { name: 'utils-text', type: 'lib', roots: ['src/utils/text'] },
   // Palette catégorielle, pointillés et leurs échelles ordinales, formes de
-  // marqueurs : promus du chart quand le globe (flux encodés par `arcHue`, légende
-  // partagée) en est devenu le second consommateur. OBLIGATOIRE pour chart ET globe,
+  // marqueurs, hachures : promus du chart quand le globe (flux et bulles encodés par
+  // `hue`, légende partagée) en est devenu le second consommateur. OBLIGATOIRE pour chart ET globe,
   // qui l'importent tous deux.
   { name: 'utils-encoding', type: 'lib', roots: ['src/utils/encoding'] },
   // Primitives pures consommées par language-switcher (interpolate, mergeLabels)

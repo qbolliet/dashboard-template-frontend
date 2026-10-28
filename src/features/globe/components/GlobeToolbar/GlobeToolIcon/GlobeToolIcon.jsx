@@ -21,8 +21,6 @@ const GlobeToolIcon = {
   points: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s7-6.4 7-12a7 7 0 1 0-14 0c0 5.6 7 12 7 12z" /><circle cx="12" cy="9" r="2.4" /></svg>,
   // Rotation automatique : noyau + orbite inclinée.
   rotate: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3.2" /><ellipse cx="12" cy="12" rx="10" ry="4.4" transform="rotate(-32 12 12)" /></svg>,
-  // Tooltips : bulle de dialogue avec un « i ».
-  tip: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-4 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z" /><path d="M12 8v.01M9.5 11h2.5v3" /></svg>,
   // Flux : arc de grand cercle entre deux nœuds.
   arcs: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 17c4-11 12-11 16 0" /><circle cx="4" cy="17" r="1.6" fill="currentColor" stroke="none" /><circle cx="20" cy="17" r="1.6" fill="currentColor" stroke="none" /></svg>,
   // Flux dynamiques : même arc, terminé par une pointe de direction.

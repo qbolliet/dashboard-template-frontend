@@ -42,10 +42,10 @@ import { color as d3color } from 'd3-color';
 
 import { resolveDatasets, channelsFor } from '@/features/chart/utils/datasetList';
 import { detectType, coerce } from '@/features/chart/utils/typeDetection';
-import { PALETTE, LINE_STYLES, distinctVals } from '@/utils/encoding/scales';
 import {
-  HATCH_TYPES, MARKER_TYPES, groupSeries, seriesKey, xKeyOf,
-} from '@/features/chart/utils/encoding';
+  PALETTE, LINE_STYLES, HATCH_TYPES, MARKER_TYPES, distinctVals,
+} from '@/utils/encoding/scales';
+import { groupSeries, seriesKey, xKeyOf } from '@/features/chart/utils/encoding';
 import { buildStacks } from '@/features/chart/utils/stacking';
 import { reduceValues, clientAggregation } from '@/features/chart/utils/aggregate';
 import { resolveFormatter } from '@/features/chart/utils/formatters';
@@ -63,7 +63,7 @@ import LineMarks from '@/features/chart/components/marks/LineMarks/LineMarks';
 import HatchPatterns from '@/features/chart/components/marks/shared/HatchPatterns';
 import SeriesMarker from '@/features/chart/components/marks/shared/SeriesMarker';
 import { VoronoiOverlay, DirectHoverOverlay, ActiveMark } from '@/features/chart/components/overlays/HoverOverlays/HoverOverlays';
-import ChartTooltip from '@/features/chart/components/ChartTooltip/ChartTooltip';
+import DataTooltip from '@/components/tooltip/DataTooltip/DataTooltip';
 import ChartToolbar from '@/features/chart/components/ChartToolbar/ChartToolbar';
 import BrushMinimap from '@/features/chart/components/ChartMinimap/BrushMinimap/BrushMinimap';
 import MinimapToggle from '@/features/chart/components/ChartMinimap/MinimapToggle/MinimapToggle';
@@ -484,7 +484,7 @@ const MultiChartCanvas = ({
     });
   };
 
-  // ── Modèle de tooltip (réutilise <ChartTooltip>) ──────────────────────────
+  // ── Modèle de tooltip (réutilise <DataTooltip>) ──────────────────────────
   let tipModel = null;
   let activeColor = null;
   let activeMarker = 'circle';
@@ -672,7 +672,7 @@ const MultiChartCanvas = ({
         )}
 
         {tooltipsOn && active && activePos && tipModel && (
-          <ChartTooltip model={tipModel} position={activePos} />
+          <DataTooltip model={tipModel} position={activePos} />
         )}
     </>
   );

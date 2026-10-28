@@ -8,7 +8,7 @@
 //     aucun module React ne doit importer statiquement `engine/GlobeEngine`,
 //     sinon la bibliothèque retombe dans le bundle partagé (et s'exécuterait au
 //     SSR, où `window` n'existe pas).
-//   • CONFIGURATION — les DONNÉES (points, arcs, accesseurs) sont capturées au
+//   • CONFIGURATION — les DONNÉES (calques, accesseurs, `onHover`) sont capturées au
 //     PREMIER rendu ; un changement ultérieur de ces props n'est pas répercuté
 //     (contrat assumé : remonter le composant avec `key` pour changer de jeu de
 //     données). Les INTERRUPTEURS, eux, restent une graine vivante que l'hôte
@@ -31,13 +31,16 @@ import useTheme from '@/features/theme/hooks/useTheme';
  *
  * @param {React.RefObject<HTMLElement>} stageRef - Engine mount node.
  * @param {object} config - Engine options captured at first render (points, arcs,
- *   accessors, default* seeds — see GlobeEngine constructor).
+ *   accessors, toggle seeds — see GlobeEngine constructor).
+ * @param {React.RefObject<HTMLElement>} [tooltipHostRef] - Host element of the
+ *   tooltip, rendered by React; read once, when the engine is built (it is mounted
+ *   by then), and handed to the engine, which only writes its `transform`.
  * @returns {{engineRef: React.RefObject<?GlobeEngine>,
  *   applyOption: function(string, *, ?string): void}} `engineRef` is the live
  *   engine handle (null until the chunk resolves; callers must tolerate null),
  *   `applyOption` the single write path towards the engine.
  */
-const useGlobeEngine = (stageRef, config) => {
+const useGlobeEngine = (stageRef, config, tooltipHostRef = null) => {
   const engineRef = useRef(null);
   const { isDark } = useTheme();
 
@@ -59,6 +62,7 @@ const useGlobeEngine = (stageRef, config) => {
   // ref, la config est figée). `stageRef` n'est listé que parce que la règle
   // exhaustive-deps ne peut pas savoir qu'un ref reçu en prop a une identité
   // stable ; <Globe> le crée une fois avec useRef, l'effet ne rejoue donc jamais.
+  // Même raisonnement pour `tooltipHostRef`.
   useEffect(() => {
     let cancelled = false;
     let engine = null;
@@ -74,6 +78,9 @@ const useGlobeEngine = (stageRef, config) => {
         // Thème AU MOMENT de la construction, pas à celui du premier rendu :
         // l'utilisateur a pu basculer pendant le chargement du chunk.
         initialDark: isDarkRef.current,
+        // Hôte de la tooltip, lu ICI et non au premier rendu, où le ref est encore
+        // vide : le chunk se résout toujours après le montage.
+        tooltipHost: tooltipHostRef?.current ?? null,
       });
       engineRef.current = engine;
     });
@@ -88,7 +95,7 @@ const useGlobeEngine = (stageRef, config) => {
       engine?.dispose();
       engineRef.current = null;
     };
-  }, [stageRef]);
+  }, [stageRef, tooltipHostRef]);
 
   // ── Thème : simple appel moteur, jamais de setState ──
   // Tolère le moteur pas encore prêt (chunk en vol) : la valeur est mémorisée

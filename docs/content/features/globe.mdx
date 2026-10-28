@@ -1,152 +1,213 @@
 ---
 title: Globe
-description: Globe WebGL avec points, arcs et bascule vers planisphère.
+description: Globe WebGL à deux calques, points et flux, avec la syntaxe de Chart.
 order: 5
 ---
 
 # Globe
 
-`<Globe>` place des points sur une Terre en WebGL et relie certains d'entre eux par des flux,
-dessinés en flèches, en traits sans pointe ou en rendu décoratif. Un clic sur la barre d'outils
-fait passer du globe au planisphère sans perdre le centre ni le zoom. Le composant ne fait
-aucune requête : il reçoit ses points et ses flux en props, figés au montage. Pour changer de
-jeu de données, remontez-le avec une `key`.
+`<Globe>` place des points sur une Terre en WebGL et relie certains d'entre eux par des flux.
+Un clic sur la barre d'outils fait passer du globe au planisphère sans perdre le centre ni le
+zoom. Le composant ne fait aucune requête : il reçoit ses données en props, figées au montage.
+Pour changer de jeu de données, remontez-le avec une `key`.
 
-Son API suit celle de `<Chart>` : `defaults` règle l'état initial de chaque outil de la barre,
-`labels` titre les données encodées, `uiLabels` surcharge les libellés d'interface, et le
-bouton « Agrandir » fait passer la légende de la droite du globe au-dessus.
+Le même composant sert deux usages :
+
+- un **visuel décoratif**, pour le hero d'une page d'accueil : pastilles à icône, flux
+  lumineux animés, sans barre d'outils ni légende ;
+- une **visualisation de données**, proche de `<Chart>` : bulles et flux encodés par `hue` et
+  par `z`, légendes, tooltips.
+
+Son API suit celle de `<Chart>`. `title` titre la figure, `defaults` règle l'état initial de
+chaque outil de la barre, `uiLabels` surcharge les libellés d'interface, `fields` et `locale`
+formatent les valeurs. Le bouton « Agrandir » fait passer la légende de la droite du globe
+au-dessus.
 
 ## Explorer les paramètres
 
 <ComponentPlayground name="globe" />
 
-## Points et arcs
+## Deux calques, une syntaxe de chart
 
-Chaque **point** devient une pastille DOM posée sur la Terre. Sa couleur et son icône se
-règlent par accesseur (`colorFor`, `iconFor`), selon n'importe quelle valeur du point. Trois
-props règlent son apparence :
+`points` et `arcs` décrivent chacun un **calque**, comme un petit `<Chart>` :
 
-- `pointVariant` : `'badge'` (défaut), une pastille avec anneau coloré et l'icône de
-  `iconFor`, ou `'dot'`, un simple disque à fin liseré, sans anneau ni icône ;
-- `pointPulse` : le halo animé derrière chaque point, présent par défaut. Avec les deux
-  variantes, on obtient quatre apparences : badge ou point, avec ou sans halo ;
-- `pointSize` : un nombre fixe le diamètre de tous les points, en px, par exemple pour
-  resserrer des points voisins en Europe. Une clé des points rend l'**aire** de chacun
-  proportionnelle à sa valeur, comme les bulles de `<Chart>` : le plus grand vaut
-  `--globe-marker-max-size`, un point sans valeur positive n'est pas dessiné, et une légende
-  de taille rejoint la légende du globe. Sans `pointSize`, chaque variante garde son diamètre
-  par défaut (`--globe-marker-size`, `--globe-marker-dot-size`).
+```jsx
+<Globe
+  title="Sources statistiques et échanges de données"
+  points={{
+    data: sources,                    // { id, lat, lon, label?, sub?, …colonnes }[]
+    mark: 'bubble',                   // 'badge' (défaut) | 'bubble'
+    hue: ['region', 'niveau', 'type'],// couleur, style, forme
+    z: 'activite',                    // aire ∝ z
+    labels: { color: 'Région', z: 'Activité' },
+  }}
+  arcs={{
+    data: flux,                       // { from, to, …colonnes }[]
+    mark: 'arrow',                    // 'arrow' (défaut) | 'line' | 'glow'
+    hue: ['mode', 'kind'],            // couleur, style de trait
+    z: 'volume',                      // épaisseur ∝ z
+    labels: { color: 'Acheminement' },
+    format: { z: '.2s' },
+  }}
+  fields={fields}
+/>
+```
 
-Les points suivent le zoom, comme le reste de la scène : la légende de taille montre leurs
-diamètres à la distance de référence.
+Un tableau seul est un raccourci de `{ data }` : `<Globe points={rows} arcs={flux} />` reste la
+forme minimale. Dans chaque calque :
+
+- **`hue`** nomme des colonnes encodées comme les canaux `hue` de `<Chart>` : `hue[0]` donne la
+  couleur, `hue[1]` le style, `hue[2]` la forme. La palette est la palette catégorielle, privée
+  de ses trois bleus (navy, steel-blue, slate) qui se confondent avec l'océan. Les deux calques
+  se la partagent sans collision : les flux poursuivent la palette après les modalités des
+  points, et une modalité commune aux deux garde la même teinte ;
+- **`z`** nomme une colonne numérique, utilisée telle quelle : le globe divise chaque valeur par
+  la plus grande, quelle que soit son échelle ;
+- **`labels`** titre les données encodées (`color`, `style`, `marker`, `z`) dans la légende et
+  la tooltip. À défaut, c'est le nom de la colonne qui sert de titre ;
+- **`format.z`** formate la valeur `z`, avec un spécificateur d3 ou une fonction. Sans lui, c'est
+  le `displayFormat` et l'`unit` de la colonne dans `fields`, comme sur `<Chart>`, puis un nombre
+  localisé selon `locale`.
+
+## Points
+
+Chaque point devient une pastille DOM posée sur la Terre. `points.mark` choisit son rôle :
+
+- `'badge'` (défaut) : la pastille **décorative**, avec un anneau coloré, l'icône de
+  `points.icon` et un halo animé. `hue[0]` la colore ; ses autres canaux sont ignorés,
+  puisque l'icône porte déjà le sens ;
+- `'bubble'` : la **marque de donnée**, avec la grammaire des bulles de `<Chart zMark="bubble">`.
+  `hue[0]` donne la couleur, `hue[1]` le style (une hachure quand la bulle est pleine, un contour
+  pointillé avec `fill: 'line'`), `hue[2]` la forme (cercle, carré, triangle, losange, étoile).
+  La forme garde l'aire du disque : une étoile pèse autant qu'un cercle de même valeur.
+
+`points.z` rend l'**aire** de chaque point proportionnelle à sa valeur. Le plus grand vaut
+`--globe-marker-max-size`, un point sans valeur positive n'est pas dessiné, et une légende de
+taille rejoint la légende du globe. Sans `z`, chaque mark garde son diamètre par défaut
+(`--globe-marker-size`, `--globe-marker-dot-size`). `points.pulse` ajoute ou retire le halo
+animé ; il est actif par défaut sur un badge et inactif sur une bulle.
+
+<ComponentPreview name="globe-bubble-hue" />
 
 <ComponentPreview name="globe-sober-points" />
 
-Chaque **flux** relie deux points par le grand cercle le plus court, en arc au-dessus de la
+## Flux
+
+Chaque flux relie deux points par le grand cercle le plus court, en arc au-dessus de la
 surface. La hauteur de l'arc est proportionnelle à la distance parcourue : un flux court reste
 près du sol au lieu de faire une boucle. Sur le planisphère, les arcs sont deux fois moins
 bombés que sur le globe.
 
-Par défaut, un flux est dessiné comme une flèche : un trait plein d'épaisseur constante à
-l'écran, quel que soit le zoom, et une pointe qui s'arrête au bord de la pastille de
-destination. La `value` d'un flux, entre 0 et 1, règle trois choses :
+`arcs.mark` choisit le dessin :
 
-- l'épaisseur du trait, entre `--globe-arc-width-min` (à 0) et `--globe-arc-width-max` (à 1).
-  Sans `value`, c'est la moyenne des deux ;
+- `'arrow'` (défaut) : un trait plein d'épaisseur constante à l'écran, quel que soit le zoom,
+  avec une pointe qui s'arrête au bord de la pastille de destination. Pour des flux orientés
+  (exportations, migrations) ;
+- `'line'` : le même trait sans pointe, jusqu'au centre des pastilles. Pour des liaisons sans
+  sens (échanges, partenariats) ;
+- `'glow'` : un trait fin et lumineux, plus clair vers la destination. C'est le rendu
+  décoratif, pour une page d'accueil par exemple.
+
+`arcs.hue[0]` choisit la couleur du trait et `arcs.hue[1]` son style : plein pour la première
+modalité rencontrée, puis `6 4` (6 px de tiret, 4 px de vide), et ainsi de suite. La pointe
+reste toujours pleine. Sans `hue`, tous les flux prennent la couleur du token `--globe-arc`,
+qui suit le thème clair ou sombre.
+
+`arcs.z` règle trois choses, proportionnellement à la plus grande valeur :
+
+- l'épaisseur du trait, entre `--globe-arc-width-min` et `--globe-arc-width-max`, ou son éclat
+  en `'glow'`. Sans `z`, c'est la moyenne des deux ;
 - la hauteur de l'arc ;
 - la vitesse de la comète quand les flux sont animés. Ils sont figés par défaut : le bouton
-  « Flux dynamiques » de la barre d'outils les anime, et `defaults={{ arcsDynamic: true }}`
-  les anime dès le montage.
+  « Flux dynamiques » de la barre d'outils les anime, et `defaults={{ arcsDynamic: true }}` les
+  anime dès le montage.
 
-Au survol, la flèche visée s'épaissit, les autres s'atténuent et une infobulle donne l'origine,
-la destination et l'intensité.
-
-### Dessin des flux : `arcVariant`
-
-- `'arrow'` (défaut) : trait plein et pointe à destination, pour des flux orientés
-  (exportations, migrations) ;
-- `'line'` : le même trait sans pointe, jusqu'au centre des pastilles, pour des liaisons sans
-  sens (échanges, partenariats) ;
-- `'glow'` : trait fin et lumineux, plus clair vers la destination, dont `value` règle l'éclat
-  plutôt que l'épaisseur. C'est un rendu décoratif, pour une page d'accueil par exemple.
-
-La variante `'glow'` reprend le rendu d'avant les flèches. Elle se combine bien avec
-`defaults={{ arcsDynamic: true }}`, qui fait courir une comète lumineuse le long de chaque flux. La
-couleur et le style de trait par `arcHue` s'appliquent aux trois variantes.
+<ComponentPreview name="globe-arc-hue" />
 
 <ComponentPreview name="globe-undirected-flows" />
 
 <ComponentPreview name="globe-glow-flows" />
-
-### Couleur et style de trait : `arcHue`
-
-`arcHue` nomme des clés des objets `arcs`, encodées comme les canaux `hue` de `<Chart>` :
-
-- `arcHue[0]` choisit la **couleur** du trait dans la palette catégorielle, privée de ses trois
-  bleus (navy, steel-blue, slate) qui se confondent avec l'océan. Une même modalité peut donc
-  recevoir une autre teinte que sur un chart ;
-- `arcHue[1]` choisit le **style** du trait : plein pour la première modalité rencontrée, puis
-  `6 4` (6 px de tiret, 4 px de vide), et ainsi de suite. La pointe reste toujours pleine.
-
-Une seule chaîne n'encode que la couleur. Dès qu'une hue est active, la légende des charts
-(`ChannelLegend`) s'affiche à côté du globe. Comme sur `<Chart>`, elle est à droite par
-défaut, et le bouton « Agrandir » de la barre d'outils (ou `defaults={{ expanded: true }}`) la
-passe au-dessus, le globe prenant alors toute la largeur. Elle passe aussi au-dessus dès que
-le globe aurait moins de `--globe-frame-min-width` (22rem) de large. Ses titres viennent de
-`labels` (`{ color, style }`) et, à défaut, du nom de la clé. Survoler une modalité de la
-légende met ses flux en avant et atténue les autres. L'infobulle d'un flux affiche aussi ses
-valeurs hue. Sans `arcHue`, tous les flux prennent la couleur du token `--globe-arc`, qui suit
-le thème clair ou sombre.
-
-```jsx
-<Globe
-  points={points}
-  arcs={[
-    { from: 'fra', to: 'par', value: 0.9, mode: 'rail', kind: 'régulier' },
-    { from: 'fra', to: 'tok', value: 0.5, mode: 'aérien', kind: 'ponctuel' },
-  ]}
-  arcHue={['mode', 'kind']}
-  labels={{ color: 'Acheminement', style: 'Régularité' }}
-/>
-```
 
 Les tokens des flux sont dans `src/features/globe/_tokens.scss` et le moteur les lit à la
 construction :
 
 | Token | Défaut | Rôle |
 |---|---|---|
-| `--globe-arc-width-min` | `0.09375rem` (1,5 px) | épaisseur à `value = 0` |
-| `--globe-arc-width-max` | `var(--spacing-xs)` (4 px) | épaisseur à `value = 1` |
-| `--globe-arc-glow-width` | `var(--spacing-px)` (1 px) | épaisseur de la variante `'glow'` |
+| `--globe-arc-width-min` | `0.09375rem` (1,5 px) | épaisseur du plus petit flux |
+| `--globe-arc-width-max` | `var(--spacing-xs)` (4 px) | épaisseur du plus grand flux |
+| `--globe-arc-glow-width` | `var(--spacing-px)` (1 px) | épaisseur du mark `'glow'` |
 | `--globe-arc-head-length` | `3` | longueur de la pointe, en multiple de l'épaisseur |
 | `--globe-arc-head-width` | `2.5` | largeur de la pointe, en multiple de l'épaisseur |
 | `--globe-arc-opacity` | `0.95` | opacité du trait (`'arrow'` et `'line'`) |
 | `--globe-arc-dimmed-opacity` | `0.3` | facteur appliqué aux autres flux pendant un survol |
 
+## Légende et tooltip
+
+Dès qu'un calque encode une `hue`, ou que les points encodent `z`, la légende des charts
+(`ChannelLegend`, `SizeLegend`) s'affiche à côté du globe, avec une légende par calque. Comme sur
+`<Chart>`, elle est à droite par défaut. Le bouton « Agrandir » de la barre d'outils, ou
+`defaults={{ expanded: true }}`, la passe au-dessus, le globe prenant alors toute la largeur. Elle
+passe aussi au-dessus dès que le globe aurait moins de `--globe-frame-min-width` (22rem) de
+large. Survoler une modalité met en avant les points ou les flux correspondants et atténue les
+autres.
+
+Survoler un point ou un flux affiche la **tooltip de `<Chart>`** (`DataTooltip`). Elle montre :
+
+- un titre : le `label` du point, avec son `sub` en sous-titre, ou « origine → destination »
+  pour un flux (un tiret pour `'line'`) ;
+- un glyphe qui reprend la couleur, la forme ou le style de la marque ;
+- une ligne par colonne `hue` ;
+- la valeur `z`, formatée.
+
+L'outil « Tooltips » de la barre d'outils les active ou les coupe, sur les deux calques à la
+fois, et `defaults={{ tooltips: false }}` démarre sans tooltip.
+
+## Usage décoratif
+
+Sans `hue` ni `z`, et avec `toolbar={[]}`, le globe n'a ni légende ni barre d'outils.
+`ariaLabel` nomme alors la scène pour les technologies d'assistance, sans titre visible.
+
+<ComponentPreview name="globe-hero" />
+
 ## Données attendues
 
 | Prop | Forme | Notes |
 |---|---|---|
-| `points` | `{ id, label, lat, lon, value?, sub? }[]` | `lat` et `lon` en degrés ; `label`, `sub` et `value` s'affichent dans l'infobulle par défaut |
-| `arcs` | `{ from, to, value?, …clés hue }[]` | `from` et `to` sont des `id` de points ; un flux dont une extrémité est inconnue est ignoré |
-| `arcVariant` | `'arrow' \| 'line' \| 'glow'` | dessin des flux, figé au montage |
-| `arcHue` | `string \| string[]` | clés de `arcs` : couleur, puis style de trait |
-| `pointVariant` | `'badge' \| 'dot'` | apparence des points, figée au montage |
-| `pointPulse` | `boolean` | halo animé des points (`true` par défaut) |
-| `pointSize` | `number \| string` | diamètre en px, ou clé de `points` dont l'aire est proportionnelle à la valeur |
-| `labels` | `{ color?, style?, size? }` | titres des données encodées : légendes et infobulle |
+| `points` | `rows[] \| { data, mark?, hue?, z?, fill?, pulse?, icon?, labels?, format? }` | `data` : `{ id, lat, lon, label?, sub?, …colonnes }[]`, `lat` et `lon` en degrés |
+| `arcs` | `rows[] \| { data, mark?, hue?, z?, labels?, format? }` | `data` : `{ from, to, …colonnes }[]` ; un flux dont une extrémité est inconnue est ignoré |
+| `title` | `string` | titre de la figure et nom accessible de la scène |
+| `fields` | `{ name, displayFormat?, unit?, … }[]` | métadonnées de colonnes de l'API, pour formater `z` |
 | `defaults` | `{ mode?, rotate?, wheelZoom?, points?, arcs?, arcsDynamic?, tooltips?, expanded? }` | état initial des outils, lu au montage |
-| `uiLabels` | `object` | libellés d'interface (barre d'outils, infobulle, noms accessibles) |
-| `locale` | `string` | langue de formatage des valeurs de la légende de taille |
+| `toolbar` | `string[]` | outils exposés (`TOOL_KEYS` par défaut) ; `[]` supprime la barre |
+| `uiLabels` | `object` | libellés d'interface (barre d'outils, noms accessibles) |
+| `locale` | `string` | langue de formatage des valeurs `z` |
+| `ariaLabel` | `string` | nom accessible sans titre visible (hero) |
 
-Les valeurs lues dans les données (`label`, `sub`, `value`, valeurs hue) sont échappées avant
-d'atteindre le DOM. Ce n'est pas le cas du HTML renvoyé par `iconFor` et `tooltipFor` : un
-accesseur qui y interpole une donnée doit l'échapper lui-même avec `escapeHtml`, réexporté
-par `@/features/globe`.
+Les tooltips et les légendes rendent les données en JSX : aucune valeur lue dans les calques
+n'est injectée comme HTML. Seule l'icône d'un badge l'est. `points.icon` renvoie un SVG **de
+confiance**, écrit par l'intégrateur. S'il y interpole une donnée, il doit l'échapper lui-même
+avec `escapeHtml`, réexporté par `@/features/globe`.
+
+## Migration depuis l'API à plat
+
+| Avant | Après |
+|---|---|
+| `pointVariant="badge" \| "dot"` | `points.mark = 'badge' \| 'bubble'` (le point sobre est une bulle sans `hue` ni `z`) |
+| `pointSize="clé"` | `points.z = 'clé'` |
+| `pointSize={12}` | supprimé : tokens `--globe-marker-size` / `--globe-marker-dot-size` |
+| `pointPulse` | `points.pulse` |
+| `iconFor` | `points.icon` |
+| `colorFor` | supprimé : `points.hue[0]` (précalculer une colonne catégorielle pour colorer par seuils) |
+| `tooltipFor` | supprimé : tooltip structurée de `<Chart>`, pilotée par l'outil « Tooltips » |
+| `arcVariant` | `arcs.mark` |
+| `arcHue` | `arcs.hue` |
+| `arc.value` ∈ [0, 1] | `arcs.z = 'clé'`, sur n'importe quelle échelle |
+| `labels.color` / `labels.style` (flux) | `arcs.labels.color` / `arcs.labels.style` |
+| `labels.size` | `points.labels.z` |
 
 ## Cas d'usage
 
-<ComponentPreview name="globe-arc-hue" />
+<ComponentPreview name="globe-custom-markers" />
 
 <ComponentPreview name="globe-toolbar-restricted" />
 

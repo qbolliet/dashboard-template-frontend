@@ -7,6 +7,9 @@
 // développeur ajusterait indépendamment des couleurs.
 
 :root, [data-theme] {
+  // ---- Titre (prop `title`), comme --chart-title-color ----
+  --globe-title-color: var(--color-text-primary);
+
   // ---- Jour : ciel bleuté brumeux, moins d'obscurité visible ----
   --globe-bg-day-1: 214 46% 44%;
   --globe-bg-day-2: 222 44% 22%;

@@ -1,7 +1,7 @@
 // =================================================================
 // CHART TOOLBAR — barre d'outils (haut-droit, révélée au survol)
 // =================================================================
-// Assemblage fin au-dessus de <HoverToolbar> (toolbar mutualisée chart/table) :
+// Assemblage fin au-dessus de <HoverToolbar> (toolbar mutualisée chart/table/globe) :
 // traduit les props du graphique en GROUPES d'opérations, la révélation et le
 // rendu des boutons étant entièrement pris en charge par la primitive. Outils
 // intégrés (voronoï, tooltip, réinit. zoom, export SVG/PNG, agrandir) +
@@ -10,7 +10,7 @@
 // Importation des modules
 import { mergeLabels } from '@/utils/i18n/mergeLabels';
 import HoverToolbar from '@/components/toolbar/HoverToolbar/HoverToolbar';
-import { expandTool, resetZoomTool } from '@/components/toolbar/tools';
+import { expandTool, resetZoomTool, tooltipTool } from '@/components/toolbar/tools';
 import ToolIcon from './ToolIcon/ToolIcon';
 
 // Défauts français, surchargeables par la prop `labels` (cf. src/utils/i18n/mergeLabels.js).
@@ -60,7 +60,8 @@ const ChartToolbar = ({
     })),
     [
       { id: 'voronoi', icon: ToolIcon.Voronoi, label: labels.voronoiHover, active: voronoi, onClick: onVoronoi },
-      { id: 'tooltips', icon: ToolIcon.Tooltip, label: labels.pointTooltip, active: tooltips, onClick: onTooltips },
+      // Factory partagée avec le globe : même bouton, même modèle de tooltip.
+      tooltipTool({ active: tooltips, onClick: onTooltips, label: labels.pointTooltip }),
       // Sans zoom actif le bouton reste d'apparence normale mais inerte (pas
       // `disabled` : la réinitialisation n'est pas une capacité indisponible).
       // Factory partagée avec le globe ; `icon` conserve le pictogramme du

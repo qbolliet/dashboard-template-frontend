@@ -1,8 +1,8 @@
 {
   "$comment": "Généré par scripts/build-inventory.js — ne pas éditer à la main.",
-  "generatedAt": "2026-10-28T14:23:31.945Z",
-  "unitCount": 61,
-  "fileCount": 540,
+  "generatedAt": "2026-10-28T17:37:03.660Z",
+  "unitCount": 62,
+  "fileCount": 541,
   "fanoutThreshold": 3,
   "units": {
     "accessible-icon": {
@@ -331,7 +331,7 @@
         "src/features/chart"
       ],
       "clientBoundary": true,
-      "fileCount": 92,
+      "fileCount": 88,
       "files": [
         {
           "path": "src/features/chart/components/Chart/_colors.scss",
@@ -428,22 +428,6 @@
         {
           "path": "src/features/chart/components/ChartToolbar/ToolIcon/ToolIcon.jsx",
           "kind": "component"
-        },
-        {
-          "path": "src/features/chart/components/ChartTooltip/_colors.scss",
-          "kind": "tokens"
-        },
-        {
-          "path": "src/features/chart/components/ChartTooltip/_tokens.scss",
-          "kind": "tokens"
-        },
-        {
-          "path": "src/features/chart/components/ChartTooltip/ChartTooltip.jsx",
-          "kind": "component"
-        },
-        {
-          "path": "src/features/chart/components/ChartTooltip/ChartTooltip.scss",
-          "kind": "style"
         },
         {
           "path": "src/features/chart/components/marks/_colors.scss",
@@ -739,6 +723,7 @@
         "api-client",
         "channel-legend",
         "chart-tokens",
+        "data-tooltip",
         "hooks-css-length",
         "hooks-layout-effect",
         "hover-toolbar",
@@ -756,6 +741,7 @@
       "internalCode": [
         "api-client",
         "channel-legend",
+        "data-tooltip",
         "hooks-css-length",
         "hooks-layout-effect",
         "hover-toolbar",
@@ -777,6 +763,7 @@
         "api-client",
         "channel-legend",
         "chart-tokens",
+        "data-tooltip",
         "hooks-css-length",
         "hooks-layout-effect",
         "hover-toolbar",
@@ -940,6 +927,54 @@
         "utils-i18n",
         "utils-math",
         "visually-hidden"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "data-tooltip": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/tooltip/DataTooltip"
+      ],
+      "clientBoundary": false,
+      "fileCount": 4,
+      "files": [
+        {
+          "path": "src/components/tooltip/DataTooltip/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/tooltip/DataTooltip/_tokens.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/tooltip/DataTooltip/DataTooltip.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/tooltip/DataTooltip/DataTooltip.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global",
+        "utils-encoding"
+      ],
+      "internalCode": [
+        "utils-encoding"
+      ],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global",
+        "utils-encoding"
       ],
       "styleGlobals": [],
       "assets": [],
@@ -1529,7 +1564,7 @@
         "src/features/globe"
       ],
       "clientBoundary": true,
-      "fileCount": 25,
+      "fileCount": 24,
       "files": [
         {
           "path": "src/features/globe/components/Globe/_colors.scss",
@@ -1580,22 +1615,6 @@
           "kind": "component"
         },
         {
-          "path": "src/features/globe/components/GlobeTooltip/_colors.scss",
-          "kind": "tokens"
-        },
-        {
-          "path": "src/features/globe/components/GlobeTooltip/_tokens.scss",
-          "kind": "tokens"
-        },
-        {
-          "path": "src/features/globe/components/GlobeTooltip/GlobeTooltip.scss",
-          "kind": "style"
-        },
-        {
-          "path": "src/features/globe/components/GlobeTooltip/tooltipTemplates.js",
-          "kind": "lib"
-        },
-        {
           "path": "src/features/globe/engine/arcGeometry.js",
           "kind": "engine"
         },
@@ -1624,11 +1643,23 @@
           "kind": "fixture"
         },
         {
-          "path": "src/features/globe/utils/arcEncoding.js",
+          "path": "src/features/globe/utils/hueEncoding.js",
           "kind": "util"
         },
         {
-          "path": "src/features/globe/utils/pointSize.js",
+          "path": "src/features/globe/utils/layers.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/globe/utils/tooltipModel.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/globe/utils/zFormat.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/globe/utils/zScale.js",
           "kind": "util"
         }
       ],
@@ -1640,7 +1671,6 @@
       ],
       "asyncOnlyFiles": [
         "src/features/globe/components/GlobeMarkers/markerTemplate.js",
-        "src/features/globe/components/GlobeTooltip/tooltipTemplates.js",
         "src/features/globe/engine/GlobeEngine.js",
         "src/features/globe/engine/arcGeometry.js",
         "src/features/globe/engine/palette.js",
@@ -1648,6 +1678,7 @@
       ],
       "internal": [
         "channel-legend",
+        "data-tooltip",
         "globe-tokens",
         "hooks-css-length",
         "hover-toolbar",
@@ -1658,6 +1689,7 @@
         "toolbar-tools",
         "utils-accessibility",
         "utils-encoding",
+        "utils-format",
         "utils-html",
         "utils-i18n",
         "utils-math",
@@ -1665,6 +1697,7 @@
       ],
       "internalCode": [
         "channel-legend",
+        "data-tooltip",
         "hooks-css-length",
         "hover-toolbar",
         "size-legend",
@@ -1672,6 +1705,7 @@
         "toolbar-tools",
         "utils-accessibility",
         "utils-encoding",
+        "utils-format",
         "utils-html",
         "utils-i18n",
         "utils-math",
@@ -1684,6 +1718,7 @@
       ],
       "internalResolved": [
         "channel-legend",
+        "data-tooltip",
         "globe-tokens",
         "hooks-css-length",
         "hooks-layout-effect",
@@ -1699,6 +1734,7 @@
         "toolbar-tools",
         "utils-accessibility",
         "utils-encoding",
+        "utils-format",
         "utils-html",
         "utils-i18n",
         "utils-math",
@@ -2360,7 +2396,7 @@
         "src/components/icons"
       ],
       "clientBoundary": true,
-      "fileCount": 40,
+      "fileCount": 41,
       "files": [
         {
           "path": "src/components/icons/BellIcon/BellIcon.js",
@@ -2512,6 +2548,10 @@
         },
         {
           "path": "src/components/icons/TableIcon/TableIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/TooltipIcon/TooltipIcon.js",
           "kind": "component"
         },
         {
@@ -2997,6 +3037,7 @@
         "chart",
         "chart-tokens",
         "constraint-field",
+        "data-tooltip",
         "date-parse",
         "filter",
         "filter-feature-tokens",
@@ -4165,10 +4206,14 @@
         "src/utils/format"
       ],
       "clientBoundary": false,
-      "fileCount": 4,
+      "fileCount": 5,
       "files": [
         {
           "path": "src/utils/format/constants.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/format/fields.js",
           "kind": "util"
         },
         {
@@ -4452,10 +4497,11 @@
     "highFanout": [
       {
         "unit": "chart",
-        "count": 13,
+        "count": 14,
         "dependencies": [
           "api-client",
           "channel-legend",
+          "data-tooltip",
           "hooks-css-length",
           "hooks-layout-effect",
           "hover-toolbar",
@@ -4471,9 +4517,10 @@
       },
       {
         "unit": "globe",
-        "count": 12,
+        "count": 14,
         "dependencies": [
           "channel-legend",
+          "data-tooltip",
           "hooks-css-length",
           "hover-toolbar",
           "size-legend",
@@ -4481,6 +4528,7 @@
           "toolbar-tools",
           "utils-accessibility",
           "utils-encoding",
+          "utils-format",
           "utils-html",
           "utils-i18n",
           "utils-math",

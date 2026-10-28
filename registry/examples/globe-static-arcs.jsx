@@ -14,14 +14,12 @@
 
 // Importation des modules
 import { Globe } from '@/features/globe';
-import { GLOBE_POINTS, GLOBE_ARCS, demoPointIcon, pointColor } from '@/features/globe/sources/demoData';
+import { GLOBE_POINTS, GLOBE_ARCS, demoPointIcon } from '@/features/globe/sources/demoData';
 
 const GlobeStaticArcs = () => (
   <Globe
-    points={GLOBE_POINTS}
-    arcs={GLOBE_ARCS}
-    iconFor={demoPointIcon}
-    colorFor={pointColor}
+    points={{ data: GLOBE_POINTS, icon: demoPointIcon }}
+    arcs={{ data: GLOBE_ARCS, z: 'volume' }}
     defaults={{ tooltips: false }}
     height={440}
   />

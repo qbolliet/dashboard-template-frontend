@@ -285,6 +285,7 @@
         "api-client",
         "channel-legend",
         "chart-tokens",
+        "data-tooltip",
         "hooks-css-length",
         "hooks-layout-effect",
         "hover-toolbar",
@@ -419,26 +420,6 @@
           "path": "src/features/chart/components/ChartToolbar/ToolIcon/ToolIcon.jsx",
           "type": "registry:file",
           "target": "~/src/features/chart/components/ChartToolbar/ToolIcon/ToolIcon.jsx"
-        },
-        {
-          "path": "src/features/chart/components/ChartTooltip/_colors.scss",
-          "type": "registry:file",
-          "target": "~/src/features/chart/components/ChartTooltip/_colors.scss"
-        },
-        {
-          "path": "src/features/chart/components/ChartTooltip/_tokens.scss",
-          "type": "registry:file",
-          "target": "~/src/features/chart/components/ChartTooltip/_tokens.scss"
-        },
-        {
-          "path": "src/features/chart/components/ChartTooltip/ChartTooltip.jsx",
-          "type": "registry:file",
-          "target": "~/src/features/chart/components/ChartTooltip/ChartTooltip.jsx"
-        },
-        {
-          "path": "src/features/chart/components/ChartTooltip/ChartTooltip.scss",
-          "type": "registry:file",
-          "target": "~/src/features/chart/components/ChartTooltip/ChartTooltip.scss"
         },
         {
           "path": "src/features/chart/components/marks/_colors.scss",
@@ -852,6 +833,39 @@
       ]
     },
     {
+      "name": "data-tooltip",
+      "type": "registry:ui",
+      "title": "DataTooltip",
+      "description": "Bulle de survol structurée (titre, sous-titre, glyphe de série, lignes hue et valeurs), ancrée au point ou positionnée par son hôte. Partagée par le graphique et le globe.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global",
+        "utils-encoding"
+      ],
+      "files": [
+        {
+          "path": "src/components/tooltip/DataTooltip/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/components/tooltip/DataTooltip/_colors.scss"
+        },
+        {
+          "path": "src/components/tooltip/DataTooltip/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/tooltip/DataTooltip/_tokens.scss"
+        },
+        {
+          "path": "src/components/tooltip/DataTooltip/DataTooltip.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/tooltip/DataTooltip/DataTooltip.jsx"
+        },
+        {
+          "path": "src/components/tooltip/DataTooltip/DataTooltip.scss",
+          "type": "registry:file",
+          "target": "~/src/components/tooltip/DataTooltip/DataTooltip.scss"
+        }
+      ]
+    },
+    {
       "name": "date-parse",
       "type": "registry:lib",
       "title": "Analyse de dates",
@@ -1066,7 +1080,7 @@
       "name": "globe",
       "type": "registry:block",
       "title": "Globe",
-      "description": "Globe terrestre WebGL à points et flux, morphable en planisphère. Flux en flèches, traits non orientés ou rendu décoratif, encodables par hue ; points en badges ou disques sobres, halo animé optionnel, taille fixe ou proportionnelle à une valeur ; légendes du graphique à droite ou au-dessus.",
+      "description": "Globe terrestre WebGL morphable en planisphère, à deux calques décrits avec la syntaxe du graphique (data, mark, hue, z, labels, format) : points en badges décoratifs ou en bulles encodées en couleur, style et forme, flux en flèches, traits non orientés ou rendu décoratif ; légendes et tooltip du graphique.",
       "categories": [
         "visualisation"
       ],
@@ -1075,6 +1089,7 @@
       ],
       "registryDependencies": [
         "channel-legend",
+        "data-tooltip",
         "globe-tokens",
         "hooks-css-length",
         "hover-toolbar",
@@ -1085,6 +1100,7 @@
         "toolbar-tools",
         "utils-accessibility",
         "utils-encoding",
+        "utils-format",
         "utils-html",
         "utils-i18n",
         "utils-math",
@@ -1152,26 +1168,6 @@
           "target": "~/src/features/globe/components/GlobeToolbar/GlobeToolIcon/GlobeToolIcon.jsx"
         },
         {
-          "path": "src/features/globe/components/GlobeTooltip/_colors.scss",
-          "type": "registry:file",
-          "target": "~/src/features/globe/components/GlobeTooltip/_colors.scss"
-        },
-        {
-          "path": "src/features/globe/components/GlobeTooltip/_tokens.scss",
-          "type": "registry:file",
-          "target": "~/src/features/globe/components/GlobeTooltip/_tokens.scss"
-        },
-        {
-          "path": "src/features/globe/components/GlobeTooltip/GlobeTooltip.scss",
-          "type": "registry:file",
-          "target": "~/src/features/globe/components/GlobeTooltip/GlobeTooltip.scss"
-        },
-        {
-          "path": "src/features/globe/components/GlobeTooltip/tooltipTemplates.js",
-          "type": "registry:file",
-          "target": "~/src/features/globe/components/GlobeTooltip/tooltipTemplates.js"
-        },
-        {
           "path": "src/features/globe/engine/arcGeometry.js",
           "type": "registry:file",
           "target": "~/src/features/globe/engine/arcGeometry.js"
@@ -1207,14 +1203,29 @@
           "target": "~/src/features/globe/sources/demoData.js"
         },
         {
-          "path": "src/features/globe/utils/arcEncoding.js",
+          "path": "src/features/globe/utils/hueEncoding.js",
           "type": "registry:file",
-          "target": "~/src/features/globe/utils/arcEncoding.js"
+          "target": "~/src/features/globe/utils/hueEncoding.js"
         },
         {
-          "path": "src/features/globe/utils/pointSize.js",
+          "path": "src/features/globe/utils/layers.js",
           "type": "registry:file",
-          "target": "~/src/features/globe/utils/pointSize.js"
+          "target": "~/src/features/globe/utils/layers.js"
+        },
+        {
+          "path": "src/features/globe/utils/tooltipModel.js",
+          "type": "registry:file",
+          "target": "~/src/features/globe/utils/tooltipModel.js"
+        },
+        {
+          "path": "src/features/globe/utils/zFormat.js",
+          "type": "registry:file",
+          "target": "~/src/features/globe/utils/zFormat.js"
+        },
+        {
+          "path": "src/features/globe/utils/zScale.js",
+          "type": "registry:file",
+          "target": "~/src/features/globe/utils/zScale.js"
         }
       ],
       "docs": "Les trois textures de la Terre (`public/globe/earth-day.jpg`, `earth-night.png`, `earth-specular.jpg`) sont des binaires : le registry ne peut pas les transporter. Copie-les depuis le dépôt du template dans le `public/globe/` de ton projet. `three` (~600 kB) n'est chargé qu'à l'affichage du composant.",
@@ -1960,6 +1971,11 @@
           "path": "src/components/icons/TableIcon/TableIcon.js",
           "type": "registry:file",
           "target": "~/src/components/icons/TableIcon/TableIcon.js"
+        },
+        {
+          "path": "src/components/icons/TooltipIcon/TooltipIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/TooltipIcon/TooltipIcon.js"
         },
         {
           "path": "src/components/icons/TrendArrowIcon/TrendArrowIcon.js",
@@ -3197,6 +3213,11 @@
           "target": "~/src/utils/format/constants.js"
         },
         {
+          "path": "src/utils/format/fields.js",
+          "type": "registry:file",
+          "target": "~/src/utils/format/fields.js"
+        },
+        {
           "path": "src/utils/format/formatNumber.js",
           "type": "registry:file",
           "target": "~/src/utils/format/formatNumber.js"
@@ -3849,7 +3870,7 @@
       "name": "globe-arc-hue",
       "type": "registry:block",
       "title": "Flux encodés par hue",
-      "description": "`arcHue` nomme des clés des objets `arcs`, encodées comme les canaux hue de `<Chart>` : la première (`mode`) choisit la couleur du trait dans la palette catégorielle (sans ses bleus, qui se fondent dans l'océan), la seconde (`kind`) son style (plein, pointillé). La légende du chart s'affiche à droite du globe, titrée par `labels` : survoler une modalité met ses flux en avant, et le bouton « Agrandir » de la toolbar la passe au-dessus. La tooltip d'un flux reprend ses valeurs hue, et l'épaisseur suit toujours `value`.",
+      "description": "`arcs.hue` nomme des clés des flux, encodées comme les canaux hue de `<Chart>` : la première (`mode`) choisit la couleur du trait dans la palette catégorielle (sans ses bleus, qui se fondent dans l'océan), la seconde (`kind`) son style (plein, pointillé). `arcs.z` nomme le volume brut, qui règle l'épaisseur du trait. La légende du chart s'affiche à droite du globe, titrée par `arcs.labels` : survoler une modalité met ses flux en avant, et le bouton « Agrandir » de la toolbar la passe au-dessus. La tooltip d'un flux reprend ses valeurs hue et son volume formaté.",
       "dependencies": [],
       "registryDependencies": [
         "globe",
@@ -3871,7 +3892,7 @@
       "name": "globe-basic",
       "type": "registry:block",
       "title": "Globe à points et flux",
-      "description": "La forme minimale : une liste de points géolocalisés et une liste d'arcs qui les relient par leur `id`. La barre d'outils complète (globe / planisphère, rotation, zoom, tooltips) est présente par défaut.",
+      "description": "La forme minimale : une liste de points géolocalisés et une liste de flux qui les relient par leur `id`, passées telles quelles (raccourci de `{ data }`). La barre d'outils complète (globe / planisphère, rotation, zoom, tooltips) est présente par défaut, et chaque point ou flux survolé affiche la tooltip du chart.",
       "dependencies": [],
       "registryDependencies": [
         "globe",
@@ -3890,10 +3911,32 @@
       }
     },
     {
+      "name": "globe-bubble-hue",
+      "type": "registry:block",
+      "title": "Bulles encodées par hue",
+      "description": "La syntaxe de `<Chart zMark=\"bubble\">`, appliquée aux points : `points.hue` encode trois colonnes — couleur (`region`), hachure (`niveau`) et forme (`type`) — et `points.z` l'aire de chaque bulle. `fields` décrit les colonnes comme le fait l'API (`displayFormat`, `unit`) : la tooltip et la légende de taille en tirent leur format, sauf si `format.z` en impose un, comme ici pour les flux. Survoler une modalité de la légende met en avant les bulles correspondantes.",
+      "dependencies": [],
+      "registryDependencies": [
+        "globe",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/globe-bubble-hue.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/globe-bubble-hue.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "globe"
+      }
+    },
+    {
       "name": "globe-custom-markers",
       "type": "registry:block",
-      "title": "Pastilles et infobulles sur mesure",
-      "description": "Trois accesseurs personnalisent chaque point : `colorFor`, `iconFor` (SVG en chaîne) et `tooltipFor` (HTML en chaîne). Ce dernier est injecté tel quel par le moteur : toute donnée y passe par `escapeHtml`. `pointSize=\"value\"` rend l'aire de chaque pastille proportionnelle à sa valeur, comme les bulles du chart, et ajoute une légende de taille titrée par `labels.size`.",
+      "title": "Pastilles sur mesure",
+      "description": "Le mark `badge` (défaut) porte une icône par point : `points.icon` renvoie un SVG en chaîne, injecté tel quel par le moteur (HTML de confiance : toute donnée y passerait par `escapeHtml`). La couleur ne vient pas d'un accesseur mais de `points.hue`, comme sur `<Chart>` : les seuils de valeur sont précalculés en une colonne catégorielle (`niveau`). `points.z` rend l'aire de chaque pastille proportionnelle à sa valeur, comme les bulles du chart, et ajoute une légende de taille titrée par `points.labels.z`.",
       "dependencies": [],
       "registryDependencies": [
         "globe",
@@ -3915,7 +3958,7 @@
       "name": "globe-glow-flows",
       "type": "registry:block",
       "title": "Flux décoratifs",
-      "description": "`arcVariant=\"glow\"` dessine des flux fins et lumineux, en fusion additive : leur luminosité croît de l'origine vers la destination, et `value` règle leur éclat plutôt que leur épaisseur. Animés dès le montage (`defaults.arcsDynamic`), une comète parcourt chaque flux. Pour une page d'accueil ou une illustration, quand la lecture précise des flux importe moins que l'ambiance.",
+      "description": "`arcs.mark=\"glow\"` dessine des flux fins et lumineux, en fusion additive : leur luminosité croît de l'origine vers la destination, et `arcs.z` règle leur éclat plutôt que leur épaisseur. Animés dès le montage (`defaults.arcsDynamic`), une comète parcourt chaque flux. Pour une page d'accueil ou une illustration, quand la lecture précise des flux importe moins que l'ambiance.",
       "dependencies": [],
       "registryDependencies": [
         "globe",
@@ -3926,6 +3969,28 @@
           "path": "registry/examples/globe-glow-flows.jsx",
           "type": "registry:file",
           "target": "~/src/examples/globe-glow-flows.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "globe"
+      }
+    },
+    {
+      "name": "globe-hero",
+      "type": "registry:block",
+      "title": "Globe décoratif (hero)",
+      "description": "Le même composant, en visuel de page d'accueil : badges à icône, flux lumineux animés (`arcs.mark=\"glow\"`, `defaults.arcsDynamic`), aucune toolbar ni légende (aucun `hue`, aucun `z` de point). Sans titre visible, `ariaLabel` nomme la scène pour les technologies d'assistance. Les tooltips restent actives au survol ; un `defaults={{ tooltips: false }}` les coupe pour un visuel purement d'ambiance.",
+      "dependencies": [],
+      "registryDependencies": [
+        "globe",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/globe-hero.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/globe-hero.jsx"
         }
       ],
       "meta": {
@@ -3980,8 +4045,8 @@
     {
       "name": "globe-sober-points",
       "type": "registry:block",
-      "title": "Points sobres, taille par valeur",
-      "description": "`pointVariant=\"dot\"` remplace les pastilles par de simples disques, sans anneau ni icône, et `pointPulse={false}` retire le halo animé : les points voisins d'Europe restent lisibles. `pointSize=\"value\"` rend l'aire de chaque point proportionnelle à sa valeur, comme les bulles du chart ; la légende de taille, titrée par `labels.size`, rejoint celle des flux.",
+      "title": "Bulles sobres, taille par valeur",
+      "description": "`points.mark=\"bubble\"` remplace les pastilles par des bulles de donnée, sans anneau, icône ni halo animé : les points voisins d'Europe restent lisibles. `points.z` rend l'aire de chaque bulle proportionnelle à sa valeur, comme les bulles du chart, et `points.hue` les colore par région ; la légende de taille, titrée par `points.labels.z`, rejoint celle des flux.",
       "dependencies": [],
       "registryDependencies": [
         "globe",
@@ -4047,7 +4112,7 @@
       "name": "globe-undirected-flows",
       "type": "registry:block",
       "title": "Flux non orientés",
-      "description": "`arcVariant=\"line\"` garde le trait plein des flèches (épaisseur selon `value`, couleur et style par `arcHue`) mais sans pointe : le flux relie deux points sans sens de lecture, comme une liaison ou un échange. Le trait va jusqu'au centre de chaque pastille. Le globe démarre agrandi (`defaults.expanded`) : la légende est au-dessus, et le bouton « Replier » de la toolbar la renvoie à droite.",
+      "description": "`arcs.mark=\"line\"` garde le trait plein des flèches (épaisseur selon `arcs.z`, couleur et style par `arcs.hue`) mais sans pointe : le flux relie deux points sans sens de lecture, comme une liaison ou un échange. Le trait va jusqu'au centre de chaque pastille, et la tooltip joint les deux extrémités d'un tiret plutôt que d'une flèche. Le globe démarre agrandi (`defaults.expanded`) : la légende est au-dessus, et le bouton « Replier » de la toolbar la renvoie à droite.",
       "dependencies": [],
       "registryDependencies": [
         "globe",

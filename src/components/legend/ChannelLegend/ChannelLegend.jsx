@@ -7,8 +7,8 @@ import './ChannelLegend.scss';
  * one titled group per active channel. Hovering an item fades the other items of
  * its own channel — `hovered` drives the color/style/marker groups, `hoveredCI`
  * drives the confidence-band group separately, so hovering a CI level never fades
- * the series legend and vice versa. Shared by `<Chart>` and the flow legend of
- * `<Globe>`.
+ * the series legend and vice versa. Shared by `<Chart>` and the point and flow
+ * legends of `<Globe>`.
  *
  * Rendered as a nested list (group list → item list) rather than `<div>`s: each
  * group's item list is a real `<ul>`, its `<li>` wrappers laid out with
@@ -27,11 +27,13 @@ import './ChannelLegend.scss';
  * @param {'vertical'|'horizontal'} [layout='vertical'] - Group layout direction.
  * @param {'dash'|'hatch'} [styleGlyph='dash'] - Glyph variant for the 'style' channel
  *   (dashed line for line charts, hachure swatch for bar charts).
+ * @param {string} [className] - Additional class(es) on the root list (e.g. to set the
+ *   `currentColor` of glyphs drawn without a color channel).
  * @returns {JSX.Element}
  */
-const ChannelLegend = ({ groups, hovered, hoveredCI, onHover, layout = 'vertical', styleGlyph = 'dash' }) => {
+const ChannelLegend = ({ groups, hovered, hoveredCI, onHover, layout = 'vertical', styleGlyph = 'dash', className }) => {
   return (
-    <ul className={`legend legend--channels${layout === 'horizontal' ? ' legend--h' : ''}`}>
+    <ul className={`legend legend--channels${layout === 'horizontal' ? ' legend--h' : ''}${className ? ` ${className}` : ''}`}>
       {groups.map((group) => {
         // L'intervalle de confiance s'isole de la légende de série : il a son propre survol.
         const groupHover = group.channel === 'ciband' ? hoveredCI : hovered;
