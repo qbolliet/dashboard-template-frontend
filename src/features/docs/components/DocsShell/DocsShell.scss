@@ -105,12 +105,16 @@
     text-underline-offset: var(--spacing-2px);
   }
 
-  ul,
-  ol {
+  // Listes du Markdown seulement : `:not(.doc-preview *)` écarte celles des aperçus
+  // (<ComponentPreview>), qui appartiennent au composant montré. Sans cette exclusion,
+  // `.docs-prose ul` (0,1,1) l'emporte sur la remise à zéro d'une classe (`.legend`, 0,1,0)
+  // et décale les légendes en <ul> d'un aperçu, pas celles en <dl> (légende de taille).
+  ul:not(.doc-preview *),
+  ol:not(.doc-preview *) {
     padding-left: var(--spacing-2xl);
   }
 
-  li + li {
+  li:not(.doc-preview *) + li {
     margin-top: var(--spacing-xs);
   }
 
