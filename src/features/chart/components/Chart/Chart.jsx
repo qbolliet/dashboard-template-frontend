@@ -31,9 +31,9 @@ import { isDatasetList } from '../../utils/datasetList';
 import { detectType, coerce, detectChart, layoutKindOf } from '../../utils/typeDetection';
 import { dodgeScale, dodgeSlot } from '../../utils/dodge';
 import { bubbleArea, bubbleMaxRadius, bubbleZMax, layoutBubbles } from '../../utils/bubble';
+import { PALETTE, colorScale, styleScale, distinctVals } from '@/utils/encoding/scales';
 import {
-  PALETTE, colorScale, sequentialScale, styleScale, hatchScale, markerScale,
-  distinctVals, groupSeries, seriesKey, xKeyOf,
+  sequentialScale, hatchScale, markerScale, groupSeries, seriesKey, xKeyOf,
 } from '../../utils/encoding';
 import { buildStacks } from '../../utils/stacking';
 import { reduceValues, clientAggregation, isAdditive } from '../../utils/aggregate';
@@ -47,15 +47,15 @@ import { mergeLabels } from '@/utils/i18n/mergeLabels';
 import { useMinimapState, resolveMinimapsVisible } from '../../hooks/useMinimapState';
 import { useBrushZoom, zoomTransformOf } from '../../hooks/useBrushZoom';
 import { useFeatureState } from '../../hooks/useFeatureState';
-import { useCssLength } from '../../hooks/useCssLength';
+import { useCssLength } from '@/hooks/cssLength/useCssLength';
 import { nextFreeChannel, REAL_DIST_MARKER } from '../../toolbar-features/channelAssign';
 import { normalizeRefs } from '../../toolbar-features/normalize';
 
 import ChartAxisBottom from '../ChartAxis/ChartAxisBottom/ChartAxisBottom';
 import ChartAxisLeft from '../ChartAxis/ChartAxisLeft/ChartAxisLeft';
-import ChannelLegend from '../ChartLegend/ChannelLegend/ChannelLegend';
+import ChannelLegend from '@/components/legend/ChannelLegend/ChannelLegend';
 import SequentialLegend from '../ChartLegend/SequentialLegend/SequentialLegend';
-import SizeLegend from '../ChartLegend/SizeLegend/SizeLegend';
+import SizeLegend from '@/components/legend/SizeLegend/SizeLegend';
 // LineMarks / BarMarks restent STATIQUES : ce sont les types détectés par défaut,
 // présents sur quasi toutes les pages, et leurs dépendances (@visx/shape, @visx/scale,
 // d3-array, d3-color) sont déjà dans le graphe partagé — les splitter n'éviterait aucune

@@ -15,7 +15,7 @@ vi.mock('../../utils/measureText', async (importOriginal) => ({
 
 // Pas de cascade CSS sous jsdom (feuilles non chargées, propriétés personnalisées non
 // héritées) : le token `--chart-bubble-max-radius` (1.5rem) est fourni en px.
-vi.mock('../../hooks/useCssLength', () => ({
+vi.mock('@/hooks/cssLength/useCssLength', () => ({
   useCssLength: (ref, name, enabled = true) => (enabled ? 24 : null),
 }));
 
@@ -49,7 +49,7 @@ describe('<Chart zMark="bubble">', () => {
     // La plus grande (z = 40) est tracée en premier : son chemin est le plus long
     const size = (el) => el.getAttribute('d').length;
     expect(size(bubbles[0])).toBeGreaterThanOrEqual(size(bubbles[1]));
-    expect(container.querySelector('.chart-size-legend')).not.toBeNull();
+    expect(container.querySelector('.legend-size')).not.toBeNull();
   });
 
   it('catégoriel × continu : bulles décalées par série (canal couleur)', async () => {
@@ -94,13 +94,13 @@ describe('<Chart zMark="bubble">', () => {
     await waitFor(() => expect(container.querySelector('.chart-empty-message')).not.toBeNull());
     expect(container.querySelector('.chart-empty-message').textContent).toMatch(/z/);
     expect(container.querySelectorAll('.chart-marks-bubble-body')).toHaveLength(0);
-    expect(container.querySelector('.chart-size-legend')).toBeNull();
+    expect(container.querySelector('.legend-size')).toBeNull();
   });
 
   it('sans zMark : le rendu historique (densité), aucune bulle', () => {
     const data = [{ x: 1, y: 2, z: 10 }, { x: 2, y: 4, z: 40 }];
     const { container } = render(<Chart locale="fr" data={data} x="x" y="y" z="z" />);
     expect(container.querySelector('.chart-marks-bubble')).toBeNull();
-    expect(container.querySelector('.chart-size-legend')).toBeNull();
+    expect(container.querySelector('.legend-size')).toBeNull();
   });
 });

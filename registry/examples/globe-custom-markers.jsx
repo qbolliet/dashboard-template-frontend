@@ -3,9 +3,11 @@
 /**
  * Pastilles et infobulles sur mesure
  *
- * Quatre accesseurs personnalisent chaque point : `colorFor`, `sizeFor`,
- * `iconFor` (SVG en chaîne) et `tooltipFor` (HTML en chaîne). Ce dernier est
- * injecté tel quel par le moteur : toute donnée y passe par `escapeHtml`.
+ * Trois accesseurs personnalisent chaque point : `colorFor`, `iconFor` (SVG en
+ * chaîne) et `tooltipFor` (HTML en chaîne). Ce dernier est injecté tel quel par le
+ * moteur : toute donnée y passe par `escapeHtml`. `pointSize="value"` rend l'aire
+ * de chaque pastille proportionnelle à sa valeur, comme les bulles du chart, et
+ * ajoute une légende de taille titrée par `labels.size`.
  *
  * @item globe
  */
@@ -38,7 +40,6 @@ const ICONS = {
 
 const pointIcon = (point) => (point.value >= 60 ? ICONS.up : ICONS.down);
 const pointColor = (point) => (point.value >= 80 ? '#2E7D5B' : point.value >= 45 ? '#B07D2B' : '#BD2D28');
-const pointSize = (point) => 16 + Math.round((point.value / 100) * 18);
 
 // `tooltipFor` renvoie du HTML injecté tel quel : seul le balisage écrit ici est
 // de confiance, chaque champ de donnée doit passer par escapeHtml.
@@ -53,7 +54,8 @@ const GlobeCustomMarkers = () => (
     arcs={ARCS}
     iconFor={pointIcon}
     colorFor={pointColor}
-    sizeFor={pointSize}
+    pointSize="value"
+    labels={{ size: 'Score de la source' }}
     tooltipFor={tooltipFor}
     height={460}
   />

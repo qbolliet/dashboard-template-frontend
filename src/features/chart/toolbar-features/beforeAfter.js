@@ -9,7 +9,8 @@
 // <ChannelLegend> du repo.
 
 // Importation des modules
-import { groupSeries, PALETTE } from '../utils/encoding';
+import { PALETTE } from '@/utils/encoding/scales';
+import { groupSeries } from '../utils/encoding';
 import { PROJ_DIST_MARKER } from './channelAssign';
 import BeforeAfterOverlay from '../components/overlays/BeforeAfterOverlay/BeforeAfterOverlay';
 

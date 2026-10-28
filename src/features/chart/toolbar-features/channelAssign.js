@@ -10,9 +10,8 @@
 //     features encoder (`usedExtra`). Porté du prototype (features.jsx).
 
 // Importation des modules
-import {
-  LINE_STYLES, HATCH_TYPES, MARKER_TYPES,
-} from '../utils/encoding';
+import { LINE_STYLES } from '@/utils/encoding/scales';
+import { HATCH_TYPES, MARKER_TYPES } from '../utils/encoding';
 
 /**
  * Picks the next free visual channel for an "encoder" feature, never the color

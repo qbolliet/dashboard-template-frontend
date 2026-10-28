@@ -1,5 +1,5 @@
 // ===== TOKENS DIMENSIONNELS — FEATURE GLOBE =====
-// Valeurs MUTUALISÉES entre tous les composants de la feature globe. Chaque
+// Valeurs MUTUALISÉES entre tous les composants de la feature globe (et le moteur). Chaque
 // composant définit ses propres tokens préfixés (--globe-frame-*, --globe-
 // marker-*, --globe-tooltip-*, …) dans son propre _tokens.scss.
 //
@@ -9,7 +9,27 @@
 // converties en rem ; quand un token de typography.scss correspond exactement,
 // on le référence plutôt que de dupliquer la valeur.
 //
-// ℹ️ Aucune dimension mutualisée à ce jour : le cadre (Globe/), les pastilles
-// (GlobeMarkers/) et la tooltip (GlobeTooltip/) n'ont pas de paramètre commun.
-// Ce fichier reste le point d'entrée `@use '…/tokens'` des scss de la feature
-// et accueillera les prochaines dimensions partagées.
+// ⚠️ LES TOKENS --globe-arc-* SONT LUS PAR LE MOTEUR THREE.JS À LA CONSTRUCTION
+// (engine/palette.js::readGlobeArcStyle) — ce ne sont pas des dimensions de
+// chrome CSS. Ils vivent ici et non dans un composant : les flux sont dessinés
+// par le moteur, qu'aucun composant ne possède.
+// Les longueurs passent par un élément sonde : rem, var() et calc() sont
+// acceptés. Les rapports et opacités sont des NOMBRES sans unité (pas de calc()).
+
+:root {
+  // ---- Épaisseur du trait, interpolée selon `value` ∈ [0, 1] ----
+  // Proche des traits du Chart. Sans `value`, la moyenne des deux (2,75 px).
+  --globe-arc-width-min: 0.09375rem;       // 1,5px à value = 0
+  --globe-arc-width-max: var(--spacing-xs); // 4px à value = 1
+  // Variante décorative (arcVariant="glow") : trait fin constant, `value` y
+  // pilote la luminosité et non l'épaisseur.
+  --globe-arc-glow-width: var(--spacing-px); // 1px
+
+  // ---- Pointe : multiples de l'épaisseur du trait (variante "arrow") ----
+  --globe-arc-head-length: 3;    // longueur, de la base à la pointe
+  --globe-arc-head-width: 2.5;   // largeur de la base
+
+  // ---- Opacités (variantes "arrow" et "line") ----
+  --globe-arc-opacity: 0.95;          // trait plein, à peine translucide
+  --globe-arc-dimmed-opacity: 0.3;    // facteur appliqué aux autres flux pendant un survol
+}

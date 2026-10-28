@@ -15,12 +15,13 @@
 
 // Importation des modules
 import HoverToolbar from '@/components/toolbar/HoverToolbar/HoverToolbar';
-import { resetZoomTool } from '@/components/toolbar/tools';
+import { expandTool, resetZoomTool } from '@/components/toolbar/tools';
 import GlobeToolIcon from './GlobeToolIcon/GlobeToolIcon';
 import './GlobeToolbar.scss';
 import { mergeLabels } from '@/utils/i18n/mergeLabels';
 
-// Défauts français, surchargeables par la prop `labels` (cf. src/utils/i18n/mergeLabels.js).
+// Défauts français, surchargeables par la prop `labels` (cf. src/utils/i18n/mergeLabels.js),
+// que <Globe> alimente avec ses `uiLabels` fusionnés.
 const DEFAULT_LABELS = {
   toolbar: 'Outils du globe',
   toFlatMap: 'Passer en planisphère',
@@ -41,17 +42,22 @@ const DEFAULT_LABELS = {
   noDataToHover: 'Aucune donnée à survoler',
   tooltipsOn: 'Tooltips activées',
   tooltipsOff: 'Tooltips désactivées',
+  expand: 'Agrandir (pleine largeur)',
+  collapse: 'Replier',
+  noLegendToMove: 'Déjà en pleine largeur : aucune légende',
 };
 
 // Clés d'outils reconnues (ordre d'affichage porté par `GROUPS`, pas par cette liste).
-const TOOL_KEYS = ['mode', 'points', 'arcs', 'arcsDynamic', 'rotate', 'wheelZoom', 'resetZoom', 'tooltips'];
+const TOOL_KEYS = ['mode', 'points', 'arcs', 'arcsDynamic', 'rotate', 'wheelZoom', 'resetZoom', 'tooltips', 'expand'];
 
-// Regroupement FIXE en trois familles : vue | contenu | interaction. Un
-// séparateur vertical est intercalé automatiquement entre deux groupes peuplés.
+// Regroupement FIXE en quatre familles : vue | contenu | interaction | mise en
+// page (dernière, comme sur le chart). Un séparateur vertical est intercalé
+// automatiquement entre deux groupes peuplés.
 const GROUPS = [
   ['mode'],
   ['points', 'arcs', 'arcsDynamic'],
   ['rotate', 'wheelZoom', 'resetZoom', 'tooltips'],
+  ['expand'],
 ];
 
 /**
@@ -169,6 +175,18 @@ const buildTool = (key, state, onAction, labels) => {
         onClick,
       };
     }
+    // Même bouton que sur le chart (factory partagée) : agrandi, le globe prend
+    // toute la largeur et la légende passe au-dessus. Sans légende, le globe
+    // occupe déjà toute la largeur : rien à déplacer, le bouton est grisé.
+    case 'expand':
+      return expandTool({
+        expanded: state.expanded && state.hasLegend,
+        onClick,
+        disabled: !state.hasLegend,
+        label: state.hasLegend ? undefined : labels.noLegendToMove,
+        expandLabel: labels.expand,
+        collapseLabel: labels.collapse,
+      });
     // Filet de sécurité : TOOL_KEYS et GROUPS sont maintenus à la main à côté de
     // ce switch. Une clé ajoutée aux deux sans son `case` dédié tomberait ici — on
     // renvoie `null` plutôt que d'aliaser un outil existant (le duplicata produit
@@ -187,10 +205,11 @@ const buildTool = (key, state, onAction, labels) => {
  * @param {object} props
  * @param {string[]} props.tools - Visible tool keys (already filtered/validated).
  * @param {{mode: string, autoRotate: boolean, wheelZoom: boolean, showPoints: boolean,
- *   showArcs: boolean, tooltips: boolean, arcsDynamic: boolean, hasPoints: boolean,
- *   hasArcs: boolean}} props.state - Toggle state of the globe, plus the two
- *   content flags telling whether any point / arc exists at all: a toggle left
- *   ON over empty data must not make a tool look actionable.
+ *   showArcs: boolean, tooltips: boolean, arcsDynamic: boolean, expanded: boolean,
+ *   hasPoints: boolean, hasArcs: boolean, hasLegend: boolean}} props.state - Toggle
+ *   state of the globe, plus the content flags telling whether any point / arc /
+ *   legend exists at all: a toggle left ON over empty data must not make a tool look
+ *   actionable.
  * @param {function(string): void} props.onAction - Receives the tool key; the root
  *   component owns all state transitions and engine calls.
  * @param {Object} [props.labels] - Wording overrides, merged over the French defaults.

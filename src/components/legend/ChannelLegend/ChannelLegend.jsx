@@ -7,7 +7,8 @@ import './ChannelLegend.scss';
  * one titled group per active channel. Hovering an item fades the other items of
  * its own channel — `hovered` drives the color/style/marker groups, `hoveredCI`
  * drives the confidence-band group separately, so hovering a CI level never fades
- * the series legend and vice versa.
+ * the series legend and vice versa. Shared by `<Chart>` and the flow legend of
+ * `<Globe>`.
  *
  * Rendered as a nested list (group list → item list) rather than `<div>`s: each
  * group's item list is a real `<ul>`, its `<li>` wrappers laid out with
@@ -30,22 +31,22 @@ import './ChannelLegend.scss';
  */
 const ChannelLegend = ({ groups, hovered, hoveredCI, onHover, layout = 'vertical', styleGlyph = 'dash' }) => {
   return (
-    <ul className={`chart-legend chart-legend--channels${layout === 'horizontal' ? ' chart-legend--h' : ''}`}>
+    <ul className={`legend legend--channels${layout === 'horizontal' ? ' legend--h' : ''}`}>
       {groups.map((group) => {
         // L'intervalle de confiance s'isole de la légende de série : il a son propre survol.
         const groupHover = group.channel === 'ciband' ? hoveredCI : hovered;
         return (
-          <li className="chart-legend-group" key={`${group.channel}·${group.label}`}>
-            <span className="chart-legend-label">{group.label}</span>
-            <ul className={`chart-legend-group-items${group.channel === 'ciband' ? ' chart-legend-group-items--ci' : ''}`}>
+          <li className="legend-group" key={`${group.channel}·${group.label}`}>
+            <span className="legend-label">{group.label}</span>
+            <ul className={`legend-group-items${group.channel === 'ciband' ? ' legend-group-items--ci' : ''}`}>
               {group.items.map((it) => (
                 <li key={String(it.key)}>
                   <button
                     type="button"
-                    className={`chart-legend-item${groupHover != null && groupHover !== it.key ? ' chart-legend--faded' : ''}`}
+                    className={`legend-item${groupHover != null && groupHover !== it.key ? ' legend--faded' : ''}`}
                     onMouseEnter={() => onHover?.(it.key, group)}
                     onMouseLeave={() => onHover?.(null, group)}>
-                    <span className="chart-legend-glyph">
+                    <span className="legend-glyph">
                       <LegendGlyph
                         type={group.channel}
                         color={it.color}
@@ -56,7 +57,7 @@ const ChannelLegend = ({ groups, hovered, hoveredCI, onHover, layout = 'vertical
                         ciMode={it.ciMode}
                         styleGlyph={styleGlyph} />
                     </span>
-                    <span className="chart-legend-text">{String(it.key)}</span>
+                    <span className="legend-text">{String(it.key)}</span>
                   </button>
                 </li>
               ))}

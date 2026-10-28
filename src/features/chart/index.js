@@ -17,6 +17,10 @@ export { useAggregatedChart } from './hooks/useAggregatedChart';
 
 export * from './utils/typeDetection';
 export * from './utils/encoding';
+// Palette et échelles promues dans src/utils/encoding/ (second consommateur : le
+// globe) : réexportées ici pour que l'API publique du chart reste inchangée.
+export * from '@/utils/encoding/scales';
+export * from '@/utils/encoding/markers';
 export * from './utils/stacking';
 export * from './utils/aggregate';
 export * from './utils/aggregationPlan';

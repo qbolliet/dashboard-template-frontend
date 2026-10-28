@@ -1,0 +1,15 @@
+// ===== TOKENS DE COULEURS — LÉGENDE MUTUALISÉE =====
+// Chrome de légende uniquement (titres, items, survol). Les couleurs de série
+// affichées par les glyphes (LegendGlyph) arrivent en props depuis les échelles
+// de l'hôte (src/utils/encoding/scales.js). Import dans les scss enfants :
+// @use '../colors' as *.
+
+:root, [data-theme] {
+  --legend-label-color: var(--color-text-tertiary);
+  --legend-item-color: var(--color-text-secondary);
+  --legend-item-hover-bg: var(--color-gray-100);
+  --legend-item-hover-color: var(--color-text-primary);
+
+  --legend-value-color: var(--color-text-tertiary);   // valeurs chiffrées
+  --legend-size-stroke: var(--color-text-tertiary);   // cercles de la légende de taille
+}

@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import {
-  bubbleArea, bubbleMaxRadius, bubbleValues, bubbleZMax, layoutBubbles, bubbleLegendValues,
+  bubbleArea, bubbleMaxRadius, bubbleValues, bubbleZMax, layoutBubbles,
 } from './bubble';
 import { dodgeScale, dodgeSlot } from './dodge';
 
@@ -137,17 +137,5 @@ describe('layoutBubbles', () => {
 describe('dodgeSlot', () => {
   it('sans sous-échelle : la bande entière', () => {
     expect(dodgeSlot({ bandStart: 10, bandwidth: 40, subScale: null, key: 'x' })).toEqual({ center: 30, slotStart: 10, slotW: 40 });
-  });
-});
-
-describe('bubbleLegendValues', () => {
-  it('trois valeurs arrondies, décroissantes, ≤ zMax', () => {
-    expect(bubbleLegendValues(830)).toEqual([800, 200, 50]);
-    expect(bubbleLegendValues(4.9)).toEqual([4, 1, 0.3]);
-    expect(bubbleLegendValues(1)).toEqual([1, 0.2, 0.06]);
-  });
-
-  it('aucune valeur sans z positif', () => {
-    expect(bubbleLegendValues(0)).toEqual([]);
   });
 });

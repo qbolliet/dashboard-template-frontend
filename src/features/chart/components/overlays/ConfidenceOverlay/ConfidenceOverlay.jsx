@@ -18,8 +18,9 @@ import { useId } from 'react';
 import { scaleBand } from '@visx/scale';
 import { mean } from 'd3-array';
 import {
-  seriesKey, groupSeries, xKeyOf, subsample, markerPath,
+  seriesKey, groupSeries, xKeyOf, subsample,
 } from '../../../utils/encoding';
+import { markerPath } from '@/utils/encoding/markers';
 import HatchPatterns from '../../marks/shared/HatchPatterns';
 import { resolveData } from '../overlayData';
 import './ConfidenceOverlay.scss';

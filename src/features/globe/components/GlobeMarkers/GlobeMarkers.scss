@@ -39,7 +39,7 @@
 }
 
 // ── Pastille plate — diamètre pilotable via --d (posé par le moteur depuis
-// sizeFor), repli sur --globe-marker-size si l'accesseur est absent ──
+// pointSize), repli sur --globe-marker-size si la prop est absente ──
 .globe-marker-dot {
   display: grid;
   place-items: center;
@@ -71,7 +71,21 @@
   height: var(--d, var(--globe-marker-size));
 }
 
-// ── Halo pulsé derrière la pastille ───────────────────────────────────────
+// ── Variante sobre (pointVariant="dot") : disque plein, fin liseré clair ──
+// Le token de diamètre est REDÉFINI sur l'élément : tous les replis
+// `var(--d, var(--globe-marker-size))` ci-dessus (pastille, calque, halo pulsé)
+// prennent ainsi la taille du point sans dupliquer une seule règle. Pas
+// d'anneau coloré au repos ; le survol garde le sien, comme retour visuel.
+.globe-marker--dot {
+  --globe-marker-size: var(--globe-marker-dot-size);
+}
+.globe-marker--dot .globe-marker-dot {
+  background: var(--c);
+  border-color: hsl(var(--color-white) / .85);
+  box-shadow: 0 1px 3px hsl(var(--color-black) / .3);
+}
+
+// ── Halo pulsé derrière la pastille (pointPulse) ──────────────────────────
 .globe-marker-pulse {
   position: absolute;
   top: 50%;

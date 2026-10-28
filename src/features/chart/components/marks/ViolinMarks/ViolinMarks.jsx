@@ -1,7 +1,8 @@
 // Importation des modules
 import { useId, useMemo } from 'react';
 import { mean } from 'd3-array';
-import { groupSeries, seriesKey, PALETTE } from '@/features/chart/utils/encoding';
+import { PALETTE } from '@/utils/encoding/scales';
+import { groupSeries, seriesKey } from '@/features/chart/utils/encoding';
 import { epanechnikovKDE } from '@/features/chart/utils/kde';
 import { dodgeScale, dodgeSlot } from '@/features/chart/utils/dodge';
 import HatchPatterns from '../shared/HatchPatterns';

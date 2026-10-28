@@ -232,6 +232,30 @@
       ]
     },
     {
+      "name": "channel-legend",
+      "type": "registry:ui",
+      "title": "ChannelLegend",
+      "description": "Légende groupée par canal d'encodage (couleur, style de trait, marqueur, bande de confiance), dont le survol estompe les autres modalités. Partagée par le graphique et le globe.",
+      "dependencies": [],
+      "registryDependencies": [
+        "legend-glyph",
+        "legend-tokens",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/components/legend/ChannelLegend/ChannelLegend.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/legend/ChannelLegend/ChannelLegend.jsx"
+        },
+        {
+          "path": "src/components/legend/ChannelLegend/ChannelLegend.scss",
+          "type": "registry:file",
+          "target": "~/src/components/legend/ChannelLegend/ChannelLegend.scss"
+        }
+      ]
+    },
+    {
       "name": "chart",
       "type": "registry:block",
       "title": "Chart",
@@ -255,19 +279,25 @@
         "d3-contour",
         "d3-geo",
         "d3-interpolate",
-        "d3-shape",
         "swr"
       ],
       "registryDependencies": [
         "api-client",
+        "channel-legend",
         "chart-tokens",
+        "hooks-css-length",
         "hooks-layout-effect",
         "hover-toolbar",
         "icons",
+        "legend-glyph",
+        "legend-tokens",
+        "size-legend",
         "tokens-global",
         "toolbar-tools",
+        "utils-encoding",
         "utils-format",
-        "utils-i18n"
+        "utils-i18n",
+        "utils-text"
       ],
       "files": [
         {
@@ -336,21 +366,6 @@
           "target": "~/src/features/chart/components/ChartLegend/_tokens.scss"
         },
         {
-          "path": "src/features/chart/components/ChartLegend/ChannelLegend/ChannelLegend.jsx",
-          "type": "registry:file",
-          "target": "~/src/features/chart/components/ChartLegend/ChannelLegend/ChannelLegend.jsx"
-        },
-        {
-          "path": "src/features/chart/components/ChartLegend/ChannelLegend/ChannelLegend.scss",
-          "type": "registry:file",
-          "target": "~/src/features/chart/components/ChartLegend/ChannelLegend/ChannelLegend.scss"
-        },
-        {
-          "path": "src/features/chart/components/ChartLegend/LegendGlyph/LegendGlyph.jsx",
-          "type": "registry:file",
-          "target": "~/src/features/chart/components/ChartLegend/LegendGlyph/LegendGlyph.jsx"
-        },
-        {
           "path": "src/features/chart/components/ChartLegend/SequentialLegend/SequentialLegend.jsx",
           "type": "registry:file",
           "target": "~/src/features/chart/components/ChartLegend/SequentialLegend/SequentialLegend.jsx"
@@ -359,16 +374,6 @@
           "path": "src/features/chart/components/ChartLegend/SequentialLegend/SequentialLegend.scss",
           "type": "registry:file",
           "target": "~/src/features/chart/components/ChartLegend/SequentialLegend/SequentialLegend.scss"
-        },
-        {
-          "path": "src/features/chart/components/ChartLegend/SizeLegend/SizeLegend.jsx",
-          "type": "registry:file",
-          "target": "~/src/features/chart/components/ChartLegend/SizeLegend/SizeLegend.jsx"
-        },
-        {
-          "path": "src/features/chart/components/ChartLegend/SizeLegend/SizeLegend.scss",
-          "type": "registry:file",
-          "target": "~/src/features/chart/components/ChartLegend/SizeLegend/SizeLegend.scss"
         },
         {
           "path": "src/features/chart/components/ChartMinimap/_colors.scss",
@@ -609,11 +614,6 @@
           "path": "src/features/chart/hooks/useChartGeometry.js",
           "type": "registry:file",
           "target": "~/src/features/chart/hooks/useChartGeometry.js"
-        },
-        {
-          "path": "src/features/chart/hooks/useCssLength.js",
-          "type": "registry:file",
-          "target": "~/src/features/chart/hooks/useCssLength.js"
         },
         {
           "path": "src/features/chart/hooks/useFeatureState.js",
@@ -1066,7 +1066,7 @@
       "name": "globe",
       "type": "registry:block",
       "title": "Globe",
-      "description": "Globe terrestre WebGL à points et flux animés, morphable en planisphère. Couleur, taille, icône et infobulle de chaque point sont pilotées par accesseurs.",
+      "description": "Globe terrestre WebGL à points et flux, morphable en planisphère. Flux en flèches, traits non orientés ou rendu décoratif, encodables par hue ; points en badges ou disques sobres, halo animé optionnel, taille fixe ou proportionnelle à une valeur ; légendes du graphique à droite ou au-dessus.",
       "categories": [
         "visualisation"
       ],
@@ -1074,12 +1074,17 @@
         "three"
       ],
       "registryDependencies": [
+        "channel-legend",
         "globe-tokens",
+        "hooks-css-length",
         "hover-toolbar",
+        "legend-tokens",
+        "size-legend",
         "theme",
         "tokens-global",
         "toolbar-tools",
         "utils-accessibility",
+        "utils-encoding",
         "utils-html",
         "utils-i18n",
         "utils-math",
@@ -1167,6 +1172,11 @@
           "target": "~/src/features/globe/components/GlobeTooltip/tooltipTemplates.js"
         },
         {
+          "path": "src/features/globe/engine/arcGeometry.js",
+          "type": "registry:file",
+          "target": "~/src/features/globe/engine/arcGeometry.js"
+        },
+        {
           "path": "src/features/globe/engine/GlobeEngine.js",
           "type": "registry:file",
           "target": "~/src/features/globe/engine/GlobeEngine.js"
@@ -1195,6 +1205,16 @@
           "path": "src/features/globe/sources/demoData.js",
           "type": "registry:file",
           "target": "~/src/features/globe/sources/demoData.js"
+        },
+        {
+          "path": "src/features/globe/utils/arcEncoding.js",
+          "type": "registry:file",
+          "target": "~/src/features/globe/utils/arcEncoding.js"
+        },
+        {
+          "path": "src/features/globe/utils/pointSize.js",
+          "type": "registry:file",
+          "target": "~/src/features/globe/utils/pointSize.js"
         }
       ],
       "docs": "Les trois textures de la Terre (`public/globe/earth-day.jpg`, `earth-night.png`, `earth-specular.jpg`) sont des binaires : le registry ne peut pas les transporter. Copie-les depuis le dépôt du template dans le `public/globe/` de ton projet. `three` (~600 kB) n'est chargé qu'à l'affichage du composant.",
@@ -1643,6 +1663,24 @@
       ]
     },
     {
+      "name": "hooks-css-length",
+      "type": "registry:hook",
+      "title": "useCssLength",
+      "description": "Lit en pixels un token CSS de longueur (px, rem, em) sur un élément monté, pour les géométries calculées en JS.",
+      "dependencies": [],
+      "registryDependencies": [
+        "hooks-layout-effect",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/hooks/cssLength/useCssLength.js",
+          "type": "registry:file",
+          "target": "~/src/hooks/cssLength/useCssLength.js"
+        }
+      ]
+    },
+    {
       "name": "hooks-debounce",
       "type": "registry:hook",
       "title": "Hooks d’amortissement",
@@ -1804,6 +1842,11 @@
           "target": "~/src/components/icons/CogIcon/CogIcon.js"
         },
         {
+          "path": "src/components/icons/CompressIcon/CompressIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/CompressIcon/CompressIcon.js"
+        },
+        {
           "path": "src/components/icons/CopyIcon/CopyIcon.js",
           "type": "registry:file",
           "target": "~/src/components/icons/CopyIcon/CopyIcon.js"
@@ -1822,6 +1865,11 @@
           "path": "src/components/icons/DownloadIcon/DownloadIcon.js",
           "type": "registry:file",
           "target": "~/src/components/icons/DownloadIcon/DownloadIcon.js"
+        },
+        {
+          "path": "src/components/icons/ExpandIcon/ExpandIcon.js",
+          "type": "registry:file",
+          "target": "~/src/components/icons/ExpandIcon/ExpandIcon.js"
         },
         {
           "path": "src/components/icons/FilterIcon/FilterIcon.js",
@@ -2116,6 +2164,46 @@
       ]
     },
     {
+      "name": "legend-glyph",
+      "type": "registry:ui",
+      "title": "LegendGlyph",
+      "description": "Petit glyphe SVG d'un item de légende : aplat de couleur, trait pointillé ou hachuré, marqueur ou bande de confiance.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global",
+        "utils-encoding"
+      ],
+      "files": [
+        {
+          "path": "src/components/legend/LegendGlyph/LegendGlyph.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/legend/LegendGlyph/LegendGlyph.jsx"
+        }
+      ]
+    },
+    {
+      "name": "legend-tokens",
+      "type": "registry:file",
+      "title": "Tokens de la légende",
+      "description": "Dimensions et couleurs partagées par les légendes du graphique et du globe.",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/components/legend/_colors.scss",
+          "type": "registry:file",
+          "target": "~/src/components/legend/_colors.scss"
+        },
+        {
+          "path": "src/components/legend/_tokens.scss",
+          "type": "registry:file",
+          "target": "~/src/components/legend/_tokens.scss"
+        }
+      ]
+    },
+    {
       "name": "link-card",
       "type": "registry:ui",
       "title": "LinkCard",
@@ -2328,6 +2416,35 @@
           "path": "src/components/filter/SelectMenu/useSelectOptions.js",
           "type": "registry:file",
           "target": "~/src/components/filter/SelectMenu/useSelectOptions.js"
+        }
+      ]
+    },
+    {
+      "name": "size-legend",
+      "type": "registry:ui",
+      "title": "SizeLegend",
+      "description": "Légende de taille : trois cercles de référence emboîtés et leurs valeurs, pour des marques dont l'aire est proportionnelle à une valeur. Partagée par les bulles du graphique et les points du globe.",
+      "dependencies": [],
+      "registryDependencies": [
+        "legend-tokens",
+        "tokens-global",
+        "utils-text"
+      ],
+      "files": [
+        {
+          "path": "src/components/legend/SizeLegend/SizeLegend.jsx",
+          "type": "registry:file",
+          "target": "~/src/components/legend/SizeLegend/SizeLegend.jsx"
+        },
+        {
+          "path": "src/components/legend/SizeLegend/SizeLegend.scss",
+          "type": "registry:file",
+          "target": "~/src/components/legend/SizeLegend/SizeLegend.scss"
+        },
+        {
+          "path": "src/components/legend/SizeLegend/sizeLegendValues.js",
+          "type": "registry:file",
+          "target": "~/src/components/legend/SizeLegend/sizeLegendValues.js"
         }
       ]
     },
@@ -3038,6 +3155,31 @@
       ]
     },
     {
+      "name": "utils-encoding",
+      "type": "registry:lib",
+      "title": "Palette et échelles d'encodage",
+      "description": "Palette catégorielle et rampe séquentielle (miroirs JS des tokens de couleur), styles de trait en pointillés, formes de marqueurs et leurs échelles ordinales, partagés par le graphique et le globe.",
+      "dependencies": [
+        "@visx/scale",
+        "d3-shape"
+      ],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/utils/encoding/markers.js",
+          "type": "registry:file",
+          "target": "~/src/utils/encoding/markers.js"
+        },
+        {
+          "path": "src/utils/encoding/scales.js",
+          "type": "registry:file",
+          "target": "~/src/utils/encoding/scales.js"
+        }
+      ]
+    },
+    {
       "name": "utils-format",
       "type": "registry:lib",
       "title": "Formatage de nombres et de texte",
@@ -3196,6 +3338,23 @@
           "path": "src/utils/navigation/resolveNavigationTree.js",
           "type": "registry:file",
           "target": "~/src/utils/navigation/resolveNavigationTree.js"
+        }
+      ]
+    },
+    {
+      "name": "utils-text",
+      "type": "registry:lib",
+      "title": "Mesure de texte",
+      "description": "Largeur rendue d'un texte, mesurée sur un canvas caché avec cache, et estimée sans canvas (rendu serveur).",
+      "dependencies": [],
+      "registryDependencies": [
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "src/utils/text/measureText.js",
+          "type": "registry:file",
+          "target": "~/src/utils/text/measureText.js"
         }
       ]
     },
@@ -3687,6 +3846,28 @@
       }
     },
     {
+      "name": "globe-arc-hue",
+      "type": "registry:block",
+      "title": "Flux encodés par hue",
+      "description": "`arcHue` nomme des clés des objets `arcs`, encodées comme les canaux hue de `<Chart>` : la première (`mode`) choisit la couleur du trait dans la palette catégorielle (sans ses bleus, qui se fondent dans l'océan), la seconde (`kind`) son style (plein, pointillé). La légende du chart s'affiche à droite du globe, titrée par `labels` : survoler une modalité met ses flux en avant, et le bouton « Agrandir » de la toolbar la passe au-dessus. La tooltip d'un flux reprend ses valeurs hue, et l'épaisseur suit toujours `value`.",
+      "dependencies": [],
+      "registryDependencies": [
+        "globe",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/globe-arc-hue.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/globe-arc-hue.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "globe"
+      }
+    },
+    {
       "name": "globe-basic",
       "type": "registry:block",
       "title": "Globe à points et flux",
@@ -3712,7 +3893,7 @@
       "name": "globe-custom-markers",
       "type": "registry:block",
       "title": "Pastilles et infobulles sur mesure",
-      "description": "Quatre accesseurs personnalisent chaque point : `colorFor`, `sizeFor`, `iconFor` (SVG en chaîne) et `tooltipFor` (HTML en chaîne). Ce dernier est injecté tel quel par le moteur : toute donnée y passe par `escapeHtml`.",
+      "description": "Trois accesseurs personnalisent chaque point : `colorFor`, `iconFor` (SVG en chaîne) et `tooltipFor` (HTML en chaîne). Ce dernier est injecté tel quel par le moteur : toute donnée y passe par `escapeHtml`. `pointSize=\"value\"` rend l'aire de chaque pastille proportionnelle à sa valeur, comme les bulles du chart, et ajoute une légende de taille titrée par `labels.size`.",
       "dependencies": [],
       "registryDependencies": [
         "globe",
@@ -3723,6 +3904,28 @@
           "path": "registry/examples/globe-custom-markers.jsx",
           "type": "registry:file",
           "target": "~/src/examples/globe-custom-markers.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "globe"
+      }
+    },
+    {
+      "name": "globe-glow-flows",
+      "type": "registry:block",
+      "title": "Flux décoratifs",
+      "description": "`arcVariant=\"glow\"` dessine des flux fins et lumineux, en fusion additive : leur luminosité croît de l'origine vers la destination, et `value` règle leur éclat plutôt que leur épaisseur. Animés dès le montage (`defaults.arcsDynamic`), une comète parcourt chaque flux. Pour une page d'accueil ou une illustration, quand la lecture précise des flux importe moins que l'ambiance.",
+      "dependencies": [],
+      "registryDependencies": [
+        "globe",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/globe-glow-flows.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/globe-glow-flows.jsx"
         }
       ],
       "meta": {
@@ -3756,7 +3959,7 @@
       "name": "globe-points-only",
       "type": "registry:block",
       "title": "Points seuls, sans rotation",
-      "description": "Aucun `arcs` : les clés `arcs`/`arcsDynamic` sont retirées de la toolbar, et leur groupe disparaît sans laisser de séparateur orphelin. `defaultAutoRotate={false}` démarre la scène immobile. Autre dépendance croisée : masquer les points (bouton dédié) grise en retour le bouton tooltips, faute de rien à survoler.",
+      "description": "Aucun `arcs` : les clés `arcs`/`arcsDynamic` sont retirées de la toolbar, et leur groupe disparaît sans laisser de séparateur orphelin. `defaults={{ rotate: false }}` démarre la scène immobile. Autre dépendance croisée : masquer les points (bouton dédié) grise en retour le bouton tooltips, faute de rien à survoler.",
       "dependencies": [],
       "registryDependencies": [
         "globe",
@@ -3775,10 +3978,32 @@
       }
     },
     {
+      "name": "globe-sober-points",
+      "type": "registry:block",
+      "title": "Points sobres, taille par valeur",
+      "description": "`pointVariant=\"dot\"` remplace les pastilles par de simples disques, sans anneau ni icône, et `pointPulse={false}` retire le halo animé : les points voisins d'Europe restent lisibles. `pointSize=\"value\"` rend l'aire de chaque point proportionnelle à sa valeur, comme les bulles du chart ; la légende de taille, titrée par `labels.size`, rejoint celle des flux.",
+      "dependencies": [],
+      "registryDependencies": [
+        "globe",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/globe-sober-points.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/globe-sober-points.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "globe"
+      }
+    },
+    {
       "name": "globe-static-arcs",
       "type": "registry:block",
       "title": "Flux figés, tooltips désactivées",
-      "description": "`defaultArcsDynamic={false}` démarre les flux en dégradé statique (pas de comète animée le long de l'arc) ; `defaultTooltips={false}` démarre sans infobulle au survol. Toolbar complète : l'autre dépendance croisée se vérifie en masquant les flux, qui grise alors en retour le bouton `arcsDynamic` — plus rien à animer.",
+      "description": "Les flux démarrent figés par défaut (trait plein, sans comète) : le bouton `arcsDynamic` de la toolbar les anime. `defaults={{ tooltips: false }}` démarre sans infobulle au survol. Toolbar complète : l'autre dépendance croisée se vérifie en masquant les flux, qui grise alors en retour le bouton `arcsDynamic` — plus rien à animer.",
       "dependencies": [],
       "registryDependencies": [
         "globe",
@@ -3800,7 +4025,7 @@
       "name": "globe-toolbar-restricted",
       "type": "registry:block",
       "title": "Toolbar restreinte",
-      "description": "`toolbar` accepte une liste de clés : on choisit à l'instanciation quelles options la barre expose. Ici seulement globe/planisphère, rotation et réinitialisation du zoom — combiné à `defaultMode=\"plane\"`, le globe démarre en planisphère avec une barre réduite à trois interrupteurs.",
+      "description": "`toolbar` accepte une liste de clés : on choisit à l'instanciation quelles options la barre expose. Ici seulement globe/planisphère, rotation et réinitialisation du zoom — combiné à `defaults={{ mode: 'plane' }}`, le globe démarre en planisphère avec une barre réduite à trois interrupteurs.",
       "dependencies": [],
       "registryDependencies": [
         "globe",
@@ -3811,6 +4036,28 @@
           "path": "registry/examples/globe-toolbar-restricted.jsx",
           "type": "registry:file",
           "target": "~/src/examples/globe-toolbar-restricted.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "globe"
+      }
+    },
+    {
+      "name": "globe-undirected-flows",
+      "type": "registry:block",
+      "title": "Flux non orientés",
+      "description": "`arcVariant=\"line\"` garde le trait plein des flèches (épaisseur selon `value`, couleur et style par `arcHue`) mais sans pointe : le flux relie deux points sans sens de lecture, comme une liaison ou un échange. Le trait va jusqu'au centre de chaque pastille. Le globe démarre agrandi (`defaults.expanded`) : la légende est au-dessus, et le bouton « Replier » de la toolbar la renvoie à droite.",
+      "dependencies": [],
+      "registryDependencies": [
+        "globe",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/globe-undirected-flows.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/globe-undirected-flows.jsx"
         }
       ],
       "meta": {

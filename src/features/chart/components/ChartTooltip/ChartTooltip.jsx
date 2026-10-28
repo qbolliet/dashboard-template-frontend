@@ -5,7 +5,7 @@
 // (flip adaptatif) pour rester lisible quelle que soit la zone du graphe.
 
 // Importation des modules
-import { markerPath } from '../../utils/encoding';
+import { markerPath } from '@/utils/encoding/markers';
 import './ChartTooltip.scss';
 
 // Lignes de hachure pour le glyphe d'une tuile (barchart / violon / heatmap).

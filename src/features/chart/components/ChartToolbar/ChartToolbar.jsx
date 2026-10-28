@@ -10,7 +10,7 @@
 // Importation des modules
 import { mergeLabels } from '@/utils/i18n/mergeLabels';
 import HoverToolbar from '@/components/toolbar/HoverToolbar/HoverToolbar';
-import { resetZoomTool } from '@/components/toolbar/tools';
+import { expandTool, resetZoomTool } from '@/components/toolbar/tools';
 import ToolIcon from './ToolIcon/ToolIcon';
 
 // Défauts français, surchargeables par la prop `labels` (cf. src/utils/i18n/mergeLabels.js).
@@ -71,15 +71,8 @@ const ChartToolbar = ({
       { id: 'svg', icon: ToolIcon.Svg, label: labels.exportSvg, onClick: onExportSvg },
       { id: 'png', icon: ToolIcon.Png, label: labels.exportPng, onClick: onExportPng },
     ],
-    [
-      {
-        id: 'expand',
-        icon: expanded ? ToolIcon.Compress : ToolIcon.Expand,
-        label: expanded ? labels.collapse : labels.expand,
-        active: expanded,
-        onClick: onExpand,
-      },
-    ],
+    // Factory partagée avec le globe : même bouton, même effet sur la légende.
+    [expandTool({ expanded, onClick: onExpand, expandLabel: labels.expand, collapseLabel: labels.collapse })],
   ];
 
   return <HoverToolbar groups={groups} label={labels.toolbar} />;

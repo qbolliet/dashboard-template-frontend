@@ -158,7 +158,7 @@ rebranding ne marche pas : un consommateur du dépôt ne lit pas les propriété
 
 ### Les échelles de couleur des graphiques
 
-`src/features/chart/utils/encoding.js` déclare `PALETTE` (12 teintes catégorielles) et
+`src/utils/encoding/scales.js` déclare `PALETTE` (12 teintes catégorielles) et
 `SEQUENTIAL` (rampe à 5 arrêts) comme **constantes JavaScript littérales** :
 
 ```js
@@ -178,7 +178,7 @@ d'image, où la rastérisation sur canvas échouerait sur un `var(--…)` non r�
 | Fichier | Ce qu'on y change |
 |---|---|
 | `src/styles/globals/primitives/colors.scss` | la primitive `--color-navy`, `--color-brick`… |
-| `src/features/chart/utils/encoding.js` | la constante correspondante de `PALETTE` / `SEQUENTIAL` |
+| `src/utils/encoding/scales.js` | la constante correspondante de `PALETTE` / `SEQUENTIAL` |
 
 Et **`npm run check:palette` fait échouer `npm run verify` en cas de dérive** : le script
 `scripts/check-palette-sync.js` compare les deux fichiers et sort en erreur dès qu'une
@@ -227,7 +227,7 @@ déclarés dans `typography.scss` et relus en JavaScript par
 | Des surfaces ou des bordures différentes | B | `:root`, en remappant un rôle |
 | Un composant différent sur une page | C | une classe de conteneur (+ `data-theme` si vous surchargez une primitive) |
 | Une disposition ou un comportement différents | D | le fichier du composant, installé chez vous |
-| Changer les couleurs des graphiques | — | `primitives/colors.scss` **et** `chart/utils/encoding.js` |
+| Changer les couleurs des graphiques | — | `primitives/colors.scss` **et** `utils/encoding/scales.js` |
 
 En cas de doute sur le niveau où porter une surcharge, la colonne « chaîne de dérivation »
 de la [référence des tokens](/fondations/tokens) répond directement : elle montre de quoi

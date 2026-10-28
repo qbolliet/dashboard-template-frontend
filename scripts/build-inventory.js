@@ -102,6 +102,18 @@ const UNIT_DEFINITIONS = [
   // ---- src/components/icons ------------------------------------------------
   { name: 'icons', type: 'component', roots: ['src/components/icons'] },
 
+  // ---- src/components/legend -----------------------------------------------
+  // Légendes du chart (par canaux, de taille), promues quand le globe (légende des
+  // flux, taille des points) en est devenu le second consommateur.
+  {
+    name: 'legend-tokens',
+    type: 'tokens',
+    roots: ['src/components/legend/_tokens.scss', 'src/components/legend/_colors.scss'],
+  },
+  { name: 'channel-legend', type: 'component', roots: ['src/components/legend/ChannelLegend'] },
+  { name: 'legend-glyph', type: 'component', roots: ['src/components/legend/LegendGlyph'] },
+  { name: 'size-legend', type: 'component', roots: ['src/components/legend/SizeLegend'] },
+
   // ---- src/components/toolbar ----------------------------------------------
   {
     name: 'toolbar-tokens',
@@ -202,12 +214,20 @@ const UNIT_DEFINITIONS = [
 
   // ---- Couches partagées ---------------------------------------------------
   { name: 'hooks-accessibility', type: 'lib', roots: ['src/hooks/accessibility'] },
+  { name: 'hooks-css-length', type: 'lib', roots: ['src/hooks/cssLength'] },
   { name: 'hooks-debounce', type: 'lib', roots: ['src/hooks/debounce'] },
   { name: 'hooks-floating', type: 'lib', roots: ['src/hooks/floating'] },
   { name: 'hooks-layout-effect', type: 'lib', roots: ['src/hooks/layoutEffect'] },
   { name: 'utils-accessibility', type: 'lib', roots: ['src/utils/accessibility'] },
   { name: 'utils-format', type: 'lib', roots: ['src/utils/format'] },
   { name: 'utils-html', type: 'lib', roots: ['src/utils/html'] },
+  // Mesure de texte au canvas : axes du chart et légende de taille (chart, globe).
+  { name: 'utils-text', type: 'lib', roots: ['src/utils/text'] },
+  // Palette catégorielle, pointillés et leurs échelles ordinales, formes de
+  // marqueurs : promus du chart quand le globe (flux encodés par `arcHue`, légende
+  // partagée) en est devenu le second consommateur. OBLIGATOIRE pour chart ET globe,
+  // qui l'importent tous deux.
+  { name: 'utils-encoding', type: 'lib', roots: ['src/utils/encoding'] },
   // Primitives pures consommées par language-switcher (interpolate, mergeLabels)
   // ET par la couche src/i18n/ du dépôt (pluralize, negotiateLocale,
   // resolveLocalized, localePath) : un seul dossier, comme les autres unités

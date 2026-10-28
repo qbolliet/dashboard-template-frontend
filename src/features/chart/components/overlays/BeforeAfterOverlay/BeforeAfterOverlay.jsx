@@ -10,9 +10,11 @@
 
 // Importation des modules
 import { useId } from 'react';
+import { PALETTE } from '@/utils/encoding/scales';
 import {
-  seriesKey, groupSeries, xKeyOf, subsample, markerPath, PALETTE,
+  seriesKey, groupSeries, xKeyOf, subsample,
 } from '../../../utils/encoding';
+import { markerPath } from '@/utils/encoding/markers';
 import { PROJ_DIST_MARKER } from '../../../toolbar-features/channelAssign';
 import HatchPatterns from '../../marks/shared/HatchPatterns';
 import DragBar from '../DragBar/DragBar';

@@ -1,8 +1,8 @@
 {
   "$comment": "Généré par scripts/build-inventory.js — ne pas éditer à la main.",
-  "generatedAt": "2026-10-27T13:37:21.670Z",
-  "unitCount": 54,
-  "fileCount": 529,
+  "generatedAt": "2026-10-28T14:23:31.945Z",
+  "unitCount": 61,
+  "fileCount": 540,
   "fanoutThreshold": 3,
   "units": {
     "accessible-icon": {
@@ -280,6 +280,50 @@
       "externalConfig": [],
       "warnings": []
     },
+    "channel-legend": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/legend/ChannelLegend"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/components/legend/ChannelLegend/ChannelLegend.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/legend/ChannelLegend/ChannelLegend.scss",
+          "kind": "style"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "legend-glyph",
+        "legend-tokens",
+        "tokens-global"
+      ],
+      "internalCode": [
+        "legend-glyph"
+      ],
+      "internalTokens": [
+        "legend-tokens",
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "legend-glyph",
+        "legend-tokens",
+        "tokens-global",
+        "utils-encoding"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
     "chart": {
       "type": "feature",
       "distributable": true,
@@ -287,7 +331,7 @@
         "src/features/chart"
       ],
       "clientBoundary": true,
-      "fileCount": 98,
+      "fileCount": 92,
       "files": [
         {
           "path": "src/features/chart/components/Chart/_colors.scss",
@@ -342,31 +386,11 @@
           "kind": "tokens"
         },
         {
-          "path": "src/features/chart/components/ChartLegend/ChannelLegend/ChannelLegend.jsx",
-          "kind": "component"
-        },
-        {
-          "path": "src/features/chart/components/ChartLegend/ChannelLegend/ChannelLegend.scss",
-          "kind": "style"
-        },
-        {
-          "path": "src/features/chart/components/ChartLegend/LegendGlyph/LegendGlyph.jsx",
-          "kind": "component"
-        },
-        {
           "path": "src/features/chart/components/ChartLegend/SequentialLegend/SequentialLegend.jsx",
           "kind": "component"
         },
         {
           "path": "src/features/chart/components/ChartLegend/SequentialLegend/SequentialLegend.scss",
-          "kind": "style"
-        },
-        {
-          "path": "src/features/chart/components/ChartLegend/SizeLegend/SizeLegend.jsx",
-          "kind": "component"
-        },
-        {
-          "path": "src/features/chart/components/ChartLegend/SizeLegend/SizeLegend.scss",
           "kind": "style"
         },
         {
@@ -562,10 +586,6 @@
           "kind": "hook"
         },
         {
-          "path": "src/features/chart/hooks/useCssLength.js",
-          "kind": "hook"
-        },
-        {
           "path": "src/features/chart/hooks/useFeatureState.js",
           "kind": "hook"
         },
@@ -698,7 +718,6 @@
         "d3-contour",
         "d3-geo",
         "d3-interpolate",
-        "d3-shape",
         "swr"
       ],
       "npmAsyncOnly": [
@@ -718,40 +737,61 @@
       ],
       "internal": [
         "api-client",
+        "channel-legend",
         "chart-tokens",
+        "hooks-css-length",
         "hooks-layout-effect",
         "hover-toolbar",
         "icons",
+        "legend-glyph",
+        "legend-tokens",
+        "size-legend",
         "tokens-global",
         "toolbar-tools",
+        "utils-encoding",
         "utils-format",
-        "utils-i18n"
+        "utils-i18n",
+        "utils-text"
       ],
       "internalCode": [
         "api-client",
+        "channel-legend",
+        "hooks-css-length",
         "hooks-layout-effect",
         "hover-toolbar",
         "icons",
+        "legend-glyph",
+        "size-legend",
         "toolbar-tools",
+        "utils-encoding",
         "utils-format",
-        "utils-i18n"
+        "utils-i18n",
+        "utils-text"
       ],
       "internalTokens": [
         "chart-tokens",
+        "legend-tokens",
         "tokens-global"
       ],
       "internalResolved": [
         "api-client",
+        "channel-legend",
         "chart-tokens",
+        "hooks-css-length",
         "hooks-layout-effect",
         "hover-toolbar",
         "icons",
+        "legend-glyph",
+        "legend-tokens",
+        "size-legend",
         "tokens-global",
         "toolbar-button",
         "toolbar-tokens",
         "toolbar-tools",
+        "utils-encoding",
         "utils-format",
-        "utils-i18n"
+        "utils-i18n",
+        "utils-text"
       ],
       "styleGlobals": [],
       "assets": [],
@@ -1489,7 +1529,7 @@
         "src/features/globe"
       ],
       "clientBoundary": true,
-      "fileCount": 22,
+      "fileCount": 25,
       "files": [
         {
           "path": "src/features/globe/components/Globe/_colors.scss",
@@ -1556,6 +1596,10 @@
           "kind": "lib"
         },
         {
+          "path": "src/features/globe/engine/arcGeometry.js",
+          "kind": "engine"
+        },
+        {
           "path": "src/features/globe/engine/GlobeEngine.js",
           "kind": "engine"
         },
@@ -1578,6 +1622,14 @@
         {
           "path": "src/features/globe/sources/demoData.js",
           "kind": "fixture"
+        },
+        {
+          "path": "src/features/globe/utils/arcEncoding.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/globe/utils/pointSize.js",
+          "kind": "util"
         }
       ],
       "npm": [
@@ -1590,26 +1642,36 @@
         "src/features/globe/components/GlobeMarkers/markerTemplate.js",
         "src/features/globe/components/GlobeTooltip/tooltipTemplates.js",
         "src/features/globe/engine/GlobeEngine.js",
+        "src/features/globe/engine/arcGeometry.js",
         "src/features/globe/engine/palette.js",
         "src/features/globe/engine/shaders.js"
       ],
       "internal": [
+        "channel-legend",
         "globe-tokens",
+        "hooks-css-length",
         "hover-toolbar",
+        "legend-tokens",
+        "size-legend",
         "theme",
         "tokens-global",
         "toolbar-tools",
         "utils-accessibility",
+        "utils-encoding",
         "utils-html",
         "utils-i18n",
         "utils-math",
         "utils-url"
       ],
       "internalCode": [
+        "channel-legend",
+        "hooks-css-length",
         "hover-toolbar",
+        "size-legend",
         "theme",
         "toolbar-tools",
         "utils-accessibility",
+        "utils-encoding",
         "utils-html",
         "utils-i18n",
         "utils-math",
@@ -1617,21 +1679,30 @@
       ],
       "internalTokens": [
         "globe-tokens",
+        "legend-tokens",
         "tokens-global"
       ],
       "internalResolved": [
+        "channel-legend",
         "globe-tokens",
+        "hooks-css-length",
+        "hooks-layout-effect",
         "hover-toolbar",
         "icons",
+        "legend-glyph",
+        "legend-tokens",
+        "size-legend",
         "theme",
         "tokens-global",
         "toolbar-button",
         "toolbar-tokens",
         "toolbar-tools",
         "utils-accessibility",
+        "utils-encoding",
         "utils-html",
         "utils-i18n",
         "utils-math",
+        "utils-text",
         "utils-url"
       ],
       "styleGlobals": [],
@@ -2119,6 +2190,38 @@
       "externalConfig": [],
       "warnings": []
     },
+    "hooks-css-length": {
+      "type": "lib",
+      "distributable": true,
+      "roots": [
+        "src/hooks/cssLength"
+      ],
+      "clientBoundary": false,
+      "fileCount": 1,
+      "files": [
+        {
+          "path": "src/hooks/cssLength/useCssLength.js",
+          "kind": "hook"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "hooks-layout-effect"
+      ],
+      "internalCode": [
+        "hooks-layout-effect"
+      ],
+      "internalTokens": [],
+      "internalResolved": [
+        "hooks-layout-effect"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
     "hooks-debounce": {
       "type": "lib",
       "distributable": true,
@@ -2257,7 +2360,7 @@
         "src/components/icons"
       ],
       "clientBoundary": true,
-      "fileCount": 38,
+      "fileCount": 40,
       "files": [
         {
           "path": "src/components/icons/BellIcon/BellIcon.js",
@@ -2316,6 +2419,10 @@
           "kind": "component"
         },
         {
+          "path": "src/components/icons/CompressIcon/CompressIcon.js",
+          "kind": "component"
+        },
+        {
           "path": "src/components/icons/CopyIcon/CopyIcon.js",
           "kind": "component"
         },
@@ -2329,6 +2436,10 @@
         },
         {
           "path": "src/components/icons/DownloadIcon/DownloadIcon.js",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/icons/ExpandIcon/ExpandIcon.js",
           "kind": "component"
         },
         {
@@ -2609,6 +2720,75 @@
       "externalConfig": [],
       "warnings": []
     },
+    "legend-glyph": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/legend/LegendGlyph"
+      ],
+      "clientBoundary": false,
+      "fileCount": 1,
+      "files": [
+        {
+          "path": "src/components/legend/LegendGlyph/LegendGlyph.jsx",
+          "kind": "component"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "utils-encoding"
+      ],
+      "internalCode": [
+        "utils-encoding"
+      ],
+      "internalTokens": [],
+      "internalResolved": [
+        "utils-encoding"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "legend-tokens": {
+      "type": "tokens",
+      "distributable": true,
+      "roots": [
+        "src/components/legend/_tokens.scss",
+        "src/components/legend/_colors.scss"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/components/legend/_colors.scss",
+          "kind": "tokens"
+        },
+        {
+          "path": "src/components/legend/_tokens.scss",
+          "kind": "tokens"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "tokens-global"
+      ],
+      "internalCode": [],
+      "internalTokens": [
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "tokens-global"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
     "link-card": {
       "type": "component",
       "distributable": true,
@@ -2813,6 +2993,7 @@
         "badge",
         "calendar-month",
         "card-grid",
+        "channel-legend",
         "chart",
         "chart-tokens",
         "constraint-field",
@@ -2822,15 +3003,19 @@
         "filter-tokens",
         "hero",
         "hooks-accessibility",
+        "hooks-css-length",
         "hooks-debounce",
         "hooks-floating",
         "hooks-layout-effect",
         "hover-toolbar",
         "icons",
         "large-button",
+        "legend-glyph",
+        "legend-tokens",
         "link-card",
         "link-cards-section",
         "select-menu",
+        "size-legend",
         "stat-card",
         "table",
         "table-tokens",
@@ -2843,10 +3028,12 @@
         "type-aware-input",
         "ui",
         "utils-accessibility",
+        "utils-encoding",
         "utils-format",
         "utils-i18n",
         "utils-math",
         "utils-navigation",
+        "utils-text",
         "utils-url",
         "visually-hidden"
       ],
@@ -2930,6 +3117,53 @@
         "tokens-global",
         "utils-i18n",
         "visually-hidden"
+      ],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
+    "size-legend": {
+      "type": "component",
+      "distributable": true,
+      "roots": [
+        "src/components/legend/SizeLegend"
+      ],
+      "clientBoundary": false,
+      "fileCount": 3,
+      "files": [
+        {
+          "path": "src/components/legend/SizeLegend/SizeLegend.jsx",
+          "kind": "component"
+        },
+        {
+          "path": "src/components/legend/SizeLegend/SizeLegend.scss",
+          "kind": "style"
+        },
+        {
+          "path": "src/components/legend/SizeLegend/sizeLegendValues.js",
+          "kind": "lib"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [
+        "legend-tokens",
+        "tokens-global",
+        "utils-text"
+      ],
+      "internalCode": [
+        "utils-text"
+      ],
+      "internalTokens": [
+        "legend-tokens",
+        "tokens-global"
+      ],
+      "internalResolved": [
+        "legend-tokens",
+        "tokens-global",
+        "utils-text"
       ],
       "styleGlobals": [],
       "assets": [],
@@ -3891,6 +4125,39 @@
       "externalConfig": [],
       "warnings": []
     },
+    "utils-encoding": {
+      "type": "lib",
+      "distributable": true,
+      "roots": [
+        "src/utils/encoding"
+      ],
+      "clientBoundary": false,
+      "fileCount": 2,
+      "files": [
+        {
+          "path": "src/utils/encoding/markers.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/utils/encoding/scales.js",
+          "kind": "util"
+        }
+      ],
+      "npm": [
+        "@visx/scale",
+        "d3-shape"
+      ],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [],
+      "internalCode": [],
+      "internalTokens": [],
+      "internalResolved": [],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
     "utils-format": {
       "type": "lib",
       "distributable": true,
@@ -4085,6 +4352,32 @@
       "externalConfig": [],
       "warnings": []
     },
+    "utils-text": {
+      "type": "lib",
+      "distributable": true,
+      "roots": [
+        "src/utils/text"
+      ],
+      "clientBoundary": false,
+      "fileCount": 1,
+      "files": [
+        {
+          "path": "src/utils/text/measureText.js",
+          "kind": "util"
+        }
+      ],
+      "npm": [],
+      "npmAsyncOnly": [],
+      "asyncOnlyFiles": [],
+      "internal": [],
+      "internalCode": [],
+      "internalTokens": [],
+      "internalResolved": [],
+      "styleGlobals": [],
+      "assets": [],
+      "externalConfig": [],
+      "warnings": []
+    },
     "utils-url": {
       "type": "lib",
       "distributable": true,
@@ -4158,6 +4451,43 @@
     "cycles": [],
     "highFanout": [
       {
+        "unit": "chart",
+        "count": 13,
+        "dependencies": [
+          "api-client",
+          "channel-legend",
+          "hooks-css-length",
+          "hooks-layout-effect",
+          "hover-toolbar",
+          "icons",
+          "legend-glyph",
+          "size-legend",
+          "toolbar-tools",
+          "utils-encoding",
+          "utils-format",
+          "utils-i18n",
+          "utils-text"
+        ]
+      },
+      {
+        "unit": "globe",
+        "count": 12,
+        "dependencies": [
+          "channel-legend",
+          "hooks-css-length",
+          "hover-toolbar",
+          "size-legend",
+          "theme",
+          "toolbar-tools",
+          "utils-accessibility",
+          "utils-encoding",
+          "utils-html",
+          "utils-i18n",
+          "utils-math",
+          "utils-url"
+        ]
+      },
+      {
         "unit": "docs",
         "count": 9,
         "dependencies": [
@@ -4217,20 +4547,6 @@
         ]
       },
       {
-        "unit": "globe",
-        "count": 8,
-        "dependencies": [
-          "hover-toolbar",
-          "theme",
-          "toolbar-tools",
-          "utils-accessibility",
-          "utils-html",
-          "utils-i18n",
-          "utils-math",
-          "utils-url"
-        ]
-      },
-      {
         "unit": "header",
         "count": 8,
         "dependencies": [
@@ -4270,19 +4586,6 @@
           "link-cards-section",
           "stat-card",
           "tabs"
-        ]
-      },
-      {
-        "unit": "chart",
-        "count": 7,
-        "dependencies": [
-          "api-client",
-          "hooks-layout-effect",
-          "hover-toolbar",
-          "icons",
-          "toolbar-tools",
-          "utils-format",
-          "utils-i18n"
         ]
       },
       {

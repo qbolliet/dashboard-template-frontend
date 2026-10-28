@@ -11,7 +11,7 @@
 
 // Importation des modules
 import { voronoi, VoronoiPolygon } from '@visx/voronoi';
-import { markerPath } from '../../../utils/encoding';
+import { markerPath } from '@/utils/encoding/markers';
 
 /**
  * Proximity-hover layer: builds a Voronoi diagram over pre-projected pixel

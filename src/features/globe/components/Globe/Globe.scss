@@ -3,13 +3,70 @@
 // =================================================================
 @use '../../tokens' as *;
 @use '../../colors' as *;
+@use '@/components/legend/tokens' as *;
 @use './tokens' as *;
 @use './colors' as *;
+
+// ── Racine : cadre spatial + légende, côte à côte ou empilés ──
+// Même disposition que le chart (.chart-legend-right / .chart-legend-top) : la
+// légende se lit HORS de la scène, à droite par défaut, centrée verticalement
+// sur le cadre, et au-dessus en mode agrandi (outil `expand` de la toolbar).
+//
+// Flex et non grille, pour une raison précise : le cadre ne descend jamais sous
+// --globe-frame-min-width. Quand le globe ET une légende à droite n'y tiennent
+// plus (panneau étroit, colonne de doc, téléphone), la légende passe à la ligne,
+// et `wrap-reverse` place cette seconde ligne AU-DESSUS du cadre. Le seuil suit
+// donc la largeur réellement disponible, pas celle de la fenêtre.
+.globe {
+  // Pleine largeur même dans un parent flex qui ajusterait la figure à son
+  // contenu : le cadre n'a pas de largeur propre (le canvas suit le stage).
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap-reverse;
+  align-items: center;
+  justify-content: center;
+  gap: var(--globe-legend-gap);
+}
+
+// Légende de droite : légende des flux puis légende de taille, empilées comme
+// .chart-legend-right--stack. Largeur minimale réservée dès le rendu serveur,
+// comme .chart-legend-right : la légende de taille, mesurée au montage, s'y loge
+// sans décaler le globe.
+.globe-legend {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--legend-group-gap);
+  flex: 0 1 auto;
+  min-width: var(--globe-legend-min-width);
+  max-width: var(--globe-legend-max-width);
+}
+// Mode agrandi : légende seule sur sa ligne (donc renvoyée au-dessus du cadre),
+// en ligne et centrée, comme .chart-legend-top.
+.globe--expanded .globe-legend {
+  flex-basis: 100%;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--legend-group-gap-h);
+  min-width: 0;
+  max-width: none;
+}
+// Sans canal couleur, les glyphes de style reçoivent `currentColor` (cf.
+// arcEncoding.js) : ils prennent ici le token des flux, qui suit le thème. La
+// classe `.legend-glyph` appartient à ChannelLegend (src/components/legend/).
+.globe-legend .legend-glyph { color: hsl(var(--globe-arc)); }
 
 // ── Cadre : fond spatial + bordure, hauteur pilotée en style inline (prop height) ──
 .globe-frame {
   position: relative;
-  width: 100%;
+  // Occupe tout l'espace que la légende laisse, sans descendre sous le seuil
+  // qui renvoie la légende au-dessus (cf. .globe).
+  flex: 1 1 var(--globe-frame-min-width);
+  min-width: 0;
   border: 1px solid hsl(var(--color-border));
   border-radius: var(--globe-frame-radius);
   overflow: hidden;

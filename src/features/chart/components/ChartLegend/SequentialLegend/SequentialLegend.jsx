@@ -40,8 +40,8 @@ const SequentialLegend = ({ scale, label, format = '.2~s', orientation = 'horizo
     // Barre verticale (haut = max) avec graduations à droite — mode par défaut
     // de la légende séquentielle en colonne (cf. .ca-legend-right du prototype).
     return (
-      <dl className="chart-legend chart-seq-legend chart-seq-legend--v">
-        {label && <dt className="chart-legend-label">{label}</dt>}
+      <dl className="legend chart-seq-legend chart-seq-legend--v">
+        {label && <dt className="legend-label">{label}</dt>}
         <dd className="chart-seq-vrow">
           <div className="chart-seq-bar-v" style={{ background: `linear-gradient(to top, ${stops.join(',')})` }} />
           <div className="chart-seq-scale-v">
@@ -55,8 +55,8 @@ const SequentialLegend = ({ scale, label, format = '.2~s', orientation = 'horizo
 
   // Barre horizontale
   return (
-    <dl className="chart-legend chart-seq-legend">
-      {label && <dt className="chart-legend-label">{label}</dt>}
+    <dl className="legend chart-seq-legend">
+      {label && <dt className="legend-label">{label}</dt>}
       <dd>
         <div className="chart-seq-bar" style={{ background: `linear-gradient(to right, ${stops.join(',')})` }} />
         <div className="chart-seq-scale">

@@ -1,5 +1,5 @@
 // Importation des modules
-import { markerPath } from '@/features/chart/utils/encoding';
+import { markerPath } from '@/utils/encoding/markers';
 
 // Ce fichier code en dur des coordonnées SVG (viewBox,
 // x1/y1/x2/y2, rayons, largeurs de trait...), ce qui déroge en apparence à la
@@ -8,7 +8,7 @@ import { markerPath } from '@/features/chart/utils/encoding';
 // peut de toute façon pas piloter les coordonnées d'un <path>/<line>/<rect>).
 // Elles restent donc en JSX, comme les tracés `path d` des icônes de
 // src/components/icons/. Seules les vraies valeurs de style (color, opacity)
-// arrivent par props depuis utils/encoding.js.
+// arrivent par props, depuis les échelles de l'hôte (src/utils/encoding/scales.js).
 
 // Lignes de hachure d'un glyphe 22×14 (motifs diag / diag-rev / cross / horizontal
 // / vertical / grid) — partagées entre le canal 'ciband' et le canal 'style' en
@@ -34,7 +34,8 @@ const legendHatchLines = (hatch, color, opacity = 0.9) => {
  * confidence-band indicator (fill/bars/line/whiskers, opacity carrying the level).
  *
  * @param {'color'|'style'|'marker'|'ciband'|'band'} type - Legend channel.
- * @param {string} [color] - Series color (hsl string, from utils/encoding.js scales).
+ * @param {string} [color] - Series color (hsl string from the host's scales, or
+ *   `currentColor` to inherit the CSS color).
  * @param {?string} [dash] - Dash-array (style channel, 'line' ciMode).
  * @param {string} [marker] - Marker type (marker channel; also overlaid on 'ciband' glyphs).
  * @param {?string} [hatch] - Hatch-pattern type ('style' channel in 'hatch' mode, 'ciband').

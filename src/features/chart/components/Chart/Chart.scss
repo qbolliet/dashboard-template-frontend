@@ -3,6 +3,7 @@
 // =================================================================
 @use '../../tokens' as *;
 @use '../../colors' as *;
+@use '@/components/legend/tokens' as *;
 @use './tokens' as *;
 @use './colors' as *;
 
@@ -102,10 +103,10 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  gap: var(--chart-legend-group-gap);
+  gap: var(--legend-group-gap);
 }
 .chart-legend-top--stack {
-  gap: var(--chart-legend-group-gap-h);
+  gap: var(--legend-group-gap-h);
 }
 
 // ── Message de tracé vide (bulles sans aucune valeur de z positive) ──────

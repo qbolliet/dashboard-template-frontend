@@ -2,7 +2,7 @@
 // MULTI LEGEND — légende multi-jeux (une section par jeu)
 // =================================================================
 // Transposition à l'identique de .ca-mlegend* (design-system/project/styles/
-// charts.css). Les items de canaux réutilisent les classes .chart-legend-* de
+// charts.css). Les items de canaux réutilisent les classes .legend-* de
 // ChannelLegend (glyphe, texte, item, faded) — seule la structure de section
 // (titre + glyphe de fill + groupes) est propre au mode multi-jeux.
 @use '@/features/chart/tokens' as *;

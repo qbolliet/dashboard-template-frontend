@@ -2,24 +2,35 @@
 import * as THREE from 'three';
 
 import {
+  ARC_FRAG,
+  ARC_VERT,
   ATMO_FRAG,
   ATMO_VERT,
   EARTH_FRAG,
   EARTH_VERT,
-  LINE_FRAG,
-  LINE_VERT,
   SUN_DAY,
   SUN_NIGHT,
 } from './shaders';
-import { readGlobePalette } from './palette';
+import { cssColor, readGlobeArcStyle, readGlobePalette } from './palette';
+import {
+  ARC_SAMPLES,
+  ARC_VARIANTS,
+  PLANE_DEPTH,
+  PLANE_LIFT,
+  buildArcBuffers,
+  cumulativeLengths,
+  pointAtDistance,
+  writeArcDistances,
+} from './arcGeometry';
 import { markerHtml } from '../components/GlobeMarkers/markerTemplate';
+import { resolvePointSize } from '../utils/pointSize';
 import { arcTooltipHtml, pointTooltipHtml } from '../components/GlobeTooltip/tooltipTemplates';
 import { clamp } from '@/utils/math/clamp';
 import { lerp } from '@/utils/math/lerp';
 import { withBasePath } from '@/utils/url/withBasePath';
 
 // ===== Globe — moteur Three.js =====
-// Rendu réaliste jour/nuit, morphing globe ↔ planisphère, arcs, points overlay.
+// Rendu réaliste jour/nuit, morphing globe ↔ planisphère, flèches de flux, points overlay.
 // Aucune dépendance React ici : le moteur est piloté par des setters explicites.
 
 const PI = Math.PI;
@@ -85,7 +96,9 @@ class GlobeEngine {
    * @param {Array<{id: string, label: string, lat: number, lon: number,
    *   value?: number, sub?: string}>} [opts.points] - Points to place.
    * @param {Array<{from: string, to: string, value?: number}>} [opts.arcs] - Flows
-   *   between point ids; `value` ∈ [0,1] drives opacity and comet speed.
+   *   between point ids; `value` ∈ [0,1] drives arc height, comet speed and the
+   *   stroke width (between the `--globe-arc-width-min/max` tokens), or its
+   *   brightness in the `glow` variant.
    * @param {'globe'|'plane'} [opts.mode='globe'] - Initial projection.
    * @param {boolean} [opts.autoRotate=true] - Slow permanent rotation of the globe
    *   and of the star field (both are ambient motion, driven by this single switch).
@@ -93,10 +106,30 @@ class GlobeEngine {
    * @param {boolean} [opts.showPoints=true] - Point overlay visible.
    * @param {boolean} [opts.showArcs=true] - Flow arcs visible.
    * @param {boolean} [opts.tooltips=true] - Hover tooltips enabled.
-   * @param {boolean} [opts.arcsDynamic=true] - Animated (comet) arcs.
+   * @param {boolean} [opts.arcsDynamic=false] - Animated arcs (a comet-shaped
+   *   opacity modulation running along each stroke).
+   * @param {'arrow'|'line'|'glow'} [opts.arcVariant='arrow'] - Flow drawing:
+   *   `arrow` = solid stroke with a head at the destination, `line` = the same
+   *   stroke without a head (undirected flows), `glow` = thin additive stroke whose
+   *   brightness grows towards the destination (decorative). Unknown values fall
+   *   back to `arrow`.
+   * @param {?function(Object): ?string} [opts.arcColorFor] - CSS colour of an arc,
+   *   resolved ONCE into a THREE.Color at construction; null/absent = the
+   *   theme-dependent `--globe-arc` token.
+   * @param {?function(Object): ?number[]} [opts.arcDashFor] - Dash / gap lengths
+   *   of an arc in CSS px (at most 4 entries); null/absent = solid stroke.
+   * @param {Array<{key: string, label: string}>} [opts.arcHueFields] - Hue fields
+   *   listed in the arc tooltip.
+   * @param {'badge'|'dot'} [opts.pointVariant='badge'] - Point look: `badge` = dot
+   *   with a halo ring and the `iconFor` icon; `dot` = plain disc with a thin border,
+   *   no ring, no icon.
+   * @param {boolean} [opts.pointPulse=true] - Animated pulse halo behind each point.
+   * @param {?(number|string)} [opts.pointSize] - Diameter in px of every point, or
+   *   the key of a value each point's AREA is proportional to (the largest one
+   *   reaching `--globe-marker-max-size`; no positive value = point not drawn).
+   *   Absent = the variant default (`--globe-marker-size` / `--globe-marker-dot-size`).
    * @param {?function(Object): string} [opts.iconFor] - Inline SVG for a badge.
    * @param {?function(Object): string} [opts.colorFor] - CSS colour of a badge.
-   * @param {?function(Object): number} [opts.sizeFor] - Badge diameter in px.
    * @param {?function(Object): string} [opts.tooltipFor] - Point tooltip HTML.
    * @param {boolean} [opts.initialDark=false] - Theme at construction; later
    *   changes come exclusively through setTheme().
@@ -122,7 +155,10 @@ class GlobeEngine {
     this.o = Object.assign({
       points: [], arcs: [], mode: 'globe',
       autoRotate: true, wheelZoom: true, showPoints: true, showArcs: true,
-      tooltips: true, arcsDynamic: true, iconFor: null, colorFor: null, sizeFor: null, tooltipFor: null,
+      tooltips: true, arcsDynamic: false, arcVariant: 'arrow',
+      pointVariant: 'badge', pointPulse: true, pointSize: null,
+      iconFor: null, colorFor: null, tooltipFor: null,
+      arcColorFor: null, arcDashFor: null, arcHueFields: [],
       initialDark: false, textures: null,
     }, opts);
     // Les deux jeux de donnees viennent d'une base via l'API GraphQL : une
@@ -165,6 +201,16 @@ class GlobeEngine {
     this._vHitLocal = new THREE.Vector3(); // _onHoverMove : sortie de _localAt
     this._vHitProj = new THREE.Vector3();  // _onHoverMove : projection ecran
     this._vHitNrm = new THREE.Vector3();   // _onHoverMove : normale tournee (culling face arriere)
+    // Troisieme chemin chaud, troisieme jeu disjoint : la mesure par frame de la
+    // longueur ecran des flux (_updateArcLengths), dans la boucle rAF.
+    this._vLen = new THREE.Vector3();      // _updateArcLengths : position projetee EN PLACE
+    // Derniere vue pour laquelle les longueurs ecran ont ete calculees (centre,
+    // zoom, morph, cadre, generation de survol) : identique -> rien a refaire.
+    this._arcView = new Float64Array(8).fill(NaN);
+    this._arcHoverGen = 0;
+    // Predicat de mise en avant pose par la legende de l'hote (setArcHighlight).
+    this._arcHighlight = null;
+    this._headPt = [0, 0, 0];             // _updateArcLengths : pointe / base de pointe (lon, lat, elev)
     // Registre des ressources GPU a liberer au dispose() : geometries, materiaux
     // et textures. Un tableau alimente au fil des _build* plutot qu'un
     // scene.traverse() a la destruction, car tout n'est pas atteignable depuis
@@ -179,6 +225,13 @@ class GlobeEngine {
     // /test-globe en monte six. setTheme montrait déjà le bon modèle (une lecture
     // distribuée à ses trois cibles), on s'aligne dessus.
     const pal = readGlobePalette(this.c);
+    // Tokens dimensionnels (flux et pastilles), lus UNE fois eux aussi : ils ne
+    // dependent pas du theme, setTheme n'a donc pas a les relire.
+    this._style = readGlobeArcStyle(this.c);
+    // Taille des points (prop pointSize), resolue une fois : _buildArcs en tire le
+    // rayon de la pastille de destination, _buildMarkers le diametre de chacune.
+    this._dot = this.o.pointVariant === 'dot';
+    this._sizing = resolvePointSize(this.o.points, this.o.pointSize);
     this._buildStars();
     this._buildEarth(pal);
     this._buildArcs(pal);
@@ -358,6 +411,11 @@ class GlobeEngine {
     });
     this._disposables.push(atmoGeo, this.atmoMat);
     this.atmo = new THREE.Mesh(atmoGeo, this.atmoMat);
+    // Dessinee AVANT les fleches de flux (passe transparente triee par
+    // renderOrder d'abord) : sinon son halo additif se posait sur les traits
+    // proches du limbe et les blanchissait. Sans effet sur l'occultation, qui
+    // depend du seul tampon de profondeur ecrit par la Terre opaque.
+    this.atmo.renderOrder = -1;
     this.scene.add(this.atmo);   // hors group : reste centrée, glow d'ambiance
 
     // textures — servies depuis /public (même origine), repli « grille » du
@@ -394,157 +452,148 @@ class GlobeEngine {
   _buildArcs(pal) {
     this.arcGroup = new THREE.Group();
     this.group.add(this.arcGroup);
-    this.arcMats = [];
     this.arcHit = [];
+    // Epaisseurs, pointe et opacites : tokens --globe-arc-* (cf. constructeur).
+    const st = this._style;
+    // Variante de dessin, figee a la construction comme les donnees : elle
+    // choisit le programme (define ARC_GLOW) et la fusion de chaque materiau.
+    const variant = ARC_VARIANTS.includes(this.o.arcVariant) ? this.o.arcVariant : 'arrow';
+    const glow = variant === 'glow';
+    // Seule la variante "arrow" porte une pointe : _updateArcLengths ne la pose
+    // que dans ce cas, et la coupe du ruban a sa base avec elle.
+    this._arcHead = variant === 'arrow';
+    // Uniforms PARTAGES par reference entre tous les flux : three ne clone pas
+    // l'objet `{ value }` d'un uniform, une seule ecriture (morph, temps,
+    // animation, taille du cadre, survol) atteint donc chaque materiau.
+    this._arcU = {
+      uMorph: { value: this.morph },
+      uTime: { value: 0 },
+      uDynamic: { value: this.o.arcsDynamic ? 1 : 0 },
+      // Taille CSS du cadre (et non du tampon de dessin) : les largeurs sont en
+      // px CSS. Bornee a 1 pour qu'un cadre pas encore mesure ne divise pas par 0.
+      uResolution: { value: new THREE.Vector2(Math.max(1, this._w), Math.max(1, this._h)) },
+      uAnyHover: { value: 0 },
+      uOpacity: { value: st.opacity },
+      uDimmed: { value: st.dimmedOpacity },
+      uHeadLen: { value: st.headLength },
+      uHeadWid: { value: st.headWidth },
+    };
     // Map et non objet litteral : les identifiants de points viennent d'une base
     // via l'API GraphQL (cf. la docstring de frontiere de confiance de Globe.jsx),
     // donc `arc.from` peut valoir 'constructor', 'toString', 'valueOf'... Sur un
     // `{}`, ces cles resolvent le membre HERITE de Object.prototype : la garde
-    // `if (!a || !b)` laisse alors passer une fonction, _arcGeometry lit des
-    // lon/lat `undefined` et produit un buffer de 72 sommets entierement NaN.
+    // `if (!a || !b)` laisse alors passer une fonction, et la geometrie lirait des
+    // lon/lat `undefined` pour produire un buffer entierement NaN.
     const byId = new Map(this.o.points.map(p => [p.id, p]));
 
     // `points` et `arcs` sont garantis tableaux par le constructeur.
     this.o.arcs.forEach((arc, i) => {
       const a = byId.get(arc.from), b = byId.get(arc.to);
       if (!a || !b) return;
-      const { geo, pts, midLon } = this._arcGeometry(a, b, arc.value);
+      const { geo, pts, midLon, samples, distAttr } = this._arcGeometry(a, b, arc.value);
+      const v = clamp(arc.value ?? 0.5, 0, 1);
+      // Couleur hue resolue UNE fois en THREE.Color (lineaire, comme pal.arc) ;
+      // sans couleur hue, l'arc suit le token --globe-arc et setTheme le recolore.
+      const css = this.o.arcColorFor ? this.o.arcColorFor(arc) : null;
+      const themed = !css;
+      const dash = (this.o.arcDashFor && this.o.arcDashFor(arc)) || null;
+      const dashV = new THREE.Vector4(0, 0, 0, 0);
+      if (dash) dashV.set(dash[0] ?? 0, dash[1] ?? 0, dash[2] ?? 0, dash[3] ?? 0);
+      const dashPeriod = dash ? dash.reduce((s, x) => s + x, 0) : 0;
       const mat = new THREE.ShaderMaterial({
         uniforms: {
-          uMorph: { value: this.morph }, uColor: { value: pal.arc.clone() },
-          uOpacity: { value: 0.5 + 0.5 * (arc.value ?? 0.5) }, uTime: { value: 0 },
-          uDynamic: { value: this.o.arcsDynamic ? 1 : 0 }, uSpeed: { value: 0.32 + 0.14 * (arc.value ?? 0.5) },
-          uPhase: { value: (i * 0.37) % 1 }, uHover: { value: 0 }, uShift: { value: 0 },
+          ...this._arcU,
+          uColor: { value: themed ? pal.arc.clone() : cssColor(css) },
+          // "glow" : trait fin CONSTANT, et `value` passe a la luminosite (meme
+          // loi que le rendu d'avant les fleches). Cet uOpacity propre a l'arc
+          // remplace alors celui, partage, du spread ci-dessus.
+          uWidth: { value: glow ? st.glowWidth : lerp(st.widthMin, st.widthMax, v) },
+          ...(glow ? { uOpacity: { value: 0.5 + 0.5 * v } } : {}),
+          uDash: { value: dashV },
+          uDashPeriod: { value: dashPeriod },
+          // Coupe du ruban, pointe, base et echelle de la pointe : poses des la
+          // premiere frame par _updateArcLengths, AVANT le premier rendu. Sans
+          // pointe, ils ne bougent plus : coupe hors d'atteinte (le ruban va
+          // jusqu'a la destination) et pointe d'echelle nulle (aucun pixel).
+          uCut: { value: this._arcHead ? 0 : 1e9 },
+          uHeadScale: { value: 0 },
+          uHeadTip: { value: new THREE.Vector3().fromArray(samples, (ARC_SAMPLES - 1) * 3) },
+          uHeadBase: { value: new THREE.Vector3().fromArray(samples, (ARC_SAMPLES - 1) * 3) },
+          uHover: { value: 0 }, uShift: { value: 0 },
+          uSpeed: { value: 0.32 + 0.14 * v }, uPhase: { value: (i * 0.37) % 1 },
         },
-        vertexShader: LINE_VERT, fragmentShader: LINE_FRAG,
-        transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+        vertexShader: ARC_VERT, fragmentShader: ARC_FRAG,
+        defines: glow ? { ARC_GLOW: '' } : {},
+        // Fusion NORMALE : trait plein, sans halo additif ; ADDITIVE pour la
+        // variante decorative, ou les flux s'illuminent en se croisant.
+        // L'occultation par la Terre ne doit rien a la fusion : elle vient du
+        // test de profondeur (depthTest par defaut) contre la Terre opaque,
+        // rendue avant tout objet transparent. depthWrite reste coupe pour que
+        // deux flux qui se croisent ne se masquent pas l'un l'autre.
+        transparent: true, blending: glow ? THREE.AdditiveBlending : THREE.NormalBlending, depthWrite: false,
+        // Les triangles sont extrudes en espace ECRAN : leur sens d'enroulement
+        // depend de la direction du trait a l'ecran, pas de la geometrie.
+        side: THREE.DoubleSide,
       });
-      this.arcMats.push(mat);
       this._disposables.push(geo, mat);
-      // LineSegments : la geometrie est tuilee et indexee par paires (cf.
-      // _arcGeometry), une polyligne continue relierait les copies entre elles.
-      const line = new THREE.LineSegments(geo, mat);
-      line.frustumCulled = false;   // decale dans le shader (uShift/aShift) -> pas de culling
-      this.arcGroup.add(line);
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.frustumCulled = false;   // positions calculees dans le shader (morph, tuilage, extrusion) -> pas de culling
+      this.arcGroup.add(mesh);
       // midLon vient de la geometrie DEROULEE, jamais de la moyenne des
       // longitudes brutes : pour Tokyo (139.69) -> San Francisco (-122.42) cette
       // moyenne donnerait 8.6 deg (quelque part en Europe) au lieu de -171 deg,
       // et _loop replierait l'arc sur une tuile ou ne sont pas ses extremites.
-      // Aucun miroir JS de uShift n'est conserve ici : depuis le tuilage des
-      // arcs, _onHoverMove replie chaque echantillon sur la tuile la plus proche
-      // du centre, comme une pastille, sans rien savoir du decalage du trait.
-      this.arcHit.push({ mat, arc, a, b, pts, midLon });
+      // Aucun miroir JS de uShift n'est conserve ici : _onHoverMove replie chaque
+      // echantillon sur la tuile la plus proche du centre, comme une pastille,
+      // sans rien savoir du decalage du trait.
+      // Rayon de la pastille de destination (px CSS, a l'echelle 1) : la pointe
+      // s'arrete a son bord au lieu de disparaitre dessous. Meme diametre que
+      // celui que pose _buildMarkers, halo compris pour un badge.
+      const tipRadius = this._markerDiameter(b) / 2 + (this._dot ? 0 : st.markerRing);
+      this.arcHit.push({
+        mat, mesh, arc, a, b, pts, midLon, themed, samples, distAttr, tipRadius,
+        // Longueur ecran utile seulement a la pointe et aux pointilles : un trait
+        // plein sans pointe n'a rien a mesurer par frame.
+        measure: this._arcHead || dashPeriod > 0,
+        // Tampons de travail de _updateArcLengths, alloues une fois par arc.
+        px: new Float32Array(ARC_SAMPLES * 2), dist: new Float32Array(ARC_SAMPLES),
+      });
     });
     this.arcGroup.visible = this.o.showArcs;
   }
 
-  // Geometrie d'un arc : grand cercle echantillonne (slerp) + elevation en
-  // cloche ; les sommets portent (lon, lat, elev), le shader se charge du
-  // passage globe/plan.
+  // Geometrie d'un flux (ruban + pointe, tuile x3) : tout le calcul vit dans le
+  // module pur arcGeometry.js (teste sans WebGL) ; on ne fait ici que la
+  // brancher sur une BufferGeometry.
   _arcGeometry(a, b, value) {
-    const S = 72;
-    const v1 = this._unit(a.lon * DEG, a.lat * DEG);
-    const v2 = this._unit(b.lon * DEG, b.lat * DEG);
-    const ang = Math.acos(clamp(v1.dot(v2), -1, 1));
-    const height = 0.14 + 0.30 * clamp(ang / PI, 0, 1) + 0.10 * (value ?? 0.5);
-    const pos = new Float32Array(S * 3), ts = new Float32Array(S);
-    const pts = [];
-    // Longitude DEROULEE (unwrapped), accumulee d'un echantillon au suivant, et
-    // longitude de l'echantillon median qui servira de reference de tuile.
-    let lon = 0, midLon = 0;
-    const mid = S >> 1;
-    for (let i = 0; i < S; i++) {
-      const t = i / (S - 1);
-      const p = this._slerp(v1, v2, t, ang);
-      const lat = Math.asin(clamp(p.y, -1, 1));
-      // atan2 replie dans ]-PI, PI] : un arc franchissant l'antimeridien (Tokyo
-      // -> San Francisco) y saute de +3.14 a -3.14 entre deux echantillons
-      // voisins. On n'accumule donc que l'ECART LE PLUS COURT (_wrapPi) pour
-      // obtenir une suite continue, quitte a sortir de ]-PI, PI] : LINE_VERT
-      // consomme cette valeur telle quelle (lon + uShift + aShift) et une marche
-      // de 2PI y ferait balayer toute la largeur de l'ecran a un segment.
-      const raw = Math.atan2(p.x, p.z);
-      lon = i === 0 ? raw : lon + this._wrapPi(raw - lon);
-      if (i === mid) midLon = lon;
-      const elev = Math.sin(PI * t) * height;
-      pos[i * 3] = lon; pos[i * 3 + 1] = lat; pos[i * 3 + 2] = elev;
-      ts[i] = t;
-      // Echantillons pour le survol. `u` est le vecteur unitaire du point, deja
-      // calcule par le slerp : le figer ici epargne a _onHoverMove une
-      // allocation et quatre appels trigonometriques par echantillon et par
-      // mousemove (18 echantillons x 13 arcs, a plus de 100 evenements/s).
-      // La longitude poussee est la DEROULEE, la meme que celle des sommets :
-      // avec la brute, le survol se replierait sur une autre tuile que le rendu.
-      // Le DERNIER echantillon est force : 72 n'est pas multiple de 4 a partir
-      // de 0 (i = 0, 4, ... 68), donc les indices 69 a 71 tombaient. L'origine
-      // de l'arc (i = 0) etait echantillonnee mais pas sa DESTINATION — soit
-      // precisement l'extremite la plus epaisse et la plus lumineuse du degrade,
-      // celle que l'on vise pour lire « ou va ce flux ».
-      if (i % 4 === 0 || i === S - 1) pts.push({ lon, lat, elev, u: p.clone() });
-    }
-    // Tuilage horizontal de la polyligne, meme principe que la Terre
-    // (_buildEarth) : la meme suite de sommets est recopiee dans les tuiles
-    // voisines, chaque copie portant un aShift multiple de 2PI que LINE_VERT
-    // ajoute a la longitude et dont LINE_FRAG se sert pour jeter les copies
-    // laterales des que l'on repasse en globe.
-    // POURQUOI exactement une tuile de part et d'autre, ni plus ni moins : le
-    // survol et les pastilles replient chaque point isole sur la tuile la plus
-    // proche du centre, soit lon + 2PI*k avec k = round((centerLon - lon)/2PI),
-    // tandis que uShift vaut 2PI*round((centerLon - midLon)/2PI). Un sommet
-    // s'ecarte de midLon d'au plus une demi-tuile (l'arc suit le grand cercle le
-    // plus court, donc son amplitude en longitude est <= PI), et deux `round`
-    // dont les arguments different de moins de 1 ne peuvent differer que de 1 au
-    // plus : k - uShift/2PI est donc TOUJOURS dans {-1, 0, +1}. La tuile que
-    // vise une pastille est ainsi toujours dessinee, et jamais une de plus.
-    const TILES = [-1, 0, 1];
-    const N = S * TILES.length;
-    const posT = new Float32Array(N * 3), tsT = new Float32Array(N), shT = new Float32Array(N);
-    // LineSegments (indices par PAIRES) et non Line : sur une polyligne unique,
-    // three relierait le dernier sommet d'une copie au premier de la suivante
-    // par un segment parasite long d'une tuile entiere, balayant tout l'ecran.
-    // 216 sommets au plus par arc -> les indices tiennent dans du 16 bits.
-    const idx = new Uint16Array(TILES.length * (S - 1) * 2);
-    TILES.forEach((kc, ci) => {
-      const voff = ci * S, ioff = ci * (S - 1) * 2;
-      posT.set(pos, voff * 3);
-      tsT.set(ts, voff);
-      shT.fill(kc * 2 * PI, voff, voff + S);
-      for (let i = 0; i < S - 1; i++) {
-        idx[ioff + i * 2] = voff + i;
-        idx[ioff + i * 2 + 1] = voff + i + 1;
-      }
-    });
+    const buf = buildArcBuffers(a, b, value);
     const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(posT, 3));
-    g.setAttribute('aT', new THREE.BufferAttribute(tsT, 1));
-    g.setAttribute('aShift', new THREE.BufferAttribute(shT, 1));
+    g.setAttribute('position', new THREE.BufferAttribute(buf.position, 3));
+    g.setAttribute('aPrev', new THREE.BufferAttribute(buf.prev, 3));
+    g.setAttribute('aNext', new THREE.BufferAttribute(buf.next, 3));
+    g.setAttribute('aSide', new THREE.BufferAttribute(buf.side, 1));
+    g.setAttribute('aT', new THREE.BufferAttribute(buf.t, 1));
+    g.setAttribute('aKind', new THREE.BufferAttribute(buf.kind, 1));
+    g.setAttribute('aShift', new THREE.BufferAttribute(buf.shift, 1));
+    // Seul attribut reecrit apres la construction (distance ecran, par frame) :
+    // DynamicDrawUsage le signale au pilote.
+    const distAttr = new THREE.BufferAttribute(buf.dist, 1).setUsage(THREE.DynamicDrawUsage);
+    g.setAttribute('aDist', distAttr);
     // BufferAttribute explicite, comme pour la Terre : setIndex n'auto-construit
     // l'attribut que depuis un Array JS ordinaire.
-    g.setIndex(new THREE.BufferAttribute(idx, 1));
-    // midLon reste DEROULEE (non repliee dans ]-PI, PI]) : _loop en deduit
-    // uShift par `2PI * round((centerLon - midLon) / 2PI)`, et le shader rend
-    // l'arc en `lon + uShift`. Replier midLon de 2PI*k decalerait uShift du
-    // meme 2PI*k sans toucher aux sommets -> l'arc partirait une tuile plus
-    // loin. Le `round` accepte n'importe quelle amplitude, aucun repli requis.
-    return { geo: g, pts, midLon };
+    g.setIndex(new THREE.BufferAttribute(buf.index, 1));
+    return { geo: g, pts: buf.pts, midLon: buf.midLon, samples: buf.samples, distAttr };
   }
 
   // Vecteur unitaire de la sphere pour un couple (lon, lat) en radians.
   // `out` omis => NOUVEAU vecteur, et ce chemin allouant est PORTEUR, pas un
-  // confort : _arcGeometry garde ses deux extremites v1 et v2 vivantes pendant
-  // toute sa boucle de 72 echantillons et les passe a _slerp. Si cet appel
-  // renvoyait une instance partagee, v1 === v2, l'angle tomberait a 0 et TOUS
-  // les arcs s'effondreraient en un point.
+  // confort : _buildMarkers fige le vecteur de CHAQUE pastille (`sph`) pour toute
+  // la vie du moteur. Une instance partagee ferait pointer toutes les pastilles
+  // vers la derniere construite. (La geometrie des flux a son propre equivalent
+  // pur, cf. arcGeometry.js.)
   _unit(lon, lat, out = null) {
     return (out ?? new THREE.Vector3())
       .set(Math.cos(lat) * Math.sin(lon), Math.sin(lat), Math.cos(lat) * Math.cos(lon));
-  }
-  // Interpolation spherique entre deux directions, angle deja connu.
-  _slerp(v1, v2, t, ang) {
-    if (ang < 1e-4) return v1.clone();
-    const s = Math.sin(ang);
-    const a = Math.sin((1 - t) * ang) / s, b = Math.sin(t * ang) / s;
-    return new THREE.Vector3(v1.x * a + v2.x * b, v1.y * a + v2.y * b, v1.z * a + v2.z * b).normalize();
   }
 
   // Repliement d'un angle dans ]-PI, PI] : ramene un ecart de longitude sur le
@@ -552,7 +601,7 @@ class GlobeEngine {
   _wrapPi(x) { const T = 2 * PI; return x - T * Math.round(x / T); }
 
   // position locale (avant transform du group) d'un point (lon,lat,elev) selon morph.
-  // Meme mapping que LINE_VERT pour rester coherent avec les arcs / pastilles :
+  // Meme mapping que ARC_VERT pour rester coherent avec les arcs / pastilles :
   // sph = position sur la sphere de rayon 1+elev, p = position plane, et l'on
   // interpole lineairement entre les deux selon m.
   // `out` omis => nouveau vecteur (cf. _unit). `this._vSph` est le SEUL scratch
@@ -569,7 +618,15 @@ class GlobeEngine {
     const s = this._unit(lon, lat, this._vSph).multiplyScalar(1 + elev);
     // longitude repliee sur la tuile la plus proche du centre -> defilement infini en plan
     const plon = this.centerLon + this._wrapPi(lon - this.centerLon);
-    return (out ?? new THREE.Vector3()).set(plon, lat + elev * 1.7, elev * 0.6).lerp(s, m);
+    return (out ?? new THREE.Vector3()).set(plon, lat + elev * PLANE_LIFT, elev * PLANE_DEPTH).lerp(s, m);
+  }
+
+  // Diametre (px CSS, a l'echelle 1) de la pastille d'un point : celui de
+  // pointSize s'il en fixe un, sinon le token de la variante. 0 = point non dessine.
+  _markerDiameter(p) {
+    const d = this._sizing.diameterFor(p, this._style.markerMaxSize);
+    if (d != null) return d;
+    return this._dot ? this._style.dotSize : this._style.markerSize;
   }
 
   // `pal` est TOUJOURS fourni par l'appelant (constructeur ou setTheme), qui
@@ -584,18 +641,25 @@ class GlobeEngine {
     this._hideTip();
     this.overlay.innerHTML = '';
     this.markers = [];
-    // Pastilles plates, entierement pilotables : colorFor / iconFor / sizeFor.
+    // Pastilles plates, entierement pilotables : colorFor / iconFor / pointSize,
+    // variante (badge ou point) et halo pulse.
+    const variant = this._dot ? 'dot' : 'badge';
     this.o.points.forEach((p) => {
+      const d = this._sizing.diameterFor(p, this._style.markerMaxSize);
+      // Taille par valeur sans valeur positive : le point n'est pas dessine, comme
+      // une bulle de z <= 0 dans le chart. Ses flux, eux, restent traces.
+      if (d === 0) return;
       const el = document.createElement('div');
-      el.className = 'globe-marker globe-marker--flat';
+      el.className = `globe-marker globe-marker--flat globe-marker--${variant}`;
       const color = this.o.colorFor ? this.o.colorFor(p) : pal.accent;
-      const icon = this.o.iconFor ? this.o.iconFor(p) : null;
-      // `--d` n'est posé QUE si l'hôte fournit sizeFor : à défaut, le repli CSS
+      // Un point sobre ne porte jamais d'icone, meme si l'hote fournit iconFor.
+      const icon = !this._dot && this.o.iconFor ? this.o.iconFor(p) : null;
+      // `--d` n'est posé QUE si pointSize fixe un diamètre : à défaut, le repli CSS
       // `var(--d, var(--globe-marker-size))` (GlobeMarkers.scss) doit rester
       // libre de jouer son rôle. Poser systématiquement une valeur inline ici
       // — même recopiée du token — rendrait --globe-marker-size invisible du
       // navigateur : une déclaration inline gagne toujours sur un var() de repli.
-      if (this.o.sizeFor) el.style.setProperty('--d', this.o.sizeFor(p) + 'px');
+      if (d != null) el.style.setProperty('--d', d.toFixed(2) + 'px');
       // Couleur posee par le CSSOM et non interpolee dans un attribut style :
       // l'API refuse nativement toute evasion d'attribut, et les deux <span>
       // enfants heritent de --c (custom property => heritee par defaut).
@@ -605,7 +669,7 @@ class GlobeEngine {
       // hors ecran) laisserait les 13 pastilles empilees en haut-gauche du cadre
       // a pleine opacite jusqu'a la reprise de la boucle.
       el.style.opacity = '0';
-      el.innerHTML = markerHtml({ icon });
+      el.innerHTML = markerHtml({ icon, pulse: !!this.o.pointPulse });
       el.addEventListener('mouseenter', () => this._showTip(p, el));
       el.addEventListener('mouseleave', () => this._hideTip());
       this.overlay.appendChild(el);
@@ -689,20 +753,43 @@ class GlobeEngine {
   // changement d'arc survole, la position suit la souris a chaque mouvement.
   _showArcTip(hit, mx, my) {
     if (this._arcHover !== hit) {
-      this._clearArcHover();
       this._arcHover = hit;
-      hit.mat.uniforms.uHover.value = 1;
+      this._applyArcEmphasis();
       this.tooltip.className = 'globe-tooltip globe-tooltip--arc';
-      this.tooltip.innerHTML = arcTooltipHtml(hit.arc, hit.a, hit.b, this.o.labels);
+      this.tooltip.innerHTML = arcTooltipHtml(hit.arc, hit.a, hit.b, this.o.labels, this.o.arcHueFields);
       this.tooltip.style.opacity = '1';
     }
     this.tooltip.style.transform =
       `translate(-50%,-100%) translate(${mx.toFixed(1)}px,${(my - 14).toFixed(1)}px)`;
   }
   _clearArcHover() {
-    if (this._arcHover) { this._arcHover.mat.uniforms.uHover.value = 0; this._arcHover = null; }
+    if (this._arcHover) {
+      this._arcHover = null;
+      this._applyArcEmphasis();
+    }
     // Symetrique de _hideTip : une pastille survolee garde la main sur la tooltip.
     if (!this._tipEl) this.tooltip.style.opacity = '0';
+  }
+
+  // Mise en avant des flux, depuis ses deux sources : l'arc survole a la souris
+  // et les arcs que designe la legende de l'hote (setArcHighlight). Une seule
+  // ecriture pour les deux, pour qu'aucune n'efface l'autre. Flux mis en avant :
+  // trait epaissi (uHover), dessine APRES les autres (renderOrder) pour passer
+  // par-dessus ; tous les autres s'attenuent (uAnyHover, partage). La pointe
+  // s'elargissant, sa base recule : on invalide la mesure de longueur pour la
+  // recalculer a la prochaine frame. Parcours de tous les arcs, mais seulement
+  // au CHANGEMENT de cible, jamais par frame.
+  _applyArcEmphasis() {
+    const test = this._arcHighlight;
+    let any = false;
+    for (const h of this.arcHit) {
+      const on = h === this._arcHover || (test !== null && !!test(h.arc));
+      h.mat.uniforms.uHover.value = on ? 1 : 0;
+      h.mesh.renderOrder = on ? 1 : 0;
+      any ||= on;
+    }
+    this._arcU.uAnyHover.value = any ? 1 : 0;
+    this._arcHoverGen++;
   }
 
   _bindEvents() {
@@ -837,7 +924,9 @@ class GlobeEngine {
     // uniforms
     this.earthMat.uniforms.uMorph.value = m;
     this.atmoMat.uniforms.uMorph.value = m;
-    this.arcMats.forEach(mt => { mt.uniforms.uMorph.value = m; mt.uniforms.uTime.value = this.time; });
+    // Uniforms partages des flux : une ecriture pour tous (cf. _buildArcs).
+    this._arcU.uMorph.value = m;
+    this._arcU.uTime.value = this.time;
     // arcs : chaque flux replie sur la tuile la plus proche du centre (defilement
     // infini). Ce repli grossier positionne la copie CENTRALE ; les deux copies
     // laterales de la geometrie (aShift, cf. _arcGeometry) couvrent ensuite les
@@ -851,9 +940,87 @@ class GlobeEngine {
     });
 
     this.group.updateMatrixWorld(true);
+    this._updateArcLengths(m);
     this._updateMarkers(m);
     this.renderer.render(this.scene, this.camera);
     this.raf = requestAnimationFrame(this._loop);
+  }
+
+  // Longueur ECRAN de chaque flux, mesuree par frame sur CPU. Elle pilote deux
+  // choses que le vertex shader ne peut pas calculer seul (il ne voit qu'un
+  // sommet a la fois, jamais la somme des segments qui le precedent) :
+  //   - les pointilles, dont la periode reste ainsi reguliere a l'ecran pres du
+  //     limbe, en mode plan comme pendant la rotation et le morph ;
+  //   - la place de la pointe : au bord de la pastille de destination (sinon
+  //     elle disparait dessous), son orientation, et la coupe du ruban a sa base.
+  // Cout : ARC_SAMPLES projections par flux (~1 000 pour les 13 flux de la
+  // demo), rien du tout quand la vue est immobile ou les flux masques.
+  _updateArcLengths(m) {
+    if (!this.o.showArcs || this.arcHit.length === 0) return;
+    // Vue inchangee depuis la derniere mesure -> longueurs inchangees. La
+    // rotation automatique change le centre a chaque frame : ce court-circuit
+    // ne sert donc que globe fige, mais c'est alors l'essentiel du temps.
+    // Comparaison champ a champ, sans tableau intermediaire alloue par frame.
+    const view = this._arcView;
+    if (view[0] === this.centerLon && view[1] === this.centerLat && view[2] === this.camZ
+      && view[3] === m && view[4] === this._w && view[5] === this._h
+      && view[6] === this._arcHoverGen && view[7] === +this.o.showPoints) return;
+    view[0] = this.centerLon; view[1] = this.centerLat; view[2] = this.camZ;
+    view[3] = m; view[4] = this._w; view[5] = this._h; view[6] = this._arcHoverGen;
+    view[7] = +this.o.showPoints;
+
+    const W = this._w, H = this._h, S = ARC_SAMPLES;
+    const v = this._vLen, mw = this.group.matrixWorld, cam = this.camera;
+    const { uHeadLen } = this._arcU, pt = this._headPt;
+    for (const hit of this.arcHit) {
+      if (!hit.measure) continue;
+      const { samples, px, dist } = hit;
+      const u = hit.mat.uniforms;
+      const shift = u.uShift.value;
+      let destDist = 0;
+      // Copie CENTRALE uniquement (aShift = 0) : les copies laterales n'en
+      // different que d'une translation dans le plan z ~ 0, parallele a l'ecran,
+      // donc de longueur ecran quasi identique. Meme formule que toClip (ARC_VERT).
+      for (let i = 0; i < S; i++) {
+        const lon = samples[i * 3], lat = samples[i * 3 + 1], elev = samples[i * 3 + 2];
+        const r = 1 + elev, cl = Math.cos(lat);
+        v.set(
+          lerp(lon + shift, cl * Math.sin(lon) * r, m),
+          lerp(lat + elev * PLANE_LIFT, Math.sin(lat) * r, m),
+          lerp(elev * PLANE_DEPTH, cl * Math.cos(lon) * r, m),
+        ).applyMatrix4(mw);
+        // Distance camera de la destination, AVANT project() qui mute `v` :
+        // elle donne l'echelle de sa pastille, comme dans _updateMarkers.
+        if (i === S - 1) destDist = v.distanceTo(cam.position);
+        v.project(cam);
+        // NDC -> px CSS, meme repere centre que toPx (le signe de y est sans
+        // effet sur une longueur).
+        px[i * 2] = v.x * 0.5 * W;
+        px[i * 2 + 1] = v.y * 0.5 * H;
+      }
+      const total = cumulativeLengths(px, S, dist);
+      writeArcDistances(hit.distAttr.array, dist, total, S);
+      hit.distAttr.needsUpdate = true;
+      if (!this._arcHead) continue;
+      // Pointe au bord de la pastille de destination : rayon a l'echelle que
+      // lui applique _updateMarkers (meme formule), plus 1 px d'air. Sans
+      // pastilles affichees, la pointe touche la destination.
+      const gap = this.o.showPoints
+        ? hit.tipRadius * clamp(2.6 / destDist, 0.55, 1.5) + 1
+        : 0;
+      const avail = Math.max(total - gap, 0);
+      // Longueur de la pointe : trait epaissi de moitie au survol, comme dans
+      // ARC_VERT, et pointe reduite si l'arc visible est plus court qu'elle.
+      const w = u.uWidth.value * (u.uHover.value ? 1.5 : 1);
+      const full = uHeadLen.value * w;
+      const L = Math.min(full, avail);
+      u.uHeadScale.value = full > 0 ? L / full : 0;
+      u.uCut.value = avail - L;
+      pointAtDistance(samples, dist, S, avail, pt);
+      u.uHeadTip.value.fromArray(pt);
+      pointAtDistance(samples, dist, S, avail - L, pt);
+      u.uHeadBase.value.fromArray(pt);
+    }
   }
 
   // Positionnement par frame des pastilles DOM : projection ecran, fondu selon
@@ -993,12 +1160,24 @@ class GlobeEngine {
   setTooltips(b) { this.o.tooltips = b; if (!b) { this._hideTip(); this._clearArcHover(); } }
 
   /**
-   * Switches the arcs between animated comets and a static gradient.
+   * Switches the arcs between an animated comet (opacity modulation running along
+   * the stroke) and a static solid stroke.
    *
    * @param {boolean} b - Animated arcs.
    * @returns {void}
    */
-  setArcsDynamic(b) { this.o.arcsDynamic = b; this.arcMats.forEach(m => m.uniforms.uDynamic.value = b ? 1 : 0); }
+  setArcsDynamic(b) { this.o.arcsDynamic = b; this._arcU.uDynamic.value = b ? 1 : 0; }
+
+  /**
+   * Emphasizes the arcs a predicate selects (thicker stroke drawn on top, the
+   * other arcs faded), exactly like hovering one arc. Meant for the host's legend
+   * hover; the arc under the mouse, if any, stays emphasized too.
+   *
+   * @param {?function(Object): boolean} test - Called with each arc object; null
+   *   restores every arc.
+   * @returns {void}
+   */
+  setArcHighlight(test) { this._arcHighlight = test ?? null; this._applyArcEmphasis(); }
 
   /**
    * Applies a theme change: animates the sun direction and the star field, and
@@ -1015,7 +1194,9 @@ class GlobeEngine {
     const pal = readGlobePalette(this.c);
     this.atmoMat.uniforms.uColor.value.copy(pal.atmo);
     this.earthMat.uniforms.uFallback.value.copy(pal.fallback);
-    this.arcMats.forEach(m => m.uniforms.uColor.value.copy(pal.arc));
+    // Seuls les flux SANS couleur hue suivent le token --globe-arc : les teintes
+    // de PALETTE sont invariantes selon le theme (cf. src/utils/encoding/scales.js).
+    this.arcHit.forEach(h => { if (h.themed) h.mat.uniforms.uColor.value.copy(pal.arc); });
     this._buildMarkers(pal);
   }
 
@@ -1044,6 +1225,8 @@ class GlobeEngine {
     // _resume() programme une frame. Dessiner ici couterait au contraire une
     // scene complete a chaque tick du ResizeObserver pendant un redimensionnement.
     this.renderer.setSize(w, h); this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
+    // Taille CSS du cadre pour l'extrusion des flux (largeurs en px CSS).
+    this._arcU.uResolution.value.set(w, h);
   }
 
   /**

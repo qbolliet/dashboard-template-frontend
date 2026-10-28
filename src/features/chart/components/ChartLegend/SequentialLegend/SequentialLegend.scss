@@ -3,6 +3,8 @@
 // =================================================================
 @use '@/features/chart/tokens' as *;
 @use '@/features/chart/colors' as *;
+@use '@/components/legend/tokens' as *;
+@use '@/components/legend/colors' as *;
 @use '../tokens' as *;
 @use '../colors' as *;
 
@@ -10,11 +12,11 @@
   min-width: var(--chart-seq-legend-min-width);
   display: flex;
   flex-direction: column;
-  gap: var(--chart-legend-gap);
+  gap: var(--legend-gap);
   margin: 0;
 }
 .chart-seq-legend dd { margin: 0; }
-.chart-seq-legend .chart-legend-label { margin-bottom: 2px; }
+.chart-seq-legend .legend-label { margin-bottom: 2px; }
 
 // ── Horizontale ──────────────────────────────────────────────────
 .chart-seq-bar {
@@ -27,8 +29,8 @@
   display: flex;
   justify-content: space-between;
   font-family: var(--font-mono);
-  font-size: var(--chart-seq-scale-font-size);
-  color: hsl(var(--chart-seq-scale-color));
+  font-size: var(--legend-value-font-size);
+  color: hsl(var(--legend-value-color));
   font-variant-numeric: tabular-nums;
 }
 
@@ -51,7 +53,7 @@
   flex-direction: column;
   justify-content: space-between;
   font-family: var(--font-mono);
-  font-size: var(--chart-seq-scale-font-size);
-  color: hsl(var(--chart-seq-scale-color));
+  font-size: var(--legend-value-font-size);
+  color: hsl(var(--legend-value-color));
   font-variant-numeric: tabular-nums;
 }

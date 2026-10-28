@@ -1,11 +1,17 @@
 // ===== TOKENS DIMENSIONNELS — GLOBE MARKERS (pastilles de points) =====
 // Dimensions propres à la pastille de point et à son halo pulsé.
+// ⚠️ Les trois diamètres sont AUSSI lus par le moteur (engine/palette.js::
+// readGlobeArcStyle) : la pointe des flèches s'arrête au bord de la pastille.
 
 :root {
-  // Diamètre de repli quand l'accesseur sizeFor est absent : le moteur pose
-  // --d sur l'élément marker, ce token n'est utilisé que comme valeur par
-  // défaut de ce var() (cf. GlobeMarkers.scss).
-  --globe-marker-size: 1.375rem; // 22px
+  // Diamètres de repli quand `pointSize` est absent : le moteur pose --d sur
+  // l'élément marker, ces tokens ne servent que de valeur par défaut de ce var()
+  // (cf. GlobeMarkers.scss). Un par variante : le point sobre est plus petit.
+  --globe-marker-size: 1.375rem;      // 22px, pointVariant="badge"
+  --globe-marker-dot-size: 0.625rem;  // 10px, pointVariant="dot"
+  // Diamètre du plus grand point quand `pointSize` nomme une clé (aire ∝ valeur),
+  // comme --chart-bubble-max-radius pour les bulles du chart.
+  --globe-marker-max-size: 2.125rem;  // 34px
 
   --globe-marker-pulse-duration: 2.6s;
   --globe-marker-pulse-scale: 2.6;

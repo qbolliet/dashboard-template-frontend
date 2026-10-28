@@ -1,9 +1,12 @@
 // Importation des modules
-import { measureText } from '../../../utils/measureText';
-import { bubbleLegendValues } from '../../../utils/bubble';
-import { TICK_FONT_SIZE } from '../../ChartAxis/tickHelpers';
+import { measureText } from '@/utils/text/measureText';
+import { sizeLegendValues } from './sizeLegendValues';
 import './SizeLegend.scss';
 
+// Taille (px) à laquelle les valeurs sont MESURÉES : celle des graduations du chart,
+// un peu au-dessus de la taille réelle (--legend-value-font-size, 10.5px) pour que
+// la largeur réservée ne soit jamais trop courte.
+const MEASURE_FONT_SIZE = 11;
 // Écart (px) entre le bord droit du plus grand cercle et le début des valeurs : géométrie
 // interne du glyphe SVG, comme les tracés de LegendGlyph.
 const LEADER_GAP = 8;
@@ -17,19 +20,20 @@ const LABEL_GAP = 12;
 const VALUE_FONT = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
 
 /**
- * Size legend of a bubble chart: three nested reference circles, bottom-aligned, each
- * with a leader line to its formatted value. A circle's area is that of a bubble of the
- * same value (radius = rMax · √(v / zMax)).
+ * Size legend: three nested reference circles, bottom-aligned, each with a leader
+ * line to its formatted value. A circle's area is that of a mark of the same value
+ * (radius = rMax · √(v / zMax)). Shared by the bubbles of `<Chart>` and the points
+ * of `<Globe>` sized by value.
  *
  * @param {object} props
- * @param {number} props.zMax - Largest positive z (the value drawn with radius `rMax`).
- * @param {number} props.rMax - Radius (px) of the largest bubble.
- * @param {function(number): string} props.formatValue - Formatter of z (format of z).
- * @param {string} [props.label] - Legend title (`labels.z`, else the column name).
+ * @param {number} props.zMax - Largest positive value (the one drawn with radius `rMax`).
+ * @param {number} props.rMax - Radius (px) of the largest mark.
+ * @param {function(number): string} props.formatValue - Formatter of the values.
+ * @param {string} [props.label] - Legend title (the data title, else the column name).
  * @returns {?JSX.Element} Null when there is nothing to draw.
  */
 const SizeLegend = ({ zMax, rMax, formatValue, label }) => {
-  const values = bubbleLegendValues(zMax);
+  const values = sizeLegendValues(zMax);
   if (!values.length || !(rMax > 0)) return null;
 
   // Cercles posés sur la même ligne de base (bas du plus grand cercle)
@@ -38,9 +42,8 @@ const SizeLegend = ({ zMax, rMax, formatValue, label }) => {
   const cx = rLargest + 1;
   const baseY = PAD_Y + 2 * rLargest;
   const texts = values.map((v) => String(formatValue(v)));
-  // Largeur réservée aux valeurs : mesure à la taille des graduations (≥ la taille réelle
-  // de la légende) dans la police des valeurs
-  const textW = Math.ceil(Math.max(...texts.map((t) => measureText(t, TICK_FONT_SIZE, VALUE_FONT))));
+  // Largeur réservée aux valeurs : mesurée à MEASURE_FONT_SIZE, dans la police des valeurs
+  const textW = Math.ceil(Math.max(...texts.map((t) => measureText(t, MEASURE_FONT_SIZE, VALUE_FONT))));
   const lineEnd = 2 * rLargest + 1 + LEADER_GAP;
   const width = lineEnd + 4 + textW;
   // Sommet de chaque cercle, et ordonnée de sa valeur (repoussée vers le bas si besoin)
@@ -50,21 +53,21 @@ const SizeLegend = ({ zMax, rMax, formatValue, label }) => {
   const height = Math.max(baseY, labelYs[labelYs.length - 1] + PAD_Y) + 1;
 
   return (
-    <dl className="chart-legend chart-size-legend">
-      {label && <dt className="chart-legend-label">{label}</dt>}
+    <dl className="legend legend-size">
+      {label && <dt className="legend-label">{label}</dt>}
       <dd>
         <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} overflow="visible" aria-hidden="true">
           {values.map((v, i) => {
             const r = radiusOf(v);
             return (
               <g key={v}>
-                <circle className="chart-size-legend-circle" cx={cx} cy={baseY - r} r={r} />
+                <circle className="legend-size-circle" cx={cx} cy={baseY - r} r={r} />
                 {/* Repère : du sommet du cercle à sa valeur (oblique si elle a été décalée) */}
                 <polyline
-                  className="chart-size-legend-leader"
+                  className="legend-size-leader"
                   points={`${cx},${tops[i]} ${lineEnd - LEADER_GAP / 2},${tops[i]} ${lineEnd},${labelYs[i]}`}
                 />
-                <text className="chart-size-legend-value" x={lineEnd + 4} y={labelYs[i]} dominantBaseline="middle">
+                <text className="legend-size-value" x={lineEnd + 4} y={labelYs[i]} dominantBaseline="middle">
                   {texts[i]}
                 </text>
               </g>

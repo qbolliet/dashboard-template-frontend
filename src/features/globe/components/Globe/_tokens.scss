@@ -1,6 +1,15 @@
-// ===== TOKENS DIMENSIONNELS — GLOBE (cadre) =====
-// Dimensions propres au cadre du globe (bordure, radius).
+// ===== TOKENS DIMENSIONNELS — GLOBE (cadre et légende) =====
+// Dimensions propres au cadre du globe (bordure, radius) et à la place de sa
+// légende des flux. Le contenu de la légende suit les tokens --legend-* de
+// src/components/legend/_tokens.scss, comme sur le chart.
 
 :root {
   --globe-frame-radius: var(--border-radius-xl);
+  // Largeur sous laquelle le cadre ne descend pas : en deçà, une légende de
+  // droite passe au-dessus du globe.
+  --globe-frame-min-width: 22rem;               // 352px
+  --globe-legend-gap: var(--spacing-md);        // écart cadre ↔ légende
+  // Largeurs de la légende de droite, comme --chart-legend-right-min/max-width.
+  --globe-legend-min-width: 8.75rem;            // 140px
+  --globe-legend-max-width: 11.5rem;            // 184px
 }

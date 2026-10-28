@@ -1,0 +1,30 @@
+// =================================================================
+// SIZE LEGEND — cercles de référence de la taille des marques
+// =================================================================
+@use '../tokens' as *;
+@use '../colors' as *;
+
+.legend-size {
+  margin: 0;
+}
+.legend-size dd { margin: 0; }
+
+// Les cercles sont des contours neutres : la couleur des séries est portée par la
+// légende des canaux, la taille seule est lue ici.
+.legend-size-circle {
+  fill: none;
+  stroke: hsl(var(--legend-size-stroke));
+  stroke-width: var(--legend-size-stroke-width);
+}
+.legend-size-leader {
+  fill: none;
+  stroke: hsl(var(--legend-size-stroke));
+  stroke-width: var(--legend-size-stroke-width);
+  stroke-dasharray: 2 2;
+}
+.legend-size-value {
+  font-family: var(--font-mono);
+  font-size: var(--legend-value-font-size);
+  fill: hsl(var(--legend-value-color));
+  font-variant-numeric: tabular-nums;
+}

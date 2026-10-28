@@ -13,7 +13,7 @@
 // libres (cf. HoverToolbar).
 
 // Importation des modules
-import { ResetIcon } from '@/components/icons';
+import { CompressIcon, ExpandIcon, ResetIcon } from '@/components/icons';
 
 // Libellé par défaut de l'outil partagé : une seule chaîne, une prop suffit à la
 // surcharger — un objet `labels` serait une cérémonie inutile.
@@ -34,5 +34,36 @@ const DEFAULT_RESET_LABEL = 'Réinitialiser le zoom';
  */
 export const resetZoomTool = ({ onClick, disabled, icon, label = DEFAULT_RESET_LABEL }) => ({
   id: 'resetZoom', icon: icon ?? <ResetIcon />, label,
+  onClick, disabled,
+});
+
+// Libellés par défaut de l'outil « agrandir » : deux faces d'un même bouton.
+const DEFAULT_EXPAND_LABEL = 'Agrandir (pleine largeur)';
+const DEFAULT_COLLAPSE_LABEL = 'Replier';
+
+/**
+ * Shared "expand / collapse" ToolSpec factory — consumed by the chart and the
+ * globe toolbars. Expanded, the visualization takes the full width of its frame
+ * and its legend moves above it; collapsed, the legend sits on its right.
+ *
+ * @param {object} config
+ * @param {boolean} config.expanded - Current state; drives icon, label and
+ *   `aria-pressed`.
+ * @param {function(): void} config.onClick - Toggles the state.
+ * @param {boolean} [config.disabled] - Greyed-out state (e.g. no legend to move).
+ * @param {string} [config.label] - Wording override; defaults to the expand /
+ *   collapse label matching `expanded`.
+ * @param {string} [config.expandLabel] - Wording of the collapsed state.
+ * @param {string} [config.collapseLabel] - Wording of the expanded state.
+ * @returns {ToolSpec}
+ */
+export const expandTool = ({
+  expanded, onClick, disabled, label,
+  expandLabel = DEFAULT_EXPAND_LABEL, collapseLabel = DEFAULT_COLLAPSE_LABEL,
+}) => ({
+  id: 'expand',
+  icon: expanded ? <CompressIcon /> : <ExpandIcon />,
+  label: label ?? (expanded ? collapseLabel : expandLabel),
+  active: expanded,
   onClick, disabled,
 });

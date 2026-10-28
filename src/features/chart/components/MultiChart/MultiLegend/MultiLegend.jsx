@@ -9,7 +9,7 @@
 // multi.jsx) ; seul le glyphe de fill est propre au mode multi-jeux.
 
 // Importation des modules
-import LegendGlyph from '@/features/chart/components/ChartLegend/LegendGlyph/LegendGlyph';
+import LegendGlyph from '@/components/legend/LegendGlyph/LegendGlyph';
 import './MultiLegend.scss';
 
 /**
@@ -86,27 +86,27 @@ const MultiLegend = ({ sections, layout = 'column', hovered, onHover }) => (
           {sec.groups.length === 0 ? (
             // Jeu sans canal : un seul item rappelant le label + le glyphe de fill.
             <li className="chart-mlegend-group">
-              <ul className="chart-legend-group-items">
+              <ul className="legend-group-items">
                 <li>
-                  <span className="chart-legend-item">
-                    <span className="chart-legend-glyph"><FillGlyph kind={sec.fillKind} color={sec.headColor} /></span>
-                    <span className="chart-legend-text">{sec.label}</span>
+                  <span className="legend-item">
+                    <span className="legend-glyph"><FillGlyph kind={sec.fillKind} color={sec.headColor} /></span>
+                    <span className="legend-text">{sec.label}</span>
                   </span>
                 </li>
               </ul>
             </li>
           ) : sec.groups.map((grp) => (
             <li className="chart-mlegend-group" key={`${grp.role}·${grp.label}`}>
-              <span className="chart-legend-label">{grp.label}</span>
-              <ul className="chart-legend-group-items">
+              <span className="legend-label">{grp.label}</span>
+              <ul className="legend-group-items">
                 {grp.items.map((it) => (
                   <li key={String(it.value)}>
                     <button
                       type="button"
-                      className={`chart-legend-item${hovered != null && hovered !== it.value ? ' chart-legend--faded' : ''}`}
+                      className={`legend-item${hovered != null && hovered !== it.value ? ' legend--faded' : ''}`}
                       onMouseEnter={() => onHover?.(it.value)}
                       onMouseLeave={() => onHover?.(null)}>
-                      <span className="chart-legend-glyph">
+                      <span className="legend-glyph">
                         <LegendGlyph
                           type={grp.role}
                           color={it.color}
@@ -115,7 +115,7 @@ const MultiLegend = ({ sections, layout = 'column', hovered, onHover }) => (
                           hatch={it.hatch}
                           styleGlyph={sec.styleGlyph} />
                       </span>
-                      <span className="chart-legend-text">{String(it.value)}</span>
+                      <span className="legend-text">{String(it.value)}</span>
                     </button>
                   </li>
                 ))}

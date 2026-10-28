@@ -5,7 +5,7 @@
  *
  * `toolbar` accepte une liste de clés : on choisit à l'instanciation quelles options la
  * barre expose. Ici seulement globe/planisphère, rotation et réinitialisation du zoom —
- * combiné à `defaultMode="plane"`, le globe démarre en planisphère avec une barre
+ * combiné à `defaults={{ mode: 'plane' }}`, le globe démarre en planisphère avec une barre
  * réduite à trois interrupteurs.
  *
  * @item globe
@@ -21,7 +21,7 @@ const GlobeToolbarRestricted = () => (
     arcs={GLOBE_ARCS}
     iconFor={demoPointIcon}
     colorFor={pointColor}
-    defaultMode="plane"
+    defaults={{ mode: 'plane' }}
     toolbar={['mode', 'rotate', 'resetZoom']}
     height={420}
   />

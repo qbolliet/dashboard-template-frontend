@@ -42,9 +42,9 @@ import { color as d3color } from 'd3-color';
 
 import { resolveDatasets, channelsFor } from '@/features/chart/utils/datasetList';
 import { detectType, coerce } from '@/features/chart/utils/typeDetection';
+import { PALETTE, LINE_STYLES, distinctVals } from '@/utils/encoding/scales';
 import {
-  PALETTE, LINE_STYLES, HATCH_TYPES, MARKER_TYPES,
-  distinctVals, groupSeries, seriesKey, xKeyOf,
+  HATCH_TYPES, MARKER_TYPES, groupSeries, seriesKey, xKeyOf,
 } from '@/features/chart/utils/encoding';
 import { buildStacks } from '@/features/chart/utils/stacking';
 import { reduceValues, clientAggregation } from '@/features/chart/utils/aggregate';

@@ -21,7 +21,7 @@ const POINTS = [
   { id: 'sao', label: 'São Paulo', sub: 'IBGE', lat: -23.55, lon: -46.63, value: 29 },
 ];
 
-// Arcs : `value` ∈ [0, 1] pilote épaisseur, opacité et vitesse de la comète.
+// Arcs : `value` ∈ [0, 1] pilote l'épaisseur du trait, la hauteur de l'arc et la vitesse de la comète.
 const ARCS = [
   { from: 'fra', to: 'par', value: 0.9 },
   { from: 'par', to: 'lon', value: 0.6 },

@@ -28,7 +28,114 @@ since the copy they took.
   API grouped by x, y and the hue columns. New registry example `chart-bubble`.
   `aggregationMode` now accepts `xType` / `yType` (needed for `'bubble'` only).
 
+- **`<Globe arcHue>`: flow color and line style from hue keys.** `arcHue: string | string[]`
+  names keys of the `arcs` objects. `arcHue[0]` picks the stroke color and `arcHue[1]` the
+  dash style, with the same scales as `<Chart>`. The colors come from the categorical
+  palette minus its three blue hues (navy, steel blue, slate), which blend into the ocean, so
+  a category may not get the same color on a chart and on the globe. The chart's channel
+  legend is shown beside the globe, laid out like on `<Chart>`: on the right by default, above
+  it in expanded mode (new `expand` toolbar tool, `defaults.expanded`), and above it whenever
+  the frame would get narrower than `--globe-frame-min-width` (22rem). Its titles come from
+  `labels: { color?, style? }` (default: the key name), and hovering one of its items
+  emphasizes the matching flows (new engine method `setArcHighlight`). The arc tooltip lists
+  the hue values of the flow. New UI labels `globe.expand`, `globe.collapse`,
+  `globe.noLegendToMove` and `globe.legend`, new registry example `globe-arc-hue`, and the demo
+  `GLOBE_ARCS` gain `mode` / `kind` columns. Without `arcHue`, rendering keeps a single
+  `--globe-arc` color.
+
+- **`<Globe arcVariant>`: arrows, undirected lines or a decorative glow.** `'arrow'` (default)
+  draws the arrows described below. `'line'` draws the same stroke without a head, for flows
+  with no direction. `'glow'` keeps the look from before the arrows: a thin additive stroke
+  (new token `--globe-arc-glow-width`, 1 px) growing brighter towards the destination, whose
+  brightness follows `value`, with a bright comet when animated. Hue colors and dashes apply
+  to all three. New registry examples `globe-undirected-flows` and `globe-glow-flows`.
+
+- **`<Globe pointVariant pointPulse pointSize>`: point look and size.** `pointVariant`
+  (`'badge'` by default, the current badge with its ring and the `iconFor` icon, or `'dot'`,
+  a plain disc with a thin border and no icon) and `pointPulse` (the animated halo, `true` by
+  default) combine into four looks. `pointSize` takes a diameter in px for every point, or the
+  key of a numeric value: each point's AREA is then proportional to it, like the bubbles of
+  `<Chart zMark="bubble">`, the largest one reaching the new `--globe-marker-max-size` token
+  (34 px), and a point without a positive value is not drawn. A size legend (the chart's
+  `SizeLegend`, titled by `labels.size`) then joins the legend, its values formatted in the
+  new `locale` prop. New token `--globe-marker-dot-size` (10 px, default diameter of a dot),
+  new registry example `globe-sober-points`.
+
 ### Changed
+
+- **Globe flows are arrows by default.** The 1 px additive lines become solid ribbons of
+  constant on-screen width with an arrow head at the destination, in both globe and flat-map
+  modes (the former look remains available as `arcVariant="glow"`). The head stops at the edge
+  of the destination badge (its `sizeFor` diameter, or `--globe-marker-size`) rather than
+  vanishing under it, and the atmosphere glow is now drawn beneath the flows. `value` now
+  drives the stroke width between the new `--globe-arc-width-min` / `--globe-arc-width-max`
+  tokens (1.5 to 4 px, their mean when absent) instead of the opacity. The head size and the
+  opacities are tokens too (`--globe-arc-head-length`, `--globe-arc-head-width`,
+  `--globe-arc-opacity`, `--globe-arc-dimmed-opacity`, all in
+  `src/features/globe/_tokens.scss`). On hover the arrow thickens and the other ones fade.
+
+- **Flatter globe flows.** The arc height is now proportional to the chord between its
+  endpoints (20 to 30 % of it, depending on `value`) instead of starting at 0.14 globe radius:
+  short flows such as Paris–Frankfurt no longer loop high above the map, and flows leaving the
+  same hub no longer tangle. On the flat map the height is also lifted less (×0.8 instead of
+  ×1.7), so flows bend about half as much as on the globe. Long flows keep their height.
+
+- **Globe flows now start static** (visible default change, formerly `defaultArcsDynamic`,
+  now `defaults.arcsDynamic`, which defaults to `false`). The toolbar button still animates
+  them. Pass `defaults={{ arcsDynamic: true }}` to restore the previous behaviour. The
+  animation is now a plain opacity modulation along the stroke.
+
+- **Palette and line-style scales promoted to `src/utils/encoding/scales.js`.** `PALETTE`,
+  `SEQUENTIAL`, `LINE_STYLES`, `colorScale`, `styleScale` and `distinctVals` moved out of
+  `src/features/chart/utils/encoding.js`, since the globe is a second consumer.
+  `@/features/chart` still re-exports them, so its public API is unchanged. Code that imported
+  them from `@/features/chart/utils/encoding` directly must import them from
+  `@/utils/encoding/scales` instead. `npm run check:palette` now reads the new file.
+  `colorScale` takes an optional second argument, the colors to cycle through. Likewise,
+  `D3_SYMBOL` and `markerPath` moved to `src/utils/encoding/markers.js`.
+
+- **Chart channel legend promoted to `src/components/legend/`.** `ChannelLegend` and
+  `LegendGlyph` moved out of `src/features/chart/components/ChartLegend/`, since the globe
+  is a second consumer (new registry units `channel-legend`, `legend-glyph`, `legend-tokens`).
+  Rendering is unchanged, but the classes and tokens lose their `chart-` prefix:
+  `.chart-legend*` becomes `.legend*` and `--chart-legend-*` becomes `--legend-*` (in
+  `src/components/legend/_tokens.scss` and `_colors.scss`), also for `SequentialLegend`,
+  `SizeLegend` and `MultiLegend`. Only `--chart-legend-right-*` and the `.chart-legend-top` /
+  `.chart-legend-right` frame areas keep their names. Overrides of the old tokens must be
+  renamed.
+
+- **`<Globe>` API aligned on `<Chart>` (breaking).** Migration:
+  - the seven `default*` props become one `defaults` object keyed like the toolbar tools:
+    `defaultMode` → `defaults.mode`, `defaultAutoRotate` → `defaults.rotate`,
+    `defaultWheelZoom` → `defaults.wheelZoom`, `defaultShowPoints` → `defaults.points`,
+    `defaultShowArcs` → `defaults.arcs`, `defaultTooltips` → `defaults.tooltips`,
+    `defaultArcsDynamic` → `defaults.arcsDynamic`, plus the new `defaults.expanded`;
+  - the interface wording moves from `labels` to `uiLabels`, and `labels` now titles the
+    data (`{ color, style, size }`), replacing `arcHueLabels`. The `globe.flowsLegend` UI
+    label becomes `globe.legend`;
+  - `sizeFor` is removed: use `pointSize` (a number of px, or a key for an area proportional
+    to a value). The demo accessor `pointSize` of `sources/demoData.js` is removed and
+    `GLOBE_ARC_HUE_LABELS` becomes `GLOBE_LABELS`;
+  - the `toolbar` keys gain `'expand'`, in a fourth group of its own (greyed out when there
+    is no legend).
+
+- **`<Globe>` markup.** The root `<figure>` now has the `globe` class and lays out the frame
+  and the legend; the `.globe-frame` panel (border, space background, `height`) is a `<div>`
+  inside it. A `className` passed to `<Globe>` still lands on the root.
+
+- **Shared toolbar tool `expandTool`** (`src/components/toolbar/tools.js`), used by the chart
+  and the globe, with the new `ExpandIcon` / `CompressIcon` icons; the chart's `Expand` /
+  `Compress` entries of `ToolIcon` are gone. Rendering unchanged.
+
+- **`SizeLegend`, `useCssLength` and `measureText` promoted.** `SizeLegend` moved to
+  `src/components/legend/SizeLegend/` (new registry unit `size-legend`) with its reference
+  values (`bubbleLegendValues` of `utils/bubble.js` becomes `sizeLegendValues`),
+  `useCssLength` to `src/hooks/cssLength/` (`hooks-css-length`) and `measureText` to
+  `src/utils/text/` (`utils-text`; the chart's `utils/measureText.js` re-exports it). The
+  size legend classes and tokens lose their `chart-` prefix (`.chart-size-legend*` →
+  `.legend-size*`, `--chart-size-legend-stroke(-width)` → `--legend-size-stroke(-width)`),
+  and the scale values of the sequential and size legends share `--legend-value-font-size` /
+  `--legend-value-color` (formerly `--chart-seq-scale-font-size` / `--chart-seq-scale-color`).
 
 - **Chart dodge geometry shared.** Violins and bubbles dodge their series through
   `utils/dodge.js` (`dodgeScale`, `dodgeSlot`); rendering unchanged.

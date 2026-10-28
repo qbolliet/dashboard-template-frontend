@@ -166,22 +166,3 @@ export const layoutBubbles = ({ xScale, yScale, areaOf, dodgeKeys = null, ...par
   }
   return out.sort((a, b) => b.area - a.area);
 };
-
-// Arrondi « vers le bas » à un chiffre significatif : la valeur de référence reste ≤ z
-// et proche de lui (4,9 → 4 ; 830 → 800).
-const niceDown = (v) => {
-  const p = 10 ** Math.floor(Math.log10(v));
-  return Number((Math.floor(v / p) * p).toPrecision(12));
-};
-
-/**
- * Three rounded reference values for the size legend: about zMax, zMax / 4 and
- * zMax / 16 (each circle twice the radius of the next one).
- *
- * @param {number} zMax - Largest positive z.
- * @returns {Array<number>} Distinct positive values, largest first (empty if zMax ≤ 0).
- */
-export const bubbleLegendValues = (zMax) => {
-  if (!(zMax > 0)) return [];
-  return [...new Set([zMax, zMax / 4, zMax / 16].map(niceDown))].filter((v) => v > 0);
-};

@@ -8,7 +8,8 @@ import {
   REAL_DIST_MARKER,
   PROJ_DIST_MARKER,
 } from './channelAssign';
-import { LINE_STYLES, HATCH_TYPES, MARKER_TYPES } from '../utils/encoding';
+import { LINE_STYLES } from '@/utils/encoding/scales';
+import { HATCH_TYPES, MARKER_TYPES } from '../utils/encoding';
 
 describe('nextFreeChannel', () => {
   it('picks "style" first when both channels are free', () => {

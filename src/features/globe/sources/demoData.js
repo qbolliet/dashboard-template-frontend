@@ -44,22 +44,30 @@ export const GLOBE_POINTS = [
   { id: 'sao', label: 'São Paulo', sub: 'IBGE', lat: -23.55, lon: -46.63, value: 29 },
 ];
 
-// Flux (arcs) entre points — value ∈ [0,1] pilote épaisseur/opacité/vitesse.
+// Flux (arcs) entre points — value ∈ [0,1] pilote l'épaisseur du trait (entre les
+// tokens --globe-arc-width-min/max, ou sa luminosité en variante "glow"), la
+// hauteur de l'arc et la vitesse de la comète.
+// `mode` et `kind` sont des colonnes de démonstration pour `arcHue` : couleur par
+// mode d'acheminement, style de trait (plein / pointillé) par régularité du flux.
 export const GLOBE_ARCS = [
-  { from: 'fra', to: 'par', value: 0.9 },
-  { from: 'fra', to: 'ber', value: 0.8 },
-  { from: 'fra', to: 'lux', value: 0.7 },
-  { from: 'fra', to: 'rom', value: 0.5 },
-  { from: 'fra', to: 'mad', value: 0.55 },
-  { from: 'par', to: 'lon', value: 0.6 },
-  { from: 'was', to: 'nyc', value: 0.85 },
-  { from: 'was', to: 'fra', value: 0.75 },
-  { from: 'nyc', to: 'lon', value: 0.65 },
-  { from: 'fra', to: 'tok', value: 0.5 },
-  { from: 'tok', to: 'sgp', value: 0.45 },
-  { from: 'sgp', to: 'syd', value: 0.4 },
-  { from: 'nyc', to: 'sao', value: 0.5 },
+  { from: 'fra', to: 'par', value: 0.9, mode: 'rail', kind: 'régulier' },
+  { from: 'fra', to: 'ber', value: 0.8, mode: 'rail', kind: 'régulier' },
+  { from: 'fra', to: 'lux', value: 0.7, mode: 'rail', kind: 'régulier' },
+  { from: 'fra', to: 'rom', value: 0.5, mode: 'rail', kind: 'ponctuel' },
+  { from: 'fra', to: 'mad', value: 0.55, mode: 'aérien', kind: 'ponctuel' },
+  { from: 'par', to: 'lon', value: 0.6, mode: 'rail', kind: 'régulier' },
+  { from: 'was', to: 'nyc', value: 0.85, mode: 'rail', kind: 'régulier' },
+  { from: 'was', to: 'fra', value: 0.75, mode: 'aérien', kind: 'régulier' },
+  { from: 'nyc', to: 'lon', value: 0.65, mode: 'aérien', kind: 'ponctuel' },
+  { from: 'fra', to: 'tok', value: 0.5, mode: 'aérien', kind: 'régulier' },
+  { from: 'tok', to: 'sgp', value: 0.45, mode: 'maritime', kind: 'ponctuel' },
+  { from: 'sgp', to: 'syd', value: 0.4, mode: 'maritime', kind: 'régulier' },
+  { from: 'nyc', to: 'sao', value: 0.5, mode: 'maritime', kind: 'ponctuel' },
 ];
+
+// Titres des données encodées de la démonstration (prop `labels`) : canaux hue
+// des flux, et taille des points quand `pointSize="value"`.
+export const GLOBE_LABELS = { color: 'Acheminement', style: 'Régularité', size: 'Activité' };
 
 /**
  * Picks a point's icon conditionally on its source/value — demonstrates a
@@ -88,11 +96,3 @@ export const pointColor = (pt) => {
   if (pt.value < 45) return 'oklch(0.68 0.15 55)'; // faible — ambre
   return 'oklch(0.55 0.15 250)'; // moyen — bleu
 };
-
-/**
- * Picks a point's badge diameter conditionally on its value (16 → 34 px).
- *
- * @param {{value?: number}} pt - Point (see GLOBE_POINTS).
- * @returns {number} Diameter in pixels.
- */
-export const pointSize = (pt) => 16 + Math.round((pt.value / 100) * 18);

@@ -1,6 +1,7 @@
 // Importation des modules
 import { useId } from 'react';
-import { markerPath, PALETTE } from '@/features/chart/utils/encoding';
+import { PALETTE } from '@/utils/encoding/scales';
+import { markerPath } from '@/utils/encoding/markers';
 import { layoutBubbles } from '@/features/chart/utils/bubble';
 import HatchPatterns from '../shared/HatchPatterns';
 import './BubbleMarks.scss';

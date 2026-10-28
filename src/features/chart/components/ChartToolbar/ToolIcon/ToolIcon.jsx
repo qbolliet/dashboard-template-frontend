@@ -10,8 +10,6 @@
 // Pictogrammes des outils intégrés + des features (même jeu de clés).
 const ToolIcon = {
   // ── Outils intégrés ──────────────────────────────────────────────────────
-  Expand: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>,
-  Compress: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></svg>,
   Voronoi: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M3 13l7-4 6 5 5-3M3 13l3 8M10 9V3M16 14l3 7M21 11l-5-8" /><circle cx="10" cy="9" r="1.4" fill="currentColor" /><circle cx="16" cy="14" r="1.4" fill="currentColor" /></svg>,
   Tooltip: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a7 7 0 0 1-7 7l-1 3-1-3a7 7 0 0 1-6-7 7 7 0 1 1 15 0z" /><circle cx="9.5" cy="12" r=".8" fill="currentColor" /><circle cx="14.5" cy="12" r=".8" fill="currentColor" /></svg>,
   Reset: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /></svg>,

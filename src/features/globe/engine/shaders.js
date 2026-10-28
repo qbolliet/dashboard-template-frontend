@@ -1,11 +1,13 @@
 // Importation des modules
 import { Vector3 } from 'three';
+import { PLANE_DEPTH, PLANE_LIFT } from './arcGeometry';
 
 /**
  * GLSL programs and sun directions powering the globe engine.
  *
  * Three programs cooperate: the earth surface (day/night blend + globe⇄plane
- * morph + east/west tiling), the additive fresnel atmosphere and the flow arcs.
+ * morph + east/west tiling), the additive fresnel atmosphere and the flows
+ * (constant-width screen-space ribbon, with an arrow head in the `arrow` variant).
  * Every shader shares the same `uMorph` convention: 0 = flat map, 1 = globe.
  */
 
@@ -164,66 +166,162 @@ export const ATMO_FRAG = `
     #include <colorspace_fragment>
   }`;
 
-/* ---- Shaders : arcs (position = lon,lat,elev) ---- */
-// Sommet : même mapping globe/plan que la Terre. Deux décalages de tuile s'y
-// ajoutent, et ils ne jouent pas le même rôle :
+/* ---- Shaders : flèches de flux (position = lon,lat,elev) ---- */
+// Un flux = un RUBAN d'épaisseur constante À L'ÉCRAN + une POINTE triangulaire à
+// destination, dans une seule géométrie (aKind : 0 ruban, 1 pointe, cf.
+// arcGeometry.js). Hors variante "arrow", la pointe reste dans la géométrie mais
+// uHeadScale vaut 0 : ses trois sommets se confondent et ne couvrent aucun pixel. Pas de Line2/LineMaterial : ils ignorent le morph et le
+// tuilage. Le ruban s'élargit donc ici, en espace écran, APRÈS le morph.
+//
+// Même mapping globe/plan que la Terre. Deux décalages de tuile s'y ajoutent,
+// et ils ne jouent pas le même rôle :
 //   - uShift (uniforme, par arc) replie le flux ENTIER sur la tuile la plus
 //     proche du centre courant, à partir de sa longitude médiane ;
 //   - aShift (attribut, par sommet) est le tuilage proprement dit, exactement
-//     comme aShift sur la Terre (cf. _buildEarth) : trois copies de la
-//     polyligne à -2PI, 0 et +2PI.
+//     comme aShift sur la Terre (cf. _buildEarth) : trois copies à -2PI, 0, +2PI.
 // Sans la seconde, un arc restait un corps rigide confiné à UNE tuile alors que
 // les pastilles, elles, se replient chacune sur la tuile la plus proche : dès
 // qu'une extrémité dépassait une demi-tuile du centre, le trait et la pastille
 // de sa destination s'affichaient à une tuile complète l'un de l'autre.
-export const LINE_VERT = `
+//
+// Les largeurs sont en PIXELS CSS et uResolution vaut la taille CSS du cadre :
+// le passage px -> NDC ne dépend donc pas du devicePixelRatio.
+export const ARC_VERT = `
   uniform float uMorph;
   uniform float uShift;
+  uniform vec2 uResolution;
+  uniform float uWidth;
+  uniform float uHover;
+  uniform float uHeadLen;
+  uniform float uHeadWid;
+  uniform float uHeadScale;
+  uniform vec3 uHeadTip;
+  uniform vec3 uHeadBase;
+  attribute vec3 aPrev;
+  attribute vec3 aNext;
+  attribute float aSide;
   attribute float aT;
+  attribute float aKind;
   attribute float aShift;
+  attribute float aDist;
   varying float vT;
   varying float vShift;
-  const float PI = 3.141592653589793;
+  varying float vDist;
+  varying float vKind;
+  // (lon, lat, elev) -> clip space, morph et tuilage compris. Même formule que
+  // GlobeEngine._updateArcLengths, qui mesure la longueur écran sur CPU.
+  vec4 toClip(vec3 p){
+    vec3 sph = vec3(cos(p.y)*sin(p.x), sin(p.y), cos(p.y)*cos(p.x)) * (1.0 + p.z);
+    vec3 pla = vec3(p.x + uShift + aShift, p.y + p.z * ${PLANE_LIFT.toFixed(3)}, p.z * ${PLANE_DEPTH.toFixed(3)});
+    return projectionMatrix * modelViewMatrix * vec4(mix(pla, sph, uMorph), 1.0);
+  }
+  // clip -> pixels CSS, origine au centre du cadre.
+  vec2 toPx(vec4 c){ return c.xy / c.w * 0.5 * uResolution; }
+  // Direction écran a -> b ; repli horizontal si les deux points se confondent
+  // (arc vu par la tranche), plutôt qu'un normalize(0) qui rendrait NaN.
+  vec2 dirPx(vec2 a, vec2 b){
+    vec2 d = b - a;
+    float l = length(d);
+    return l > 1e-4 ? d / l : vec2(1.0, 0.0);
+  }
   void main(){
     vT = aT;
     vShift = aShift;
-    float lon = position.x;
-    float lat = position.y;
-    float elev = position.z;
-    vec3 sph = vec3(cos(lat)*sin(lon), sin(lat), cos(lat)*cos(lon)) * (1.0 + elev);
-    vec3 pla = vec3(lon + uShift + aShift, lat + elev * 1.7, elev * 0.6);
-    vec3 pos = mix(pla, sph, uMorph);
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+    vDist = aDist;
+    vKind = aKind;
+    // Survol : le trait (et sa pointe) s'épaississent de moitié.
+    float w = uWidth * mix(1.0, 1.5, uHover);
+    vec4 clip;
+    vec2 off;
+    if (aKind < 0.5) {
+      // Ruban : décalage perpendiculaire à la tangente écran (voisins projetés).
+      clip = toClip(position);
+      vec2 d = dirPx(toPx(toClip(aPrev)), toPx(toClip(aNext)));
+      off = vec2(-d.y, d.x) * aSide * 0.5 * w;
+    } else {
+      // Pointe : posée sur uHeadTip (au bord de la pastille de destination) et
+      // orientée depuis uHeadBase (une longueur de pointe plus tôt sur le trait),
+      // deux points recalculés par frame sur CPU (_updateArcLengths). Longueur et
+      // largeur proportionnelles au trait, réduites par uHeadScale quand l'arc est
+      // plus court à l'écran que la pointe elle-même.
+      clip = toClip(uHeadTip);
+      vec2 d = dirPx(toPx(toClip(uHeadBase)), toPx(clip));
+      float L = uHeadLen * w * uHeadScale;
+      float W = uHeadWid * w * uHeadScale;
+      off = abs(aSide) < 0.5 ? vec2(0.0) : (-d * L + vec2(-d.y, d.x) * aSide * 0.5 * W);
+    }
+    clip.xy += off / (0.5 * uResolution) * clip.w;
+    gl_Position = clip;
   }`;
-// Fragment : dégradé statique le long du flux, tête de comète animée en mode
-// dynamique, renforcement au survol.
-export const LINE_FRAG = `
+// Fragment, commun aux trois variantes (arrow, line, glow) : rejet des copies
+// tuilées, coupe du ruban à la base de la pointe (sans effet hors variante
+// "arrow", uCut y est hors d'atteinte), pointillés réguliers à l'écran, puis
+// la couleur selon la variante :
+//   - arrow / line : couleur pleine (aucun dégradé, aucun éclaircissement),
+//     comète réduite à une modulation d'opacité, atténuation des autres flux au
+//     survol ;
+//   - glow (define ARC_GLOW, fusion ADDITIVE) : le rendu décoratif d'avant les
+//     flèches — dégradé de luminosité de l'origine vers la destination, comète
+//     lumineuse, éclaircissement vers le blanc au survol.
+export const ARC_FRAG = `
   precision highp float;
   uniform vec3 uColor;
   uniform float uOpacity;
+  uniform float uDimmed;
+  uniform float uAnyHover;
+  uniform float uHover;
   uniform float uTime;
   uniform float uDynamic;
   uniform float uSpeed;
   uniform float uPhase;
-  uniform float uHover;
   uniform float uMorph;
+  uniform float uCut;
+  uniform vec4 uDash;
+  uniform float uDashPeriod;
   varying float vT;
   varying float vShift;
+  varying float vDist;
+  varying float vKind;
   void main(){
     // Copies tuilees (vShift != 0) : visibles seulement en mode plan, sinon on
-    // jette — meme regle et meme seuil que EARTH_FRAG. Obligatoire, et pas
-    // seulement par economie : en mode globe la position spherique IGNORE le
-    // decalage de tuile, donc les trois copies se superposent exactement sur le
-    // meme grand cercle. En rendu ADDITIF (cf. le materiau), les laisser passer
-    // rendrait chaque arc trois fois plus lumineux qu'en mode plan.
+    // jette — meme regle et meme seuil que EARTH_FRAG. En mode globe la position
+    // spherique IGNORE le decalage de tuile, donc les trois copies se
+    // superposent exactement : semi-transparentes (ou additives en "glow"),
+    // elles s'empileraient en un trait plus opaque qu'en mode plan.
     if (abs(vShift) > 0.5 && uMorph > 0.12) discard;
-    float base = 0.34 + 0.55 * vT;          // dégradé origine -> destination (plus visible)
+    if (vKind < 0.5) {
+      // Coupe du ruban a la base de la pointe (distance ecran calculee sur CPU).
+      if (vDist > uCut) discard;
+      // Pointilles : vDist est la distance ECRAN depuis l'origine (px CSS),
+      // recalculee par frame sur CPU -> periode reguliere quels que soient le
+      // mode, le zoom et la position sur le globe. uDash = (tiret, vide, tiret,
+      // vide) ; periode nulle = trait plein. La pointe reste toujours pleine.
+      if (uDashPeriod > 0.0) {
+        float p = mod(vDist, uDashPeriod);
+        float e1 = uDash.x + uDash.y;
+        bool on = p < uDash.x || (p >= e1 && p < e1 + uDash.z);
+        if (!on) discard;
+      }
+    }
+    // Comete : bosse qui parcourt le trait, de l'origine vers la destination.
     float head = fract(vT - uTime * uSpeed + uPhase);
     float comet = smoothstep(0.0, 0.16, head) * (1.0 - smoothstep(0.16, 0.34, head));
+    // Survol d'un autre flux (ou d'une autre modalite de la legende) : celui-ci
+    // s'attenue.
+    float dim = mix(1.0, uDimmed, uAnyHover * (1.0 - uHover));
+  #ifdef ARC_GLOW
+    // Degrade origine -> destination : il donne le sens du flux sans pointe.
+    float base = 0.34 + 0.55 * vT;
     float a = mix(base, max(base * 0.55, comet * 1.7), uDynamic);
-    // survol : renforce l'opacité et éclaircit vers le blanc
+    // Survol : renforce l'opacite et eclaircit vers le blanc.
     a *= mix(1.0, 1.9, uHover);
     vec3 col = mix(uColor, vec3(1.0), uHover * 0.35);
-    gl_FragColor = vec4(col, clamp(a, 0.0, 1.0) * uOpacity);
+    gl_FragColor = vec4(col, clamp(a, 0.0, 1.0) * uOpacity * dim);
+  #else
+    float a = uOpacity * dim;
+    // Comete : simple modulation d'opacite le long du trait (fusion normale).
+    if (vKind < 0.5) a *= mix(1.0, 0.45 + 0.55 * comet, uDynamic);
+    gl_FragColor = vec4(uColor, a);
+  #endif
     #include <colorspace_fragment>
   }`;

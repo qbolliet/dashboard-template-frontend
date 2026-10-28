@@ -1,10 +1,13 @@
 // =================================================================
 // useCssLength — longueur d'un token CSS, convertie en pixels
 // =================================================================
-// Les tokens de marques sont d'ordinaire consommés par le CSS (épaisseurs, opacités).
-// Le rayon maximal des bulles, lui, entre dans une géométrie calculée en JS (aire des
-// marqueurs, rayon des cercles de légende) : on le lit sur l'élément, une fois monté,
-// pour qu'il reste piloté par le design system et jamais écrit en px dans le code.
+// Les tokens sont d'ordinaire consommés par le CSS (épaisseurs, opacités). Certains
+// entrent pourtant dans une géométrie calculée en JS : le rayon maximal des bulles du
+// chart, le diamètre maximal des points du globe (aire des marques, rayon des cercles
+// de la légende de taille). On les lit sur l'élément, une fois monté, pour qu'ils
+// restent pilotés par le design system et jamais écrits en px dans le code.
+// Promu depuis src/features/chart/hooks/ quand le globe en est devenu le second
+// consommateur.
 
 // Importation des modules
 import { useState } from 'react';
