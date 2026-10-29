@@ -21,10 +21,10 @@ import { parseDate, DEFAULT_DATE_ORDER, DATE_RANGE_SEP } from '@/components/filt
  * Each leaf carries its depth and the group number at that depth; the
  * brackets are derived from the bracketLeft / bracketRight markers of each card.
  *
- * @param {{variable: ?string, operation: ?string, value: *, typeFamily: ?string,
+ * @param {{id: *, variable: ?string, operation: ?string, value: *, typeFamily: ?string,
  *   isCategorical: ?boolean, bracketLeft: boolean, bracketRight: boolean,
  *   connectorBefore: ?string}[]} items - Ordered criteria, each with the logical
- *   connector that precedes it.
+ *   connector that precedes it. `id` (optional) is copied onto the leaf.
  * @returns {{tree: object, balanced: boolean}} Root group node and whether every
  *   opened bracket has been closed (balanced expression).
  */
@@ -53,6 +53,8 @@ export function buildTree(items) {
     const d = stack.length - 1;
     const leaf = {
       type: 'criterion',
+      // Identifiant de la carte (MultiCriterionMenu) : permet à scopeWithout de la retrouver
+      id: c.id,
       depth: d,
       group: d === 0 ? 0 : groupCounter[d] || 1,
       connector,
@@ -370,6 +372,140 @@ export function andNodes(node, leaves = []) {
     return { children: [head, ...rest] };
   }
   return { children: [{ children: node.children }, ...leaves] };
+}
+
+// =================================================================
+// d bis) Périmètre d'une carte (valeurs encore atteignables)
+// =================================================================
+// Le périmètre d'une carte C est l'expression complète où C est remplacée par sa valeur
+// la plus permissive (VRAI, ou FAUX sous une négation), puis simplifiée. Retirer C ne
+// suffirait pas : avec OU, `A OU B` borné par B exclurait toutes les lignes que A seule
+// laisse passer. La simplification suit la sémantique de l'API : dans un groupe, ET avant
+// OU ; le connecteur du premier enfant d'un groupe est sans effet. En sortie, une négation
+// est portée par le champ `negate` du nœud (jamais par un connecteur AND_NOT / OR_NOT) :
+// elle reste ainsi valable en tête de groupe, où l'API ignore le connecteur.
+
+// Constantes de la simplification (un terme réduit à VRAI ou à FAUX).
+const TRUE = Symbol('true');
+const FALSE = Symbol('false');
+
+const flip = (k) => (k === TRUE ? FALSE : TRUE);
+const isConstant = (v) => v === TRUE || v === FALSE;
+// Nœud FilterNode d'un terme, sa négation portée par `negate`
+const termNode = (t) => (t.negated ? { negate: true, ...t.node } : t.node);
+
+/**
+ * Tells whether a tree node vanishes from the FilterNode (incomplete criteria only).
+ *
+ * @param {object} node - Tree node from buildTree.
+ * @param {*} excludedId - Id of the card being scoped (never omitted).
+ * @param {string} dateOrder - Order the dates were typed in.
+ * @returns {boolean} True when convertNode would drop the node.
+ */
+function isOmitted(node, excludedId, dateOrder) {
+  if (node.type === 'criterion') {
+    return node.id !== excludedId && convertNode({ ...node, connector: null }, dateOrder) === null;
+  }
+  return node.children.every((ch) => isOmitted(ch, excludedId, dateOrder));
+}
+
+/**
+ * Simplifies a tree node once the excluded card is replaced by its most permissive value.
+ *
+ * @param {object} node - Tree node from buildTree (never an omitted one).
+ * @param {*} excludedId - Id of the card being scoped.
+ * @param {boolean} negated - Whether the node sits under an odd number of negations.
+ * @param {string} dateOrder - Order the dates were typed in.
+ * @returns {(symbol|{node: object, negated: boolean})} `TRUE`, `FALSE`, or a term: a
+ *   FilterNode without connector and whether it is negated.
+ */
+function simplifyNode(node, excludedId, negated, dateOrder) {
+  // Feuille exclue : VRAI, ou FAUX sous une négation (NON FAUX = VRAI, le plus permissif)
+  if (node.type === 'criterion') {
+    if (node.id === excludedId) return negated ? FALSE : TRUE;
+    return { node: convertNode({ ...node, connector: null }, dateOrder), negated: false };
+  }
+
+  // Enfants conservés : un critère incomplet part avec son connecteur, et celui du premier
+  // enfant restant est sans effet (règle de l'API, cf. convertNode)
+  const kept = node.children.filter((ch) => !isOmitted(ch, excludedId, dateOrder));
+
+  // Découpage en suites de ET séparées par les OU (précédence SQL)
+  const runs = [];
+  kept.forEach((ch, j) => {
+    const conn = j === 0 ? 'AND' : ch.connector || 'AND';
+    const isNot = conn.endsWith('_NOT');
+    let v = simplifyNode(ch, excludedId, negated !== isNot, dateOrder);
+    // La négation du connecteur s'applique au terme (constante inversée, drapeau basculé)
+    if (isNot) v = isConstant(v) ? flip(v) : { ...v, negated: !v.negated };
+    if (j === 0 || conn.startsWith('OR')) runs.push([]);
+    runs[runs.length - 1].push(v);
+  });
+
+  // Une suite de ET : VRAI s'efface, un FAUX l'annule, une suite vide vaut VRAI
+  const reduced = runs.map((run) => {
+    if (run.includes(FALSE)) return FALSE;
+    const terms = run.filter((t) => t !== TRUE);
+    return terms.length ? terms : TRUE;
+  });
+  // Le OU des suites : une suite VRAI l'emporte, les suites FAUX s'effacent
+  if (reduced.includes(TRUE)) return TRUE;
+  const live = reduced.filter((r) => r !== FALSE);
+  if (!live.length) return FALSE;
+
+  // Groupe réduit à un seul terme : déballé, sa négation éventuelle remonte au parent
+  if (live.length === 1 && live[0].length === 1) return live[0][0];
+
+  // Reconstruction aplatie, dans l'ordre d'origine : OU devant la tête de chaque suite, ET
+  // ensuite (équivalent par précédence) ; aucun connecteur sur le premier enfant (sortie
+  // normalisée) ; la négation d'un terme voyage dans `negate`
+  const children = [];
+  live.forEach((run, r) => run.forEach((t, k) => {
+    const out = termNode(t);
+    children.push(r === 0 && k === 0 ? out : { connector: k === 0 ? 'OR' : 'AND', ...out });
+  }));
+  return { node: { children }, negated: false };
+}
+
+/**
+ * Computes the scope of one card: the filter the OTHER criteria impose on it.
+ *
+ * The card is replaced by TRUE in the whole expression (FALSE when it sits under an
+ * `AND_NOT` / `OR_NOT`, the most permissive value either way), then the expression is
+ * simplified with the API's semantics: AND before OR inside a group, brackets between
+ * groups. Simply dropping the card would be wrong as soon as OR is involved. Incomplete
+ * criteria are omitted as in {@link toFilterNode}. In the output, a negation is carried
+ * by the node's `negate` field and connectors are only `AND` / `OR`: `C AND_NOT X`,
+ * for the card C, gives `{ children: [{ negate: true, criterion: X }] }`.
+ *
+ * Examples, for the card A:
+ * - `A AND B` → `B`;
+ * - `A OR B` → TRUE OR B = TRUE → `null` (no filter, global bounds);
+ * - `(A OR B) AND D` → `D`;
+ * - `A AND B OR D` (= `(A AND B) OR D`) → (TRUE AND B) OR D = `B OR D`.
+ *
+ * @param {Array<{id: *, variable: ?string, operation: ?string, value: *,
+ *   typeFamily: ?string, isCategorical: ?boolean, bracketLeft: ?boolean,
+ *   bracketRight: ?boolean, connectorBefore: ?string}>} criteria - Flat list of cards,
+ *   each with its `id` (same shape as buildTree's input).
+ * @param {*} excludedId - Id of the card being scoped.
+ * @param {Object} [options]
+ * @param {string} [options.dateOrder='DMY'] - Order the dates were typed in, used to
+ *   convert them to ISO 8601.
+ * @returns {?{children: Array<object>}} Root FilterNode, or `null` when the scope reduces
+ *   to TRUE (or FALSE) or when the expression is unbalanced.
+ */
+export function scopeWithout(criteria, excludedId, { dateOrder = DEFAULT_DATE_ORDER } = {}) {
+  const { tree, balanced } = buildTree(criteria ?? []);
+  if (!balanced || isOmitted(tree, excludedId, dateOrder)) return null;
+
+  const term = simplifyNode(tree, excludedId, false, dateOrder);
+  // VRAI : aucun filtre ; FAUX : aucune ligne possible, même repli que « périmètre vide »
+  if (isConstant(term)) return null;
+  // La racine est un groupe sans négation : un groupe positif y verse ses enfants, tout
+  // autre terme (feuille, groupe nié) y devient l'unique enfant
+  if (term.node.children && !term.negated) return { children: term.node.children };
+  return { children: [termNode(term)] };
 }
 
 // =================================================================

@@ -66,6 +66,21 @@ since the copy they took.
 
 ### Added
 
+- **`<MultiCriterionMenu dependentValues>` — slider bounds follow the other criteria.** In a
+  multi-criterion menu, the slider track of a numeric or date card now spans the values the
+  OTHER criteria still reach: the card is replaced by TRUE in the whole expression, which is
+  then simplified with AND before OR (`A AND B` → bounded by B; `A OR B` → whole column;
+  `A AND B OR D` → bounded by `B OR D`). Computed on the debounced criteria, by the new pure
+  `scopeWithout(criteria, excludedId, { dateOrder })` of `filterEngine`. Only the track
+  moves: the "out of bounds" validation, the calendar's selectable days and the step stay on
+  the whole column, so editing one card never invalidates another. `dependentValues` defaults
+  to `true`; `false` restores whole-column bounds, and the prop will govern the categorical
+  menus' options too. New pass-through props: `CriterionMenu` `valuesScope`, `ValueField` /
+  `ConstraintField` `trackScope` (track only, unlike `scopeFilters`). Nothing changes outside
+  the multi-criterion menu: a standalone `CriterionMenu`, the table filters and a standalone
+  `ConstraintField` keep whole-column (or `scopeFilters`) bounds. `buildTree` leaves now
+  carry the card's `id` when given.
+
 - **`<Chart zMark="bubble">` — the third dimension as bubble size.** With a numeric `z`,
   `zMark` (`'density'` by default, rendering unchanged) can be set to `'bubble'`: one marker
   per row (per cell × hue series on two categorical axes) centered on (x, y), its AREA

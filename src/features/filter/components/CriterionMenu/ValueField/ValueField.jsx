@@ -33,6 +33,9 @@ import './ValueField.scss';
  *   variable has a `parentName`). Left undefined, the menu reads it from the schema.
  * @param {?string} [displayFormat] - Numeric: d3-format of the variable, giving the slider
  *   step. Left undefined, the field reads it from the schema.
+ * @param {?Object} [trackScope] - Numeric/date: scope of the slider track (`FilterNode`),
+ *   forwarded to {@link ConstraintField}; the validation stays on the whole column.
+ *   Undefined (default) = global bounds.
  * @param {boolean} [validate] - Enables real-time validation on the field.
  * @param {boolean} [showSlider] - Numeric/date: render the ConstraintField slider bar.
  * @param {string}   [intlLocale] - Full Intl tag, driving number and date formatting.
@@ -55,6 +58,7 @@ const ValueField = ({
   catalog,
   grouped,
   displayFormat,
+  trackScope,
   validate = false,
   showSlider = false,
   labels,
@@ -129,6 +133,7 @@ const ValueField = ({
         catalog={catalog}
         typeFamily={typeFamily}
         displayFormat={displayFormat}
+        trackScope={trackScope}
         validate={validate}
         showSlider={showSlider}
         inputsOnTop
@@ -159,6 +164,7 @@ const ValueField = ({
         catalog={catalog}
         typeFamily={typeFamily}
         displayFormat={displayFormat}
+        trackScope={trackScope}
         validate={validate}
         showSlider={showSlider}
         inputsOnTop

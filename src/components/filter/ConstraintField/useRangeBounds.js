@@ -8,7 +8,10 @@ import { useFieldStats } from '@/hooks/fieldStats/useFieldStats';
 // Les bornes du slider sont les `min` / `max` de getFieldStats, sur toute la colonne ou
 // sur le périmètre `scopeFilters` quand l'appelant en donne un. Un périmètre et non « le
 // filtre courant » : celui-ci contient le plus souvent le critère que le champ édite, et
-// les bornes se refermeraient alors sur la sélection. L'API ne fournit
+// les bornes se refermeraient alors sur la sélection. ConstraintField appelle ce hook une
+// ou deux fois : bornes de validation (colonne ou `scopeFilters`), et bornes de la seule
+// piste quand il reçoit un `trackScope` (filtre des AUTRES critères d'un
+// MultiCriterionMenu, cf. filterEngine.scopeWithout). L'API ne fournit
 // pas de pas : il se déduit ici de la famille de type du champ et de son format, fournis
 // par l'appelant quand il les connaît, lus sinon dans le `Metadata` du champ (une requête
 // de schéma, partagée par tout le catalogue).
@@ -73,9 +76,12 @@ export const stepFor = ({ typeFamily, displayFormat, min, max }) => {
 /**
  * Fetches the numeric/date bounds (min, max, step) that drive ConstraintField's slider.
  *
- * `min` / `max` come from getFieldStats under the current filter; `step` is derived
- * from the field's type family. The component lets explicit `min` / `max` / `step`
- * props take precedence over the returned values.
+ * `min` / `max` come from getFieldStats over `scopeFilters` (whole column without it);
+ * `step` is derived from the field's type family. The component lets explicit `min` /
+ * `max` / `step` props take precedence over the returned values. ConstraintField calls it
+ * once for the validation bounds and, given a `trackScope`, a second time for the track
+ * bounds alone; the second call shares the field metadata through SWR's deduplication.
+ * While a new scope loads, the previous bounds stay returned (SWR `keepPreviousData`).
  *
  * @param {Object}  params
  * @param {string}  params.fieldName            - API field name.
@@ -83,7 +89,8 @@ export const stepFor = ({ typeFamily, displayFormat, min, max }) => {
  * @param {string}  [params.schema]             - API schema within the catalog.
  * @param {?Object} [params.scopeFilters]       - Scope of the bounds (`FilterNode`, sent as
  *   the `structuredFilters` of getFieldStats). Never a tree that holds the criterion being
- *   edited: its own range would become the bounds, and the slider would close on it.
+ *   edited: its own range would become the bounds, and the slider would close on it. An
+ *   empty scope (no row) returns `min` / `max` undefined.
  * @param {string}  [params.typeFamily]         - `typeFamily` of the field, when known.
  * @param {?string} [params.displayFormat]      - `displayFormat` of the field, when known
  *   (`null` = known to have none). With `typeFamily`, spares the schema request.

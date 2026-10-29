@@ -50,6 +50,7 @@ export const controls = {
     showLabels: { type: 'boolean', label: 'showLabels', default: false, row: 3 },
     showOperations: { type: 'boolean', label: 'showOperations', default: true, row: 3 },
     showSlider: { type: 'boolean', label: 'showSlider', default: false, row: 3 },
+    dependentValues: { type: 'boolean', label: 'dependentValues', default: true, row: 3 },
     showJson: { type: 'boolean', label: 'Sortie JSON', default: true, row: 4 },
     showSql: { type: 'boolean', label: 'Sortie SQL', default: true, row: 4 },
 };
@@ -72,6 +73,10 @@ export const hint = (
         dérivé <em>en page</em> par <code>treeToSQL</code>. C&apos;est délibéré — le JSON
         est à terme le seul échange avec l&apos;API.
         {' '}<code>wrap</code> n&apos;a d&apos;effet qu&apos;en orientation horizontale.
+        {' '}<code>dependentValues</code> se voit avec <code>showSlider</code> : la piste
+        d&apos;une carte suit les autres critères. Sur le transport mock, essayer{' '}
+        <code>gdp</code> et <code>date_obs</code> : ce sont les seules colonnes numériques
+        ou dates dont les fixtures ont des lignes.
     </>
 );
 
@@ -108,7 +113,7 @@ export const toProps = ({ maxCriteria, ...rest }) => ({
 const MultiCriterionMenuPlayground = ({
     showJson, showSql, operationLabels, maxCriteria,
     orientation, wrap, addMode, parentheses, showConnectors,
-    validate, footer, showLabels, showOperations, showSlider,
+    validate, footer, showLabels, showOperations, showSlider, dependentValues,
 }) => {
     const { fields } = useVariableMetadata();
     const allVars = metadataToVariables(fields);
@@ -138,7 +143,8 @@ const MultiCriterionMenuPlayground = ({
                 footer={footer}
                 showLabels={showLabels}
                 showOperations={showOperations}
-                showSlider={showSlider} />
+                showSlider={showSlider}
+                dependentValues={dependentValues} />
 
             {showJson && (
                 <figure className="doc-playground__output">

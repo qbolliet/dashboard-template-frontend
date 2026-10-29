@@ -82,11 +82,38 @@ pays, en groupes). Le menu ne va chercher à l'API que ce qu'il n'a pas : un arb
 complet, et une liste plate de 50 valeurs ou moins aussi — la recherche s'y fait localement,
 sur le code comme sur le libellé, comme le ferait l'API. Les valeurs choisies gardent leur
 libellé (`{ value, label }`) ; seul le code part dans le filtre. Un champ numérique ou date lit
-ses bornes dans `getFieldStats`, sur toute la colonne : le filtre que les cartes construisent
-contient leur propre critère, et des bornes calculées dessous se refermeraient sur la
-sélection. Seul `<ConstraintField>`, utilisé hors d'un menu de critères, accepte un périmètre
-(`scopeFilters`, par exemple le pays de la page). `metadataToVariables` garde `parentName` et
-`displayFormat` : le menu et le slider n'ont pas à redemander le schéma.
+ses bornes dans `getFieldStats`, jamais sous le filtre complet que les cartes construisent : il
+contient le critère du champ lui-même, et des bornes calculées dessous se refermeraient sur la
+sélection. Un `<ConstraintField>` isolé accepte un périmètre (`scopeFilters`, par exemple le
+pays de la page). `metadataToVariables` garde `parentName` et `displayFormat` : le menu et le
+slider n'ont pas à redemander le schéma.
+
+**Bornes du slider.** Dans un `<MultiCriterionMenu>`, la piste du slider d'une carte montre
+l'étendue des valeurs encore atteignables compte tenu des **autres** critères. Le périmètre
+d'une carte est l'expression complète où elle est remplacée par VRAI, puis simplifiée avec la
+précédence de l'API (`ET` avant `OU` dans un groupe, parenthèses entre groupes) — retirer la
+carte ne suffirait pas dès qu'un `OU` intervient. Pour la carte A :
+
+| Expression | Périmètre de A |
+|---|---|
+| `A ET B` | `B` |
+| `A OU B` | VRAI OU B = VRAI : aucune restriction, toute la colonne |
+| `(A OU B) ET D` | `D` |
+| `A ET B OU D` (= `(A ET B) OU D`) | `B OU D` |
+
+Les critères incomplets sont ignorés, une parenthèse non fermée laisse les bornes de toute la
+colonne, et une carte placée sous un connecteur `AND_NOT` / `OR_NOT` y prend la valeur la
+plus permissive (FAUX). Le calcul est fait par `scopeWithout(criteria, id, { dateOrder })` de `filterEngine`,
+sur les critères émis par `onChange` (après l'amorti de saisie, pas à chaque frappe).
+
+Seule la **piste** suit ce périmètre : elle s'élargit pour contenir la valeur courante, et
+retombe sur les bornes de la colonne quand les autres critères ne laissent aucune ligne. La
+validation (« Hors de … »), les jours sélectionnables du calendrier et le pas du slider restent
+calculés sur toute la colonne : modifier une carte ne rend jamais une autre invalide. La prop
+`dependentValues={false}` revient à des valeurs globales ; elle gouvernera aussi les options
+des menus catégoriels. En dehors du MultiCriterionMenu, les bornes portent sur toute la
+colonne : `<CriterionMenu>` seul, filtres du tableau, `<ConstraintField>` isolé (ou sur son
+`scopeFilters`).
 
 ## Combinaison de critères
 

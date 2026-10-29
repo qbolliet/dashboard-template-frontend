@@ -53,7 +53,15 @@ const DEFAULT_LABELS = {
  * @param {?Object}  [scopeFilters] - Scope of the bounds (`FilterNode`): the API bounds are
  *   those of this subset (e.g. the country of the page) instead of the whole column.
  *   Ignored without `fieldName`. A scope, never the filter this field contributes to: the
- *   bounds would shrink to its own selection.
+ *   bounds would shrink to its own selection. Bounds BOTH the track and the validation
+ *   ("out of bounds" message, calendar's selectable days).
+ * @param {?Object}  [trackScope] - Scope of the TRACK only (`FilterNode`): the thumbs' axis
+ *   spans the values this subset still reaches, while the validation, the calendar and the
+ *   step stay on the global (or `scopeFilters`) bounds — another filter never makes the
+ *   value invalid. The track is widened to hold the current value (within the global
+ *   bounds), and falls back to the global bounds when the scope is empty (no row), `null`
+ *   (no filter) or undefined (default: no extra request). Explicit `min` / `max` win.
+ *   Ignored without `fieldName`. Set by MultiCriterionMenu (`dependentValues`).
  * @param {string}   [typeFamily]  - `typeFamily` of `fieldName`, when the caller knows it.
  * @param {?string}  [displayFormat] - `displayFormat` of `fieldName`, when the caller knows
  *   it (`null` = none). With `typeFamily`, spares {@link useRangeBounds} a schema request.
@@ -90,6 +98,7 @@ const ConstraintField = ({
   fieldName,
   catalog,
   scopeFilters,
+  trackScope,
   typeFamily,
   displayFormat,
   validate = false,
@@ -122,6 +131,14 @@ const ConstraintField = ({
   const api = useRangeBounds({
     fieldName, catalog, scopeFilters, typeFamily, displayFormat, enabled: !!fieldName,
   });
+  // Bornes de la PISTE seule, sur `trackScope` : second appel (règle des hooks : toujours
+  // appelé), désactivé sans périmètre — aucune requête de plus pour les autres appelants.
+  // SWR garde la réponse précédente pendant qu'un nouveau périmètre se charge
+  // (keepPreviousData) : la piste ne revient pas aux bornes globales entre deux filtres.
+  const scoped = useRangeBounds({
+    fieldName, catalog, scopeFilters: trackScope ?? undefined, typeFamily, displayFormat,
+    enabled: !!fieldName && trackScope != null,
+  });
 
   // Convertit une borne (nombre, ou date JJ/MM/AAAA) en nombre de l'axe slider
   const boundToNum = (b) => {
@@ -138,6 +155,7 @@ const ConstraintField = ({
     if (Number.isFinite(a)) return a;
     return fallback;
   };
+  // Bornes de VALIDATION (« Hors de », calendrier) : toute la colonne ou `scopeFilters`
   const minN = resolve(min, api.min, isDate ? NaN : 0);
   const maxN = resolve(max, api.max, isDate ? NaN : 100);
   const stepN = (() => {
@@ -148,9 +166,8 @@ const ConstraintField = ({
     return isDate ? 86_400_000 : 1; // 1 jour en ms pour les dates
   })();
 
-  // Bornes exploitables (axe valide) ⇒ la barre slider peut être rendue
+  // Bornes de validation exploitables (axe valide)
   const boundsKnown = Number.isFinite(minN) && Number.isFinite(maxN) && maxN > minN;
-  const renderTrack = showSlider && boundsKnown;
 
   // ── État interne semé par defaultValue* (non contrôlé — reset via `key`) ─
   // `low` = valeur unique / borne basse / « A → B » (plage de dates).
@@ -208,6 +225,33 @@ const ConstraintField = ({
     return { lowN: toNumber(low), highN: rangeMode ? toNumber(high) : undefined };
   };
 
+  // ── Bornes de la PISTE (poignées) : `trackScope`, distinctes de la validation ──
+  // Séparées pour qu'un autre critère ne rende jamais cette valeur « hors bornes » (elle
+  // serait alors jugée invalide, et le périmètre des autres cartes oscillerait). Ordre :
+  // props explicites > périmètre > bornes de validation (sans périmètre, périmètre vide
+  // où min/max valent null, ou piste dégénérée).
+  const trackBounds = () => {
+    const explicit = Number.isFinite(boundToNum(min)) || Number.isFinite(boundToNum(max));
+    const sMin = boundToNum(scoped.min);
+    const sMax = boundToNum(scoped.max);
+    if (explicit || trackScope == null || !Number.isFinite(sMin) || !Number.isFinite(sMax)) {
+      return { trackMinN: minN, trackMaxN: maxN };
+    }
+    // Élargie pour contenir la valeur courante : les poignées ne sortent jamais de la piste,
+    // même quand les autres critères excluent cette valeur — dans la limite des bornes
+    // globales (au-delà, la poignée reste collée au bord, comme sans périmètre).
+    const { lowN: a, highN: b } = currentPair();
+    const values = [a, b].filter(Number.isFinite);
+    let lo = Math.min(sMin, ...values);
+    let hi = Math.max(sMax, ...values);
+    if (boundsKnown) { lo = Math.max(lo, minN); hi = Math.min(hi, maxN); }
+    return hi > lo ? { trackMinN: lo, trackMaxN: hi } : { trackMinN: minN, trackMaxN: maxN };
+  };
+  const { trackMinN, trackMaxN } = trackBounds();
+  // Piste exploitable ⇒ la barre slider peut être rendue
+  const trackKnown = Number.isFinite(trackMinN) && Number.isFinite(trackMaxN) && trackMaxN > trackMinN;
+  const renderTrack = showSlider && trackKnown;
+
   // ── Utilitaires axe ─────────────────────────────────────────────────────
   // `clamp` vient de la couche transverse src/utils/math (cf. son en-tête) :
   // même signature (valeur, borne basse, borne haute) que la copie locale qu'il
@@ -215,8 +259,8 @@ const ConstraintField = ({
   // un intervalle INCOHÉRENT (minN > maxN, métadonnées de variable aberrantes) :
   // la copie locale renvoyait minN, la version partagée renvoie maxN. Aucun des
   // deux n'a de sens ici — l'axe est de toute façon indessinable.
-  const pct = (v) => clamp(((v - minN) / (maxN - minN)) * 100, 0, 100);
-  const snap = (raw) => clamp(Math.round(raw / stepN) * stepN, minN, maxN);
+  const pct = (v) => clamp(((v - trackMinN) / (trackMaxN - trackMinN)) * 100, 0, 100);
+  const snap = (raw) => clamp(Math.round(raw / stepN) * stepN, trackMinN, trackMaxN);
 
   // ── Verdict de VALEUR (booléen) émis au parent avec chaque onChange ─────
   // Miroir booléen de lowForced()/highForced() : rempli ET cohérent (type ok,
@@ -292,7 +336,7 @@ const ConstraintField = ({
     if (disabled) return;
     const { lowN, highN } = currentPair();
     const curr = which === 'low' ? lowN : highN;
-    const base = Number.isFinite(curr) ? curr : (which === 'low' ? minN : maxN);
+    const base = Number.isFinite(curr) ? curr : (which === 'low' ? trackMinN : trackMaxN);
     const big = stepN * 10; // pas large pour PageUp/PageDown
 
     let next;
@@ -301,8 +345,8 @@ const ConstraintField = ({
       case 'ArrowLeft': case 'ArrowDown': next = base - stepN; break;
       case 'PageUp': next = base + big; break;
       case 'PageDown': next = base - big; break;
-      case 'Home': next = minN; break;
-      case 'End': next = maxN; break;
+      case 'Home': next = trackMinN; break;
+      case 'End': next = trackMaxN; break;
       default: return;
     }
     e.preventDefault();
@@ -315,7 +359,7 @@ const ConstraintField = ({
     e.preventDefault();
     const rect = railRef.current.getBoundingClientRect();
     const p = clamp(((e.clientX - rect.left) / rect.width) * 100, 0, 100);
-    const v = snap(minN + (p / 100) * (maxN - minN));
+    const v = snap(trackMinN + (p / 100) * (trackMaxN - trackMinN));
 
     if (!rangeMode) { applyThumb('low', v); return; }
     const { lowN, highN } = currentPair();
@@ -335,7 +379,7 @@ const ConstraintField = ({
   useEffect(() => {
     // Réassignation hors-render (règle des hooks : un ref ne se met pas à jour pendant
     // le rendu) — cet effet n'a pas de tableau de deps, il tourne donc après CHAQUE render.
-    dragRef.current = { minN, maxN, stepN, disabled, applyThumb };
+    dragRef.current = { minN: trackMinN, maxN: trackMaxN, stepN, disabled, applyThumb };
   });
 
   useEffect(() => {
@@ -441,10 +485,10 @@ const ConstraintField = ({
             style={{ left: `${Number.isFinite(lowN) ? pct(lowN) : 0}%` }}
             role="slider"
             tabIndex={disabled ? -1 : 0}
-            aria-valuemin={minN}
-            aria-valuemax={rangeMode && Number.isFinite(highN) ? highN : maxN}
-            aria-valuenow={Number.isFinite(lowN) ? lowN : minN}
-            aria-valuetext={fromNumber(Number.isFinite(lowN) ? lowN : minN)}
+            aria-valuemin={trackMinN}
+            aria-valuemax={rangeMode && Number.isFinite(highN) ? highN : trackMaxN}
+            aria-valuenow={Number.isFinite(lowN) ? lowN : trackMinN}
+            aria-valuetext={fromNumber(Number.isFinite(lowN) ? lowN : trackMinN)}
             aria-label={rangeMode ? labels.minValue : labels.valueLabel}
             onKeyDown={(e) => handleThumbKey('low', e)}
             onPointerDown={(e) => { e.stopPropagation(); setDragging('low'); }} />
@@ -454,10 +498,10 @@ const ConstraintField = ({
               style={{ left: `${Number.isFinite(highN) ? pct(highN) : 100}%` }}
               role="slider"
               tabIndex={disabled ? -1 : 0}
-              aria-valuemin={Number.isFinite(lowN) ? lowN : minN}
-              aria-valuemax={maxN}
-              aria-valuenow={Number.isFinite(highN) ? highN : maxN}
-              aria-valuetext={fromNumber(Number.isFinite(highN) ? highN : maxN)}
+              aria-valuemin={Number.isFinite(lowN) ? lowN : trackMinN}
+              aria-valuemax={trackMaxN}
+              aria-valuenow={Number.isFinite(highN) ? highN : trackMaxN}
+              aria-valuetext={fromNumber(Number.isFinite(highN) ? highN : trackMaxN)}
               aria-label={labels.maxValue}
               onKeyDown={(e) => handleThumbKey('high', e)}
               onPointerDown={(e) => { e.stopPropagation(); setDragging('high'); }} />

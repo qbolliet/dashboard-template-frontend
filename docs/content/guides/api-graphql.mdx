@@ -338,10 +338,15 @@ déduit de la famille de type et du `displayFormat`) et les indicateurs de cadra
   une ligne) plutôt que dans deux `getFieldStats`, et seulement pour les colonnes numériques ou
   dates — le `min` d'une colonne texte est un minimum lexical, qui ne veut rien dire ici.
 
-Les bornes d'un slider de critère, elles, portent sur toute la colonne : le filtre courant
-contient le critère lui-même, et ses bornes se refermeraient sur la sélection. Un
-`ConstraintField` isolé peut être borné à un périmètre par `scopeFilters` (envoyé en
-`structuredFilters` à `getFieldStats`).
+Les bornes d'un slider de critère, elles, ne portent jamais sur le filtre courant : il contient
+le critère lui-même, et ses bornes se refermeraient sur la sélection. Elles portent sur toute la
+colonne, sauf deux cas, chacun envoyé en `structuredFilters` à `getFieldStats` :
+
+- un `ConstraintField` isolé peut être borné à un périmètre par `scopeFilters` (piste et
+  validation) ;
+- dans un `MultiCriterionMenu`, la **piste** de chaque carte suit le filtre des **autres**
+  critères (`scopeWithout`, prop `trackScope` du champ), la validation restant sur toute la
+  colonne — voir « Bornes du slider » dans la page du filtre.
 
 `Metadata.stats` n'est volontairement pas sélectionné dans les documents de faits et de
 schéma : l'API le calcule à la demande, une requête SQL par colonne.

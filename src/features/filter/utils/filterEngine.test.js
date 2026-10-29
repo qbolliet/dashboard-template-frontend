@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { buildSchema, getVariableValues, parse } from 'graphql';
 import { GET_FACT_TABLE_WITH_METADATA } from '@/lib/api/documents';
-import { andNodes, buildTree, columnCriteria, toApiScalar, toFilterNode } from './filterEngine';
+import { andNodes, buildTree, columnCriteria, scopeWithout, toApiScalar, toFilterNode } from './filterEngine';
 
 // =================================================================
 // TEST — buildTree → FilterNode (structuredFilters de l'API)
@@ -196,6 +196,153 @@ const FIXTURES = {
   'incomplet omis': [country(['Italie']), gdp('GT', '', { connectorBefore: 'OR' })],
 };
 
+// =================================================================
+// scopeWithout — périmètre d'une carte (les autres critères, la carte valant VRAI)
+// =================================================================
+describe('scopeWithout', () => {
+  // Cartes identifiées, chacune un critère complet et distinct
+  const A = (extra = {}) => gdp('GT', '100', { id: 1, ...extra });
+  const B = (extra = {}) => country(['France'], { id: 2, ...extra });
+  const C = (extra = {}) => gdp('LT', '110', { id: 3, ...extra });
+  const D = (extra = {}) => date('AFTER', '01/07/2023', { id: 4, ...extra });
+  const E = (extra = {}) => gdp('GTE', '95', { id: 5, ...extra });
+  // Feuilles FilterNode attendues (sans connecteur)
+  const leafA = { criterion: { variable: 'gdp', operation: 'GT', value: 100 } };
+  const leafB = { criterion: { variable: 'country', operation: 'IN', value: ['France'] } };
+  const leafC = { criterion: { variable: 'gdp', operation: 'LT', value: 110 } };
+  const leafD = { criterion: { variable: 'date_obs', operation: 'AFTER', value: '2023-07-01' } };
+  const leafE = { criterion: { variable: 'gdp', operation: 'GTE', value: 95 } };
+
+  it('A AND B: A is bounded by B', () => {
+    const scope = scopeWithout([A(), B()], 1);
+    expect(scope).toEqual({ children: [leafB] });
+    assertNode(scope, true);
+  });
+
+  it('A OR B: TRUE OR B = TRUE, no filter', () => {
+    expect(scopeWithout([A(), B({ connectorBefore: 'OR' })], 1)).toBeNull();
+  });
+
+  it('(A OR B) AND D: A is bounded by D', () => {
+    const items = [A({ bracketLeft: true }), B({ connectorBefore: 'OR', bracketRight: true }), D()];
+    expect(scopeWithout(items, 1)).toEqual({ children: [leafD] });
+  });
+
+  it('A AND B OR D = (A AND B) OR D: A is bounded by B OR D', () => {
+    const scope = scopeWithout([A(), B(), D({ connectorBefore: 'OR' })], 1);
+    expect(scope).toEqual({ children: [leafB, { connector: 'OR', ...leafD }] });
+    assertNode(scope, true);
+  });
+
+  it('scopes each card of the same expression by the others', () => {
+    // B : (A AND VRAI) OR D = A OR D ; D : (A AND B) OR VRAI = VRAI
+    const items = [A(), B(), D({ connectorBefore: 'OR' })];
+    expect(scopeWithout(items, 2)).toEqual({ children: [leafA, { connector: 'OR', ...leafD }] });
+    expect(scopeWithout(items, 4)).toBeNull();
+  });
+
+  it('simplifies nested groups', () => {
+    // (A AND (B OR C) AND E) AND D, pour C : (A AND VRAI AND E) AND D = (A AND E) AND D
+    const items = [
+      A({ bracketLeft: true }),
+      B({ bracketLeft: true }),
+      C({ connectorBefore: 'OR', bracketRight: true }),
+      E({ bracketRight: true }),
+      D(),
+    ];
+    const scope = scopeWithout(items, 3);
+    expect(scope).toEqual({
+      children: [{ children: [leafA, { connector: 'AND', ...leafE }] }, { connector: 'AND', ...leafD }],
+    });
+    assertNode(scope, true);
+    // Pour A : (VRAI AND (B OR C) AND E) AND D — le groupe interne reste un groupe
+    expect(scopeWithout(items, 1)).toEqual({
+      children: [
+        { children: [{ children: [leafB, { connector: 'OR', ...leafC }] }, { connector: 'AND', ...leafE }] },
+        { connector: 'AND', ...leafD },
+      ],
+    });
+  });
+
+  it('unwraps a sub-group reduced to a single term', () => {
+    // A AND (B OR C) AND D, pour B : A AND (VRAI OR C) AND D = A AND D
+    const items = [A(), B({ bracketLeft: true }), C({ connectorBefore: 'OR', bracketRight: true }), D()];
+    expect(scopeWithout(items, 2)).toEqual({ children: [leafA, { connector: 'AND', ...leafD }] });
+    // (B AND C) AND D, pour B : C AND D, le groupe (C) déballé
+    const grouped = [B({ bracketLeft: true }), C({ bracketRight: true }), D()];
+    expect(scopeWithout(grouped, 2)).toEqual({ children: [leafC, { connector: 'AND', ...leafD }] });
+  });
+
+  it('ignores an incomplete criterion, as toFilterNode does', () => {
+    // A AND B(incomplet) OR D = A OR D → pour A : VRAI OR D = VRAI
+    const items = [A(), country([], { id: 2 }), D({ connectorBefore: 'OR' })];
+    expect(scopeWithout(items, 1)).toBeNull();
+    // A AND B(incomplet) AND D = A AND D → pour D : A
+    const anded = [A(), country([], { id: 2 }), D()];
+    expect(scopeWithout(anded, 4)).toEqual({ children: [leafA] });
+    // A AND B(incomplet) → pour A : aucun autre critère utilisable
+    expect(scopeWithout([A(), gdp('GT', '', { id: 2 })], 1)).toBeNull();
+  });
+
+  it('returns null for an unbalanced expression', () => {
+    expect(scopeWithout([A(), B({ bracketLeft: true })], 1)).toBeNull();
+  });
+
+  it('returns null when the excluded card stands alone', () => {
+    expect(scopeWithout([A()], 1)).toBeNull();
+    expect(scopeWithout([], 1)).toBeNull();
+  });
+
+  it('converts dates to ISO in the given order', () => {
+    const items = [A(), date('AFTER', '07/01/2023', { id: 4 })];
+    expect(scopeWithout(items, 1, { dateOrder: 'MDY' })).toEqual({ children: [leafD] });
+    // Dans l'ordre par défaut (DMY), 07/01/2023 est le 7 janvier
+    expect(scopeWithout(items, 1).children[0].criterion.value).toBe('2023-01-07');
+  });
+
+  it('normalises the output: no connector on the first child of a group', () => {
+    // A OR (C AND B) AND D, pour D : A OR (C AND B)
+    const items = [A(), C({ connectorBefore: 'OR', bracketLeft: true }), B({ bracketRight: true }), D()];
+    const scope = scopeWithout(items, 4);
+    expect(scope).toEqual({
+      children: [leafA, { connector: 'OR', children: [leafC, { connector: 'AND', ...leafB }] }],
+    });
+    // Premier critère restant après l'exclusion : son connecteur disparaît
+    expect(scopeWithout([D(), A({ connectorBefore: 'AND' })], 4)).toEqual({ children: [leafA] });
+  });
+
+  it('gives the most permissive value to a card under a negation', () => {
+    // A AND_NOT C, pour C : A AND NOT FAUX = A
+    expect(scopeWithout([A(), C({ connectorBefore: 'AND_NOT' })], 3)).toEqual({ children: [leafA] });
+    // A AND_NOT (C OR D), pour C : A AND NOT (FAUX OR D) = A AND NOT D
+    const items = [
+      A(),
+      C({ connectorBefore: 'AND_NOT', bracketLeft: true }),
+      D({ connectorBefore: 'OR', bracketRight: true }),
+    ];
+    expect(scopeWithout(items, 3)).toEqual({ children: [leafA, { connector: 'AND', negate: true, ...leafD }] });
+  });
+
+  it('carries a negation in `negate`, valid even at the head of a group', () => {
+    // C AND_NOT A AND B, pour C : NOT A AND B, ordre d'origine conservé
+    const items = [C(), A({ connectorBefore: 'AND_NOT' }), B()];
+    expect(scopeWithout(items, 3)).toEqual({
+      children: [{ negate: true, ...leafA }, { connector: 'AND', ...leafB }],
+    });
+    // C AND_NOT A, pour C : NOT A seul
+    expect(scopeWithout([C(), A({ connectorBefore: 'AND_NOT' })], 3)).toEqual({
+      children: [{ negate: true, ...leafA }],
+    });
+    // C AND_NOT (A OR B), pour C : NOT (A OR B), un groupe nié
+    const grouped = [C(), A({ connectorBefore: 'AND_NOT', bracketLeft: true }), B({ connectorBefore: 'OR', bracketRight: true })];
+    expect(scopeWithout(grouped, 3)).toEqual({
+      children: [{ negate: true, children: [leafA, { connector: 'OR', ...leafB }] }],
+    });
+    // A OR_NOT C, pour C : A OR NOT FAUX = VRAI
+    expect(scopeWithout([A(), C({ connectorBefore: 'OR_NOT' })], 3)).toBeNull();
+  });
+});
+
 describe('toFilterNode — contrat de l\'API', () => {
   const schema = buildSchema(fs.readFileSync(path.join(__dirname, '../../../../scripts/schema.graphql'), 'utf8'));
   const operation = parse(GET_FACT_TABLE_WITH_METADATA).definitions[0];
@@ -237,6 +384,37 @@ describe('toFilterNode — contrat de l\'API', () => {
     expect(filtered.metadata.total).toBeGreaterThan(0);
     expect(filtered.metadata.total).toBeLessThan(total);
     expect(filtered.data.every((row) => row.country === 'France')).toBe(true);
+  });
+
+  it('scopeWithout : périmètres valides contre le SDL et acceptés par le mock', async () => {
+    const scopes = [
+      // A AND (B OR C) AND D, pour D
+      scopeWithout([
+        gdp('GT', '100', { id: 1 }),
+        country(['France'], { id: 2, bracketLeft: true }),
+        gdp('LT', '110', { id: 3, connectorBefore: 'OR', bracketRight: true }),
+        date('AFTER', '01/07/2023', { id: 4 }),
+      ], 4),
+      // C AND_NOT A AND B, pour C : NOT A AND B (négation en tête, portée par `negate`)
+      scopeWithout([
+        gdp('LT', '110', { id: 3 }),
+        gdp('GT', '100', { id: 1, connectorBefore: 'AND_NOT' }),
+        country(['France'], { id: 2 }),
+      ], 3),
+    ];
+    for (const structuredFilters of scopes) {
+      assertNode(structuredFilters, true);
+      const { errors } = getVariableValues(schema, operation.variableDefinitions, { structuredFilters });
+      expect(errors).toBeUndefined();
+      const result = await execute({ structuredFilters });
+      expect(result.errors).toBeUndefined();
+    }
+
+    // La négation en tête de groupe est appliquée : NOT gdp > 100 AND country IN (France)
+    const { data } = await execute({ structuredFilters: scopes[1] });
+    const rows = data.getFactTableWithMetadata.data;
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((row) => row.country === 'France' && !(row.gdp > 100))).toBe(true);
   });
 
   it('le mock rejette un arbre mal formé, comme l\'API', async () => {

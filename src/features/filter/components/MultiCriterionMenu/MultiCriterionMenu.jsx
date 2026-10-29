@@ -5,7 +5,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import Tooltip from '@/components/filter/Tooltip/Tooltip';
 import { PlusIcon } from '@/components/icons';
 import { DEFAULT_CONNECTORS, defaultValue, isComplete, resolveOperations } from '@/features/filter/utils/filterTypes';
-import { buildTree, serialize } from '@/features/filter/utils/filterEngine';
+import { buildTree, scopeWithout, serialize } from '@/features/filter/utils/filterEngine';
 import { useDebouncedCallback } from '@/hooks/debounce/useDebouncedCallback';
 import CriterionMenu from '@/features/filter/components/CriterionMenu/CriterionMenu';
 import Connector from './Connector/Connector';
@@ -87,6 +87,13 @@ const makeBlank = (id) => ({
  * @param {boolean} [footer=false] - Renders each card's validity footer (with `validate`).
  * @param {boolean} [showLabels=false] - Shows the Variable/Operation/Value labels.
  * @param {boolean} [showSlider=false] - Numeric/date value fields: render the slider bar.
+ * @param {boolean} [dependentValues=true] - The values offered by each card — slider
+ *   bounds, menu options — depend on the other criteria: the card is replaced by TRUE in
+ *   the whole expression, simplified with AND before OR (filterEngine.scopeWithout), and
+ *   the result scopes the card (`A AND B`: A is bounded by B; `A OR B`: no restriction).
+ *   Computed on the debounced criteria (those emitted by `onChange`). Today it bounds the
+ *   slider track only — the validation keeps the whole column. `false`: values over the
+ *   whole column.
  * @param {function({criteria: Array, tree: object, balanced: boolean, serial: object}): void} [onChange] -
  *   Receives the structured value whenever it changes; `criteria` is the flat list
  *   (reusable as `defaultCriteria` to rehydrate the builder).
@@ -119,6 +126,7 @@ const MultiCriterionMenu = ({
   footer = false,
   showLabels = false,
   showSlider = false,
+  dependentValues = true,
   onChange,
   className = '',
   style,
@@ -206,12 +214,23 @@ const MultiCriterionMenu = ({
   // Émission amortie vers le parent : call() = amorti (frappe de valeur), callNow() =
   // immédiat (action structurelle), flush() = vidage au blur. L'API a une identité stable
   // → les props qui la reçoivent (onCommit) ne se recréent pas à chaque rendu.
-  const emit = useDebouncedCallback((structure) => onChange?.(structure), 300);
+  //
+  // L'émission alimente aussi `scopeItems` : les périmètres des cartes (`dependentValues`)
+  // suivent les critères ÉMIS, pas chaque frappe — sinon chaque caractère tapé dans B
+  // relancerait getFieldStats pour A. Tenu à jour même sans `dependentValues`, pour que
+  // basculer la prop en cours de route parte des critères courants.
+  const [scopeItems, setScopeItems] = useState([]);
+  const emit = useDebouncedCallback((structure, items) => {
+    setScopeItems(items);
+    onChange?.(structure);
+  }, 300);
 
   // Dérive la valeur structurée exposée. Le SQL n'est PAS calculé ici (cf. docstring) :
   // seuls tree/serial sont exposés. `criteria` (liste plate) permet la persistance.
+  // `items` (mêmes critères + `id` de carte) sert au calcul des périmètres (scopeWithout) ;
+  // l'`id` n'est pas exposé, la forme publique de `criteria` reste inchangée.
   const buildStructure = (crit, conns) => {
-    const items = crit.map((c, i) => ({
+    const criteria = crit.map((c, i) => ({
       variable: c.variable,
       operation: c.operation,
       value: c.value,
@@ -221,8 +240,9 @@ const MultiCriterionMenu = ({
       bracketRight: parentheses ? !!c.bracketRight : false,
       connectorBefore: i === 0 ? null : conns[i - 1] || defaultConn,
     }));
-    const { tree, balanced } = buildTree(items);
-    return { criteria: items, tree, balanced, serial: serialize(tree) };
+    const { tree, balanced } = buildTree(criteria);
+    const items = criteria.map((c, i) => ({ id: crit[i].id, ...c }));
+    return { structure: { criteria, tree, balanced, serial: serialize(tree) }, items };
   };
 
   // Point de passage unique : applique le nouvel état, met à jour stateRef (pour la
@@ -232,8 +252,8 @@ const MultiCriterionMenu = ({
     setCriteria(nextCriteria);
     setConnectors(nextConnectors);
     stateRef.current = { criteria: nextCriteria, connectors: nextConnectors };
-    const structure = buildStructure(nextCriteria, nextConnectors);
-    if (debounce) emit.call(structure); else emit.callNow(structure);
+    const { structure, items } = buildStructure(nextCriteria, nextConnectors);
+    if (debounce) emit.call(structure, items); else emit.callNow(structure, items);
   };
 
   // ── Réinitialisation au changement de configuration de figeage ──
@@ -334,7 +354,8 @@ const MultiCriterionMenu = ({
   // le principe — on n'émet que sur un changement de configuration, jamais sur l'état.
   useEffect(() => {
     const { criteria: crit, connectors: conns } = stateRef.current;
-    emit.callNow(buildStructure(crit, conns));
+    const { structure, items } = buildStructure(crit, conns);
+    emit.callNow(structure, items);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [configSig]);
 
@@ -373,6 +394,8 @@ const MultiCriterionMenu = ({
                 variables={variables}
                 operationLabels={operationLabels}
                 catalog={catalog}
+                // Périmètre de la carte = filtre imposé par les autres critères (émis)
+                valuesScope={dependentValues ? scopeWithout(scopeItems, c.id, { dateOrder }) : undefined}
                 parentheses={parentheses}
                 validate={validate}
                 footer={footer}
