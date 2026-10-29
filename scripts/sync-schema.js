@@ -29,7 +29,7 @@ const REPO = process.env.API_SCHEMA_REPO || 'qbolliet/dashboard-template-api';
 const ASSET_NAME = 'schema.graphql';
 
 // Contrat de l'API contre lequel le template est développé et vérifié (`check:gql`).
-const PINNED_REF = 'v0.3.0';
+const PINNED_REF = 'v0.5.0';
 
 /**
  * Downloads the `schema.graphql` asset of a release of the API repository.
