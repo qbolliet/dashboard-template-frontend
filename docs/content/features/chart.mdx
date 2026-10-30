@@ -40,6 +40,36 @@ combinaison de `x`, `y` et `z` décide du tracé :
 `categorical-y` forcent le traitement d'un axe en catégorie — utile pour un entier qui est un
 code (une année vue comme une étiquette, un numéro de département).
 
+## Axe des valeurs : zéro et recadrage
+
+L'axe des valeurs (`y`, ou `x` pour des barres horizontales) suit une règle du zéro réglée
+par `zeroBaseline` :
+
+| Tracé | `'auto'` (défaut) | `true` | `false` |
+|---|---|---|---|
+| courbe, nuage | étendue des données | 0 inclus | étendue des données |
+| aire (`fill="fill"`) | étendue ; l'aire descend au bas du tracé | 0 inclus ; l'aire se ferme sur 0 | étendue des données |
+| barres | 0 inclus | 0 inclus | étendue des données |
+| piles (`stack`) | 0 inclus | 0 inclus | **0 inclus** |
+
+Les piles partent toujours de 0, quelle que soit la valeur : une pile tronquée fausse la
+lecture des parts qui la composent. Sur une liste de jeux, l'axe y est commun : la règle
+s'applique à l'ensemble des jeux (une aire suffit à l'ancrer en `'auto'`), sans surcharge
+par jeu.
+
+`zeroBaseline={false}` sert aux séries de grande amplitude qui varient peu : des barres en
+milliards ne sont plus écrasées en haut du tracé. Chaque barre part alors de la borne de
+l'axe la plus proche de 0 : sa hauteur ne se lit plus comme une proportion. Les graduations
+l'indiquent, il n'y a pas de repère de rupture d'axe.
+
+<ComponentPreview name="chart-value-axis" />
+
+Au **zoom** sur l'axe principal (molette ou brush de la mini-vue), l'axe des valeurs se
+recadre par défaut sur les lignes visibles, avec la même règle du zéro (`fitOnZoom`). Le
+recadrage a lieu au relâchement du brush, jamais pendant le geste. Il ne crée pas de
+sélection sur l'axe des valeurs : le bouton de réinitialisation et la mini-vue de cet axe ne
+reflètent que votre propre zoom. `fitOnZoom={false}` garde l'amplitude de toute la série.
+
 ## Troisième dimension : densité ou bulles
 
 Par défaut (`zMark="density"`), `z` se lit en **couleur ou en densité** : heatmap, violon ou

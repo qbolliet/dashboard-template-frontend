@@ -3,6 +3,7 @@ import { useId } from 'react';
 import { LinePath, Area } from '@visx/shape';
 import { curveCatmullRom } from '@visx/curve';
 import { groupSeries, seriesKey, subsample, xKeyOf } from '@/features/chart/utils/encoding';
+import { baselineValue } from '@/features/chart/utils/scales';
 import HatchPatterns from '../shared/HatchPatterns';
 import SeriesMarker from '../shared/SeriesMarker';
 import './LineMarks.scss';
@@ -60,6 +61,9 @@ function seriesMatchesHover(g, hovered) {
  * @param {?Array<object>} [props.groups=null] - Pre-computed `groupSeries(data, channels)`
  *   result (mutualisé côté appelant, cf. Chart.jsx) ; recalculé en interne si absent, pour
  *   ne pas casser un usage direct du composant.
+ * @param {'auto'|boolean} [props.zeroBaseline='auto'] - Zero rule of the value axis
+ *   (cf. `valueDomain`). Only `true` changes the marks: a non-stacked filled area then
+ *   closes on 0 (or on the domain bound closest to 0) instead of the bottom of the plot.
  * @returns {JSX.Element}
  */
 const LineMarks = ({
@@ -67,6 +71,7 @@ const LineMarks = ({
   colorScale, styleScale, markerScale, hatchScale,
   hovered, voronoiActive, voronoiActiveRow,
   fill = 'line', stack = null, mini = false, baReal = null, groups = null,
+  zeroBaseline = 'auto',
 }) => {
   // Séries triées par abscisse (comparaison Date-aware) — ordre stable de tracé.
   // Le tri porte sur une COPIE : `groups` est partagé entre plusieurs marks (ce
@@ -84,7 +89,12 @@ const LineMarks = ({
     }),
   }));
 
-  const y0px = yScale.range()[0]; // bas de l'aire de tracé (baseline)
+  // Ligne de base de l'aire non empilée : le bas du tracé, sauf si l'axe est
+  // explicitement ancré à 0 (`zeroBaseline === true`) — l'aire se ferme alors sur 0
+  // (ou sur la borne la plus proche si 0 sort du domaine, recadrage au zoom).
+  const y0px = zeroBaseline === true
+    ? yScale(baselineValue(yScale.domain()))
+    : yScale.range()[0];
 
   // Ordonnée haute (sommet cumulé si empilé) et basse (offset cumulé, sinon baseline).
   const topY = (row, sk) => {

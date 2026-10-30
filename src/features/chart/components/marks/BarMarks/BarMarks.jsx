@@ -5,6 +5,7 @@ import { Bar } from '@visx/shape';
 import { color as d3color } from 'd3-color';
 import { groupSeries, seriesKey, xKeyOf } from '@/features/chart/utils/encoding';
 import { reduceValues } from '@/features/chart/utils/aggregate';
+import { baselineValue } from '@/features/chart/utils/scales';
 import HatchPatterns from '../shared/HatchPatterns';
 import SeriesMarker from '../shared/SeriesMarker';
 import './BarMarks.scss';
@@ -33,6 +34,11 @@ function seriesMatchesHover(g, hovered) {
  *   - 'none' → markers at the bar tip (cumulated tip when stacked).
  * Solid bars get a darkened outline (`d3-color` `.darker(0.7)`). `mini` renders a
  * simplified minimap variant.
+ *
+ * Non-stacked bars start from the value scale's baseline: 0 when the domain contains
+ * it, otherwise the domain bound closest to 0 (`baselineValue`) — e.g. with
+ * `zeroBaseline={false}` or a zoom-fitted value axis, bars rise from the bottom of
+ * the plot instead of from an off-plot 0.
  *
  * @param {object} props
  * @param {Array<object>} props.data - Data rows (long format).
@@ -92,7 +98,10 @@ const BarMarks = ({
   }
 
   const bandwidth = bandScale.bandwidth ? bandScale.bandwidth() : 24;
-  const zero = valScale(0);
+  // Ligne de base : 0 s'il est dans le domaine de l'axe des valeurs, sinon la borne la
+  // plus proche de 0 (axe non ancré, recadrage au zoom) — une barre ne part donc jamais
+  // d'un point hors du tracé. Lue sur l'échelle reçue : vaut aussi pour les mini-vues.
+  const zero = valScale(baselineValue(valScale.domain()));
   // Sous-échelle pour le dodge : un slot par série dans la bande.
   const subScale = scaleBand({
     domain: seriesKeys,

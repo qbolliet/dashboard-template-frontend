@@ -39,7 +39,7 @@ import { buildStacks } from '../../utils/stacking';
 import { reduceValues, clientAggregation, isAdditive } from '../../utils/aggregate';
 import { resolveFormatter } from '../../utils/formatters';
 import { resolveColumnType, formatFromFields } from '../../utils/fieldTypes';
-import { makeScale } from '../../utils/scales';
+import { makeScale, valueDomain, baselineValue } from '../../utils/scales';
 import { exportSvg, exportPng } from '../../utils/exportImage';
 import { useSeriesHover } from '../../hooks/useSeriesHover';
 import { useChartGeometry } from '../../hooks/useChartGeometry';
@@ -163,7 +163,8 @@ function computeHoverTargets({
       m.get(sk).push(row);
     }
     const bandwidth = bandScale.bandwidth ? bandScale.bandwidth() : 24;
-    const zero = valScale(0);
+    // Même ligne de base que BarMarks : 0, ou la borne du domaine la plus proche de 0
+    const zero = valScale(baselineValue(valScale.domain()));
     const subScale = scaleBand({
       domain: seriesKeys, range: [0, bandwidth], padding: seriesKeys.length > 1 ? 0.12 : 0.2,
     });
@@ -366,6 +367,8 @@ const ChartCanvas = ({
   ciFeature, baFeature, normFactor, channelAssign, baReal,
   expanded, setExpanded, voronoiOn, setVoronoiOn, tooltipsOn, setTooltipsOn,
   locale, uiLabels,
+  // Axe des valeurs : règle du zéro (cf. valueDomain) et recadrage au zoom de l'axe principal
+  zeroBaseline = 'auto', fitOnZoom = true,
   // Réduction des groupes (barres, piles, cellules) : 'none' sur des agrégats de l'API,
   // sinon l'agrégation par défaut de la colonne de valeur ; et mode de projection de la
   // heatmap dans ses mini-vues ('SUM' pour une agrégation additive, 'AVG' sinon).
@@ -398,7 +401,7 @@ const ChartCanvas = ({
   } = useChartGeometry({
     locale,
     chartKind: layoutKind, data, x, y, xType, yType, format, labels, maxLabelLength, maxLines,
-    overlap, tickDensity, width, height, minimapsVisible, xMinimapOpen, yMinimapOpen,
+    overlap, tickDensity, width, height, minimapsVisible, xMinimapOpen, yMinimapOpen, zeroBaseline,
   });
 
   const svgRef = useRef(null);
@@ -442,13 +445,17 @@ const ChartCanvas = ({
   // Quand l'IC et/ou la projection sont actifs, on étend le domaine pour englober
   // aussi leurs bornes et points. En empilage, les bornes d'IC sont reportées sur
   // le cumul de la série (mêmes offsets). Porté de chart.jsx (augValExtent).
-  let augValExtent = null;
-  if (chartKind === 'line' || chartKind === 'bar' || chartKind === 'bar-h') {
+  // `keep(row)` restreint les lignes d'IC / de projection retenues : toutes pour
+  // l'échelle de BASE, celles de la fenêtre visible pour le recadrage au zoom (sinon
+  // un IC hors champ maintiendrait l'axe à l'amplitude de toute la série).
+  const hasValueAxis = chartKind === 'line' || chartKind === 'bar' || chartKind === 'bar-h';
+  const augExtentOf = (keep = () => true) => {
+    if (!hasValueAxis) return null;
     const arr = (d) => (Array.isArray(d) ? d : []);
     const nums = [];
     const nf = (r) => normFactor(seriesKey(r, channels));
     if (ciFeature && ciFeature.config) {
-      const cd = arr(ciFeature.config.data);
+      const cd = arr(ciFeature.config.data).filter(keep);
       const cols = [...(ciFeature.config.below || []), ...(ciFeature.config.above || [])];
       if (stackActive && stackMini) {
         for (const r of cd) {
@@ -462,50 +469,61 @@ const ChartCanvas = ({
       }
     }
     if (baFeature && baFeature.config) {
-      const fd = arr(baFeature.config.data);
+      const fd = arr(baFeature.config.data).filter(keep);
       for (const r of fd) { const v = nf(r) * +r[valKey]; if (!isNaN(v)) nums.push(v); }
       if (ciFeature && baFeature.config.ci) {
-        const fcd = arr(baFeature.config.ci.data);
+        const fcd = arr(baFeature.config.ci.data).filter(keep);
         const cols = [...(baFeature.config.ci.below || []), ...(baFeature.config.ci.above || [])];
         for (const r of fcd) for (const c of cols) { const b = nf(r) * +r[c]; if (!isNaN(b)) nums.push(b); }
       }
     }
-    if (nums.length) augValExtent = [Math.min(...nums), Math.max(...nums)];
-  }
+    return nums.length ? [Math.min(...nums), Math.max(...nums)] : null;
+  };
+  const augValExtent = augExtentOf();
 
-  // ── Échelles de position de BASE (domaine complet ; axe valeur ancré à 0) ──
-  let baseXScale;
-  if (chartKind === 'bar-h' && xType === 'number') {
-    if (stackActive) {
-      let lo = 0, hi = stackMini.max;
-      if (augValExtent) { lo = Math.min(lo, augValExtent[0]); hi = Math.max(hi, augValExtent[1]); }
-      baseXScale = scaleLinear({ domain: [lo, hi], range: [0, innerWidth], nice: true });
-    } else {
-      const vals = data.map((d) => d[x]).filter((v) => v != null && !isNaN(v));
-      let ext = extent(vals);
-      if (ext[0] > 0) ext = [0, ext[1]];
-      if (augValExtent) ext = [Math.min(ext[0], augValExtent[0]), Math.max(ext[1], augValExtent[1])];
-      baseXScale = scaleLinear({ domain: ext, range: [0, innerWidth], nice: true });
-    }
-  } else {
-    baseXScale = makeScale(xType, data, x, innerWidth, 'x', layoutKind);
+  // ── Échelles de position de BASE (domaine complet) ────────────────────────
+  // Axe des VALEURS (y ; x pour bar-h) : domaine de valueDomain — règle du zéro
+  // (`zeroBaseline`, piles toujours ancrées), bornes des features (`augValExtent`).
+  // L'autre axe (et tout axe d'un autre kind) passe par makeScale.
+  const valType = isBarH ? xType : yType;
+  const posType = isBarH ? yType : xType;
+  const hasNumericValueAxis = hasValueAxis && valType === 'number';
+  // Valeurs tracées sur l'axe des valeurs : cumul maximal des piles, sinon les lignes.
+  const plottedValues = (rows, st) => (st ? [st.max] : rows.map((d) => d[valKey]));
+  let baseValScale = null;
+  if (hasNumericValueAxis) {
+    baseValScale = scaleLinear({
+      domain: valueDomain({
+        values: plottedValues(data, stackMini), kind: chartKind,
+        stacked: stackActive, zeroBaseline, extra: augValExtent,
+      }),
+      range: isBarH ? [0, innerWidth] : [innerHeight, 0],
+      nice: true,
+    });
   }
-  let baseYScale;
-  if ((chartKind === 'line' || chartKind === 'bar') && yType === 'number') {
-    if (stackActive) {
-      let lo = 0, hi = stackMini.max;
-      if (augValExtent) { lo = Math.min(lo, augValExtent[0]); hi = Math.max(hi, augValExtent[1]); }
-      baseYScale = scaleLinear({ domain: [lo, hi], range: [innerHeight, 0], nice: true });
-    } else {
-      const vals = data.map((d) => d[y]).filter((v) => v != null && !isNaN(v));
-      let ext = extent(vals);
-      if (chartKind === 'bar' && ext[0] > 0) ext = [0, ext[1]];
-      if (augValExtent) ext = [Math.min(ext[0], augValExtent[0]), Math.max(ext[1], augValExtent[1])];
-      baseYScale = scaleLinear({ domain: ext, range: [innerHeight, 0], nice: true });
-    }
-  } else {
-    baseYScale = makeScale(yType, data, y, innerHeight, 'y', layoutKind);
-  }
+  const baseXScale = baseValScale && isBarH
+    ? baseValScale
+    : makeScale(xType, data, x, innerWidth, 'x', layoutKind, { zeroBaseline });
+  const baseYScale = baseValScale && !isBarH
+    ? baseValScale
+    : makeScale(yType, data, y, innerHeight, 'y', layoutKind, { zeroBaseline });
+
+  // ── Recadrage de l'axe des valeurs au zoom de l'axe principal (fitOnZoom) ──
+  // Appelé par useBrushZoom au COMMIT d'une sélection principale (jamais par frame) :
+  // même règle de zéro que l'échelle de base, sur les seules lignes visibles. En
+  // empilage, les piles sont recalculées sur ces lignes — doublon assumé de
+  // `stackMain` (calculé plus bas sur les mêmes `filteredData`), payé une fois par
+  // commit : le hook a besoin du domaine avant que ChartCanvas n'empile.
+  const fitValueDomain = (fitOnZoom && hasNumericValueAxis)
+    ? (rows, inPrincipalSel) => valueDomain({
+      values: plottedValues(rows, stackActive
+        ? buildStacks({ data: rows, posKey: stackPosKey, valKey: stackValKey, channels, stackBy: stack, seriesOrder, aggregate: reduce })
+        : null),
+      kind: chartKind, stacked: stackActive, zeroBaseline,
+      // Lignes d'IC / de projection : brutes, donc coercées avant le test de sélection
+      extra: augExtentOf((r) => inPrincipalSel(coerce(r[posKey], posType))),
+    })
+    : null;
 
   // ── Bulles : échelle d'aire (indépendante du zoom) ─────────────────────────
   // Rayon maximal = token CSS, plafonné à la demi-bande (demi-slot de dodge) des axes en
@@ -547,6 +565,7 @@ const ChartCanvas = ({
     baseXScale, baseYScale, innerWidth, innerHeight,
     marginLeft: margins.left, marginTop: margins.top, width, svgRef, zoomOn,
     previewTargets: [previewMarksRef, previewOverlaysRef, previewZoomLayerRef],
+    fitValueDomain,
   });
   const { zx, zy } = axisZoom;
 
@@ -788,7 +807,7 @@ const ChartCanvas = ({
   // un drag (le groupe porteur reçoit alors le transform de preview, cf. le rendu).
   let marks = null;
   if (chartKind === 'line') {
-    marks = <LineMarks data={mData} x={x} y={y} channels={channels} xScale={mXScale} yScale={mYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} fill={fill} stack={mStack} groups={mGroups} baReal={baReal} />;
+    marks = <LineMarks data={mData} x={x} y={y} channels={channels} xScale={mXScale} yScale={mYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} fill={fill} stack={mStack} groups={mGroups} baReal={baReal} zeroBaseline={zeroBaseline} />;
   } else if (chartKind === 'bar') {
     marks = <BarMarks data={mData} x={x} y={y} channels={channels} xScale={mXScale} yScale={mYScale} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} hovered={hovered} orient="v" fill={fill} stack={mStack} groups={mGroups} aggregate={reduce} />;
   } else if (chartKind === 'bar-h') {
@@ -810,7 +829,7 @@ const ChartCanvas = ({
   let xMiniContent = null;
   if (chartKind === 'line') {
     const yMini = baseYScale.copy().range([miniH, 0]);
-    xMiniContent = <>{<LineMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} fill={fill} stack={stackMini} groups={groupsFull} mini />}{renderMiniCI(baseXScale, yMini)}</>;
+    xMiniContent = <>{<LineMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} fill={fill} stack={stackMini} groups={groupsFull} zeroBaseline={zeroBaseline} mini />}{renderMiniCI(baseXScale, yMini)}</>;
   } else if (chartKind === 'bar') {
     const yMini = baseYScale.copy().range([miniH, 0]);
     xMiniContent = <>{<BarMarks data={data} x={x} y={y} channels={channels} xScale={baseXScale} yScale={yMini} colorScale={cScale} styleScale={styleScaleFn} markerScale={markerScaleFn} hatchScale={hatchScaleFn} orient="v" fill={fill} stack={stackMini} groups={groupsFull} mini aggregate={reduce} />}{renderMiniCI(baseXScale, yMini)}</>;
@@ -1078,6 +1097,20 @@ const ChartCanvas = ({
  * @param {object} [props.maxLines] - { x?, y? } multiline max lines.
  * @param {'auto'|'rotate'|'multiline'|'skip'} [props.overlap='auto'] - Anti-overlap strategy.
  * @param {'sparse'|'normal'|'dense'} [props.tickDensity='normal'] - Tick density.
+ * @param {'auto'|boolean} [props.zeroBaseline='auto'] - Whether the value axis (y; x for
+ *   horizontal bars) includes 0. `'auto'`: bars include 0, curves span their data;
+ *   `true`: 0 always included, curves too (a filled area then closes on 0 instead of the
+ *   bottom of the plot); `false`: the data extent, even for bars — a series in billions
+ *   that varies little is no longer flattened, each bar starting from the domain bound
+ *   closest to 0. Stacks ALWAYS include 0: a stack that does not start at 0 misrepresents
+ *   its shares. Line, bar and bar-h charts; with a dataset list, it applies to the shared
+ *   y axis (no per-dataset override).
+ * @param {boolean} [props.fitOnZoom=true] - When the principal axis (x; y for horizontal
+ *   bars) is zoomed and the value axis is not, fit the value axis to the visible rows (same
+ *   zero rule, rounded bounds). Applied on release of the brush or on each wheel step,
+ *   never while dragging. Does not create a value-axis selection: the reset button and the
+ *   minimaps only reflect the user's own zoom. `false` keeps the full-series amplitude.
+ *   Line, bar and bar-h charts, and dataset lists.
  * @param {boolean} [props['categorical-x']=false] - Force the x axis to be treated as
  *   categorical (single-series path), turning a line into vertical bars. Ignored on the
  *   MultiChart path, where each dataset carries its own `categorical-x` key.
@@ -1105,7 +1138,7 @@ const Chart = ({
   data, x, y, z, hue,
   fill = 'line', stack = 'none', zMark = 'density',
   fields, aggregate, format: formatProp = {}, labels = {}, maxLabelLength = {}, maxLines = {},
-  overlap = 'auto', tickDensity = 'normal',
+  overlap = 'auto', tickDensity = 'normal', zeroBaseline = 'auto', fitOnZoom = true,
   'categorical-x': categoricalX = false, 'categorical-y': categoricalY = false,
   title, height = 460,
   toolbar = [], defaults = {}, initialMinimapOpen = true,
@@ -1168,6 +1201,7 @@ const Chart = ({
         fields={fields} aggregate={aggregate} locale={locale}
         format={formatProp} labels={labels} maxLabelLength={maxLabelLength} maxLines={maxLines}
         overlap={overlap} tickDensity={tickDensity}
+        zeroBaseline={zeroBaseline} fitOnZoom={fitOnZoom}
         title={title} height={height} defaults={defaults} toolbar={toolbar}
       />
     );
@@ -1390,6 +1424,7 @@ const Chart = ({
               fill={fill} effFill={effFill} stack={stack}
               format={format} labels={labels} maxLabelLength={maxLabelLength} maxLines={maxLines}
               overlap={overlap} tickDensity={tickDensity}
+              zeroBaseline={zeroBaseline} fitOnZoom={fitOnZoom}
               isSequentialZ={isSequentialZ} isViolinKind={isViolinKind}
               cScale={cScale} styleScaleFn={styleScaleFn} hatchScaleFn={hatchScaleFn} markerScaleFn={markerScaleFn}
               hovered={hovered} voronoiRow={voronoiRow} setVoronoiRow={setVoronoiRow} ciHover={ciHover}

@@ -66,6 +66,15 @@ since the copy they took.
 
 ### Added
 
+- **`<Chart zeroBaseline>` — zero rule of the value axis.** `'auto'` (default) keeps the
+  current rule: bars include 0, curves span their data. `true` always includes 0, curves
+  too (a filled area then closes on 0 instead of the bottom of the plot). `false` uses the
+  data extent, even for non-stacked bars: a series in billions that varies little is no
+  longer flattened at the top of the plot, each bar rising from the domain bound closest
+  to 0. Stacks always include 0. Line, bar and horizontal bar charts; forwarded to
+  `<MultiChart>` for the shared y axis of a dataset list (no per-dataset override). The
+  rule now lives in one pure function, `valueDomain` (`features/chart/utils/scales.js`),
+  with `baselineValue` giving the bars' baseline. New registry example `chart-value-axis`.
 - **`<MultiCriterionMenu baseFilter>` — latent filter and chained menus.** A filter passed
   in `baseFilter` is never displayed as a card, but it is joined with the cards and
   restricts the values every card offers. Its `connector` field picks the join —
@@ -167,6 +176,16 @@ since the copy they took.
 
 ### Changed
 
+- **`<Chart fitOnZoom>` — the value axis now fits the zoom by default.** When the
+  principal axis (x, or y for horizontal bars) is zoomed and the value axis is not, the
+  value axis is recomputed on the visible rows, with the same zero rule and rounded
+  bounds: zooming into a quiet stretch of a series no longer leaves it flat. The fit lands
+  when the brush is released or on each wheel step, never while dragging, and it does not
+  create a value-axis selection (the reset button and the minimaps are unchanged).
+  `fitOnZoom={false}` restores the previous behavior. `<MultiChart>`, which already fitted
+  its y axis, now follows the same prop. Edge case of the same change: in `'auto'`, bars
+  that are all negative now include 0 as their upper bound (they used to start from an
+  off-plot 0), as `<MultiChart>` already did.
 - **Globe flows are arrows by default.** The 1 px additive lines become solid ribbons of
   constant on-screen width with an arrow head at the destination, in both globe and flat-map
   modes (the former look remains available as `arcVariant="glow"`). The head stops at the edge

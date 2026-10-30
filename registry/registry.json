@@ -3691,6 +3691,28 @@
       }
     },
     {
+      "name": "chart-value-axis",
+      "type": "registry:block",
+      "title": "Axe des valeurs non ancré à zéro",
+      "description": "Des barres en milliards qui varient peu sont écrasées en haut du tracé quand l'axe part de 0 (réglage par défaut, à gauche). `zeroBaseline={false}` cale l'axe sur l'étendue des données (à droite) : les écarts se lisent, et les graduations signalent que l'axe ne part plus de 0.",
+      "dependencies": [],
+      "registryDependencies": [
+        "chart",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/chart-value-axis.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/chart-value-axis.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "chart"
+      }
+    },
+    {
       "name": "chart-violin",
       "type": "registry:block",
       "title": "Violin plot — distribution par catégorie, trois canaux hue",

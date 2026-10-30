@@ -53,6 +53,8 @@ import { xMinimapLayout, yMinimapLayout } from '../utils/minimapGeometry';
  *   AND their toggles. When false, nothing is reserved for them.
  * @param {boolean} [params.xMinimapOpen=true] - Whether the x-axis minimap band is expanded.
  * @param {boolean} [params.yMinimapOpen=true] - Whether the y-axis minimap band is expanded.
+ * @param {'auto'|boolean} [params.zeroBaseline='auto'] - Zero rule of the value axis
+ *   (cf. valueDomain) : les ticks x mesurés en bar-h sont ceux de l'échelle réelle.
  * @returns {{ margins: {top:number,right:number,bottom:number,left:number},
  *   innerWidth: number, innerHeight: number, yTickW: number, xAxisH: number,
  *   svgH: number, showXMinimap: boolean, showYMinimap: boolean, miniH: number,
@@ -64,7 +66,7 @@ export function useChartGeometry({
   format = {}, labels = {}, maxLabelLength = {}, maxLines = {},
   overlap = 'auto', tickDensity = 'normal', width, height,
   minimapsVisible = true, xMinimapOpen = true, yMinimapOpen = true,
-  locale,
+  locale, zeroBaseline = 'auto',
 }) {
   // ── Mini-vues applicables selon le type de graphique ──────────────────────
   // (× l'interrupteur maître : masquées, elles ne réservent plus rien.)
@@ -117,7 +119,7 @@ export function useChartGeometry({
   // ses ticks, on compare le libellé le plus large au budget par graduation,
   // puis on en déduit la hauteur (rotation / multi-lignes / à plat).
   const desired = tickCountFor(innerWidth, tickDensity);
-  const xScale = makeScale(xType, data, x, innerWidth, 'x', chartKind);
+  const xScale = makeScale(xType, data, x, innerWidth, 'x', chartKind, { zeroBaseline });
   const ticks = ticksFor(xScale, xType, desired);
   const fmtX = resolveFormatter(format.x, xType, xType === 'date' ? xScale.domain() : null, locale);
   const labelsArr = ticks.map((t) => String(fmtX(t)));

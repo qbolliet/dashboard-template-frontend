@@ -53,6 +53,7 @@ import { resolveColumnType, formatFromFields } from '@/features/chart/utils/fiel
 import { measureText, tickCountFor } from '@/features/chart/utils/measureText';
 import { exportSvg, exportPng } from '@/features/chart/utils/exportImage';
 import { xMinimapLayout } from '@/features/chart/utils/minimapGeometry';
+import { valueDomain, baselineValue } from '@/features/chart/utils/scales';
 import { restrictScale, axisZoomFactors, zoomTransformOf } from '@/features/chart/hooks/useBrushZoom';
 import { useMinimapState, resolveMinimapsVisible } from '@/features/chart/hooks/useMinimapState';
 import { TICK_FONT_SIZE } from '@/features/chart/components/ChartAxis/tickHelpers';
@@ -129,9 +130,10 @@ function barGeometry(rows, x, y, channels, xScale, yScale, stack, reduce) {
     range: [-bw / 2, bw / 2],
     padding: seriesKeys.length > 1 ? 0.12 : 0.08,
   });
-  const zero = yScale(0);
+  // Ligne de base : 0, ou la borne du domaine la plus proche de 0 (cf. BarMarks)
+  const zero = yScale(baselineValue(yScale.domain()));
 
-  const stk = (stack && stack !== 'none')
+  const stk =(stack && stack !== 'none')
     ? buildStacks({ data: rows, posKey: x, valKey: y, channels, stackBy: stack, seriesOrder: seriesKeys, aggregate: reduce })
     : null;
 
@@ -286,6 +288,7 @@ const MultiChartCanvas = ({
   scalesFor, format, labels, maxLabelLength, maxLines, overlap, tickDensity,
   title, expanded, voronoiOn, setVoronoiOn, tooltipsOn, setTooltipsOn, setExpanded,
   hovered, initialMinimapsVisible, minimapsTool,
+  zeroBaseline = 'auto', fitOnZoom = true,
 }) => {
   const svgRef = useRef(null);
   // Modèle d'état des mini-vues, partagé avec <Chart> : interrupteur maître (bouton
@@ -389,27 +392,33 @@ const MultiChartCanvas = ({
     return rows.filter((r) => { const v = +r[x]; return v >= +xSel[0] && v <= +xSel[1]; });
   };
 
-  // ── Échelle y (valeur) : min/max sur tous les jeux, empilage par jeu ───────
-  let lo = Infinity, hi = -Infinity, anchor0 = false;
+  // ── Échelle y (valeur) : valueDomain sur les valeurs de TOUS les jeux ──────
+  // L'axe est commun : un seul domaine, sur l'ensemble des valeurs tracées (cumul
+  // maximal pour un jeu empilé). Il est ancré à 0 en 'auto' dès qu'un jeu est en
+  // barres ou en aire (`kind` ne sert ici qu'à porter cet ancrage), et toujours dès
+  // qu'un jeu est empilé. `fitOnZoom` : valeurs des lignes VISIBLES (fenêtre de zoom
+  // x committée), sinon des lignes complètes (amplitude de toute la série).
+  const yValues = [];
+  let anchored = false, anyStacked = false;
   for (const ds of typedSets) {
     const ch = channelsFor(ds);
-    const rows = filterRows(ds.rows);
+    const rows = fitOnZoom ? filterRows(ds.rows) : ds.rows;
     const bar = isBarLike(ds, xTypeAxis);
     const area = ds.fill === 'fill' && !bar;
-    if (bar || area) anchor0 = true;
+    if (bar || area) anchored = true;
     if (ds.stack && ds.stack !== 'none') {
       const sl = groupSeries(rows, ch).map((s) => s.key);
       const st = buildStacks({ data: rows, posKey: x, valKey: y, channels: ch, stackBy: ds.stack, seriesOrder: sl, aggregate: ds.reduce });
-      if (st) { hi = Math.max(hi, st.max); lo = Math.min(lo, 0); }
+      if (st) { yValues.push(st.max); anyStacked = true; }
     } else {
-      for (const r of rows) { const v = +r[y]; if (!isNaN(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }
+      for (const r of rows) yValues.push(r[y]);
     }
   }
-  if (!isFinite(lo)) { lo = 0; hi = 1; }
-  if (anchor0 && lo > 0) lo = 0;
-  if (anchor0 && hi < 0) hi = 0;
-  if (lo === hi) hi = lo + 1;
-  const yScale = scaleLinear({ domain: [lo, hi], range: [innerHeight, 0], nice: true });
+  const yScale = scaleLinear({
+    domain: valueDomain({ values: yValues, kind: anchored ? 'area' : 'line', stacked: anyStacked, zeroBaseline }),
+    range: [innerHeight, 0],
+    nice: true,
+  });
 
   // ── Couches de marks (1er jeu DEVANT → peint en dernier) ──────────────────
   // Pendant un geste de brush (`isBrushing`), chaque couche est rendue UNE fois
@@ -443,7 +452,7 @@ const MultiChartCanvas = ({
         key={ds.index} data={rows} x={x} y={y} channels={ch}
         xScale={mXScale} yScale={yScale} colorScale={scales.color} styleScale={scales.style}
         markerScale={scales.marker} hatchScale={scales.hatch} hovered={hovered}
-        fill={ds.fill} stack={st} />
+        fill={ds.fill} stack={st} zeroBaseline={zeroBaseline} />
     );
   });
 
@@ -567,7 +576,7 @@ const MultiChartCanvas = ({
           <LineMarks
             key={ds.index} data={ds.rows} x={x} y={y} channels={ch}
             xScale={baseXScale} yScale={yMini} colorScale={scales.color} styleScale={scales.style}
-            markerScale={scales.marker} hatchScale={scales.hatch} fill={ds.fill} stack={st} mini />
+            markerScale={scales.marker} hatchScale={scales.hatch} fill={ds.fill} stack={st} zeroBaseline={zeroBaseline} mini />
         );
       })}
     </>
@@ -712,6 +721,13 @@ const MultiChartCanvas = ({
  * @param {object} [props.maxLines] - { x? } multiline max lines.
  * @param {'auto'|'rotate'|'multiline'|'skip'} [props.overlap='auto'] - Anti-overlap strategy.
  * @param {'sparse'|'normal'|'dense'} [props.tickDensity='normal'] - Tick density.
+ * @param {'auto'|boolean} [props.zeroBaseline='auto'] - Zero rule of the shared y axis
+ *   (cf. `valueDomain`). `'auto'`: anchored to 0 as soon as one dataset is drawn as bars
+ *   or as a filled area; `true`: always; `false`: the data extent. A stacked dataset
+ *   always anchors the axis to 0. The y axis is shared, so no dataset can override it.
+ * @param {boolean} [props.fitOnZoom=true] - When x is zoomed, compute the y domain on
+ *   the visible rows only (applied with the committed selection, never while dragging);
+ *   `false` keeps the amplitude of the full series.
  * @param {string} [props.title] - Chart title.
  * @param {number} [props.height=460] - Outer height (px).
  * @param {object} [props.defaults={}] - Initial frame state ({ expanded?, voronoi?,
@@ -725,7 +741,7 @@ const MultiChartCanvas = ({
 const MultiChart = ({
   data, x, y, hue, fill = 'line', stack = 'none',
   fields, aggregate, format: formatProp = {}, labels = {}, maxLabelLength = {}, maxLines = {},
-  overlap = 'auto', tickDensity = 'normal',
+  overlap = 'auto', tickDensity = 'normal', zeroBaseline = 'auto', fitOnZoom = true,
   title, height = 460, defaults = {}, toolbar = [], locale,
 }) => {
   // Hooks AVANT tout retour/throw anticipé (règles des hooks).
@@ -858,6 +874,7 @@ const MultiChart = ({
             scalesFor={scalesFor}
             format={format} labels={labels} maxLabelLength={maxLabelLength} maxLines={maxLines}
             overlap={overlap} tickDensity={tickDensity} title={title}
+            zeroBaseline={zeroBaseline} fitOnZoom={fitOnZoom}
             expanded={expanded} setExpanded={setExpanded}
             voronoiOn={voronoiOn} setVoronoiOn={setVoronoiOn}
             tooltipsOn={tooltipsOn} setTooltipsOn={setTooltipsOn}

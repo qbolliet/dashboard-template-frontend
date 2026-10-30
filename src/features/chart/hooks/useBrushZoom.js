@@ -139,6 +139,16 @@ export function zoomTransformOf(zx, zy) {
  * the cursor by a 0.82 factor, categorical axes zoom by an index range. A full
  * un-zoom clears the selection (back to the base scale).
  *
+ * Value-axis fit (`fitValueDomain`, 1-D charts): when the PRINCIPAL axis has a
+ * committed selection and the value axis has none, the returned value scale (y, or
+ * x for horizontal bars) is the base scale re-domained on
+ * `fitValueDomain(filteredData, inPrincipalSel)` and `.nice()`d. No value-axis
+ * selection is created — `filteredData`, the value minimap and `canReset` keep
+ * reflecting only the user's own zoom — and the affine factors (`zx`/`zy`) derive
+ * from this fitted scale, so the base-coordinate zoom layer stays aligned. The fit
+ * follows the COMMITTED selection only: during a drag the preview keeps the
+ * committed value scale (no per-frame fit) and the fit lands with the commit.
+ *
  * @param {object} params
  * @param {Array<object>} params.data - Coerced data rows (full, unfiltered).
  * @param {string} params.x - x column.
@@ -159,6 +169,11 @@ export function zoomTransformOf(zx, zy) {
  * @param {Array<{current: ?SVGGElement}>} [params.previewTargets=[]] - Refs of the
  *   SVG groups whose `transform` attribute mirrors the in-gesture draft selection
  *   (imperative preview layer). Unmounted refs (null current) are skipped.
+ * @param {?function(Array<object>, function(*): boolean): ?Array<number>} [params.fitValueDomain=null]
+ *   Value-axis fit on zoom: receives the visible rows and a predicate telling whether a
+ *   (coerced) principal-axis value lies in the committed selection, returns the fitted
+ *   `[lo, hi]` domain before `.nice()` (null = no fit). Omitted: the value axis keeps
+ *   its base domain while the principal axis is zoomed.
  * @returns {{
  *   xSel: ?Array, ySel: ?Array, setXSel: Function, setYSel: Function,
  *   previewXSel: Function, previewYSel: Function,
@@ -172,6 +187,7 @@ export function useBrushZoom({
   baseXScale, baseYScale, innerWidth, innerHeight,
   marginLeft, marginTop, width, svgRef, zoomOn = true,
   previewTargets = [],
+  fitValueDomain = null,
 }) {
   const [xSel, setXSelRaw] = useState(null); // sélection COMMITTÉE x (null = plein axe)
   const [ySel, setYSelRaw] = useState(null); // sélection COMMITTÉE y
@@ -187,31 +203,44 @@ export function useBrushZoom({
   const setYSel = (sel) => { clearDrafts(); setYSelRaw(sel); };
 
   // ── Données filtrées par les brushes ──────────────────────────────────────
+  // Test d'appartenance d'une valeur à la sélection committée d'un axe (bandes :
+  // par index ; continu : bornes incluses). Partagé avec le recadrage de l'axe des
+  // valeurs, qui l'applique aux lignes d'IC / de projection.
+  const inSel = (v, sel, type, base) => (type === 'categorical'
+    ? isInCatRange(v, sel, base.domain())
+    : v >= sel[0] && v <= sel[1]);
   const filteredData = data.filter((r) => {
-    if (xSel) {
-      const v = r[x];
-      if (xType === 'categorical') {
-        if (!isInCatRange(v, xSel, baseXScale.domain())) return false;
-      } else if (!(v >= xSel[0] && v <= xSel[1])) {
-        return false;
-      }
-    }
-    if (ySel) {
-      const v = r[y];
-      if (yType === 'categorical') {
-        if (!isInCatRange(v, ySel, baseYScale.domain())) return false;
-      } else if (!(v >= ySel[0] && v <= ySel[1])) {
-        return false;
-      }
-    }
+    if (xSel && !inSel(r[x], xSel, xType, baseXScale)) return false;
+    if (ySel && !inSel(r[y], ySel, yType, baseYScale)) return false;
     return true;
   });
 
   // ── Échelles zoomées COMMITTÉES (domaine restreint à la sélection) ─────────
   // Gelées pendant un geste de drag (seul le brouillon bouge) : les marks et le
   // pipeline coûteux qui en dépendent ne sont recalculés qu'au relâchement.
-  const xScale = xSel ? restrictScale(baseXScale, xType, xSel) : baseXScale;
-  const yScale = ySel ? restrictScale(baseYScale, yType, ySel) : baseYScale;
+  let xScale = xSel ? restrictScale(baseXScale, xType, xSel) : baseXScale;
+  let yScale = ySel ? restrictScale(baseYScale, yType, ySel) : baseYScale;
+
+  // ── Recadrage de l'axe des VALEURS sur la fenêtre visible (fitValueDomain) ──
+  // Axe principal zoomé, axe des valeurs libre : on recalcule le domaine des valeurs
+  // sur les lignes visibles SANS poser de sélection sur cet axe (ce qui filtrerait
+  // `filteredData` en valeur et ferait apparaître un zoom que l'utilisateur n'a pas
+  // fait dans la mini-vue et dans `canReset`). Dérivé de la sélection COMMITTÉE :
+  // pendant un geste, le recadrage attend le relâchement.
+  const valueOnX = chartKind === 'bar-h';
+  const principalSel = valueOnX ? ySel : xSel;
+  const valueSel = valueOnX ? xSel : ySel;
+  if (fitValueDomain && principalSel && !valueSel) {
+    const inPrincipalSel = valueOnX
+      ? (v) => inSel(v, ySel, yType, baseYScale)
+      : (v) => inSel(v, xSel, xType, baseXScale);
+    const fitted = fitValueDomain(filteredData, inPrincipalSel);
+    if (fitted) {
+      const base = valueOnX ? baseXScale : baseYScale;
+      const scale = base.copy().domain(fitted).nice();
+      if (valueOnX) xScale = scale; else yScale = scale;
+    }
+  }
 
   // ── Facteurs affines base→zoomé (transformation visuelle sans recalcul) ────
   const zx = axisZoomFactors(baseXScale, xScale, innerWidth, xType);
