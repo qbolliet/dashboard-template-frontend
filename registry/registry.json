@@ -4309,6 +4309,28 @@
       }
     },
     {
+      "name": "multi-criterion-menu-independent-values",
+      "type": "registry:block",
+      "title": "Valeurs indépendantes des autres critères",
+      "description": "Par défaut, chaque carte d'un `MultiCriterionMenu` ne propose que les valeurs encore atteignables compte tenu des autres critères : options de menu, piste de slider. `dependentValues={false}` rend à chaque carte les valeurs de toute la colonne.",
+      "dependencies": [],
+      "registryDependencies": [
+        "filter",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/multi-criterion-menu-independent-values.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/multi-criterion-menu-independent-values.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "filter"
+      }
+    },
+    {
       "name": "select-menu-basic",
       "type": "registry:block",
       "title": "Sélection unique sur une liste statique",

@@ -129,6 +129,31 @@ describe('résolveurs mock', () => {
     expect(resolvers.getSelectOptionsTree({ fieldName: 'country', searchTerm: 'zzz' })).toEqual([]);
   });
 
+  it('getSelectOptions / getSelectOptionsTree : structuredFilters ne garde que les valeurs des lignes retenues', () => {
+    // Seules les lignes d'Allemagne ont un PIB au-delà de 105
+    const gdpAbove105 = { children: [{ criterion: { variable: 'gdp', operation: 'GT', value: '105' } }] };
+
+    expect(resolvers.getSelectOptions({ fieldName: 'country', structuredFilters: gdpAbove105 }))
+      .toEqual([{ value: 'Allemagne', label: 'Allemagne' }]);
+    expect(resolvers.getSelectOptionsTree({ fieldName: 'country', structuredFilters: gdpAbove105 })).toEqual([
+      { value: 'eu', label: 'Union européenne', children: [{ value: 'Allemagne', label: 'Allemagne' }] },
+    ]);
+    // Le filtre s'applique AVANT la recherche : rien ne reste
+    expect(resolvers.getSelectOptions({ fieldName: 'country', searchTerm: 'fr', structuredFilters: gdpAbove105 })).toEqual([]);
+    // Catalogue documentaire : options dérivées des lignes, filtrées de même
+    const bce = { children: [{ criterion: { variable: 'source', operation: 'EQ', value: 'BCE' } }] };
+    expect(resolvers.getSelectOptions({ catalog: 'catalogue', fieldName: 'sector', structuredFilters: bce }))
+      .toEqual([{ value: 'Finance', label: 'Finance' }]);
+  });
+
+  it('getSelectOptions : structuredFilters est validé comme sur getFieldStats', () => {
+    const unknown = { children: [{ criterion: { variable: 'nope', operation: 'EQ', value: 'x' } }] };
+    expect(() => resolvers.getSelectOptions({ fieldName: 'country', structuredFilters: unknown }))
+      .toThrow(expect.objectContaining({ code: 'BAD_USER_INPUT' }));
+    expect(() => resolvers.getSelectOptionsTree({ fieldName: 'country', structuredFilters: { children: [] } }))
+      .toThrow(expect.objectContaining({ code: 'BAD_USER_INPUT' }));
+  });
+
   it('getSelectOptionsTree : une colonne sans hiérarchie donne un arbre à un niveau', () => {
     const tree = resolvers.getSelectOptionsTree({ fieldName: 'sector' });
 

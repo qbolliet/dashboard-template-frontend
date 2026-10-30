@@ -9,7 +9,9 @@ import './ValueField.scss';
  * Adaptive value field: renders the right control for a (typeFamily, isCategorical,
  * operation) triple. Options (categorical) and bounds (numeric/date) are loaded by the
  * primitives themselves via `fieldName` (their internal mock/GraphQL hooks) — this
- * component no longer receives them.
+ * component no longer receives them. `valuesScope` narrows both to the values the other
+ * criteria still reach: menu options (SelectMenu `scopeFilters`) and slider track
+ * (ConstraintField `trackScope`).
  *
  * Purely presentational — no internal state. The numeric/date value verdict computed by
  * {@link ConstraintField} is forwarded to the parent through `onValidityChange`
@@ -33,9 +35,12 @@ import './ValueField.scss';
  *   variable has a `parentName`). Left undefined, the menu reads it from the schema.
  * @param {?string} [displayFormat] - Numeric: d3-format of the variable, giving the slider
  *   step. Left undefined, the field reads it from the schema.
- * @param {?Object} [trackScope] - Numeric/date: scope of the slider track (`FilterNode`),
- *   forwarded to {@link ConstraintField}; the validation stays on the whole column.
- *   Undefined (default) = global bounds.
+ * @param {?Object} [valuesScope] - Scope of the values offered (`FilterNode`). Categorical:
+ *   forwarded to {@link SelectMenu} as `scopeFilters` — the menu only lists the values
+ *   held by the rows satisfying it, and a selected value outside it stays selected.
+ *   Numeric/date: forwarded to {@link ConstraintField} as `trackScope` — it bounds the
+ *   slider track, the validation staying on the whole column. Undefined (default) =
+ *   whole column.
  * @param {boolean} [validate] - Enables real-time validation on the field.
  * @param {boolean} [showSlider] - Numeric/date: render the ConstraintField slider bar.
  * @param {string}   [intlLocale] - Full Intl tag, driving number and date formatting.
@@ -58,7 +63,7 @@ const ValueField = ({
   catalog,
   grouped,
   displayFormat,
-  trackScope,
+  valuesScope,
   validate = false,
   showSlider = false,
   labels,
@@ -76,6 +81,8 @@ const ValueField = ({
   // La valeur garde les options choisies ({ value, label }) : leur libellé reste affiché
   // même quand une recherche ou la limite de 50 options les sort de la liste chargée.
   // Un id nu (critère persisté) reste accepté ; l'arbre n'en retient que l'id (optionIds).
+  // `valuesScope` (filtre des AUTRES critères) restreint les options proposées ; une valeur
+  // déjà choisie qu'il exclut reste choisie (SelectMenu la liste en tête).
   if (isCategorical) {
     const isMulti = operation === 'IN' || operation === 'NOT_IN';
     const asOption = (v) => (v !== null && typeof v === 'object' ? v : { value: v });
@@ -90,6 +97,7 @@ const ValueField = ({
           fieldName={fieldName}
           catalog={catalog}
           grouped={grouped}
+          scopeFilters={valuesScope}
           allowMulti
           value={selVal}
           validate={validate}
@@ -106,6 +114,7 @@ const ValueField = ({
         fieldName={fieldName}
         catalog={catalog}
         grouped={grouped}
+        scopeFilters={valuesScope}
         value={selVal}
         validate={validate}
         placeholder={labels.valuePlaceholder}
@@ -133,7 +142,7 @@ const ValueField = ({
         catalog={catalog}
         typeFamily={typeFamily}
         displayFormat={displayFormat}
-        trackScope={trackScope}
+        trackScope={valuesScope}
         validate={validate}
         showSlider={showSlider}
         inputsOnTop
@@ -164,7 +173,7 @@ const ValueField = ({
         catalog={catalog}
         typeFamily={typeFamily}
         displayFormat={displayFormat}
-        trackScope={trackScope}
+        trackScope={valuesScope}
         validate={validate}
         showSlider={showSlider}
         inputsOnTop

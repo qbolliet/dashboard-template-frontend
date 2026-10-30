@@ -9,9 +9,13 @@ import { gql } from './gql';
 // [{ value, label, children? }] d'une chaîne de colonnes (remontée côté serveur
 // par `Metadata.parentName`) ; avec `maxDepth: 2` sur la feuille, c'est le format
 // « groupes d'options » de SelectMenu, une fois mappé par useSelectOptions.
+// `structuredFilters` (le FilterNode de getFieldStats) restreint, dans les deux modes, les
+// lignes lues AVANT le DISTINCT : seules les valeurs encore portées par une ligne qui le
+// satisfait sont renvoyées. Absent : toutes les lignes, comme sans l'argument.
 
 /**
- * `getSelectOptions` query document — flat, server-searchable options.
+ * `getSelectOptions` query document — flat, server-searchable options, optionally
+ * restricted to the rows satisfying `structuredFilters`.
  *
  * @type {string}
  */
@@ -22,6 +26,7 @@ export const GET_SELECT_OPTIONS = gql`
     $searchTerm: String = ""
     $catalog: String
     $schema: String
+    $structuredFilters: FilterNode
   ) {
     getSelectOptions(
       fieldName: $fieldName
@@ -29,6 +34,7 @@ export const GET_SELECT_OPTIONS = gql`
       searchTerm: $searchTerm
       catalog: $catalog
       schema: $schema
+      structuredFilters: $structuredFilters
     ) {
       value
       label
@@ -40,7 +46,8 @@ export const GET_SELECT_OPTIONS = gql`
  * `getSelectOptionsTree` query document — nested options of a column hierarchy.
  *
  * Returns a JSON tree `[{ value, label, children? }]`; `fieldName` is the deepest
- * level and `maxDepth` the number of levels kept going up from it.
+ * level and `maxDepth` the number of levels kept going up from it. `structuredFilters`
+ * prunes the branches holding no row that satisfies it.
  *
  * @type {string}
  */
@@ -51,6 +58,7 @@ export const GET_SELECT_OPTIONS_TREE = gql`
     $searchTerm: String
     $catalog: String
     $schema: String
+    $structuredFilters: FilterNode
   ) {
     getSelectOptionsTree(
       fieldName: $fieldName
@@ -58,6 +66,7 @@ export const GET_SELECT_OPTIONS_TREE = gql`
       searchTerm: $searchTerm
       catalog: $catalog
       schema: $schema
+      structuredFilters: $structuredFilters
     )
   }
 `;

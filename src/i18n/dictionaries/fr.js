@@ -245,6 +245,7 @@ const fr = {
         openList: 'Ouvrir la liste',
         closeList: 'Fermer la liste',
         noResults: 'Aucun résultat',
+        outOfScope: 'Hors périmètre',
     },
 
     typeAwareInput: {

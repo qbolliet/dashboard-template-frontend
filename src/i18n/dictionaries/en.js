@@ -210,6 +210,7 @@ const en = {
         openList: 'Open the list',
         closeList: 'Close the list',
         noResults: 'No results',
+        outOfScope: 'Out of scope',
     },
 
     typeAwareInput: {

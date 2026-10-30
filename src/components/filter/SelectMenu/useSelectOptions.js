@@ -12,6 +12,13 @@ import { useFieldMetadata } from '@/hooks/fieldMetadata/useFieldMetadata';
 // mode groupé. L'arbre renvoyé [{ value, label, children? }] est mappé ici vers la
 // structure [{ group, options }] consommée par SelectMenu.
 //
+// Un périmètre (`scopeFilters`, un FilterNode) part en `structuredFilters` dans les deux
+// modes : l'API ne renvoie alors que les valeurs portées par les lignes qui le satisfont.
+// Il voyage dans la clé SWR sous forme de JSON (cf. useFieldStats) et n'y est ajouté
+// QUE s'il existe : sans lui, clé et variables sont strictement celles d'avant, et le
+// cache reste partagé avec les autres menus du même champ (filtres du tableau…). Tout ce
+// qui suit (liste de référence, exhaustivité, recherche) s'applique dans le périmètre.
+//
 // La recherche ne va au serveur que lorsqu'elle peut y trouver quelque chose de plus :
 //   - un ARBRE n'est jamais tronqué par l'API (elle le rejette au-delà de sa borne de
 //     nœuds) : chargé une fois sans terme, il est complet, et la recherche se fait ici ;
@@ -75,19 +82,22 @@ const searchLocally = (data, term) => ({
     .filter((g) => g.options.length > 0),
 });
 
-function fetchSelectOptions([, fieldName, catalog, grouped, searchTerm, schema]) {
+function fetchSelectOptions([, fieldName, catalog, grouped, searchTerm, schema, filtersJson]) {
+  // Périmètre éventuel : la variable n'existe que s'il y en a un (requête inchangée sinon)
+  const scope = filtersJson ? { structuredFilters: JSON.parse(filtersJson) } : {};
+
   if (grouped) {
     // Arbre complet, jamais tronqué : la recherche se fait localement
     return request(
       GET_SELECT_OPTIONS_TREE,
-      { fieldName, maxDepth: GROUP_DEPTH, catalog, schema },
+      { fieldName, maxDepth: GROUP_DEPTH, catalog, schema, ...scope },
     ).then((data) => ({ flat: [], groups: treeToGroups(data.getSelectOptionsTree), exhaustive: true }));
   }
 
   // Une option de plus que l'affichage : sa présence dit que la liste est tronquée
   return request(
     GET_SELECT_OPTIONS,
-    { fieldName, searchTerm, limit: LIMIT + 1, catalog, schema },
+    { fieldName, searchTerm, limit: LIMIT + 1, catalog, schema, ...scope },
   ).then(({ getSelectOptions: all }) => ({
     flat: all.slice(0, LIMIT),
     groups: [],
@@ -104,6 +114,13 @@ function fetchSelectOptions([, fieldName, catalog, grouped, searchTerm, schema])
  * the API when that list is truncated (flat mode, more than 50 values) — otherwise it
  * is applied locally, with the API's rule (code or label, case-insensitive).
  *
+ * With `scopeFilters`, both requests carry it as `structuredFilters`: only the values held
+ * by a row satisfying it are listed, and the search (server or local) runs inside that
+ * scope. An empty scope yields no option — the caller shows it as such rather than falling
+ * back to the global list. The scope is part of the SWR key as stable JSON: a new object
+ * with the same content triggers no request, and without a scope the key and the request
+ * variables are exactly those of an unscoped menu (shared cache).
+ *
  * @param {Object}  params
  * @param {string}  params.fieldName    - API field name (the leaf level in
  *   grouped mode).
@@ -116,16 +133,21 @@ function fetchSelectOptions([, fieldName, catalog, grouped, searchTerm, schema])
  *   the field's `Metadata.parentName`. The API derives the group level from the column
  *   hierarchy, so the value itself is not sent.
  * @param {string}  [params.searchTerm] - Text filter (code or label).
+ * @param {?Object} [params.scopeFilters] - Scope of the values offered (`FilterNode`,
+ *   root = group), sent as the `structuredFilters` of both operations. Never a tree that
+ *   holds the criterion being edited: its own selection would become the whole list.
+ *   `null` / undefined (default): whole column.
  * @param {boolean} [params.enabled]    - Fetch activé (défaut true). À `false` quand le
  *   parent fournit une liste statique (`options`) : la clé SWR devient `null`, aucun
  *   appel n'est déclenché (règles des hooks : appel inconditionnel, mais fetch conditionnel).
  * @returns {{ options: Array, groups: Array, grouped: boolean, exhaustive: boolean,
- *   loading: boolean, error: (Error|null) }} Flat options, grouped options
- *   ([{ group, options }]), the resolved mode, whether the unfiltered list is complete,
- *   loading flag and error.
+ *   baseValues: ?Set<string>, loading: boolean, error: (Error|null) }} Flat options,
+ *   grouped options ([{ group, options }]), the resolved mode, whether the unfiltered list
+ *   is complete, the values of that list when it is complete (`null` while unknown or
+ *   truncated: membership cannot be told), loading flag and error.
  */
 export function useSelectOptions({
-  fieldName, catalog, schema, grouped: groupedProp, groupField, searchTerm, enabled = true,
+  fieldName, catalog, schema, grouped: groupedProp, groupField, searchTerm, scopeFilters, enabled = true,
 } = {}) {
   // Mode connu de l'appelant (`grouped`, `groupField`) : aucune requête de schéma. Sinon
   // le mode se lit dans la fiche du champ, et la requête d'options attend sa réponse
@@ -136,17 +158,22 @@ export function useSelectOptions({
   const { field, ready } = useFieldMetadata({ fieldName, catalog, schema, enabled: enabled && !known });
   const grouped = groupedProp ?? (!!groupField || !!field?.parentName);
 
+  // Périmètre : recréé à chaque rendu du consommateur, sa forme JSON (stable tant que son
+  // contenu ne change pas) entre dans la clé — en 7e position, et seulement s'il existe.
+  const filtersJson = scopeFilters ? JSON.stringify(scopeFilters) : null;
+  const keyFor = (term) => (filtersJson
+    ? ['selectOptions', fieldName, catalog, grouped, term, schema, filtersJson]
+    : ['selectOptions', fieldName, catalog, grouped, term, schema]);
+
   // Liste de référence, sans terme : elle dit si la recherche peut rester locale.
-  const baseKey = enabled && fieldName && (known || ready)
-    ? ['selectOptions', fieldName, catalog, grouped, '', schema]
-    : null;
+  const baseKey = enabled && fieldName && (known || ready) ? keyFor('') : null;
   const base = useSWR(baseKey, fetchSelectOptions, { keepPreviousData: true });
 
   // Recherche serveur : seulement quand la liste de référence est tronquée. Tant qu'elle
   // charge, `base.data` peut être celle d'un AUTRE champ (keepPreviousData) : on attend.
   const term = (searchTerm ?? '').trim();
   const searchKey = baseKey && term && !base.isLoading && base.data && !base.data.exhaustive
-    ? ['selectOptions', fieldName, catalog, grouped, term, schema]
+    ? keyFor(term)
     : null;
   const search = useSWR(searchKey, fetchSelectOptions, { keepPreviousData: true });
 
@@ -156,11 +183,18 @@ export function useSelectOptions({
     ? search.data
     : base.data && (term ? searchLocally(base.data, term) : base.data);
 
+  // Valeurs de la liste de référence complète : ce qui n'y est pas est hors du champ (ou
+  // du périmètre). Tronquée, elle ne permet pas de conclure : null.
+  const baseValues = base.data?.exhaustive
+    ? new Set([...base.data.flat, ...base.data.groups.flatMap((g) => g.options)].map((o) => String(o.value)))
+    : null;
+
   return {
     options: data?.flat ?? [],
     groups: data?.groups ?? [],
     grouped,
     exhaustive: base.data?.exhaustive ?? false,
+    baseValues,
     loading: base.isLoading || (searchKey ? search.isLoading : false),
     error: base.error ?? search.error ?? null,
   };

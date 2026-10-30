@@ -84,12 +84,13 @@ sur le code comme sur le libellé, comme le ferait l'API. Les valeurs choisies g
 libellé (`{ value, label }`) ; seul le code part dans le filtre. Un champ numérique ou date lit
 ses bornes dans `getFieldStats`, jamais sous le filtre complet que les cartes construisent : il
 contient le critère du champ lui-même, et des bornes calculées dessous se refermeraient sur la
-sélection. Un `<ConstraintField>` isolé accepte un périmètre (`scopeFilters`, par exemple le
-pays de la page). `metadataToVariables` garde `parentName` et `displayFormat` : le menu et le
+sélection. Un `<SelectMenu>` ou un `<ConstraintField>` isolé accepte un périmètre
+(`scopeFilters`, par exemple le pays de la page). `metadataToVariables` garde `parentName` et `displayFormat` : le menu et le
 slider n'ont pas à redemander le schéma.
 
-**Bornes du slider.** Dans un `<MultiCriterionMenu>`, la piste du slider d'une carte montre
-l'étendue des valeurs encore atteignables compte tenu des **autres** critères. Le périmètre
+**Valeurs proposées.** Dans un `<MultiCriterionMenu>`, chaque carte ne propose que les
+valeurs encore atteignables compte tenu des **autres** critères : options de son menu si la
+colonne est catégorielle, piste de son slider si elle est numérique ou date. Le périmètre
 d'une carte est l'expression complète où elle est remplacée par VRAI, puis simplifiée avec la
 précédence de l'API (`ET` avant `OU` dans un groupe, parenthèses entre groupes) — retirer la
 carte ne suffirait pas dès qu'un `OU` intervient. Pour la carte A :
@@ -101,19 +102,56 @@ carte ne suffirait pas dès qu'un `OU` intervient. Pour la carte A :
 | `(A OU B) ET D` | `D` |
 | `A ET B OU D` (= `(A ET B) OU D`) | `B OU D` |
 
-Les critères incomplets sont ignorés, une parenthèse non fermée laisse les bornes de toute la
-colonne, et une carte placée sous un connecteur `AND_NOT` / `OR_NOT` y prend la valeur la
-plus permissive (FAUX). Le calcul est fait par `scopeWithout(criteria, id, { dateOrder })` de `filterEngine`,
-sur les critères émis par `onChange` (après l'amorti de saisie, pas à chaque frappe).
+Les critères incomplets sont ignorés, une parenthèse non fermée laisse toute la colonne, et
+une carte placée sous un connecteur `AND_NOT` / `OR_NOT` y prend la valeur la plus permissive
+(FAUX). Le calcul est fait par `scopeWithout(criteria, id, { dateOrder })` de `filterEngine`,
+sur les critères émis par `onChange` (après l'amorti de saisie, pas à chaque frappe) : ouvrir
+un menu ne relance aucune requête tant que le périmètre n'a pas changé, et pendant le
+chargement d'un nouveau périmètre la liste précédente reste affichée.
 
-Seule la **piste** suit ce périmètre : elle s'élargit pour contenir la valeur courante, et
-retombe sur les bornes de la colonne quand les autres critères ne laissent aucune ligne. La
-validation (« Hors de … »), les jours sélectionnables du calendrier et le pas du slider restent
-calculés sur toute la colonne : modifier une carte ne rend jamais une autre invalide. La prop
-`dependentValues={false}` revient à des valeurs globales ; elle gouvernera aussi les options
-des menus catégoriels. En dehors du MultiCriterionMenu, les bornes portent sur toute la
-colonne : `<CriterionMenu>` seul, filtres du tableau, `<ConstraintField>` isolé (ou sur son
-`scopeFilters`).
+*Menus catégoriels.* Le périmètre part en `structuredFilters` à `getSelectOptions` /
+`getSelectOptionsTree` : le menu ne liste que les valeurs portées par au moins une ligne qui
+le satisfait, et la recherche (locale ou serveur) se fait dans ce périmètre. Avec
+`pays IN (…) ET continent = Europe`, le menu des pays ne propose que des pays européens, et
+celui des continents que les continents des pays choisis :
+
+```jsx
+<MultiCriterionMenu
+  variables={variables}
+  defaultCriteria={[
+    { variable: 'pays', operation: 'IN', value: [{ value: 'France', label: 'France' }],
+      typeFamily: 'TEXT', isCategorical: true },
+    { variable: 'continent', operation: 'EQ', value: { value: 'Europe', label: 'Europe' },
+      typeFamily: 'TEXT', isCategorical: true, connectorBefore: 'AND' },
+  ]}
+/>
+```
+
+Une valeur **déjà choisie** n'est jamais retirée ni invalidée parce qu'un autre critère l'a
+exclue : elle reste sélectionnée (tag, filtre émis) et le menu la liste en tête, cochée — dans
+un groupe « Hors périmètre » en mode groupé —, pour qu'on puisse la décocher. La retirer
+d'office élargirait le périmètre des autres cartes, qui se rétréciraient à leur tour : les
+critères oscilleraient. Sur une liste plate de plus de 50 valeurs, le menu ne sait pas ce qui
+manque à la liste chargée ; la sélection reste alors visible par ses seuls tags. Un périmètre
+**vide** affiche le message vide du menu (« Aucun résultat »), sans repli sur les options
+globales : un menu vide est ici une information juste.
+
+*Sliders.* Seule la **piste** suit le périmètre : elle s'élargit pour contenir la valeur
+courante, et retombe sur les bornes de la colonne quand les autres critères ne laissent aucune
+ligne — à l'inverse du menu, un slider sans étendue serait inutilisable. La validation
+(« Hors de … »), les jours sélectionnables du calendrier et le pas du slider restent calculés
+sur toute la colonne : modifier une carte ne rend jamais une autre invalide.
+
+*Valeurs indépendantes.* `dependentValues={false}` rend à chaque carte les valeurs de toute la
+colonne, menus et sliders, quels que soient les autres critères :
+
+```jsx
+<MultiCriterionMenu variables={variables} dependentValues={false} />
+```
+
+En dehors du MultiCriterionMenu, les valeurs portent toujours sur toute la colonne :
+`<CriterionMenu>` seul, filtres du tableau, `<SelectMenu>` isolé (ou sur son `scopeFilters`),
+`<ConstraintField>` isolé (ou sur son `scopeFilters`).
 
 ## Combinaison de critères
 

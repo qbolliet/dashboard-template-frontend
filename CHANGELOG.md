@@ -66,20 +66,36 @@ since the copy they took.
 
 ### Added
 
-- **`<MultiCriterionMenu dependentValues>` — slider bounds follow the other criteria.** In a
-  multi-criterion menu, the slider track of a numeric or date card now spans the values the
-  OTHER criteria still reach: the card is replaced by TRUE in the whole expression, which is
-  then simplified with AND before OR (`A AND B` → bounded by B; `A OR B` → whole column;
-  `A AND B OR D` → bounded by `B OR D`). Computed on the debounced criteria, by the new pure
-  `scopeWithout(criteria, excludedId, { dateOrder })` of `filterEngine`. Only the track
-  moves: the "out of bounds" validation, the calendar's selectable days and the step stay on
-  the whole column, so editing one card never invalidates another. `dependentValues` defaults
-  to `true`; `false` restores whole-column bounds, and the prop will govern the categorical
-  menus' options too. New pass-through props: `CriterionMenu` `valuesScope`, `ValueField` /
-  `ConstraintField` `trackScope` (track only, unlike `scopeFilters`). Nothing changes outside
-  the multi-criterion menu: a standalone `CriterionMenu`, the table filters and a standalone
-  `ConstraintField` keep whole-column (or `scopeFilters`) bounds. `buildTree` leaves now
-  carry the card's `id` when given.
+- **`<MultiCriterionMenu dependentValues>` — offered values follow the other criteria.** In
+  a multi-criterion menu, each card now offers only the values the OTHER criteria still
+  reach: the card is replaced by TRUE in the whole expression, which is then simplified with
+  AND before OR (`A AND B` → scoped by B; `A OR B` → whole column; `A AND B OR D` → scoped by
+  `B OR D`). Computed on the debounced criteria, by the new pure
+  `scopeWithout(criteria, excludedId, { dateOrder })` of `filterEngine`; opening a menu sends
+  no request while the scope is unchanged, and the previous list stays shown while a new
+  scope loads. `dependentValues` defaults to `true`; `false` gives every card the values of
+  the whole column. Nothing changes outside the multi-criterion menu: a standalone
+  `CriterionMenu`, the table filters, a standalone `SelectMenu` or `ConstraintField` keep
+  whole-column (or `scopeFilters`) values. `buildTree` leaves now carry the card's `id` when
+  given.
+  - *Categorical cards*: the value menu lists only the values held by the rows of the scope
+    (e.g. `pays IN (…) AND continent = Europe` → the country menu offers European countries
+    only), and its search runs inside it. A value already selected is never dropped nor
+    invalidated when another card excludes it: it stays selected and is listed first,
+    checked — under a new « Hors périmètre » group in grouped mode (label
+    `selectMenu.outOfScope`) — which avoids criteria oscillating. An empty scope shows the
+    menu's empty message, never the global options.
+  - *Numeric/date cards*: only the slider track moves; the "out of bounds" validation, the
+    calendar's selectable days and the step stay on the whole column, so editing one card
+    never invalidates another. Unlike a menu, an empty scope falls back to the whole column.
+  - New props: `SelectMenu` `scopeFilters` and `useSelectOptions({ scopeFilters })` (sent
+    as `structuredFilters`, in the SWR key as JSON only when present — without it the request
+    and the key are unchanged, so the cache stays shared); `useSelectOptions` also returns
+    `baseValues`. Pass-through props: `CriterionMenu` / `ValueField` `valuesScope`,
+    `ConstraintField` `trackScope` (track only, unlike `scopeFilters`). The
+    `GET_SELECT_OPTIONS` / `GET_SELECT_OPTIONS_TREE` documents declare
+    `$structuredFilters: FilterNode`, and the mock resolvers apply it with the evaluator of
+    `getFieldStats`. New registry example `multi-criterion-menu-independent-values`.
 
 - **`<Chart zMark="bubble">` — the third dimension as bubble size.** With a numeric `z`,
   `zMark` (`'density'` by default, rendering unchanged) can be set to `'bubble'`: one marker

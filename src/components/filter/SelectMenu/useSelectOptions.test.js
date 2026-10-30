@@ -182,3 +182,104 @@ describe('useSelectOptions', () => {
     expect(result.current).toMatchObject({ options: [], groups: [], loading: false });
   });
 });
+
+// Périmètre sur le panel macro : seules les lignes d'Allemagne ont un PIB au-delà de 105,
+// celles de France et d'Allemagne au-delà de 102 (fixtures/chartFactTable.js).
+const gdpAbove = (min) => ({ children: [{ criterion: { variable: 'gdp', operation: 'GT', value: String(min) } }] });
+
+describe('useSelectOptions — scopeFilters', () => {
+  it('sends exactly the same request as before without a scope (flat and tree)', async () => {
+    const flat = renderHook(() => useSelectOptions({ fieldName: 'region', grouped: false, scopeFilters: null }), { wrapper });
+    const tree = renderHook(() => useSelectOptions({ fieldName: 'country', grouped: true }), { wrapper });
+
+    await waitFor(() => expect(flat.result.current.options.length).toBe(4));
+    await waitFor(() => expect(tree.result.current.groups.length).toBe(1));
+    // Aucune variable `structuredFilters`, même à undefined : requête inchangée
+    expect(calls()).toEqual([
+      { op: 'GetSelectOptions', variables: { fieldName: 'region', searchTerm: '', limit: 51, catalog: undefined, schema: undefined } },
+      { op: 'GetSelectOptionsTree', variables: { fieldName: 'country', maxDepth: 2, catalog: undefined, schema: undefined } },
+    ]);
+    expect(calls().every((c) => !('structuredFilters' in c.variables))).toBe(true);
+  });
+
+  it('sends the scope as structuredFilters and lists only its values (flat)', async () => {
+    const { result } = renderHook(
+      () => useSelectOptions({ fieldName: 'country', grouped: false, scopeFilters: gdpAbove(105) }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.options).toEqual([{ value: 'Allemagne', label: 'Allemagne' }]));
+    expect(result.current.exhaustive).toBe(true);
+    expect(result.current.baseValues).toEqual(new Set(['Allemagne']));
+    const [call] = calls();
+    expect(call.op).toBe('GetSelectOptions');
+    expect(call.variables.structuredFilters).toEqual(gdpAbove(105));
+  });
+
+  it('sends the scope as structuredFilters and prunes the tree (grouped)', async () => {
+    const { result } = renderHook(
+      () => useSelectOptions({ fieldName: 'country', grouped: true, scopeFilters: gdpAbove(105) }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.groups).toEqual([{
+      group: { value: 'eu', label: 'Union européenne' },
+      options: [{ value: 'Allemagne', label: 'Allemagne' }],
+    }]));
+    const [call] = calls();
+    expect(call.op).toBe('GetSelectOptionsTree');
+    expect(call.variables).toEqual({ fieldName: 'country', maxDepth: 2, catalog: undefined, schema: undefined, structuredFilters: gdpAbove(105) });
+  });
+
+  it('keys the cache on the scope content, and shares the unscoped entry', async () => {
+    const { result, rerender } = renderHook(
+      ({ scopeFilters }) => useSelectOptions({ fieldName: 'country', grouped: false, scopeFilters }),
+      { wrapper, initialProps: { scopeFilters: undefined } },
+    );
+    await waitFor(() => expect(result.current.options).toHaveLength(3));
+
+    // Nouveau périmètre : nouvelle clé, nouvelle requête
+    rerender({ scopeFilters: gdpAbove(105) });
+    await waitFor(() => expect(result.current.options).toEqual([{ value: 'Allemagne', label: 'Allemagne' }]));
+
+    // Même contenu, autre objet : même clé, aucune requête
+    rerender({ scopeFilters: gdpAbove(105) });
+    // Autre contenu : autre clé
+    rerender({ scopeFilters: gdpAbove(102) });
+    await waitFor(() => expect(result.current.options.map((o) => o.value)).toEqual(['France', 'Allemagne']));
+
+    // Retour sans périmètre : la clé d'origine, servie par le cache
+    rerender({ scopeFilters: null });
+    await waitFor(() => expect(result.current.options).toHaveLength(3));
+
+    const sent = calls().filter((c) => c.op === 'GetSelectOptions').map((c) => c.variables.structuredFilters);
+    expect(sent).toEqual([undefined, gdpAbove(105), gdpAbove(102)]);
+  });
+
+  it('searches inside the scope', async () => {
+    const { result, rerender } = renderHook(
+      ({ searchTerm }) => useSelectOptions({ fieldName: 'country', grouped: false, scopeFilters: gdpAbove(102), searchTerm }),
+      { wrapper, initialProps: { searchTerm: '' } },
+    );
+    await waitFor(() => expect(result.current.options).toHaveLength(2));
+
+    // Liste exhaustive : recherche locale, dans le périmètre
+    rerender({ searchTerm: 'all' });
+    expect(result.current.options).toEqual([{ value: 'Allemagne', label: 'Allemagne' }]);
+    rerender({ searchTerm: 'ita' });
+    expect(result.current.options).toEqual([]);
+    expect(calls()).toHaveLength(1);
+  });
+
+  it('returns no option for an empty scope, without falling back to the whole column', async () => {
+    const { result } = renderHook(
+      () => useSelectOptions({ fieldName: 'country', grouped: false, scopeFilters: gdpAbove(1000) }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.options).toEqual([]);
+    expect(result.current.baseValues).toEqual(new Set());
+    expect(calls()).toHaveLength(1);
+  });
+});

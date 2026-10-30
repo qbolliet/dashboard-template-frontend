@@ -73,10 +73,12 @@ export const hint = (
         dérivé <em>en page</em> par <code>treeToSQL</code>. C&apos;est délibéré — le JSON
         est à terme le seul échange avec l&apos;API.
         {' '}<code>wrap</code> n&apos;a d&apos;effet qu&apos;en orientation horizontale.
-        {' '}<code>dependentValues</code> se voit avec <code>showSlider</code> : la piste
-        d&apos;une carte suit les autres critères. Sur le transport mock, essayer{' '}
-        <code>gdp</code> et <code>date_obs</code> : ce sont les seules colonnes numériques
-        ou dates dont les fixtures ont des lignes.
+        {' '}<code>dependentValues</code> : le menu de valeurs d&apos;une carte et la piste
+        de son slider (avec <code>showSlider</code>) suivent les autres critères. Sur le
+        transport mock, essayer <code>gdp</code>, <code>date_obs</code> et{' '}
+        <code>country</code> (par exemple PIB &gt; 105 puis Pays : seule l&apos;Allemagne
+        reste) : ce sont les seules colonnes dont les fixtures ont des lignes — un critère
+        sur une autre colonne ne laisse aucune ligne.
     </>
 );
 

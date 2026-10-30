@@ -87,13 +87,16 @@ const makeBlank = (id) => ({
  * @param {boolean} [footer=false] - Renders each card's validity footer (with `validate`).
  * @param {boolean} [showLabels=false] - Shows the Variable/Operation/Value labels.
  * @param {boolean} [showSlider=false] - Numeric/date value fields: render the slider bar.
- * @param {boolean} [dependentValues=true] - The values offered by each card — slider
- *   bounds, menu options — depend on the other criteria: the card is replaced by TRUE in
- *   the whole expression, simplified with AND before OR (filterEngine.scopeWithout), and
- *   the result scopes the card (`A AND B`: A is bounded by B; `A OR B`: no restriction).
- *   Computed on the debounced criteria (those emitted by `onChange`). Today it bounds the
- *   slider track only — the validation keeps the whole column. `false`: values over the
- *   whole column.
+ * @param {boolean} [dependentValues=true] - The values offered by each card depend on
+ *   the other criteria: the card is replaced by TRUE in the whole expression, simplified
+ *   with AND before OR (filterEngine.scopeWithout), and the result scopes the card
+ *   (`A AND B`: A is bounded by B; `A OR B`: no restriction). Computed on the debounced
+ *   criteria (those emitted by `onChange`). Categorical cards: the value menu only lists
+ *   the values held by the rows of that scope (an empty scope shows an empty menu, not the
+ *   global list); a value already selected is never dropped nor invalidated when another
+ *   card excludes it — it stays selected, listed first. Numeric/date cards: the slider
+ *   track spans the scope, the validation keeping the whole column (an empty scope falls
+ *   back to the whole column). `false`: every card offers the values of the whole column.
  * @param {function({criteria: Array, tree: object, balanced: boolean, serial: object}): void} [onChange] -
  *   Receives the structured value whenever it changes; `criteria` is the flat list
  *   (reusable as `defaultCriteria` to rehydrate the builder).

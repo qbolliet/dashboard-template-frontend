@@ -12,9 +12,10 @@
 // ainsi des données strictement identiques.
 //
 // Fidèle au contrat 0.3.0 sur ce qui se voit côté interface. `structuredFilters`
-// est appliqué par getFactTableWithMetadata, getFieldStats et getAggregates (validé comme le fait
-// l'API : un arbre mal formé lève BAD_USER_INPUT) ; non appliqués (les fixtures tiennent
-// en une page) : `structuredFilters` des opérations d'options et la projection `fields`.
+// est appliqué par toutes les opérations qui l'acceptent — faits, options (plates et
+// arbre), statistiques, agrégats — avec un seul évaluateur (`applyFilterNode`), validé
+// comme le fait l'API : un arbre mal formé lève BAD_USER_INPUT. Non appliquée (les
+// fixtures tiennent en une page) : la projection `fields`.
 
 // Familles de type qui ont des bornes (extents / min-max numériques ou dates).
 const BOUNDED_FAMILIES = new Set(['INTEGER', 'NUMBER', 'DATE', 'TIMESTAMP']);
@@ -398,6 +399,19 @@ export function createMockResolvers(fixtures) {
     return [...distinct].sort(compare).map((value) => ({ value: String(value) }));
   };
 
+  // Périmètre des options : valeurs de `fieldName` portées par au moins une ligne qui
+  // satisfait `structuredFilters` (même évaluateur, même validation que getFieldStats).
+  // null = aucune restriction : pas de filtre, ou colonne absente des lignes des fixtures
+  // (même règle que getFieldStats : on n'invente pas ce qu'un filtre y laisserait).
+  // Comparées en texte : `value` d'une option est le code converti en chaîne.
+  const scopedValues = (dataset, fieldName, structuredFilters) => {
+    if (structuredFilters === null || structuredFilters === undefined) return null;
+    const { columns, data } = dataset.table;
+    const rows = applyFilterNode(data, structuredFilters, (name) => fieldOf(dataset, name));
+    if (!columns.includes(fieldName)) return null;
+    return new Set(rows.map((row) => row[fieldName]).filter((v) => v !== null && v !== undefined).map(String));
+  };
+
   // La recherche porte sur le code OU sur le libellé, sans tenir compte de la casse.
   const matches = (option, label, term) => (
     option.value.toLowerCase().includes(term) || label.toLowerCase().includes(term)
@@ -444,7 +458,7 @@ export function createMockResolvers(fixtures) {
       return dataset.schema.map((field) => withStats(dataset, field));
     },
 
-    getSelectOptions: ({ catalog, fieldName, limit = 50, searchTerm = '', labelField }) => {
+    getSelectOptions: ({ catalog, fieldName, limit = 50, searchTerm = '', labelField, structuredFilters }) => {
       const dataset = datasetOf(catalog);
       const field = fieldOf(dataset, fieldName);
 
@@ -454,15 +468,18 @@ export function createMockResolvers(fixtures) {
 
       const column = labelField ?? defaultLabelField(field);
       const term = (searchTerm ?? '').trim().toLowerCase();
+      // Le filtre restreint les valeurs AVANT la recherche et la limite, comme l'API
+      const scope = scopedValues(dataset, fieldName, structuredFilters);
 
       return optionsOf(dataset, fieldName)
+        .filter((option) => !scope || scope.has(option.value))
         .map((option) => ({ option, label: labelOf(option, column) }))
         .filter(({ option, label }) => !term || matches(option, label, term))
         .slice(0, limit)
         .map(({ option, label }) => ({ value: option.value, label }));
     },
 
-    getSelectOptionsTree: ({ catalog, fieldName, maxDepth, searchTerm }) => {
+    getSelectOptionsTree: ({ catalog, fieldName, maxDepth, searchTerm, structuredFilters }) => {
       const dataset = datasetOf(catalog);
       fieldOf(dataset, fieldName);
 
@@ -472,6 +489,7 @@ export function createMockResolvers(fixtures) {
 
       const chain = chainOf(dataset, fieldName);
       const term = (searchTerm ?? '').trim().toLowerCase();
+      const scope = scopedValues(dataset, fieldName, structuredFilters);
 
       // Une fixture d'arbre couvre toute la chaîne ; sans elle, la colonne donne un
       // arbre à un seul niveau (liste de feuilles).
@@ -479,14 +497,15 @@ export function createMockResolvers(fixtures) {
       const height = heightOf(source);
 
       // Chaque niveau lit son libellé dans SA colonne de libellés (règle par défaut).
-      // La recherche porte sur le niveau de `fieldName` : on garde les feuilles qui
-      // correspondent et leurs ancêtres, on élague les autres branches.
+      // La recherche et le filtre portent sur le niveau de `fieldName` : on garde les
+      // feuilles retenues et leurs ancêtres, on élague les autres branches.
       const render = (nodes, level) => nodes.flatMap((node) => {
         const labelField = defaultLabelField(fieldOf(dataset, chain[level]));
         const label = labelOf(node, labelField);
 
         if (!node.children) {
-          return !term || matches(node, label, term) ? [{ value: node.value, label }] : [];
+          const kept = (!scope || scope.has(node.value)) && (!term || matches(node, label, term));
+          return kept ? [{ value: node.value, label }] : [];
         }
 
         const children = render(node.children, level + 1);

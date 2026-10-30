@@ -54,10 +54,11 @@ const DEFAULT_LABELS = {
  *   resolveOperationLabels). A missing label shows the enum value.
  * @param {string} [catalog] - API catalog forwarded to the value primitives.
  * @param {?Object} [valuesScope] - Scope of the values offered by the card (`FilterNode`):
- *   the filter the other criteria impose on it (see filterEngine.scopeWithout). Today it
- *   bounds the slider track of a numeric/date field (never its validation); the
- *   categorical menus will follow. Undefined (default) = whole column, as a standalone
- *   CriterionMenu. Set by MultiCriterionMenu (`dependentValues`).
+ *   the filter the other criteria impose on it (see filterEngine.scopeWithout). It
+ *   restricts the options of a categorical menu (a selected value outside it stays
+ *   selected) and bounds the slider track of a numeric/date field (never its validation).
+ *   Undefined (default) = whole column, as a standalone CriterionMenu. Set by
+ *   MultiCriterionMenu (`dependentValues`).
  * @param {boolean} [parentheses] - Enables the grouping brackets.
  * @param {boolean} [footer] - Renders the validity footer (with `validate`).
  * @param {boolean} [validate] - Enables validation (accent color + inline feedback).
@@ -231,7 +232,7 @@ const CriterionMenu = ({
           catalog={catalog}
           grouped={knownGrouped}
           displayFormat={knownDisplayFormat}
-          trackScope={valuesScope}
+          valuesScope={valuesScope}
           validate={validate}
           showSlider={showSlider} />
       </CriterionRow>

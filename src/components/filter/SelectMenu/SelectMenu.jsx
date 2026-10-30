@@ -24,7 +24,12 @@ const DEFAULT_LABELS = {
   openList: 'Ouvrir la liste',
   closeList: 'Fermer la liste',
   noResults: 'Aucun résultat',
+  outOfScope: 'Hors périmètre',
 };
+
+// Valeur du groupe « Hors périmètre » (clé React de son en-tête), distincte des codes de
+// groupe renvoyés par l'API.
+const OUT_OF_SCOPE_GROUP = '__out-of-scope__';
 
 /**
  * Menu déroulant de sélection (simple ou multiple) avec support de recherche
@@ -41,6 +46,15 @@ const DEFAULT_LABELS = {
  *   lui, le mode est déduit de `Metadata.parentName` du champ (un champ hiérarchique est groupé).
  * @param {boolean}  [grouped]    - Mode groupé (true) ou plat (false) quand l'appelant le
  *   connaît déjà (`parentName` de la variable) : évite la requête de schéma qui le déduirait.
+ * @param {?Object}  [scopeFilters] - Scope of the values offered (`FilterNode`, root =
+ *   group), sent as `structuredFilters` with the options request: only the values held by
+ *   a row satisfying it are listed, and the search runs inside it. Same name and meaning
+ *   as on ConstraintField / useRangeBounds; unlike the slider, a menu has no validation
+ *   to keep apart, so one prop is enough — the menu never invalidates nor drops a
+ *   selection on the basis of its options. A selected value the scope no longer offers
+ *   stays selected and is listed first (under an « out of scope » group in grouped mode),
+ *   when the reference list is complete. An empty scope shows the empty message, never the
+ *   global options. Ignored with static `options`. Undefined (default): whole column.
  * @param {{value: string, label: string}[]} [options] - Liste statique d'options ;
  *   si fournie, court-circuite useSelectOptions (filtrage client uniquement, groupé non supporté).
  * @param {Array}    value        - Tableau des valeurs sélectionnées [{value, label}].
@@ -67,6 +81,7 @@ const SelectMenu = ({
   clearable = true,
   groupField,
   grouped: groupedProp,
+  scopeFilters,
   options,
   value = [],
   onChange,
@@ -107,8 +122,12 @@ const SelectMenu = ({
   // est fournie : le résultat serait de toute façon jeté au profit du filtrage statique.
   // `grouped` vient du hook : champ de groupe explicite, sinon `parentName` du champ.
   // Statique : jamais groupé.
-  const { options: hookOptions, groups: hookGroups, grouped: hookGrouped } = useSelectOptions({
-    fieldName, catalog, schema, grouped: groupedProp, groupField, searchTerm: debouncedFilter, enabled: !options,
+  // `scopeFilters` restreint les options au périmètre (cf. docstring).
+  const {
+    options: hookOptions, groups: hookGroups, grouped: hookGrouped, baseValues,
+  } = useSelectOptions({
+    fieldName, catalog, schema, grouped: groupedProp, groupField, scopeFilters,
+    searchTerm: debouncedFilter, enabled: !options,
   });
 
   // Mode statique : filtrage client sur la prop `options` ; groupé non supporté.
@@ -131,15 +150,35 @@ const SelectMenu = ({
         .filter((g) => g.options.length > 0)
     : hookGroups;
 
-  // Initialisation des options et des groupes affichés
-  const displayOptions = filteredStatic ?? filteredHookOptions;
-  const displayGroups  = options ? [] : filteredHookGroups;
+  // Options et groupes offerts (dans le périmètre s'il y en a un)
+  const scopedOptions = filteredStatic ?? filteredHookOptions;
+  const scopedGroups  = options ? [] : filteredHookGroups;
+
+  // Sélection hors périmètre : une valeur choisie qu'un AUTRE critère a exclue du
+  // périmètre n'est jamais retirée ni invalidée — elle reste dans `value` (tags, valeur
+  // affichée, filtre émis). La liste la montre aussi, cochée, en tête (dans un groupe
+  // « Hors périmètre » en mode groupé), pour qu'elle reste décochable : la retirer
+  // élargirait le périmètre des autres cartes, qui se rétréciraient à leur tour
+  // (oscillation). On ne conclut que face à une liste de référence COMPLÈTE (`baseValues`) :
+  // tronquée (plus de 50 valeurs), elle ne dit pas ce qui manque. La recherche en cours
+  // s'y applique comme aux autres options.
+  const outOfScope = scopeFilters && baseValues
+    ? value.filter((v) => !baseValues.has(String(v.value)) && matchesOption(v, filter))
+    : [];
+
+  // Options et groupes affichés : hors périmètre d'abord, puis le périmètre
+  const displayOptions = grouped ? scopedOptions : [...outOfScope, ...scopedOptions];
+  const displayGroups = grouped && outOfScope.length > 0
+    ? [{ group: { value: OUT_OF_SCOPE_GROUP, label: labels.outOfScope }, options: outOfScope }, ...scopedGroups]
+    : scopedGroups;
 
   // Ensemble des valeurs sélectionnées — accès O(1) lors du rendu des options.
   const selectedSet = new Set(value.map((v) => v.value));
 
-  // Liste à plat de toutes les options visibles (utile au « tout sélectionner »)
-  const flatVisible = grouped ? displayGroups.flatMap((g) => g.options) : displayOptions;
+  // Liste à plat des options OFFERTES visibles (« tout sélectionner », message vide). Les
+  // sélections hors périmètre n'en font pas partie : « tout désélectionner » les préserve
+  // comme il préserve le hors-filtre, et elles ne masquent pas un périmètre vide.
+  const flatVisible = grouped ? scopedGroups.flatMap((g) => g.options) : scopedOptions;
 
   // Résout le libellé d'une valeur sélectionnée depuis les options chargées : le
   // parent peut ne transmettre qu'un id (`{ value }`) sans libellé lorsque les
@@ -164,8 +203,10 @@ const SelectMenu = ({
   };
   const navRows = buildNavRows();
 
-  // Présence d'au moins une option réelle (sinon message « aucun résultat »)
-  const hasOptionRows = navRows.some((r) => r.kind === 'option');
+  // Présence d'au moins une option offerte (sinon message « aucun résultat ») : un
+  // périmètre vide l'affiche même sous des sélections hors périmètre — c'est une
+  // information juste, pas un repli sur les options globales.
+  const hasOptionRows = flatVisible.length > 0;
 
   // ── Mutations de sélection ──────────────────────────────────────
   // Toutes émettent un nouveau tableau [{value, label}] via onChange.
