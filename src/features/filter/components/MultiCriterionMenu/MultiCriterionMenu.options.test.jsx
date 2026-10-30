@@ -133,6 +133,31 @@ describe('MultiCriterionMenu — dependentValues (categorical menus)', () => {
     expect(countryScopes().every((scope) => scope === undefined)).toBe(true);
   });
 
+  it('offers only the countries the latent filter reaches (baseFilter)', async () => {
+    // Une seule carte affichée (les pays) ; le continent vit dans le filtre latent
+    const europe = { criterion: { variable: 'continent', operation: 'EQ', value: 'Europe' } };
+    renderMenu({ defaultCriteria: [CRITERIA[0]], baseFilter: europe });
+    const listbox = openCountryMenu();
+
+    await waitFor(() => expect(offered(listbox)).toEqual(EUROPE));
+    expect(countryScopes().at(-1)).toEqual({ children: [europe] });
+  });
+
+  it('keeps the latent filter on independent cards (dependentValues={false})', async () => {
+    const europe = { children: [{ criterion: { variable: 'continent', operation: 'EQ', value: 'Europe' } }] };
+    // Avec « continent = Amérique » affiché : indépendante, la carte des pays l'ignore,
+    // mais reste dans le filtre latent
+    renderMenu({
+      defaultCriteria: [CRITERIA[0], { ...CRITERIA[1], value: option('Amérique') }],
+      baseFilter: europe,
+      dependentValues: false,
+    });
+    const listbox = openCountryMenu();
+
+    await waitFor(() => expect(offered(listbox)).toEqual(EUROPE));
+    expect(countryScopes().every((scope) => JSON.stringify(scope) === JSON.stringify(europe))).toBe(true);
+  });
+
   it('keeps a selected country the other criteria exclude, still selected', async () => {
     renderMenu({
       defaultCriteria: [{ ...CRITERIA[0], value: [option('France'), option('Japon')] }, CRITERIA[1]],

@@ -374,6 +374,132 @@ export function andNodes(node, leaves = []) {
   return { children: [{ children: node.children }, ...leaves] };
 }
 
+// Connecteurs de l'enum FilterConnector de l'API
+const FILTER_CONNECTORS = ['AND', 'OR', 'AND_NOT', 'OR_NOT'];
+
+/**
+ * Joins several root FilterNodes with one connector, each kept as a sub-group.
+ *
+ * The generalisation of {@link andNodes} to whole filters (e.g. the latent filter of a
+ * MultiCriterionMenu and the filter of its cards): every node is copied whole, without its
+ * `connector`, so that a `negate` it carries and the precedence of its own connectors are
+ * kept — `(A OR B) AND C`, never `A OR B AND C`.
+ *
+ * @param {string} connector - `FilterConnector` linking each node to the previous one
+ *   (`AND`, `OR`, `AND_NOT`, `OR_NOT`).
+ * @param {...?{children: Array<object>}} nodes - Root FilterNodes; `null` / `undefined`
+ *   (and empty groups) are ignored.
+ * @returns {?{children: Array<object>}} The single node unchanged, the join of all of
+ *   them, or `null` when none is left.
+ */
+export function joinFilterNodes(connector, ...nodes) {
+  // Un groupe vide est refusé par l'API : on l'écarte comme un filtre absent
+  const live = nodes.filter((n) => n && !(Array.isArray(n.children) && n.children.length === 0));
+  if (!live.length) return null;
+  // Un seul filtre : rien à combiner, on le rend tel quel (même identité)
+  if (live.length === 1) return live[0];
+  return {
+    children: live.map((n, i) => {
+      // Sous-groupe recopié entier (negate compris), sans le connecteur qu'il portait :
+      // le premier enfant n'en porte aucun, les suivants sont liés par `connector`
+      const group = { ...n };
+      delete group.connector;
+      return i === 0 ? group : { connector, ...group };
+    }),
+  };
+}
+
+/**
+ * ANDs several root FilterNodes together, each kept as a sub-group.
+ *
+ * Shorthand for {@link joinFilterNodes}`('AND', ...nodes)`.
+ *
+ * @param {...?{children: Array<object>}} nodes - Root FilterNodes; `null` / `undefined`
+ *   (and empty groups) are ignored.
+ * @returns {?{children: Array<object>}} The single node unchanged, the AND of all of them,
+ *   or `null` when none is left.
+ */
+export function andFilterNodes(...nodes) {
+  return joinFilterNodes('AND', ...nodes);
+}
+
+/**
+ * Reads the connector a filter input asks to be joined with (e.g. a `baseFilter`).
+ *
+ * The connector is the `connector` field of the input, whatever its shape (a leaf, a root
+ * FilterNode, or a MultiCriterionMenu output spread with `{ ...output, connector }`).
+ *
+ * @param {*} input - Filter input, in any shape accepted by {@link asFilterNode}.
+ * @param {string} [fallback='AND'] - Connector used when the input carries none.
+ * @returns {string} A `FilterConnector` (`AND`, `OR`, `AND_NOT`, `OR_NOT`); an unknown
+ *   value falls back to `fallback`, with a `console.warn` in development only.
+ */
+export function connectorOf(input, fallback = 'AND') {
+  const connector = input && typeof input === 'object' ? input.connector : undefined;
+  if (connector == null) return fallback;
+  if (FILTER_CONNECTORS.includes(connector)) return connector;
+  // Connecteur inconnu : refusé par l'API, on retombe sur le défaut (signalé en dev)
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn(`[connectorOf] connecteur « ${connector} » non reconnu, remplacé par ${fallback}.`);
+  }
+  return fallback;
+}
+
+/**
+ * Normalises any filter input into a root FilterNode.
+ *
+ * Accepted shapes:
+ * - `null` / `undefined` → `null` (no filter);
+ * - the output of a MultiCriterionMenu carrying `structuredFilters` → that value (it
+ *   already holds the menu's own latent filter, which is what makes menus chain);
+ * - the output of a MultiCriterionMenu without it (`{ tree, balanced }`) →
+ *   {@link toFilterNode}`(tree, { balanced, dateOrder })`;
+ * - a root FilterNode (`{ children }`) → unchanged (`null` when `children` is empty);
+ * - a leaf node (`{ criterion }`) → `{ children: [node] }`.
+ *
+ * A `connector` carried by the input is not part of the filter but tells how to join it
+ * (read it with {@link connectorOf}): it is dropped from the returned root, and an object
+ * holding nothing but a `connector` (e.g. `{ ...null, connector: 'OR' }`) is no filter.
+ * Any other shape yields `null`, with a `console.warn` in development only.
+ *
+ * @param {*} input - Filter in one of the shapes above.
+ * @param {Object} [options]
+ * @param {string} [options.dateOrder='DMY'] - Order the dates of a `tree` were typed in.
+ * @returns {?{children: Array<object>}} Root FilterNode, or `null` for no filter.
+ */
+export function asFilterNode(input, { dateOrder = DEFAULT_DATE_ORDER } = {}) {
+  if (input == null) return null;
+  if (typeof input === 'object' && !Array.isArray(input)) {
+    // Sortie d'un MultiCriterionMenu : son filtre complet (filtre latent compris) prime
+    if ('structuredFilters' in input) return input.structuredFilters ?? null;
+    // Sortie sans ce champ (ancienne forme, ou construite à la main) : on convertit l'arbre
+    if ('tree' in input) return toFilterNode(input.tree, { balanced: input.balanced ?? true, dateOrder });
+    // FilterNode racine : déjà à la bonne forme ; vide, il ne filtre rien. Son connecteur
+    // éventuel (lu par connectorOf) n'a pas sa place sur une racine : on le retire
+    if (Array.isArray(input.children)) {
+      if (!input.children.length) return null;
+      if (!('connector' in input)) return input;
+      const root = { ...input };
+      delete root.connector;
+      return root;
+    }
+    // Feuille seule : enveloppée dans une racine ; premier enfant, elle perd son connecteur
+    if (input.criterion) {
+      const leaf = { ...input };
+      delete leaf.connector;
+      return { children: [leaf] };
+    }
+    // Connecteur seul (sortie amont encore absente, étalée avec un connecteur) : aucun
+    // filtre, sans avertissement — c'est l'état normal avant la première émission
+    if (Object.keys(input).every((key) => key === 'connector')) return null;
+  }
+  // Forme inconnue : aucun filtre plutôt qu'une requête refusée par l'API, signalée en dev
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('[asFilterNode] forme de filtre non reconnue, ignorée :', input);
+  }
+  return null;
+}
+
 // =================================================================
 // d bis) Périmètre d'une carte (valeurs encore atteignables)
 // =================================================================
@@ -484,6 +610,17 @@ function simplifyNode(node, excludedId, negated, dateOrder) {
  * - `(A OR B) AND D` → `D`;
  * - `A AND B OR D` (= `(A AND B) OR D`) → (TRUE AND B) OR D = `B OR D`.
  *
+ * With a latent filter `base` joined to the cards by `connector` (`base <connector>
+ * cards`, as MultiCriterionMenu emits it), the same substitution runs on the whole
+ * expression. Under `AND_NOT` / `OR_NOT` the cards sit under a negation, so the card takes
+ * FALSE. For the card A:
+ * - `base AND (A AND B)` → `base AND B`;
+ * - `base OR (A AND B)` → `base OR B`; `base OR (A)` → TRUE → `null`;
+ * - `base AND_NOT (A AND B)` → base AND NOT (FALSE AND B) = `base`;
+ * - `base AND_NOT (A OR B)` → `base AND NOT B`.
+ * When the cards yield no filter (unbalanced, all incomplete), the scope is `base` alone,
+ * as the emitted filter is.
+ *
  * @param {Array<{id: *, variable: ?string, operation: ?string, value: *,
  *   typeFamily: ?string, isCategorical: ?boolean, bracketLeft: ?boolean,
  *   bracketRight: ?boolean, connectorBefore: ?string}>} criteria - Flat list of cards,
@@ -492,20 +629,44 @@ function simplifyNode(node, excludedId, negated, dateOrder) {
  * @param {Object} [options]
  * @param {string} [options.dateOrder='DMY'] - Order the dates were typed in, used to
  *   convert them to ISO 8601.
+ * @param {?{children: Array<object>}} [options.base=null] - Latent filter, a root
+ *   FilterNode (see {@link asFilterNode}); `null` = the cards alone.
+ * @param {string} [options.connector='AND'] - `FilterConnector` joining `base` to the
+ *   cards (ignored without `base`).
  * @returns {?{children: Array<object>}} Root FilterNode, or `null` when the scope reduces
- *   to TRUE (or FALSE) or when the expression is unbalanced.
+ *   to TRUE (or FALSE without `base`) or when the expression is unbalanced and there is no
+ *   `base`.
  */
-export function scopeWithout(criteria, excludedId, { dateOrder = DEFAULT_DATE_ORDER } = {}) {
+export function scopeWithout(criteria, excludedId, {
+  dateOrder = DEFAULT_DATE_ORDER, base = null, connector = 'AND',
+} = {}) {
   const { tree, balanced } = buildTree(criteria ?? []);
-  if (!balanced || isOmitted(tree, excludedId, dateOrder)) return null;
+  // Cartes sans filtre exploitable : elles disparaissent, reste le filtre latent (ou rien)
+  if (!balanced || isOmitted(tree, excludedId, dateOrder)) return base ?? null;
 
-  const term = simplifyNode(tree, excludedId, false, dateOrder);
-  // VRAI : aucun filtre ; FAUX : aucune ligne possible, même repli que « périmètre vide »
-  if (isConstant(term)) return null;
-  // La racine est un groupe sans négation : un groupe positif y verse ses enfants, tout
-  // autre terme (feuille, groupe nié) y devient l'unique enfant
-  if (term.node.children && !term.negated) return { children: term.node.children };
-  return { children: [termNode(term)] };
+  // Connecteur nié : toutes les cartes sont sous une négation, la carte y vaut FAUX ; la
+  // négation s'applique ensuite au terme obtenu (constante inversée, drapeau basculé)
+  const isNot = !!base && connector.endsWith('_NOT');
+  let term = simplifyNode(tree, excludedId, isNot, dateOrder);
+  if (isNot) term = isConstant(term) ? flip(term) : { ...term, negated: !term.negated };
+
+  // Racine du terme : un groupe positif y verse ses enfants, tout autre terme (feuille,
+  // groupe nié) y devient l'unique enfant
+  const root = isConstant(term) ? null
+    : term.node.children && !term.negated ? { children: term.node.children }
+      : { children: [termNode(term)] };
+
+  // Sans filtre latent. VRAI : aucun filtre ; FAUX : aucune ligne possible, même repli
+  // que « périmètre vide »
+  if (!base) return root;
+
+  // Avec filtre latent : base OU VRAI = VRAI (aucune restriction) ; base ET VRAI = base ;
+  // FAUX retombe sur base (repli « périmètre vide » sous ET, base OU FAUX = base sous OU)
+  const isOr = connector.startsWith('OR');
+  if (term === TRUE) return isOr ? null : base;
+  if (term === FALSE) return base;
+  // La négation est déjà portée par le terme (`negate`) : seul ET / OU relie les deux
+  return joinFilterNodes(isOr ? 'OR' : 'AND', base, root);
 }
 
 // =================================================================

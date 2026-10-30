@@ -156,12 +156,13 @@ En dehors du MultiCriterionMenu, les valeurs portent toujours sur toute la colon
 ## Combinaison de critères
 
 `<MultiCriterionMenu>` empile des cartes reliées par des connecteurs `ET` / `OU` et des
-parenthèses. Son `onChange` renvoie `{ criteria, tree, balanced, serial }` : la liste à plat,
-l'arbre, un drapeau qui dit si les parenthèses se referment, et une forme lisible sans champs
-internes.
+parenthèses. Son `onChange` renvoie `{ criteria, tree, balanced, serial, structuredFilters }` :
+la liste à plat, l'arbre, un drapeau qui dit si les parenthèses se referment, une forme
+lisible sans champs internes, et le filtre prêt à envoyer à l'API.
 
-Pour filtrer des données de l'API, c'est l'arbre qui compte. `toFilterNode(tree, { balanced,
-dateOrder })` le convertit en **`FilterNode`**, la valeur de `structuredFilters` que reçoivent
+Pour filtrer des données de l'API, c'est `structuredFilters` qui compte. Le menu le calcule
+avec `toFilterNode(tree, { balanced, dateOrder })`, qui convertit l'arbre en
+**`FilterNode`**, la valeur de `structuredFilters` que reçoivent
 `getFactTableWithMetadata`, `getAggregates` et `getFieldStats` : un critère incomplet est omis
 avec son connecteur, une expression déséquilibrée ne donne aucun filtre, et les dates saisies
 dans l'ordre de la langue (`dateOrder`) sont envoyées en ISO 8601. Le même `FilterNode`
@@ -170,12 +171,115 @@ sous-jeu. Évalué par le serveur, le filtre porte sur tout le jeu de données, 
 de lignes chargée.
 
 ```jsx
-const menuNode = filter ? toFilterNode(filter.tree, { balanced: filter.balanced }) : null;
+const menuNode = filter?.structuredFilters ?? null;
 const structuredFilters = andNodes(menuNode, columnCriteria(columnFilters, columns));
 ```
 
 `treeToSQL` produit en plus une clause `WHERE` lisible, utile pour afficher le filtre mais pas
 pour l'envoyer : l'API ne reçoit jamais de SQL.
+
+## Filtre latent et menus chaînés
+
+`baseFilter` passe au menu un filtre qu'il **n'affiche pas** : aucune carte ne le représente,
+mais il est joint aux cartes dans `structuredFilters` (en `ET` par défaut) et il restreint
+les valeurs que chaque carte propose. Le menu accepte plusieurs formes, normalisées par `asFilterNode` de
+`filterEngine` :
+
+| `baseFilter` | Filtre latent |
+|---|---|
+| `null` (défaut) | aucun : le menu se comporte comme sans la prop |
+| sortie d'un `MultiCriterionMenu` | son `structuredFilters` (ou, à défaut, son `tree` converti) |
+| `FilterNode` racine `{ children }` | tel quel |
+| feuille `{ criterion }` | enveloppée dans une racine |
+
+**Filtre fixe d'un menu.** Le périmètre de la page (un pays, une période) ne doit pas
+apparaître comme une carte que le lecteur pourrait supprimer :
+
+```jsx
+<MultiCriterionMenu
+  variables={variables}
+  baseFilter={{ criterion: { variable: 'country', operation: 'IN', value: ['France'] } }}
+  onChange={setFilter} />
+```
+
+**Menu B qui dépend du menu A.** On passe à B la sortie entière de A. Comme le
+`structuredFilters` de A contient déjà le filtre latent de A, les menus se chaînent sans
+limite : C peut recevoir la sortie de B, et ainsi de suite.
+
+```jsx
+const [filterA, setFilterA] = useState(null);
+const [filterB, setFilterB] = useState(null);
+
+<MultiCriterionMenu variables={variables} onChange={setFilterA} />
+<MultiCriterionMenu variables={variables} baseFilter={filterA} onChange={setFilterB} />
+// filterB.structuredFilters = (filtre de A) ET (cartes de B)
+```
+
+**Connecteur.** Le champ `connector` de `baseFilter` choisit comment le filtre latent se
+joint aux cartes : `AND` par défaut, ou `OR`, `AND_NOT`, `OR_NOT` (l'enum `FilterConnector`
+de l'API). Il se pose sur la feuille, sur la racine, ou sur la sortie d'un menu amont, étalée :
+
+```jsx
+// filterB.structuredFilters = (filtre de A) OU (cartes de B)
+<MultiCriterionMenu variables={variables} baseFilter={{ ...filterA, connector: 'OR' }} onChange={setFilterB} />
+
+// Pays de la page, ou bien les critères du lecteur
+<MultiCriterionMenu
+  variables={variables}
+  baseFilter={{ connector: 'OR', criterion: { variable: 'country', operation: 'IN', value: ['France'] } }} />
+```
+
+Le connecteur n'appartient pas au filtre : `asFilterNode` le retire de la racine, et
+`connectorOf` le lit (`AND` s'il est absent, `AND` avec un avertissement en développement
+s'il est inconnu). Tant que A n'a rien émis, `{ ...null, connector: 'OR' }` ne vaut aucun
+filtre, sans avertissement.
+
+La jointure est construite par `joinFilterNodes` (`andFilterNodes` pour `ET`), qui garde
+chaque filtre en **sous-groupe** :
+la précédence interne de ses connecteurs et une éventuelle négation (`negate`) sont
+conservées. Avec `A1 OU A2` dans le menu A et `B1 ET B2` dans le menu B :
+
+```
+structuredFilters de B
+└─ ET
+   ├─ ( A1 OU A2 )      ← filtre latent (sortie de A), sous-groupe
+   └─ ( B1 ET B2 )      ← cartes de B, sous-groupe
+```
+
+soit `(A1 OU A2) ET (B1 ET B2)`, jamais `A1 OU A2 ET B1 ET B2`. Si les cartes ne donnent
+aucun filtre (menu vide, critères incomplets, parenthèse non fermée), `structuredFilters`
+vaut le filtre latent seul ; sans l'un ni l'autre, `null`.
+
+**Valeurs proposées.** Le périmètre d'une carte suit la même règle que sans filtre latent :
+dans l'expression complète `filtre latent <connecteur> (cartes)`, la carte est remplacée par
+sa valeur la plus permissive, puis l'expression est simplifiée. Pour la carte A :
+
+| `connector` | Expression | Périmètre de A |
+|---|---|---|
+| `AND` (défaut) | `base ET (A ET B)` | `base ET B` |
+| `OR` | `base OU (A ET B)` | `base OU B` |
+| `OR` | `base OU (A)` | VRAI : aucune restriction |
+| `AND_NOT` | `base ET NON (A OU B)` | `base ET NON B` (A vaut FAUX sous la négation) |
+| `AND_NOT` | `base ET NON (A ET B)` | `base` |
+
+Avec `dependentValues={false}`, chaque carte est seule face au filtre latent : sous `AND` /
+`AND_NOT`, son périmètre est le filtre latent (les cartes sont indépendantes entre elles, pas
+de lui) ; sous `OR` / `OR_NOT`, il ne restreint rien, puisque `base OU A` laisse atteindre
+toute valeur de A. Le calcul est fait par `scopeWithout(criteria, id, { dateOrder, base,
+connector })`. Les règles des valeurs proposées ne changent pas : une valeur
+catégorielle déjà choisie n'est jamais retirée, la validation d'un champ numérique ou date
+garde toute la colonne, et un périmètre vide fait retomber la piste du slider sur la colonne.
+
+**Réémission.** Un changement de `baseFilter`, filtre ou connecteur (le menu A a émis),
+réémet aussitôt la sortie de B, sans action du lecteur ; seul A applique son amorti de
+saisie. Le filtre est comparé par sa forme JSON : un objet littéral recréé à chaque rendu du
+parent ne provoque aucune émission.
+
+**Persistance.** `criteria`, `tree` et `serial` ne décrivent que les cartes affichées : le
+filtre latent n'y figure pas, et `defaultCriteria` ne le restaure donc pas. Il se repasse en
+`baseFilter`.
+
+<ComponentPreview name="multi-criterion-menu-base-filter" />
 
 ## Cas d'usage
 

@@ -5,7 +5,9 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import Tooltip from '@/components/filter/Tooltip/Tooltip';
 import { PlusIcon } from '@/components/icons';
 import { DEFAULT_CONNECTORS, defaultValue, isComplete, resolveOperations } from '@/features/filter/utils/filterTypes';
-import { buildTree, scopeWithout, serialize } from '@/features/filter/utils/filterEngine';
+import {
+  asFilterNode, buildTree, connectorOf, joinFilterNodes, scopeWithout, serialize, toFilterNode,
+} from '@/features/filter/utils/filterEngine';
 import { useDebouncedCallback } from '@/hooks/debounce/useDebouncedCallback';
 import CriterionMenu from '@/features/filter/components/CriterionMenu/CriterionMenu';
 import Connector from './Connector/Connector';
@@ -90,16 +92,34 @@ const makeBlank = (id) => ({
  * @param {boolean} [dependentValues=true] - The values offered by each card depend on
  *   the other criteria: the card is replaced by TRUE in the whole expression, simplified
  *   with AND before OR (filterEngine.scopeWithout), and the result scopes the card
- *   (`A AND B`: A is bounded by B; `A OR B`: no restriction). Computed on the debounced
- *   criteria (those emitted by `onChange`). Categorical cards: the value menu only lists
+ *   (`A AND B`: A is bounded by B; `A OR B`: no restriction). The whole expression includes
+ *   `baseFilter` with its connector (`base AND (A AND B)` → `base AND B`; `base OR (A)` → no
+ *   restriction). Computed on the debounced criteria (those emitted by `onChange`). Categorical cards: the value menu only lists
  *   the values held by the rows of that scope (an empty scope shows an empty menu, not the
  *   global list); a value already selected is never dropped nor invalidated when another
  *   card excludes it — it stays selected, listed first. Numeric/date cards: the slider
  *   track spans the scope, the validation keeping the whole column (an empty scope falls
- *   back to the whole column). `false`: every card offers the values of the whole column.
- * @param {function({criteria: Array, tree: object, balanced: boolean, serial: object}): void} [onChange] -
+ *   back to the whole column). `false`: every card offers the values of the whole column
+ *   — still within `baseFilter` when one is given and joined with `AND` / `AND_NOT` (the
+ *   cards are then independent of each other, not of the latent filter); under `OR` /
+ *   `OR_NOT` the latent filter restricts nothing (`base OR A`: every value of A is reachable).
+ * @param {*} [baseFilter=null] - Latent filter: never displayed as a card, but joined with
+ *   the cards in `structuredFilters` and restricting the values offered by every card.
+ *   Comes from another menu (chaining: pass its whole `onChange` output) or is fixed for
+ *   this menu. Any shape accepted by filterEngine.asFilterNode: a MultiCriterionMenu
+ *   output, a root FilterNode `{ children }`, a leaf `{ criterion }`, or `null`. Its
+ *   `connector` field (`AND` by default, or `OR`, `AND_NOT`, `OR_NOT`) joins it to the
+ *   cards: `base <connector> cards` — e.g. `{ ...outputOfA, connector: 'OR' }`. A change
+ *   (filter or connector) re-emits immediately, without user action.
+ * @param {function({criteria: Array, tree: object, balanced: boolean, serial: object,
+ *   structuredFilters: ?Object}): void} [onChange] -
  *   Receives the structured value whenever it changes; `criteria` is the flat list
- *   (reusable as `defaultCriteria` to rehydrate the builder).
+ *   (reusable as `defaultCriteria` to rehydrate the builder). `criteria`, `tree` and
+ *   `serial` only describe the displayed cards: the latent filter is not persisted through
+ *   `defaultCriteria`. `structuredFilters` is the FilterNode to send to the API:
+ *   `baseFilter <connector> cards` (filterEngine.joinFilterNodes), the latent filter alone
+ *   when the cards yield no filter (empty, incomplete or unbalanced), `null` when neither
+ *   does.
  * @param {string} [className] - Additional class(es) merged on the root element.
  * @param {Object} [style] - Additional inline styles merged on the root element.
  * @param {string}   [intlLocale] - Full Intl tag, driving number and date formatting.
@@ -130,6 +150,7 @@ const MultiCriterionMenu = ({
   showLabels = false,
   showSlider = false,
   dependentValues = true,
+  baseFilter = null,
   onChange,
   className = '',
   style,
@@ -146,6 +167,12 @@ const MultiCriterionMenu = ({
   const defaultConn = connectorOptions[0] ? connectorOptions[0].value : 'AND';
   // Connecteur figé en libellé statique : une seule option disponible
   const connectorIsStatic = connectorOptions.length <= 1;
+  // Filtre latent normalisé en FilterNode racine (ou null) : quelle que soit sa forme
+  // d'entrée (sortie d'un autre menu, nœud racine, feuille), il n'est lu que sous celle-ci
+  const base = asFilterNode(baseFilter, { dateOrder });
+  // Connecteur qui relie le filtre latent aux cartes (`base <baseConn> cartes`), porté par
+  // le champ `connector` de `baseFilter` ; ET par défaut
+  const baseConn = connectorOf(baseFilter);
 
   // Critère figé sur une variable (+ opération éventuellement imposée)
   const makeLocked = (variableId, lockedOp, id) => {
@@ -230,6 +257,11 @@ const MultiCriterionMenu = ({
 
   // Dérive la valeur structurée exposée. Le SQL n'est PAS calculé ici (cf. docstring) :
   // seuls tree/serial sont exposés. `criteria` (liste plate) permet la persistance.
+  // `structuredFilters` = filtre latent <baseConn> filtre des cartes : c'est lui qu'un menu
+  // aval reçoit en `baseFilter`, d'où le chaînage (il contient déjà le filtre latent de CE
+  // menu, joint par son connecteur).
+  // Les cartes ne donnent aucun filtre (vides, incomplètes, non équilibrées) → filtre
+  // latent seul. criteria/tree/serial restent ceux des seules cartes affichées.
   // `items` (mêmes critères + `id` de carte) sert au calcul des périmètres (scopeWithout) ;
   // l'`id` n'est pas exposé, la forme publique de `criteria` reste inchangée.
   const buildStructure = (crit, conns) => {
@@ -245,7 +277,8 @@ const MultiCriterionMenu = ({
     }));
     const { tree, balanced } = buildTree(criteria);
     const items = criteria.map((c, i) => ({ id: crit[i].id, ...c }));
-    return { structure: { criteria, tree, balanced, serial: serialize(tree) }, items };
+    const structuredFilters = joinFilterNodes(baseConn, base, toFilterNode(tree, { balanced, dateOrder }));
+    return { structure: { criteria, tree, balanced, serial: serialize(tree), structuredFilters }, items };
   };
 
   // Point de passage unique : applique le nouvel état, met à jour stateRef (pour la
@@ -341,18 +374,24 @@ const MultiCriterionMenu = ({
   // RÈGLE (à respecter pour tout ajout futur) : toute prop lue par `buildStructure()` —
   // directement ou via une valeur dérivée d'elle — DOIT figurer ici. Sans quoi son
   // changement réécrit silencieusement la structure sans jamais l'émettre, et le parent
-  // conserve un tree/serial périmé alors que l'UI, elle, a déjà changé.
-  // Aujourd'hui : `parentheses` (force les crochets à false) et `defaultConn` (issu de
-  // `connectorOptions`, comble les connecteurs manquants). S'y ajoutent les deux
-  // déclencheurs de RESET d'état — lockSig (figeage) et maxCriteria (troncature) — dont
+  // conserve un tree/serial/structuredFilters périmé alors que l'UI, elle, a déjà changé.
+  // Aujourd'hui : `parentheses` (force les crochets à false), `defaultConn` (issu de
+  // `connectorOptions`, comble les connecteurs manquants), `dateOrder` (conversion ISO des
+  // dates de `structuredFilters`), `base` (filtre latent, issu de `baseFilter`, joint aux
+  // cartes dans `structuredFilters` ; signé par sa forme JSON et non par son identité, pour
+  // qu'un objet littéral recréé à chaque rendu du parent ne réémette pas en boucle) et
+  // `baseConn` (son connecteur, lui aussi issu de `baseFilter`). S'y ajoutent
+  // les deux déclencheurs de RESET d'état — lockSig (figeage) et maxCriteria (troncature) — dont
   // la structure reconstruite doit elle aussi remonter. Les préfixes (`max:`, `par:`…)
   // évitent qu'une combinaison de valeurs différente produise la même concaténation.
-  const configSig = `${lockSig}|max:${maxCriteria}|par:${parentheses}|conn:${defaultConn}`;
+  const configSig = `${lockSig}|max:${maxCriteria}|par:${parentheses}|conn:${defaultConn}`
+    + `|date:${dateOrder}|base:${JSON.stringify(base)}|bconn:${baseConn}`;
 
   // Émissions NON-utilisateur : montage (valeur initiale), resets de configuration
   // (figeage / maxCriteria) et changements de props qui réécrivent la structure sans
-  // action utilisateur (parentheses / connectorOptions). `configSig` NE change PAS à la
-  // frappe → aucune émission par caractère ici ; les frappes passent par les handlers
+  // action utilisateur (parentheses / connectorOptions / dateOrder / baseFilter — un menu
+  // amont qui change réémet donc aussitôt la sortie de celui-ci). `configSig` NE change PAS
+  // à la frappe → aucune émission par caractère ici ; les frappes passent par les handlers
   // (event-driven). `emit` et `buildStructure` sont volontairement hors deps : c'est tout
   // le principe — on n'émet que sur un changement de configuration, jamais sur l'état.
   useEffect(() => {
@@ -397,8 +436,14 @@ const MultiCriterionMenu = ({
                 variables={variables}
                 operationLabels={operationLabels}
                 catalog={catalog}
-                // Périmètre de la carte = filtre imposé par les autres critères (émis)
-                valuesScope={dependentValues ? scopeWithout(scopeItems, c.id, { dateOrder }) : undefined}
+                // Périmètre de la carte = filtre imposé par le filtre latent (avec son
+                // connecteur) et les autres critères (émis). Valeurs indépendantes : la
+                // carte seule face au filtre latent — base ET/ET NON carte → base ; base
+                // OU/OU NON carte → aucune restriction. Sans filtre latent, `undefined`
+                // (toute la colonne), comme une carte isolée.
+                valuesScope={dependentValues
+                  ? scopeWithout(scopeItems, c.id, { dateOrder, base, connector: baseConn })
+                  : (base && !baseConn.startsWith('OR') ? base : undefined)}
                 parentheses={parentheses}
                 validate={validate}
                 footer={footer}

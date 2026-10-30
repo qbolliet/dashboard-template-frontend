@@ -66,6 +66,28 @@ since the copy they took.
 
 ### Added
 
+- **`<MultiCriterionMenu baseFilter>` — latent filter and chained menus.** A filter passed
+  in `baseFilter` is never displayed as a card, but it is joined with the cards and
+  restricts the values every card offers. Its `connector` field picks the join —
+  `base <connector> cards`, `AND` by default, or `OR`, `AND_NOT`, `OR_NOT` — and the card
+  scopes follow the whole expression (`base OR (A AND B)` scopes A by `base OR B`; with
+  `dependentValues={false}`, a card is scoped by the latent filter under `AND` / `AND_NOT`
+  and unrestricted under `OR` / `OR_NOT`). It accepts the output of another
+  `MultiCriterionMenu` (chaining: menu B fed with menu A's output, optionally spread with a
+  connector: `{ ...outputOfA, connector: 'OR' }`), a root `FilterNode` `{ children }` or a
+  leaf `{ criterion }`; a change of filter or connector re-emits immediately, compared by
+  its JSON shape. `onChange` now also emits `structuredFilters`, the FilterNode to send to
+  the API (`baseFilter <connector> cards`, the latent filter alone when the cards yield no
+  filter); `criteria`, `tree` and `serial` still describe the displayed cards only, so the
+  latent filter is not persisted through `defaultCriteria`. New pure functions in
+  `filterEngine`: `asFilterNode(input, { dateOrder })` normalises any of these shapes into a
+  root FilterNode (or `null`), `connectorOf(input)` reads its connector,
+  `joinFilterNodes(connector, ...nodes)` joins root FilterNodes, each kept as a sub-group so
+  that its `negate` and its connector precedence survive, and `andFilterNodes(...nodes)` is
+  its `AND` shorthand. `scopeWithout` takes the latent filter as `{ base, connector }`.
+  `IndicatorExplorer` reads `filter.structuredFilters` instead of converting `filter.tree`
+  itself (same result without a latent filter). Without `baseFilter`, nothing changes.
+  New registry example `multi-criterion-menu-base-filter`.
 - **`<MultiCriterionMenu dependentValues>` — offered values follow the other criteria.** In
   a multi-criterion menu, each card now offers only the values the OTHER criteria still
   reach: the card is replaced by TRUE in the whole expression, which is then simplified with

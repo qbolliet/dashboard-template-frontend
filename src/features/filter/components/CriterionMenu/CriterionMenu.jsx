@@ -58,7 +58,9 @@ const DEFAULT_LABELS = {
  *   restricts the options of a categorical menu (a selected value outside it stays
  *   selected) and bounds the slider track of a numeric/date field (never its validation).
  *   Undefined (default) = whole column, as a standalone CriterionMenu. Set by
- *   MultiCriterionMenu (`dependentValues`).
+ *   MultiCriterionMenu (`dependentValues`); it then also holds the menu's latent filter
+ *   (`baseFilter`), joined with its connector to the other criteria — or alone with
+ *   `dependentValues={false}`.
  * @param {boolean} [parentheses] - Enables the grouping brackets.
  * @param {boolean} [footer] - Renders the validity footer (with `validate`).
  * @param {boolean} [validate] - Enables validation (accent color + inline feedback).

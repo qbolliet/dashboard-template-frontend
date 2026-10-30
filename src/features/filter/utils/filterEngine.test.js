@@ -5,10 +5,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { buildSchema, getVariableValues, parse } from 'graphql';
 import { GET_FACT_TABLE_WITH_METADATA } from '@/lib/api/documents';
-import { andNodes, buildTree, columnCriteria, scopeWithout, toApiScalar, toFilterNode } from './filterEngine';
+import {
+  andFilterNodes, andNodes, asFilterNode, buildTree, columnCriteria, connectorOf, joinFilterNodes, scopeWithout,
+  toApiScalar, toFilterNode,
+} from './filterEngine';
 
 // =================================================================
 // TEST — buildTree → FilterNode (structuredFilters de l'API)
@@ -181,6 +184,142 @@ describe('columnCriteria / andNodes', () => {
 });
 
 // =================================================================
+// asFilterNode / andFilterNodes — filtre latent et menus chaînés
+// =================================================================
+describe('asFilterNode', () => {
+  const leaf = { criterion: { variable: 'country', operation: 'IN', value: ['France'] } };
+  const root = { children: [leaf] };
+
+  it('maps null and undefined to no filter', () => {
+    expect(asFilterNode(null)).toBeNull();
+    expect(asFilterNode(undefined)).toBeNull();
+  });
+
+  it('takes the structuredFilters of a MultiCriterionMenu output as is', () => {
+    const output = { criteria: [], ...buildTree([gdp('GT', '1')]), structuredFilters: root };
+    // structuredFilters prime sur l'arbre : il contient déjà le filtre latent du menu
+    expect(asFilterNode(output)).toBe(root);
+    expect(asFilterNode({ ...output, structuredFilters: null })).toBeNull();
+  });
+
+  it('converts the tree of an output without structuredFilters', () => {
+    const { tree, balanced } = buildTree([country(['France']), date('AFTER', '12/31/2023')]);
+    const node = asFilterNode({ tree, balanced }, { dateOrder: 'MDY' });
+    expect(node).toEqual(toFilterNode(tree, { balanced, dateOrder: 'MDY' }));
+    expect(node.children[1].criterion.value).toBe('2023-12-31');
+  });
+
+  it('yields no filter for an unbalanced expression', () => {
+    const { tree, balanced } = buildTree([country(['France'], { bracketLeft: true }), gdp('GT', '1')]);
+    expect(balanced).toBe(false);
+    expect(asFilterNode({ tree, balanced })).toBeNull();
+  });
+
+  it('keeps a root FilterNode, drops an empty one', () => {
+    expect(asFilterNode(root)).toBe(root);
+    expect(asFilterNode({ children: [] })).toBeNull();
+  });
+
+  it('wraps a leaf into a root, without its connector', () => {
+    expect(asFilterNode(leaf)).toEqual(root);
+    expect(asFilterNode({ connector: 'OR', ...leaf })).toEqual(root);
+  });
+
+  it('drops the connector of a root, and reads a lone connector as no filter', () => {
+    // Le connecteur dit comment joindre le filtre (connectorOf), il n'en fait pas partie
+    expect(asFilterNode({ connector: 'OR', ...root })).toEqual(root);
+    expect(asFilterNode({ connector: 'OR', negate: true, ...root })).toEqual({ negate: true, ...root });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    // Sortie amont encore absente, étalée avec un connecteur : `{ ...null, connector }`
+    expect(asFilterNode({ connector: 'OR' })).toBeNull();
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it('ignores an unknown shape, with a warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(asFilterNode('country = France')).toBeNull();
+    expect(asFilterNode([leaf])).toBeNull();
+    expect(asFilterNode({ variable: 'country' })).toBeNull();
+    expect(warn).toHaveBeenCalledTimes(3);
+    warn.mockRestore();
+  });
+});
+
+describe('andFilterNodes', () => {
+  const a = { children: [{ criterion: { variable: 'country', operation: 'IN', value: ['France'] } }] };
+  // Racine en OU : gdp > 100 OU gdp < 99
+  const either = {
+    children: [
+      { criterion: { variable: 'gdp', operation: 'GT', value: 100 } },
+      { connector: 'OR', criterion: { variable: 'gdp', operation: 'LT', value: 99 } },
+    ],
+  };
+
+  it('returns null without nodes, the node itself with one', () => {
+    expect(andFilterNodes()).toBeNull();
+    expect(andFilterNodes(null, undefined)).toBeNull();
+    expect(andFilterNodes(a)).toBe(a);
+    expect(andFilterNodes(null, a, null)).toBe(a);
+    // Un groupe vide (refusé par l'API) compte comme un filtre absent
+    expect(andFilterNodes({ children: [] }, a)).toBe(a);
+  });
+
+  it('ANDs two nodes as sub-groups, the first without connector', () => {
+    expect(andFilterNodes(a, null, either)).toEqual({
+      children: [{ children: a.children }, { connector: 'AND', children: either.children }],
+    });
+  });
+
+  it('keeps the OR precedence of a root inside its sub-group', () => {
+    // (gdp > 100 OU gdp < 99) ET country IN (France), jamais gdp > 100 OU (gdp < 99 ET …)
+    const out = andFilterNodes(either, a);
+    expect(out.children[0]).toEqual({ children: either.children });
+    expect(out.children[0].connector).toBeUndefined();
+    expect(out.children[1]).toEqual({ connector: 'AND', children: a.children });
+  });
+
+  it('keeps a negate and drops a stray connector', () => {
+    const negated = { negate: true, connector: 'OR', children: a.children };
+    expect(andFilterNodes(either, negated).children[1]).toEqual({ connector: 'AND', negate: true, children: a.children });
+    expect(andFilterNodes(negated, either).children[0]).toEqual({ negate: true, children: a.children });
+  });
+
+  it('joins with another connector (joinFilterNodes)', () => {
+    expect(joinFilterNodes('OR', a, null, either)).toEqual({
+      children: [{ children: a.children }, { connector: 'OR', children: either.children }],
+    });
+    expect(joinFilterNodes('AND_NOT', a, either).children[1].connector).toBe('AND_NOT');
+    expect(joinFilterNodes('OR', null, a)).toBe(a);
+    expect(joinFilterNodes('OR')).toBeNull();
+  });
+});
+
+describe('connectorOf', () => {
+  const leaf = { criterion: { variable: 'country', operation: 'IN', value: ['France'] } };
+
+  it('defaults to AND, or to the given fallback', () => {
+    expect(connectorOf(null)).toBe('AND');
+    expect(connectorOf(leaf)).toBe('AND');
+    expect(connectorOf({ children: [leaf] }, 'OR')).toBe('OR');
+  });
+
+  it('reads the connector of any shape', () => {
+    expect(connectorOf({ connector: 'OR', ...leaf })).toBe('OR');
+    expect(connectorOf({ connector: 'AND_NOT', children: [leaf] })).toBe('AND_NOT');
+    // Sortie d'un menu étalée avec un connecteur
+    expect(connectorOf({ structuredFilters: { children: [leaf] }, connector: 'OR_NOT' })).toBe('OR_NOT');
+  });
+
+  it('falls back on an unknown connector, with a warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(connectorOf({ connector: 'XOR', ...leaf })).toBe('AND');
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+  });
+});
+
+// =================================================================
 // Contrat — validation contre le SDL épinglé, exécution contre le mock
 // =================================================================
 const FIXTURES = {
@@ -341,6 +480,51 @@ describe('scopeWithout', () => {
     // A OR_NOT C, pour C : A OR NOT FAUX = VRAI
     expect(scopeWithout([A(), C({ connectorBefore: 'OR_NOT' })], 3)).toBeNull();
   });
+
+  // Filtre latent `base`, joint aux cartes par `connector` : base <connector> (cartes)
+  describe('with a latent filter', () => {
+    const base = { children: [leafE] };
+
+    it('AND (default): base AND the other criteria, as andFilterNodes would', () => {
+      expect(scopeWithout([A(), B()], 1, { base })).toEqual(andFilterNodes(base, scopeWithout([A(), B()], 1)));
+      expect(scopeWithout([A(), B()], 1, { base })).toEqual({
+        children: [base, { connector: 'AND', children: [leafB] }],
+      });
+      // base ET VRAI = base
+      expect(scopeWithout([A()], 1, { base })).toBe(base);
+      expect(scopeWithout([A(), B({ connectorBefore: 'OR' })], 1, { base })).toBe(base);
+    });
+
+    it('OR: base OR the other criteria, no restriction once they reduce to TRUE', () => {
+      const scope = scopeWithout([A(), B()], 1, { base, connector: 'OR' });
+      expect(scope).toEqual({ children: [base, { connector: 'OR', children: [leafB] }] });
+      assertNode(scope, true);
+      // base OU (A) → base OU VRAI = VRAI
+      expect(scopeWithout([A()], 1, { base, connector: 'OR' })).toBeNull();
+    });
+
+    it('AND_NOT: the cards sit under a negation, the card takes FALSE', () => {
+      // base ET NON (A ET B) → base ET NON (FAUX ET B) = base
+      expect(scopeWithout([A(), B()], 1, { base, connector: 'AND_NOT' })).toBe(base);
+      // base ET NON (A OU B) → base ET NON B, la négation portée par `negate`
+      const scope = scopeWithout([A(), B({ connectorBefore: 'OR' })], 1, { base, connector: 'AND_NOT' });
+      expect(scope).toEqual({ children: [base, { connector: 'AND', children: [{ negate: true, ...leafB }] }] });
+      assertNode(scope, true);
+      // base OU NON (A) → base OU NON FAUX = VRAI
+      expect(scopeWithout([A()], 1, { base, connector: 'OR_NOT' })).toBeNull();
+    });
+
+    it('falls back on base when the cards yield no filter', () => {
+      // Parenthèse non fermée, ou carte absente des critères émis et autres incomplètes
+      expect(scopeWithout([A({ bracketLeft: true }), B()], 1, { base, connector: 'OR' })).toBe(base);
+      expect(scopeWithout([gdp('GT', '', { id: 9 })], 1, { base })).toBe(base);
+      expect(scopeWithout([], 1, { base, connector: 'OR' })).toBe(base);
+    });
+
+    it('ignores the connector without base', () => {
+      expect(scopeWithout([A(), B()], 1, { connector: 'AND_NOT' })).toEqual({ children: [leafB] });
+    });
+  });
 });
 
 describe('toFilterNode — contrat de l\'API', () => {
@@ -415,6 +599,46 @@ describe('toFilterNode — contrat de l\'API', () => {
     const rows = data.getFactTableWithMetadata.data;
     expect(rows.length).toBeGreaterThan(0);
     expect(rows.every((row) => row.country === 'France' && !(row.gdp > 100))).toBe(true);
+  });
+
+  it('andFilterNodes : filtre latent ET menu valide contre le SDL et appliqué par le mock', async () => {
+    // (gdp > 100 OU gdp < 99) ET NON country IN (France)
+    const structuredFilters = andFilterNodes(
+      convert([gdp('GT', '100'), gdp('LT', '99', { connectorBefore: 'OR' })]),
+      { negate: true, children: convert(FIXTURES.IN).children },
+    );
+    assertNode(structuredFilters, true);
+    const { errors } = getVariableValues(schema, operation.variableDefinitions, { structuredFilters });
+    expect(errors).toBeUndefined();
+
+    const result = await execute({ structuredFilters });
+    expect(result.errors).toBeUndefined();
+    const rows = result.data.getFactTableWithMetadata.data;
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.every((row) => row.country !== 'France' && (row.gdp > 100 || row.gdp < 99))).toBe(true);
+  });
+
+  it('joinFilterNodes : filtre latent OU / ET NON menu valide contre le SDL et appliqué par le mock', async () => {
+    const latent = convert(FIXTURES.IN);
+    const menu = convert([gdp('GT', '105')]);
+    const cases = [
+      // country IN (France) OU gdp > 105
+      ['OR', (row) => row.country === 'France' || row.gdp > 105],
+      // country IN (France) ET NON gdp > 105
+      ['AND_NOT', (row) => row.country === 'France' && !(row.gdp > 105)],
+    ];
+    for (const [connector, expected] of cases) {
+      const structuredFilters = joinFilterNodes(connector, latent, menu);
+      assertNode(structuredFilters, true);
+      const { errors } = getVariableValues(schema, operation.variableDefinitions, { structuredFilters });
+      expect(errors).toBeUndefined();
+
+      const result = await execute({ structuredFilters });
+      expect(result.errors).toBeUndefined();
+      const rows = result.data.getFactTableWithMetadata.data;
+      expect(rows.length).toBeGreaterThan(0);
+      expect(rows.every(expected)).toBe(true);
+    }
   });
 
   it('le mock rejette un arbre mal formé, comme l\'API', async () => {

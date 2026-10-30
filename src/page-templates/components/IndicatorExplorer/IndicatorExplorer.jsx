@@ -33,7 +33,7 @@ import { CardGrid, StatCard } from '@/components/ui';
 import { formatNumber } from '@/utils/format/formatNumber';
 import { formatValue } from '@/utils/format/formatValue';
 import { connectorsFrom, isNumericFamily, resolveOperationLabels } from '@/features/filter/utils/filterTypes';
-import { toFilterNode, columnCriteria, andNodes } from '@/features/filter/utils/filterEngine';
+import { columnCriteria, andNodes } from '@/features/filter/utils/filterEngine';
 import { metadataToVariables } from '@/features/filter/sources/useVariableMetadata';
 import { interpolate } from '@/utils/i18n/interpolate';
 import { intlLocaleFor, formatsFor } from '@/i18n/formats';
@@ -169,11 +169,12 @@ const IndicatorExplorer = ({
     // sont les `fields` du jeu, déjà alignés sur ses colonnes.
     const schema = serverColumnsMetadata?.length ? serverColumnsMetadata : baseline.columnsMetadata;
 
-    // FilterNode envoyé à l'API. Le menu émet un arbre buildTree (déjà debouncé) :
-    // critères incomplets omis, expression non équilibrée → aucun filtre. Les dates y
-    // sont saisies dans l'ordre de la langue (dateOrder), converties en ISO 8601.
-    // Les filtres de colonne s'y ajoutent en ET, le filtre du menu gardé en sous-groupe.
-    const menuNode = filter ? toFilterNode(filter.tree, { balanced: filter.balanced, dateOrder }) : null;
+    // FilterNode envoyé à l'API. Le menu l'émet lui-même (déjà debouncé), dans
+    // `structuredFilters` : critères incomplets omis, expression non équilibrée → aucun
+    // filtre, dates converties en ISO 8601 depuis l'ordre de la langue (dateOrder), et
+    // son éventuel filtre latent (`baseFilter`) déjà mis en ET. Les filtres de colonne
+    // s'y ajoutent en ET, le filtre du menu gardé en sous-groupe.
+    const menuNode = filter?.structuredFilters ?? null;
     const tableColumns = (schema ?? []).map((m) => ({ key: m.name, typeFamily: m.typeFamily }));
     const structuredFilters = andNodes(menuNode, columnCriteria(columnFilters, tableColumns));
 

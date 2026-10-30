@@ -4287,6 +4287,28 @@
       }
     },
     {
+      "name": "multi-criterion-menu-base-filter",
+      "type": "registry:block",
+      "title": "Menus chaînés par un filtre latent",
+      "description": "`baseFilter` passe à un `MultiCriterionMenu` un filtre qu'il n'affiche pas : il est mis en ET aux cartes dans `structuredFilters` et restreint les valeurs que chaque carte propose. Le menu B reçoit ici toute la sortie du menu A : son menu des pays ne propose que les pays que le filtre de A laisse passer.",
+      "dependencies": [],
+      "registryDependencies": [
+        "filter",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/multi-criterion-menu-base-filter.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/multi-criterion-menu-base-filter.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "filter"
+      }
+    },
+    {
       "name": "multi-criterion-menu-basic",
       "type": "registry:block",
       "title": "Filtre composé et clause SQL",
