@@ -54,7 +54,10 @@ import { measureText, tickCountFor } from '@/features/chart/utils/measureText';
 import { exportSvg, exportPng } from '@/features/chart/utils/exportImage';
 import { xMinimapLayout } from '@/features/chart/utils/minimapGeometry';
 import { valueDomain, baselineValue } from '@/features/chart/utils/scales';
-import { restrictScale, axisZoomFactors, zoomTransformOf } from '@/features/chart/hooks/useBrushZoom';
+import {
+  restrictScale, axisZoomFactors, zoomTransformOf, useSeededSelection,
+} from '@/features/chart/hooks/useBrushZoom';
+import { resolveZoomSpec, zoomSeedSignature, warnZoom } from '@/features/chart/utils/zoomSpec';
 import { useMinimapState, resolveMinimapsVisible } from '@/features/chart/hooks/useMinimapState';
 import { TICK_FONT_SIZE } from '@/features/chart/components/ChartAxis/tickHelpers';
 
@@ -288,7 +291,7 @@ const MultiChartCanvas = ({
   scalesFor, format, labels, maxLabelLength, maxLines, overlap, tickDensity,
   title, expanded, voronoiOn, setVoronoiOn, tooltipsOn, setTooltipsOn, setExpanded,
   hovered, initialMinimapsVisible, minimapsTool,
-  zeroBaseline = 'auto', fitOnZoom = true,
+  zeroBaseline = 'auto', fitOnZoom = true, defaultZoom,
 }) => {
   const svgRef = useRef(null);
   // Modèle d'état des mini-vues, partagé avec <Chart> : interrupteur maître (bouton
@@ -297,7 +300,6 @@ const MultiChartCanvas = ({
   const {
     minimapsVisible, setMinimapsVisible, xMinimapOpen, setXMinimapOpen,
   } = useMinimapState(initialMinimapsVisible);
-  const [xSel, setXSel] = useState(null); // sélection COMMITTÉE (relâchement / molette)
   // Geste de brush en cours : les marks basculent sur un rendu en coordonnées de
   // BASE (lignes complètes) déplacé par le transform de preview, et les cibles de
   // survol sont sautées — même mécanisme que <Chart> (cf. useBrushZoom / Chart.jsx).
@@ -310,10 +312,6 @@ const MultiChartCanvas = ({
   // le transform est écrit impérativement sur le groupe `previewMarksRef`.
   const draftXRef = useRef(null);
   const previewMarksRef = useRef(null);
-
-  // Commit d'une sélection : pose la valeur ET purge le brouillon de geste (le
-  // re-rendu committé reprend la main sur l'attribut transform du groupe).
-  const commitXSel = (sel) => { draftXRef.current = null; setXSel(sel); };
 
   // Mini-vue x applicable : axe continu ET interrupteur maître armé (à faux, RIEN
   // n'est réservé — ni bande, ni pied de page, ni pastille).
@@ -354,6 +352,29 @@ const MultiChartCanvas = ({
     const vals = allRows.map((r) => +r[x]).filter((v) => !isNaN(v));
     baseXScale = scaleLinear({ domain: extent(vals), range: [0, innerWidth], nice: true });
   }
+
+  // Sélection COMMITTÉE x (relâchement / molette), amorcée par `defaultZoom.x` puis
+  // réamorcée à chaque changement de `${spec}|${domaine de base}` — même contrat que
+  // useBrushZoom : données chargées après coup, filtre qui change le domaine (retour à
+  // la vue complète sans spec), zoom de l'utilisateur gardé à domaine égal. Seul x,
+  // en continu, est zoomable ici : toute autre spec est ignorée (signalée en dev).
+  const seedX = () => {
+    if (defaultZoom?.y != null) warnZoom('une liste de jeux ne zoome que x : spec y ignorée.');
+    const spec = defaultZoom?.x;
+    if (spec == null) return null;
+    if (xTypeAxis === 'categorical') {
+      warnZoom("l'axe x d'une liste de jeux n'est zoomable qu'en continu : spec x ignorée.");
+      return null;
+    }
+    return resolveZoomSpec(spec, { type: xType, baseScale: baseXScale, data: allRows, col: x });
+  };
+  const [xSel, setXSel] = useSeededSelection(
+    zoomSeedSignature(defaultZoom?.x, baseXScale, xTypeAxis), seedX,
+  );
+
+  // Commit d'une sélection : pose la valeur ET purge le brouillon de geste (le
+  // re-rendu committé reprend la main sur l'attribut transform du groupe).
+  const commitXSel = (sel) => { draftXRef.current = null; setXSel(sel); };
 
   // Zoom x (brush / molette) : restreint le domaine continu. Échelle COMMITTÉE,
   // gelée pendant un geste de drag (marks, filtrage, survol, axes).
@@ -728,6 +749,14 @@ const MultiChartCanvas = ({
  * @param {boolean} [props.fitOnZoom=true] - When x is zoomed, compute the y domain on
  *   the visible rows only (applied with the committed selection, never while dragging);
  *   `false` keeps the amplitude of the full series.
+ * @param {{x?: (Array<*>|{last: number}|{first: number})}} [props.defaultZoom] - Window
+ *   of the shared x axis on first render, in data units: `[from, to]` (Date or ISO string
+ *   on a date axis, number; clamped to the domain), `{ last: n }` or `{ first: n }` (the n
+ *   last / first distinct abscissas over all datasets). Continuous x only: a spec on a
+ *   categorical x axis, or a `y` spec, is ignored with a development warning. The zoom
+ *   lands when the data arrives and is applied again whenever the x domain changes; a new
+ *   `data` array with the same domain keeps the user's own zoom. The reset button returns
+ *   to the full view. Forwarded by <Chart>, which documents the spec forms.
  * @param {string} [props.title] - Chart title.
  * @param {number} [props.height=460] - Outer height (px).
  * @param {object} [props.defaults={}] - Initial frame state ({ expanded?, voronoi?,
@@ -742,6 +771,7 @@ const MultiChart = ({
   data, x, y, hue, fill = 'line', stack = 'none',
   fields, aggregate, format: formatProp = {}, labels = {}, maxLabelLength = {}, maxLines = {},
   overlap = 'auto', tickDensity = 'normal', zeroBaseline = 'auto', fitOnZoom = true,
+  defaultZoom,
   title, height = 460, defaults = {}, toolbar = [], locale,
 }) => {
   // Hooks AVANT tout retour/throw anticipé (règles des hooks).
@@ -874,7 +904,7 @@ const MultiChart = ({
             scalesFor={scalesFor}
             format={format} labels={labels} maxLabelLength={maxLabelLength} maxLines={maxLines}
             overlap={overlap} tickDensity={tickDensity} title={title}
-            zeroBaseline={zeroBaseline} fitOnZoom={fitOnZoom}
+            zeroBaseline={zeroBaseline} fitOnZoom={fitOnZoom} defaultZoom={defaultZoom}
             expanded={expanded} setExpanded={setExpanded}
             voronoiOn={voronoiOn} setVoronoiOn={setVoronoiOn}
             tooltipsOn={tooltipsOn} setTooltipsOn={setTooltipsOn}

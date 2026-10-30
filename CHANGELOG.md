@@ -66,6 +66,19 @@ since the copy they took.
 
 ### Added
 
+- **`<Chart defaultZoom>` — initial zoom window.** `{ x?, y? }`, one spec per axis in data
+  units: `[from, to]` (Date or ISO string on a date axis, number, category value; clamped
+  to the domain, any order), `{ last: n }` or `{ first: n }` (the n last / first distinct
+  values of the axis) — `defaultZoom={{ x: { last: 5 } }}` opens a curve on its 5 latest
+  observations. Accepted on the principal axis of 1-D charts (x, or y for horizontal
+  bars) and on both axes of a heatmap or density; `<MultiChart>` accepts `x` on a
+  continuous axis. A malformed spec, or one on a non-zoomable axis, is ignored with a
+  development warning. The zoom lands when the data arrives (`data=[]` while loading is
+  fine), is applied again whenever the axis domain changes, and the value axis fits it
+  like any zoom (`fitOnZoom`). The reset button still returns to the full view. Specs
+  are resolved by the pure `resolveZoomSpec` (`features/chart/utils/zoomSpec.js`). New
+  registry example `chart-default-zoom`.
+
 - **`<Chart zeroBaseline>` — zero rule of the value axis.** `'auto'` (default) keeps the
   current rule: bars include 0, curves span their data. `true` always includes 0, curves
   too (a filled area then closes on 0 instead of the bottom of the plot). `false` uses the
@@ -269,6 +282,15 @@ since the copy they took.
   A single-string `flagSrc` behaves as before. The eight `public/flags/*.svg` now ship with
   the `language-switcher` registry unit; the `language-switcher-local-flags` example became
   "remote flags only" (`flagSrc={flagCdnSrc}`).
+
+### Fixed
+
+- **Chart: stale zoom selection after a data change.** A brush or wheel selection of
+  `<Chart>` / `<MultiChart>` was never reset when `data` changed: after a filter (e.g. in
+  `IndicatorExplorer`), a selection outside the new domain could leave the plot empty.
+  The selection is now re-seeded whenever the base domain of its axis changes — back to
+  the full view, or to `defaultZoom` when set. A new `data` array with the same domain
+  keeps the user's zoom.
 
 ## [0.2.0] - 2026-10-20
 

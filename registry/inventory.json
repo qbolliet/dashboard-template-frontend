@@ -1,8 +1,8 @@
 {
   "$comment": "Généré par scripts/build-inventory.js — ne pas éditer à la main.",
-  "generatedAt": "2026-10-28T17:37:03.660Z",
+  "generatedAt": "2026-10-30T15:02:53.631Z",
   "unitCount": 62,
-  "fileCount": 541,
+  "fileCount": 542,
   "fanoutThreshold": 3,
   "units": {
     "accessible-icon": {
@@ -331,7 +331,7 @@
         "src/features/chart"
       ],
       "clientBoundary": true,
-      "fileCount": 88,
+      "fileCount": 89,
       "files": [
         {
           "path": "src/features/chart/components/Chart/_colors.scss",
@@ -683,6 +683,10 @@
         },
         {
           "path": "src/features/chart/utils/typeDetection.js",
+          "kind": "util"
+        },
+        {
+          "path": "src/features/chart/utils/zoomSpec.js",
           "kind": "util"
         }
       ],

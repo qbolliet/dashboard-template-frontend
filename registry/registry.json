@@ -740,6 +740,11 @@
           "path": "src/features/chart/utils/typeDetection.js",
           "type": "registry:file",
           "target": "~/src/features/chart/utils/typeDetection.js"
+        },
+        {
+          "path": "src/features/chart/utils/zoomSpec.js",
+          "type": "registry:file",
+          "target": "~/src/features/chart/utils/zoomSpec.js"
         }
       ],
       "docs": "Deux paquets (`d3-contour`, `d3-geo`) ne sont chargés que par les tracés de densité et de carte de chaleur : ils restent dans un fragment asynchrone."
@@ -3595,6 +3600,28 @@
           "path": "registry/examples/chart-combo-bar.jsx",
           "type": "registry:file",
           "target": "~/src/examples/chart-combo-bar.jsx"
+        }
+      ],
+      "meta": {
+        "example": true,
+        "of": "chart"
+      }
+    },
+    {
+      "name": "chart-default-zoom",
+      "type": "registry:block",
+      "title": "Zoom initial — les dernières observations d'abord",
+      "description": "`defaultZoom={{ x: { last: 5 } }}` ouvre la courbe sur ses 5 dernières dates : la mini-vue montre toute la série avec la fenêtre déjà posée, et l'axe des valeurs se cale sur les points visibles. Le brush, la molette et le bouton de réinitialisation restent disponibles ; la réinitialisation revient à la série COMPLÈTE. Une fenêtre peut aussi s'écrire en valeurs, `{ x: ['2024-01-01', '2024-06-30'] }`, ou par le début, `{ x: { first: 12 } }`. Si les données arrivent plus tard (chargement API), le zoom s'applique à leur arrivée.",
+      "dependencies": [],
+      "registryDependencies": [
+        "chart",
+        "tokens-global"
+      ],
+      "files": [
+        {
+          "path": "registry/examples/chart-default-zoom.jsx",
+          "type": "registry:file",
+          "target": "~/src/examples/chart-default-zoom.jsx"
         }
       ],
       "meta": {

@@ -70,6 +70,49 @@ recadrage a lieu au relâchement du brush, jamais pendant le geste. Il ne crée 
 sélection sur l'axe des valeurs : le bouton de réinitialisation et la mini-vue de cet axe ne
 reflètent que votre propre zoom. `fitOnZoom={false}` garde l'amplitude de toute la série.
 
+## Zoom initial
+
+`defaultZoom` choisit la fenêtre affichée au premier rendu, axe par axe, en unités de
+données — par exemple les 5 dernières observations d'une courbe :
+
+```jsx
+<Chart data={rows} x="mois" y="indice" defaultZoom={{ x: { last: 5 } }} />
+```
+
+| Spec | Fenêtre |
+|---|---|
+| `[from, to]` | entre deux valeurs : `Date` ou chaîne ISO sur un axe date, nombre, valeur de catégorie. Ordre libre ; bornes ramenées dans le domaine de l'axe |
+| `{ last: n }` | les `n` dernières valeurs **distinctes** de l'axe (ordre des bandes en catégoriel, croissant en continu) |
+| `{ first: n }` | les `n` premières |
+
+Si `n` couvre toutes les valeurs, ou si la fenêtre couvre tout le domaine, le graphique
+s'ouvre en vue complète. Sur un axe continu, `{ last: 1 }` montre deux valeurs : une
+fenêtre de largeur nulle n'existe pas. Une fenêtre qui tombe entièrement hors du domaine,
+ou une catégorie absente, donne la vue complète. Une spec mal formée (bornes illisibles ou
+égales, `n` qui n'est pas un entier positif) est ignorée, avec un avertissement en
+développement.
+
+Seuls les axes **zoomables** acceptent une spec : l'axe principal (`x`, ou `y` pour des
+barres horizontales), et les deux axes d'une heatmap ou d'une densité. Une liste de jeux
+n'accepte que `x`, sur un axe continu. Une spec posée sur un autre axe est ignorée, avec un
+avertissement en développement. Le zoom initial se comporte comme un zoom de
+l'utilisateur : la mini-vue montre la fenêtre, l'axe des valeurs s'y recadre (`fitOnZoom`).
+
+<ComponentPreview name="chart-default-zoom" />
+
+**Données asynchrones.** Le zoom initial ne se résout pas une seule fois au montage. Il se
+réapplique chaque fois que le domaine de l'axe change : les bornes de l'axe pour un axe
+continu, la liste des catégories pour un axe catégoriel. Un graphique qui reçoit `data=[]`
+pendant le chargement s'ouvre donc sur la bonne fenêtre quand les lignes arrivent.
+
+**Changement de filtre.** Pour la même raison, un filtre qui change le domaine réapplique le
+zoom initial. Sans `defaultZoom`, il ramène à la vue complète : une sélection faite sur
+l'ancien domaine ne peut plus vider le graphique. À domaine égal, un nouveau tableau `data`
+aux mêmes valeurs ne touche pas au zoom choisi par l'utilisateur.
+
+**Réinitialisation.** Le bouton de réinitialisation de la barre d'outils revient à la vue
+**complète**, pas au zoom initial, comme dans la plupart des graphiques zoomables.
+
 ## Troisième dimension : densité ou bulles
 
 Par défaut (`zMark="density"`), `z` se lit en **couleur ou en densité** : heatmap, violon ou

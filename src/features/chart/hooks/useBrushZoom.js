@@ -22,6 +22,7 @@
 // Importation des modules
 import { useEffect, useRef, useState } from 'react';
 import { useIsomorphicLayoutEffect } from '@/hooks/layoutEffect/useIsomorphicLayoutEffect';
+import { resolveZoomSpec, zoomSeedSignature, warnZoom } from '../utils/zoomSpec';
 
 /* ────────────────────────── Helpers d'échelle ────────────────────────────── */
 
@@ -118,6 +119,34 @@ export function zoomTransformOf(zx, zy) {
   return `translate(${zx.t.toFixed(3)}, ${zy.t.toFixed(3)}) scale(${zx.k.toFixed(5)}, ${zy.k.toFixed(5)})`;
 }
 
+/* ────────────────────────── Amorçage du zoom initial ─────────────────────── */
+
+/**
+ * Committed selection state seeded by `seed()` on mount, and RE-seeded whenever
+ * `signature` changes (see {@link zoomSeedSignature}). Between two signature changes
+ * the selection belongs to the user (brush, wheel, reset).
+ *
+ * Uses the adjust-state-during-render pattern (no `setState` inside an effect): on a
+ * signature change, React discards the render in progress and re-renders at once with
+ * the re-seeded selection, so a stale selection is never painted.
+ *
+ * @param {string} signature - Seed signature (`${spec}|${type}:${base domain}`).
+ * @param {function(): ?Array<*>} seed - Resolves the initial selection (null = full view).
+ * @returns {[?Array<*>, function(?Array<*>): void]} The selection and its raw setter.
+ */
+export function useSeededSelection(signature, seed) {
+  const [sel, setSel] = useState(seed); // initialiseur paresseux : amorçage au montage
+  const [seededSig, setSeededSig] = useState(signature);
+  // Signature changée (spec, ou domaine de base : données chargées, filtre) →
+  // réamorçage pendant le rendu. Sans spec, `seed()` vaut null : retour à la vue
+  // complète, ce qui purge une sélection devenue périmée.
+  if (seededSig !== signature) {
+    setSeededSig(signature);
+    setSel(seed());
+  }
+  return [sel, setSel];
+}
+
 /* ────────────────────────── Hook principal ───────────────────────────────── */
 
 /**
@@ -149,6 +178,19 @@ export function zoomTransformOf(zx, zy) {
  * follows the COMMITTED selection only: during a drag the preview keeps the
  * committed value scale (no per-frame fit) and the fit lands with the commit.
  *
+ * Initial zoom (`defaultZoom`): each committed selection is seeded from its axis spec
+ * (see `resolveZoomSpec`) and re-seeded whenever `${spec}|${base domain}` changes —
+ * the bounds of a continuous base domain, the joined band domain of a categorical one:
+ *   - data first empty (loading), then loaded → the initial zoom lands with the data;
+ *   - a filter that changes the domain → the initial zoom is applied again; without
+ *     `defaultZoom`, back to the full view (a stale selection never empties the plot);
+ *   - same domain (new `data` identity, same values) → the user's own zoom is kept.
+ * Only zoomable axes accept a spec: the principal axis of 1-D charts (x, or y for
+ * horizontal bars), both axes for heatmap/density; a spec on another axis is ignored
+ * with a development warning. `resetZoom` goes back to the FULL view, not to the
+ * initial zoom. A seeded principal selection is fitted by `fitValueDomain` like any
+ * committed one, from the very first render.
+ *
  * @param {object} params
  * @param {Array<object>} params.data - Coerced data rows (full, unfiltered).
  * @param {string} params.x - x column.
@@ -174,6 +216,8 @@ export function zoomTransformOf(zx, zy) {
  *   (coerced) principal-axis value lies in the committed selection, returns the fitted
  *   `[lo, hi]` domain before `.nice()` (null = no fit). Omitted: the value axis keeps
  *   its base domain while the principal axis is zoomed.
+ * @param {?{x?: *, y?: *}} [params.defaultZoom=null] - Initial zoom per axis, as specs
+ *   accepted by `resolveZoomSpec` (`[from, to]`, `{ last: n }`, `{ first: n }`).
  * @returns {{
  *   xSel: ?Array, ySel: ?Array, setXSel: Function, setYSel: Function,
  *   previewXSel: Function, previewYSel: Function,
@@ -188,9 +232,36 @@ export function useBrushZoom({
   marginLeft, marginTop, width, svgRef, zoomOn = true,
   previewTargets = [],
   fitValueDomain = null,
+  defaultZoom = null,
 }) {
-  const [xSel, setXSelRaw] = useState(null); // sélection COMMITTÉE x (null = plein axe)
-  const [ySel, setYSelRaw] = useState(null); // sélection COMMITTÉE y
+  // Axes zoomables : l'axe principal des graphiques 1-D (x, ou y pour bar-h), les
+  // deux axes en heatmap/density — même règle que la molette (applyWheelZoom).
+  const principal = chartKind === 'bar-h' ? 'y' : 'x';
+  const twoD = chartKind === 'heatmap' || chartKind === 'density';
+  const zoomable = { x: principal === 'x' || twoD, y: principal === 'y' || twoD };
+
+  // Amorçage d'un axe depuis sa spec de `defaultZoom` (null = vue complète). Une
+  // spec posée sur un axe non zoomable est ignorée, signalée en développement.
+  const seedOf = (axis, baseScale, type, col) => () => {
+    const spec = defaultZoom?.[axis];
+    if (spec == null) return null;
+    if (!zoomable[axis]) {
+      warnZoom(`l'axe ${axis} n'est pas zoomable sur ce graphique (${chartKind}) : spec ignorée.`);
+      return null;
+    }
+    return resolveZoomSpec(spec, { type, baseScale, data, col });
+  };
+
+  // Sélections commitées (null = plein axe), amorcées au montage puis réamorcées
+  // à chaque changement de `${spec}|${domaine de base}` (cf. useSeededSelection).
+  // La signature est calculée même sans spec : un domaine qui change ramène alors
+  // à la vue complète au lieu de garder une sélection périmée.
+  const [xSel, setXSelRaw] = useSeededSelection(
+    zoomSeedSignature(defaultZoom?.x, baseXScale, xType), seedOf('x', baseXScale, xType, x),
+  );
+  const [ySel, setYSelRaw] = useSeededSelection(
+    zoomSeedSignature(defaultZoom?.y, baseYScale, yType), seedOf('y', baseYScale, yType, y),
+  );
   // Brouillon de GESTE (preview) : dans une ref, JAMAIS dans un state — cf.
   // l'en-tête du fichier (un setState par frame re-rendrait les marks).
   const draftRef = useRef({ x: null, y: null });
@@ -331,13 +402,11 @@ export function useBrushZoom({
       return type === 'date' ? out.map((v) => new Date(v)) : out;
     };
 
-    const principal = chartKind === 'bar-h' ? 'y' : 'x';
-    const twoD = chartKind === 'heatmap' || chartKind === 'density';
-    if (principal === 'x' || twoD) {
+    if (zoomable.x) {
       const nx = zoomAxis(baseXScale, xType, xSel, xScale, px, innerWidth);
       if (nx !== xSel) setXSel(nx);
     }
-    if (principal === 'y' || twoD) {
+    if (zoomable.y) {
       const ny = zoomAxis(baseYScale, yType, ySel, yScale, py, innerHeight);
       if (ny !== ySel) setYSel(ny);
     }
@@ -360,6 +429,9 @@ export function useBrushZoom({
     return () => el.removeEventListener('wheel', handler);
   }, [zoomOn, svgRef]);
 
+  // Réinitialisation : retour à la vue COMPLÈTE, pas au zoom initial (convention
+  // habituelle des graphiques zoomables ; le zoom initial ne revient qu'avec un
+  // changement de spec ou de domaine).
   const resetZoom = () => { setXSel(null); setYSel(null); };
   const canReset = !!(xSel || ySel);
 

@@ -369,6 +369,8 @@ const ChartCanvas = ({
   locale, uiLabels,
   // Axe des valeurs : règle du zéro (cf. valueDomain) et recadrage au zoom de l'axe principal
   zeroBaseline = 'auto', fitOnZoom = true,
+  // Zoom initial par axe ({ x?, y? }), amorcé et réamorcé par useBrushZoom
+  defaultZoom,
   // Réduction des groupes (barres, piles, cellules) : 'none' sur des agrégats de l'API,
   // sinon l'agrégation par défaut de la colonne de valeur ; et mode de projection de la
   // heatmap dans ses mini-vues ('SUM' pour une agrégation additive, 'AVG' sinon).
@@ -565,7 +567,7 @@ const ChartCanvas = ({
     baseXScale, baseYScale, innerWidth, innerHeight,
     marginLeft: margins.left, marginTop: margins.top, width, svgRef, zoomOn,
     previewTargets: [previewMarksRef, previewOverlaysRef, previewZoomLayerRef],
-    fitValueDomain,
+    fitValueDomain, defaultZoom,
   });
   const { zx, zy } = axisZoom;
 
@@ -1111,6 +1113,18 @@ const ChartCanvas = ({
  *   never while dragging. Does not create a value-axis selection: the reset button and the
  *   minimaps only reflect the user's own zoom. `false` keeps the full-series amplitude.
  *   Line, bar and bar-h charts, and dataset lists.
+ * @param {{x?: (Array<*>|{last: number}|{first: number}), y?: (Array<*>|{last: number}|{first: number})}} [props.defaultZoom]
+ *   Window shown on first render, per axis, in data units: `[from, to]` (Date or ISO
+ *   string on a date axis, number, category value; clamped to the axis domain, any
+ *   order), `{ last: n }` or `{ first: n }` (the n last / first DISTINCT values of the
+ *   axis — `{ last: 5 }` shows the 5 latest observations of a curve). Accepted on the
+ *   principal axis of 1-D charts (x, or y for horizontal bars) and on both axes of a
+ *   heatmap or density; a spec on another axis, or a malformed one, is ignored with a
+ *   development warning. The zoom lands when the data arrives (empty `data` while
+ *   loading is fine) and is applied again whenever the axis domain changes (a filter);
+ *   a new `data` array with the same domain keeps the user's own zoom. The value axis is
+ *   fitted to it like to any zoom (`fitOnZoom`). The reset button returns to the FULL
+ *   view, not to this initial zoom. A dataset list only accepts `x`, on a continuous axis.
  * @param {boolean} [props['categorical-x']=false] - Force the x axis to be treated as
  *   categorical (single-series path), turning a line into vertical bars. Ignored on the
  *   MultiChart path, where each dataset carries its own `categorical-x` key.
@@ -1139,6 +1153,7 @@ const Chart = ({
   fill = 'line', stack = 'none', zMark = 'density',
   fields, aggregate, format: formatProp = {}, labels = {}, maxLabelLength = {}, maxLines = {},
   overlap = 'auto', tickDensity = 'normal', zeroBaseline = 'auto', fitOnZoom = true,
+  defaultZoom,
   'categorical-x': categoricalX = false, 'categorical-y': categoricalY = false,
   title, height = 460,
   toolbar = [], defaults = {}, initialMinimapOpen = true,
@@ -1201,7 +1216,7 @@ const Chart = ({
         fields={fields} aggregate={aggregate} locale={locale}
         format={formatProp} labels={labels} maxLabelLength={maxLabelLength} maxLines={maxLines}
         overlap={overlap} tickDensity={tickDensity}
-        zeroBaseline={zeroBaseline} fitOnZoom={fitOnZoom}
+        zeroBaseline={zeroBaseline} fitOnZoom={fitOnZoom} defaultZoom={defaultZoom}
         title={title} height={height} defaults={defaults} toolbar={toolbar}
       />
     );
@@ -1424,7 +1439,7 @@ const Chart = ({
               fill={fill} effFill={effFill} stack={stack}
               format={format} labels={labels} maxLabelLength={maxLabelLength} maxLines={maxLines}
               overlap={overlap} tickDensity={tickDensity}
-              zeroBaseline={zeroBaseline} fitOnZoom={fitOnZoom}
+              zeroBaseline={zeroBaseline} fitOnZoom={fitOnZoom} defaultZoom={defaultZoom}
               isSequentialZ={isSequentialZ} isViolinKind={isViolinKind}
               cScale={cScale} styleScaleFn={styleScaleFn} hatchScaleFn={hatchScaleFn} markerScaleFn={markerScaleFn}
               hovered={hovered} voronoiRow={voronoiRow} setVoronoiRow={setVoronoiRow} ciHover={ciHover}
