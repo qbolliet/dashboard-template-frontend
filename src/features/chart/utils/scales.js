@@ -2,7 +2,7 @@
 // SCALES — construction des échelles de position (x / y)
 // =================================================================
 // Importation des modules
-import { scaleTime, scaleLinear, scaleBand } from '@visx/scale';
+import { scaleUtc, scaleLinear, scaleBand } from '@visx/scale';
 import { extent } from 'd3-array';
 
 /**
@@ -38,6 +38,11 @@ const ZERO_ANCHORED_KINDS = new Set(['bar', 'bar-h', 'area']);
  * `extra` (confidence bounds, projections) is always included. An empty or
  * zero-width domain is widened so the scale stays invertible.
  *
+ * `padding` adds headroom on each free side (a fraction of the span), so the extreme
+ * points do not sit on the plot frame once `.nice()` lands exactly on them — typical of
+ * a zoom-fitted window. A side anchored at 0 is never padded, and padding never makes
+ * the domain cross 0 (all-positive data never gets a negative axis).
+ *
  * @param {object} params
  * @param {Iterable<number>} params.values - Plotted values (non-finite ones are ignored).
  *   For a stack, the cumulated tops (e.g. `[stack.max]`).
@@ -45,9 +50,11 @@ const ZERO_ANCHORED_KINDS = new Set(['bar', 'bar-h', 'area']);
  * @param {boolean} [params.stacked=false] - Whether the values are stacked.
  * @param {'auto'|boolean} [params.zeroBaseline='auto'] - Zero inclusion rule.
  * @param {?Array<number>} [params.extra=null] - Extra `[lo, hi]` extent to include.
+ * @param {number} [params.padding=0] - Headroom per free side, as a fraction of the span
+ *   (see {@link VALUE_AXIS_PADDING}).
  * @returns {Array<number>} `[lo, hi]`, with `lo < hi`.
  */
-export function valueDomain({ values, kind, stacked = false, zeroBaseline = 'auto', extra = null }) {
+export function valueDomain({ values, kind, stacked = false, zeroBaseline = 'auto', extra = null, padding = 0 }) {
   let lo = Infinity, hi = -Infinity;
   for (const raw of values) {
     const v = +raw;
@@ -65,8 +72,26 @@ export function valueDomain({ values, kind, stacked = false, zeroBaseline = 'aut
   if (extra) { lo = Math.min(lo, extra[0]); hi = Math.max(hi, extra[1]); }
   // Valeurs toutes égales : domaine élargi, sinon l'échelle serait dégénérée
   if (lo === hi) hi = lo + 1;
+  // Marge de respiration : sans elle, `.nice()` retombe souvent PILE sur les extrêmes
+  // (fenêtre zoomée de valeurs entières, ex. [133, 136]) et la courbe se colle au cadre
+  // du tracé — son bas se confond avec l'axe, son sommet passe sous la barre d'outils.
+  if (padding > 0) {
+    const pad = (hi - lo) * padding;
+    // Côté ancré sur 0 : jamais de marge (une barre ou une pile part exactement de 0).
+    // Côté libre : la marge s'arrête à 0 au lieu de le franchir.
+    if (!(withZero && lo === 0)) lo = lo >= 0 ? Math.max(0, lo - pad) : lo - pad;
+    if (!(withZero && hi === 0)) hi = hi <= 0 ? Math.min(0, hi + pad) : hi + pad;
+  }
   return [lo, hi];
 }
+
+/**
+ * Default headroom of a value axis, per free side, as a fraction of the data span —
+ * passed as `padding` to {@link valueDomain} by <Chart> and <MultiChart>.
+ *
+ * @type {number}
+ */
+export const VALUE_AXIS_PADDING = 0.05;
 
 /**
  * Value bars (and zero-baseline areas) start from: 0 when it lies in the domain,
@@ -85,7 +110,7 @@ export function baselineValue([a, b]) {
 /**
  * Builds a position scale for one axis from a column's detected type.
  *
- * Date → scaleTime (nice), number → scaleLinear (nice; the value axis of bar/bar-h
+ * Date → scaleUtc (nice), number → scaleLinear (nice; the value axis of bar/bar-h
  * follows {@link valueDomain}), categorical → scaleBand with the per-kind padding.
  * The pixel range is oriented like the prototype: x grows left→right, continuous y
  * grows bottom→top (inverted), categorical y grows top→bottom.
@@ -104,7 +129,12 @@ export function baselineValue([a, b]) {
 export function makeScale(type, data, col, length, axis, chartKind, { zeroBaseline = 'auto' } = {}) {
   if (type === 'date') {
     const ext = extent(data, (d) => d[col]);
-    return scaleTime({
+    // Échelle UTC et non locale : les dates coercées depuis des chaînes ISO tombent à
+    // minuit UTC et les libellés sont formatés par `utcFormat` (formatters.js). Une
+    // scaleTime placerait ses graduations à minuit LOCAL — à l'ouest de Greenwich comme
+    // à l'est, le 1er septembre local s'imprimait « août » une fois relu en UTC, et
+    // chaque libellé se retrouvait décalé d'un mois par rapport aux points.
+    return scaleUtc({
       domain: ext,
       range: axis === 'x' ? [0, length] : [length, 0],
       nice: true,

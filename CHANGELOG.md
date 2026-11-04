@@ -189,6 +189,10 @@ since the copy they took.
 
 ### Changed
 
+- **Fonts served locally.** Geist and Geist Mono now come from the `geist` npm package
+  (`next/font/local`) instead of `next/font/google`: no request to Google Fonts at build
+  time, and the same typography with or without network access. The CSS variables
+  (`--font-geist-sans`, `--font-geist-mono`) are unchanged.
 - **`<Chart fitOnZoom>` — the value axis now fits the zoom by default.** When the
   principal axis (x, or y for horizontal bars) is zoomed and the value axis is not, the
   value axis is recomputed on the visible rows, with the same zero rule and rounded
@@ -291,6 +295,31 @@ since the copy they took.
   The selection is now re-seeded whenever the base domain of its axis changes — back to
   the full view, or to `defaultZoom` when set. A new `data` array with the same domain
   keeps the user's zoom.
+- **Chart: date tick labels one month off.** Date axes of `<Chart>` / `<MultiChart>` used a
+  local-time scale while their labels are formatted in UTC: outside UTC, the tick of
+  September 1st (local midnight) printed « août ». Date axes now use `scaleUtc`, so ticks
+  and labels agree with the plotted points.
+- **Chart: value axis glued to the plot frame.** The value axis (y; x for horizontal
+  bars) now keeps a 5 % headroom on each free side (`VALUE_AXIS_PADDING`, `padding` of
+  `valueDomain`), so extreme points no longer sit on the frame when `.nice()` lands
+  exactly on them — typical of a zoom-fitted window (`defaultZoom`, brush). A side
+  anchored at 0 is never padded, and padding never crosses 0.
+- **Docs: zero-baseline example.** `chart-value-axis` drew a filled curve (years detected
+  as numbers), for which `'auto'` and `false` are identical; the year is now declared
+  categorical through `fields`, so the example shows bars as described. A second row
+  shows a curve with `zeroBaseline` (axis from 0, area closed on 0) next to the default
+  (data extent).
+- **Sidebar: resizing now moves the header.** The custom width is held by
+  `NavigationProvider` on a `display: contents` shell shared by the sidebar and the
+  header bar, so the trigger and the page title follow the sidebar edge (they stayed at
+  the default width before). The sidebar title and group labels are truncated with an
+  ellipsis instead of overflowing a narrow sidebar.
+- **Sidebar: click outside closes it.** A `mousedown` outside the open sidebar closes it
+  (and announces it); the header trigger, now linked by `aria-controls`, is excluded.
+- **Sidebar: ancestor groups no longer look like the current page.** A group that
+  contains the current page gets a toned-down active state (alpha of background and
+  border, `--sidebar-group-ancestor-alpha`, 0.4), applied to its header AND its chevron
+  as one pill; a group that is itself the current page keeps the full active state.
 
 ## [0.2.0] - 2026-10-20
 

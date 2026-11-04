@@ -47,6 +47,9 @@
     padding: 0 var(--spacing-md); // Padding horizontal seulement
     border-bottom: 1px solid hsl(var(--color-border));
     flex-shrink: 0; // Empêche le header de rétrécir
+    // Pas d'overflow: hidden ici : le menu du switcher déborde volontairement sous le
+    // header (position absolue). Le titre est contenu par la chaîne `min-width: 0` du
+    // conteneur logo et du texte (cf. plus bas), tronqué par des points de suspension.
   }
 
   // Rail : centrer le contenu du header
@@ -61,6 +64,9 @@
     align-items: center;
     gap: var(--spacing-md);
     padding: var(--spacing-sm) var(--spacing-md);
+    // Élément flex : sans `min-width: 0`, sa largeur minimale est celle de son contenu
+    // (titre en nowrap) et il ne rétrécit jamais sous la largeur du titre.
+    min-width: 0;
     // En mode rail, ce conteneur n'est pas rendu (garde JS `isOpen` côté composant) :
     // inutile de le masquer en CSS.
 
@@ -87,6 +93,10 @@
       font-weight: 600;
       color: hsl(var(--color-text-primary));
       white-space: nowrap;
+      // Titre trop long pour la largeur courante : points de suspension.
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 

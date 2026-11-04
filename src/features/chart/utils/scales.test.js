@@ -53,6 +53,32 @@ describe('valueDomain', () => {
   });
 });
 
+describe('valueDomain — padding', () => {
+  it('élargit chaque côté libre d\'une fraction de l\'étendue', () => {
+    const [lo, hi] = valueDomain({ values: [133, 136], kind: 'line', padding: 0.05 });
+    expect(lo).toBeCloseTo(132.85);
+    expect(hi).toBeCloseTo(136.15);
+  });
+
+  it('ne marge jamais un côté ancré à 0', () => {
+    const [lo, hi] = valueDomain({ values: [10, 20], kind: 'bar', padding: 0.05 });
+    expect(lo).toBe(0);
+    expect(hi).toBeCloseTo(21);
+    const [nlo, nhi] = valueDomain({ values: [-20, -10], kind: 'bar', padding: 0.05 });
+    expect(nlo).toBeCloseTo(-21);
+    expect(nhi).toBe(0);
+  });
+
+  it('ne franchit pas 0 sur des données de signe constant', () => {
+    expect(valueDomain({ values: [1, 100], kind: 'line', padding: 0.05 })[0]).toBe(0);
+    expect(valueDomain({ values: [-100, -1], kind: 'line', padding: 0.05 })[1]).toBe(0);
+  });
+
+  it('sans padding (défaut) : domaine inchangé', () => {
+    expect(valueDomain({ values: [5, 9], kind: 'line' })).toEqual([5, 9]);
+  });
+});
+
 describe('baselineValue', () => {
   it('0 quand il est dans le domaine', () => {
     expect(baselineValue([-5, 10])).toBe(0);

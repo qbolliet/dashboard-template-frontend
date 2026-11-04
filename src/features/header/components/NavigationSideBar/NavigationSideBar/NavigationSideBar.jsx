@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, createContext, useContext, useEffect, useId, useRef } from 'react';
+import { useState, createContext, useContext, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useNavigationRoute, useNavigationUI, useNavigationLabels } from '@/features/header/providers/NavigationProvider';
 import useResizable from '@/features/header/hooks/useResizable';
@@ -50,15 +50,22 @@ const NavigationSideBar = ({
     // Libellés distribués par <Header> via NavigationProvider.
     const labels = useNavigationLabels('sidebar');
 
-    // useId garantit un ID stable entre le rendu SSR et l'hydratation client
-    const sidebarId = `navigation-sidebar-${useId()}`;
-
     // Fonctions de route (pathname) et breakpoint mobile, fournis par le contexte partagé
     // du NavigationProvider — plus de listener resize propre à la sidebar (isMobile ≤639px).
     // L'ouverture et sa bascule viennent de la même source : `toggleSidebar` porte
     // l'annonce aux lecteurs d'écran, il n'y a plus de chemin qui puisse la contourner.
     const { isActivePath, isCurrentPath, hasActiveChildren } = useNavigationRoute();
-    const { isMobile, isSidebarOpen: isOpen, toggleSidebar } = useNavigationUI();
+    // L'identifiant (useId, stable SSR/hydratation) et la largeur personnalisée vivent
+    // dans le provider : le déclencheur du header les partage (aria-controls, décalage).
+    const {
+        isMobile,
+        isSidebarOpen: isOpen,
+        toggleSidebar,
+        closeSidebar,
+        sidebarId,
+        setSidebarWidth,
+        shellRef
+    } = useNavigationUI();
 
     // Hook pour piéger le focus dans la sidebar en mode mobile
     const focusTrapRef = useFocusTrap({
@@ -68,9 +75,9 @@ const NavigationSideBar = ({
     });
 
     // ===== REDIMENSIONNEMENT PAR GLISSER (rail du bord droit) =====
-    // Largeur ouverte personnalisée en px ; null = valeur du token responsive
-    // (--sidebar-width-open). Désactivé en mobile (tiroir 100vw).
-    const [openWidth, setOpenWidth] = useState(null);
+    // La largeur choisie est commitée dans le provider, qui la pose sur une coquille
+    // commune à la sidebar ET au header (--sidebar-width-open) : le déclencheur et le
+    // titre de page suivent ainsi le bord de la sidebar. Désactivé en mobile (100vw).
     const asideRef = useRef(null);
 
     // Ref combinée : alimente le focus trap ET la mesure de largeur pour le rail.
@@ -87,12 +94,34 @@ const NavigationSideBar = ({
         min: 200,
         max: 480,
         getCurrentWidth: () => asideRef.current?.getBoundingClientRect().width,
-        onResize: setOpenWidth,
-        // Pendant le drag, la largeur est écrite directement sur l'aside (même variable
-        // que celle posée en style inline ci-dessous) : pas de re-render par pixel.
-        elementRef: asideRef,
+        onResize: setSidebarWidth,
+        // Pendant le drag, la largeur est écrite directement sur la coquille commune
+        // (même variable que celle que pose le provider) : pas de re-render par pixel,
+        // et le header suit le geste en même temps que la sidebar.
+        elementRef: shellRef,
         cssProperty: '--sidebar-width-open',
     });
+
+    // ===== FERMETURE AU CLIC EXTÉRIEUR =====
+    // Sidebar ouverte : tout `mousedown` hors de l'aside la referme. `mousedown` et non
+    // `click`, comme les autres menus du dépôt : la fermeture précède le relâchement.
+    // Le déclencheur du header est exclu (il porte aria-controls = sidebarId) : sinon le
+    // mousedown fermerait, puis son clic rouvrirait aussitôt. En mobile le tiroir couvre
+    // tout l'écran, seul ce déclencheur reste hors de l'aside : rien ne change.
+    useEffect(() => {
+        if (!isOpen) return undefined;
+        const onMouseDown = (event) => {
+            const { target } = event;
+            if (!(target instanceof Element)) return;
+            if (asideRef.current?.contains(target)) return;
+            // getAttribute plutôt qu'un sélecteur [aria-controls="…"] : l'id issu de
+            // useId contient des caractères qu'il faudrait échapper.
+            if (target.closest('[aria-controls]')?.getAttribute('aria-controls') === sidebarId) return;
+            closeSidebar();
+        };
+        document.addEventListener('mousedown', onMouseDown);
+        return () => document.removeEventListener('mousedown', onMouseDown);
+    }, [isOpen, sidebarId, closeSidebar]);
 
     // Verrouiller le scroll de la page quand la sidebar est ouverte en mode mobile
     // (le tiroir occupe tout l'écran sous le header ; on évite que la page défile derrière).
@@ -185,10 +214,6 @@ const NavigationSideBar = ({
                 className={sidebarClasses}
                 data-sidebar-open={isOpen}
                 aria-label={labels.panel}
-                // Largeur personnalisée appliquée en custom property (desktop/tablette uniquement).
-                style={openWidth != null && !isMobile
-                    ? { '--sidebar-width-open': `${openWidth}px` }
-                    : undefined}
             >
                 {/* Header de la sidebar avec logo ou switcher */}
                 <header className="sidebar-header">

@@ -39,7 +39,7 @@ import { buildStacks } from '../../utils/stacking';
 import { reduceValues, clientAggregation, isAdditive } from '../../utils/aggregate';
 import { resolveFormatter } from '../../utils/formatters';
 import { resolveColumnType, formatFromFields } from '../../utils/fieldTypes';
-import { makeScale, valueDomain, baselineValue } from '../../utils/scales';
+import { makeScale, valueDomain, baselineValue, VALUE_AXIS_PADDING } from '../../utils/scales';
 import { exportSvg, exportPng } from '../../utils/exportImage';
 import { useSeriesHover } from '../../hooks/useSeriesHover';
 import { useChartGeometry } from '../../hooks/useChartGeometry';
@@ -497,7 +497,7 @@ const ChartCanvas = ({
     baseValScale = scaleLinear({
       domain: valueDomain({
         values: plottedValues(data, stackMini), kind: chartKind,
-        stacked: stackActive, zeroBaseline, extra: augValExtent,
+        stacked: stackActive, zeroBaseline, extra: augValExtent, padding: VALUE_AXIS_PADDING,
       }),
       range: isBarH ? [0, innerWidth] : [innerHeight, 0],
       nice: true,
@@ -521,7 +521,7 @@ const ChartCanvas = ({
       values: plottedValues(rows, stackActive
         ? buildStacks({ data: rows, posKey: stackPosKey, valKey: stackValKey, channels, stackBy: stack, seriesOrder, aggregate: reduce })
         : null),
-      kind: chartKind, stacked: stackActive, zeroBaseline,
+      kind: chartKind, stacked: stackActive, zeroBaseline, padding: VALUE_AXIS_PADDING,
       // Lignes d'IC / de projection : brutes, donc coercées avant le test de sélection
       extra: augExtentOf((r) => inPrincipalSel(coerce(r[posKey], posType))),
     })

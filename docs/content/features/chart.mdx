@@ -62,6 +62,10 @@ milliards ne sont plus écrasées en haut du tracé. Chaque barre part alors de 
 l'axe la plus proche de 0 : sa hauteur ne se lit plus comme une proportion. Les graduations
 l'indiquent, il n'y a pas de repère de rupture d'axe.
 
+Une courbe suit l'inverse : par défaut, elle se cale sur l'étendue de ses données et se lit
+par sa forme. `zeroBaseline` (soit `true`) inclut 0 dans l'axe et ferme l'aire sur 0 :
+l'amplitude des variations se lit alors par rapport au total (rangée du bas).
+
 <ComponentPreview name="chart-value-axis" />
 
 Au **zoom** sur l'axe principal (molette ou brush de la mini-vue), l'axe des valeurs se
@@ -69,6 +73,11 @@ recadre par défaut sur les lignes visibles, avec la même règle du zéro (`fit
 recadrage a lieu au relâchement du brush, jamais pendant le geste. Il ne crée pas de
 sélection sur l'axe des valeurs : le bouton de réinitialisation et la mini-vue de cet axe ne
 reflètent que votre propre zoom. `fitOnZoom={false}` garde l'amplitude de toute la série.
+
+L'axe des valeurs garde une **marge de 5 %** de chaque côté libre (`VALUE_AXIS_PADDING`) :
+les points extrêmes ne se collent pas au cadre du tracé, même quand les bornes « rondes »
+tombent pile sur les données — cas fréquent d'une fenêtre zoomée. Un côté ancré à 0 n'a pas
+de marge, et la marge ne franchit jamais 0.
 
 ## Zoom initial
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useId, useRef, useState } from 'react';
 import { useNavigation } from '../hooks/useNavigation';
 import useAriaAnnounce from '@/hooks/accessibility/useAriaAnnounce';
 
@@ -37,6 +37,12 @@ const NavigationLabelsContext = createContext(null);
  * `isMobileMenuOpen` state, then splits them into two contexts so route-dependent
  * consumers stay decoupled from mobile-menu UI updates.
  *
+ * It also owns the sidebar's custom open width and renders a `display: contents` shell
+ * that carries it as `--sidebar-width-open`. The sidebar and the header bar are SIBLINGS:
+ * a width set on the sidebar alone never reached the header, whose trigger and page
+ * title stayed put while the sidebar was resized. On a common ancestor, both inherit it.
+ * The shell generates no box, so the layout is unchanged.
+ *
  * @param {Object} props - Component props.
  * @param {Object} props.labels - Merged header labels, already defaulted by `<Header>`.
  *   Namespaced per unit (`header`, `sidebar`, `topbar`, `navTrigger`, `searchBar`,
@@ -61,6 +67,17 @@ const NavigationProvider = ({ labels, children }) => {
 
     const announce = useAriaAnnounce();
 
+    // Identifiant de la sidebar, porté ICI et non par la sidebar : le déclencheur du
+    // header (aria-controls) et la fermeture au clic extérieur en ont besoin aussi.
+    const sidebarId = `navigation-sidebar-${useId()}`;
+
+    // Largeur ouverte personnalisée (px) issue du redimensionnement ; null = token
+    // responsive (--sidebar-width-open). Posée sur la coquille commune (cf. plus bas).
+    const [sidebarWidth, setSidebarWidth] = useState(null);
+    // Coquille commune : cible des écritures impératives pendant un drag (useResizable),
+    // pour que la sidebar ET le header suivent le geste sans rendu React par pixel.
+    const shellRef = useRef(null);
+
     // Bascule de la sidebar. Composée ICI et non dans le hook parce qu'elle a besoin des
     // libellés, et exposée par le contexte pour que le déclencheur du header et la sidebar
     // elle-même empruntent le MÊME chemin : c'est ce qui garantit que l'annonce part quel
@@ -73,6 +90,14 @@ const NavigationProvider = ({ labels, children }) => {
         const nextState = !isSidebarOpen;
         setSidebarOpen(nextState);
         announce(nextState ? labels?.sidebar?.opened : labels?.sidebar?.closed, 'polite');
+    };
+
+    // Fermeture seule (clic hors de la sidebar) : sans effet si elle est déjà fermée, pour
+    // ne pas annoncer une fermeture qui n'a pas eu lieu. Même annonce que la bascule.
+    const closeSidebar = () => {
+        if (!isSidebarOpen) return;
+        setSidebarOpen(false);
+        announce(labels?.sidebar?.closed, 'polite');
     };
 
     // Valeur « route » : ne dépend que du pathname. Le React Compiler mémoïse cet objet
@@ -92,14 +117,29 @@ const NavigationProvider = ({ labels, children }) => {
         closeMobileMenu,
         isMobile,
         isSidebarOpen,
-        toggleSidebar
+        toggleSidebar,
+        closeSidebar,
+        sidebarId,
+        setSidebarWidth,
+        shellRef
     };
+
+    // Largeur personnalisée héritée par la sidebar et le header (desktop/tablette
+    // uniquement : en mobile, le tiroir garde sa pleine largeur responsive).
+    const shellStyle = sidebarWidth != null && !isMobile
+        ? { display: 'contents', '--sidebar-width-open': `${sidebarWidth}px` }
+        : { display: 'contents' };
 
     return (
         <NavigationLabelsContext.Provider value={labels}>
             <NavigationRouteContext.Provider value={routeValue}>
                 <NavigationUIContext.Provider value={uiValue}>
-                    {children}
+                    {/* `display: contents` : aucune boîte, la mise en page reste celle des
+                        enfants ; l'élément reste en revanche dans la chaîne d'héritage
+                        des custom properties (même motif que le layout de la démo). */}
+                    <div ref={shellRef} className="navigation-shell" style={shellStyle}>
+                        {children}
+                    </div>
                 </NavigationUIContext.Provider>
             </NavigationRouteContext.Provider>
         </NavigationLabelsContext.Provider>
@@ -127,8 +167,15 @@ export const useNavigationRoute = () => {
  * flips the state and announces the new one to screen readers. Never flip `isSidebarOpen`
  * through another path, or the announcement is lost.
  *
+ * `closeSidebar` closes (and announces) only when the sidebar is open. `sidebarId` is the
+ * id of the sidebar element, for `aria-controls`. `setSidebarWidth` commits a custom open
+ * width in px (null = responsive token) and `shellRef` is the element carrying it, the
+ * target of imperative writes during a resize drag.
+ *
  * @returns {{isMobileMenuOpen: boolean, toggleMobileMenu: Function, closeMobileMenu: Function,
- *   isMobile: boolean, isSidebarOpen: boolean, toggleSidebar: Function}} UI context.
+ *   isMobile: boolean, isSidebarOpen: boolean, toggleSidebar: Function,
+ *   closeSidebar: Function, sidebarId: string, setSidebarWidth: Function,
+ *   shellRef: {current: ?HTMLElement}}} UI context.
  * @throws {Error} If used outside of a NavigationProvider.
  */
 export const useNavigationUI = () => {

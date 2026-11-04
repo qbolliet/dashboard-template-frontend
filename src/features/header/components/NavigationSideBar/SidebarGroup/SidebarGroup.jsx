@@ -57,6 +57,12 @@ const SidebarGroup = ({
     const isLink = Boolean(item.path && item.path !== '#');
     const hasChildren = Array.isArray(item.children) && item.children.length > 0;
 
+    // Page courante = le groupe lui-même (groupe-lien) ; sinon, un groupe actif n'est
+    // qu'un ANCÊTRE de la page courante et reçoit un état actif atténué, pour qu'on ne
+    // confonde pas le parent avec la page affichée (cf. --sidebar-group-ancestor-alpha).
+    const isCurrent = isLink && isCurrentPath(item.path);
+    const isAncestor = shouldShowAsActive && !isCurrent;
+
     // Toggle de l'expansion
     const toggleExpanded = () => {
         setIsExpanded(prev => !prev);
@@ -110,6 +116,7 @@ const SidebarGroup = ({
         'sidebar-group',
         `sidebar-group--level-${level}`,
         shouldShowAsActive ? 'sidebar-group--active' : '',
+        isAncestor ? 'sidebar-group--ancestor' : '',
         isExpanded ? 'sidebar-group--expanded' : 'sidebar-group--collapsed',
         sidebarIsOpen ? 'sidebar-group--sidebar-open' : 'sidebar-group--sidebar-collapsed'
     ].filter(Boolean).join(' ');
@@ -140,7 +147,7 @@ const SidebarGroup = ({
                 aria-label={item.name}
                 // Un ancêtre de la page courante n'est que stylisé (classe --active) : seul le lien
                 // vers la page elle-même est « page actuelle ».
-                aria-current={isLink && isCurrentPath(item.path) ? 'page' : undefined}
+                aria-current={isCurrent ? 'page' : undefined}
                 title={!sidebarIsOpen ? item.name : undefined} // Tooltip quand sidebar fermée
             >
                 {/* Icône de l'item (si disponible et si des icônes existent dans la navigation) */}

@@ -2,5 +2,11 @@
 // Aucun token de dimension propre au groupe : l'ouverture/fermeture est auto-dimensionnée
 // Le padding du trigger (--sidebar-group-padding-*), la taille du toggle et l'indentation
 // sont des tokens partagés (voir ../_tokens.scss).
-//
-// Ce fichier reste comme emplacement conventionnel pour d'éventuels tokens propres au groupe.
+
+:root {
+  // ===== ÉTAT ACTIF D'UN ANCÊTRE =====
+  // Intensité (alpha du fond et du liseré, de 0 à 1) d'un groupe qui CONTIENT la page
+  // courante sans l'être lui-même. 1 = même apparence que la page active ; plus bas, le
+  // parent se distingue de la page affichée. En-tête et chevron sont atténués ensemble.
+  --sidebar-group-ancestor-alpha: 0.4;
+}

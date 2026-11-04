@@ -36,7 +36,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useIsomorphicLayoutEffect } from '@/hooks/layoutEffect/useIsomorphicLayoutEffect';
 import { ParentSize } from '@visx/responsive';
-import { scaleTime, scaleLinear, scaleBand, scaleOrdinal } from '@visx/scale';
+import { scaleUtc, scaleLinear, scaleBand, scaleOrdinal } from '@visx/scale';
 import { extent } from 'd3-array';
 import { color as d3color } from 'd3-color';
 
@@ -53,7 +53,7 @@ import { resolveColumnType, formatFromFields } from '@/features/chart/utils/fiel
 import { measureText, tickCountFor } from '@/features/chart/utils/measureText';
 import { exportSvg, exportPng } from '@/features/chart/utils/exportImage';
 import { xMinimapLayout } from '@/features/chart/utils/minimapGeometry';
-import { valueDomain, baselineValue } from '@/features/chart/utils/scales';
+import { valueDomain, baselineValue, VALUE_AXIS_PADDING } from '@/features/chart/utils/scales';
 import {
   restrictScale, axisZoomFactors, zoomTransformOf, useSeededSelection,
 } from '@/features/chart/hooks/useBrushZoom';
@@ -265,7 +265,8 @@ function computeXAxisHeight({ allRows, x, xType, xTypeAxis, innerWidth, format, 
     tickPx = (innerWidth / Math.max(1, dom.length)) * 0.82;
   } else {
     let s;
-    if (xType === 'date') s = scaleTime({ domain: extent(allRows, (r) => coerce(r[x], 'date')), range: [0, innerWidth], nice: true });
+    // Échelle UTC : mêmes graduations que l'axe réel (cf. makeScale dans utils/scales.js)
+    if (xType === 'date') s = scaleUtc({ domain: extent(allRows, (r) => coerce(r[x], 'date')), range: [0, innerWidth], nice: true });
     else s = scaleLinear({ domain: extent(allRows.map((r) => +r[x]).filter((v) => !isNaN(v))), range: [0, innerWidth], nice: true });
     const fmtX = resolveFormatter(format.x, xType, xType === 'date' ? s.domain() : null);
     const ticks = s.ticks(tickCountFor(innerWidth, tickDensity));
@@ -347,7 +348,8 @@ const MultiChartCanvas = ({
     for (const ds of typedSets) for (const r of ds.rows) { const v = String(r[x]); if (!seen.has(v)) { seen.add(v); dom.push(v); } }
     baseXScale = scaleBand({ domain: dom, range: [0, innerWidth], padding: 0.18 });
   } else if (xType === 'date') {
-    baseXScale = scaleTime({ domain: extent(allRows, (r) => r[x]), range: [0, innerWidth], nice: true });
+    // UTC, comme les libellés (utcFormat) : cf. makeScale dans utils/scales.js
+    baseXScale = scaleUtc({ domain: extent(allRows, (r) => r[x]), range: [0, innerWidth], nice: true });
   } else {
     const vals = allRows.map((r) => +r[x]).filter((v) => !isNaN(v));
     baseXScale = scaleLinear({ domain: extent(vals), range: [0, innerWidth], nice: true });
@@ -436,7 +438,7 @@ const MultiChartCanvas = ({
     }
   }
   const yScale = scaleLinear({
-    domain: valueDomain({ values: yValues, kind: anchored ? 'area' : 'line', stacked: anyStacked, zeroBaseline }),
+    domain: valueDomain({ values: yValues, kind: anchored ? 'area' : 'line', stacked: anyStacked, zeroBaseline, padding: VALUE_AXIS_PADDING }),
     range: [innerHeight, 0],
     nice: true,
   });

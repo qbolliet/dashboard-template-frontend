@@ -14,12 +14,16 @@
 @use '@/styles/utils/breakpoints' as *;
 @use '@/features/header/nav-mixins' as *;
 @use '../tokens' as *;   // Tokens partagés sidebar (--sidebar-toggle-size, paddings, indent…) — émet leur :root
-@use './tokens' as *;    // Placeholder : aucun token de dimension propre (animation auto-dimensionnée)
+@use './tokens' as *;    // Intensité de l'état actif d'un ancêtre (--sidebar-group-ancestor-alpha)
 @use '../colors' as *;
 
 // ===== CONTENEUR (li, grille en-tête + contenu) =====
 .sidebar-group {
-  grid-template-columns: 1fr auto;  // trigger | chevron
+  // trigger | chevron. `minmax(0, 1fr)` et non `1fr` : une piste `1fr` garde un minimum
+  // automatique égal à la largeur min-content du libellé (nowrap) — à faible largeur de
+  // sidebar, le chevron était repoussé hors de la sidebar au lieu de laisser le libellé
+  // se tronquer (.nav-text, points de suspension).
+  grid-template-columns: minmax(0, 1fr) auto;
   // En-tête (auto) + contenu animé de 0fr à 1fr (hauteur RÉELLE du contenu, robuste à
   // toute profondeur d'imbrication). Animation MUTUALISÉE avec l'accordéon de la topbar
   // via le mixin (cf. features/header/_nav-mixins.scss)
@@ -61,12 +65,8 @@
     border-color: hsl(var(--color-focus));
   }
 
-  &--active {
-    background-color: hsl(var(--nav-link-active-bg));
-    color: hsl(var(--nav-link-active-color));
-    // Liseré = couleur du texte actif (cohérent avec la classe de rôle .nav-link--active).
-    border-color: currentColor;
-  }
+  // État actif : porté par le <li> (cf. « ÉTAT ACTIF » plus bas), pour couvrir
+  // l'en-tête ET le chevron d'une même pilule.
 
   &[href] {
     text-decoration: none;
@@ -84,6 +84,48 @@
 
   &.sidebar-group-header--active {
     color: hsl(var(--nav-link-active-color));
+  }
+}
+
+// ===== ÉTAT ACTIF (en-tête + chevron) =====
+// Porté au niveau du <li> et appliqué à ses deux enfants de rangée : l'en-tête et le
+// chevron forment une seule pilule, comme au survol (mixin nav-group-hover-pill). Le
+// <li> contient aussi le sous-menu : on ne peut donc pas jouer sur SON opacité (la page
+// active, imbriquée, serait atténuée avec lui) — l'intensité passe par l'alpha du fond
+// et du liseré, via --sidebar-group-active-alpha.
+.sidebar-group--active {
+  // Page courante (groupe-lien) : intensité pleine.
+  --sidebar-group-active-alpha: 1;
+
+  // Ancêtre de la page courante : intensité atténuée (token du composant).
+  &.sidebar-group--ancestor {
+    --sidebar-group-active-alpha: var(--sidebar-group-ancestor-alpha);
+  }
+
+  > .sidebar-group-header,
+  > .sidebar-toggle {
+    background-color: hsl(var(--nav-link-active-bg) / var(--sidebar-group-active-alpha));
+    // Liseré = couleur du texte actif (cohérent avec la classe de rôle .nav-link--active).
+    border-color: hsl(var(--nav-link-active-color) / var(--sidebar-group-active-alpha));
+    // Texte et chevron restent à pleine intensité : le contraste ne baisse pas.
+    color: hsl(var(--nav-link-active-color));
+  }
+
+  // Jointure en-tête | chevron sans liseré (seulement s'il y a un chevron : en rail,
+  // l'en-tête est seul et garde son contour complet).
+  &:has(> .sidebar-toggle) > .sidebar-group-header {
+    border-right-color: transparent;
+  }
+
+  > .sidebar-toggle {
+    border-left-color: transparent;
+  }
+
+  // Le focus reste visible sur une rangée active (la règle ci-dessus, plus spécifique
+  // que le :focus de base, l'aurait masqué).
+  > .sidebar-group-header:focus,
+  > .sidebar-toggle:focus {
+    border-color: hsl(var(--color-focus));
   }
 }
 

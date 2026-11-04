@@ -113,7 +113,9 @@ const HeaderContent = ({
 }) => {
     // Source unique de l'ouverture de la sidebar : le NavigationProvider. `toggleSidebar`
     // porte déjà l'annonce aux lecteurs d'écran, quel que soit le bouton qui l'actionne.
-    const { isSidebarOpen, toggleSidebar } = useNavigationUI();
+    // `sidebarId` relie le déclencheur à la sidebar (aria-controls) ; c'est aussi ce lien
+    // qui l'exclut de la fermeture au clic extérieur (cf. NavigationSideBar).
+    const { isSidebarOpen, toggleSidebar, sidebarId } = useNavigationUI();
 
     // Chemin courant, utilisé uniquement pour dériver le titre de la page (breadcrumb).
     const pathname = usePathname();
@@ -192,6 +194,7 @@ const HeaderContent = ({
                             <NavTrigger
                                 isOpen={isSidebarOpen}
                                 onToggle={toggleSidebar}
+                                ariaControls={sidebarId}
                                 className="sidebar-trigger"
                                 ariaLabel={labels.header.toggleSidebar}
                                 labels={labels.navTrigger}
