@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Geist, Geist_Mono } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import "./globals.scss";
 import ThemeProvider from '@/features/theme/providers/ThemeProvider';
 import siteConfig from '@config/site.config.json';
@@ -28,15 +29,13 @@ import SWRProvider from './providers';
 
 const DEFAULT_LOCALE = siteConfig.site.defaultLocale;
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// Polices Geist servies depuis le paquet npm `geist` (next/font/local) et non depuis
+// Google Fonts : les fichiers .woff2 sont dans node_modules et copiés dans le build. Le
+// site rend donc la même typographie avec ou sans accès à internet — au build comme à
+// l'exécution (next/font/google télécharge les polices au build et retombe sur la police
+// système hors ligne). Les variables CSS exposées sont les mêmes qu'avant
+// (--font-geist-sans, --font-geist-mono, cf. styles/globals/typography.scss).
+// Variante « Variable » : un seul fichier par famille couvre toutes les graisses (100–900).
 
 // Métadonnées dérivées du manifeste : le titre et la description du site s'éditent dans
 // config/site.config.json, pas ici. Elles sont rendues dans la langue par DÉFAUT — ce
@@ -113,7 +112,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: localeInitScript }} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}
       >
         <SWRProvider>
           <ThemeProvider>
