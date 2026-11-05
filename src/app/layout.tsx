@@ -105,15 +105,21 @@ export default function RootLayout({
   // suppressHydrationWarning : les scripts d'amorçage posent data-theme et lang sur
   // <html> avant l'hydratation ; React doit ignorer ces divergences d'attribut sur cet
   // élément.
+  // Variables de police (--font-geist-*) posées sur <html> et non sur <body> : les
+  // tokens --font-sans / --font-mono (typography.scss) sont déclarés sur :root et y
+  // résolvent leur var() — déclarées plus bas, elles y seraient inconnues et ces tokens
+  // retomberaient sur leur repli système.
   return (
-    <html lang={DEFAULT_LOCALE} suppressHydrationWarning>
+    <html
+      lang={DEFAULT_LOCALE}
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <script dangerouslySetInnerHTML={{ __html: localeInitScript }} />
       </head>
-      <body
-        className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}
-      >
+      <body className="antialiased">
         <SWRProvider>
           <ThemeProvider>
             {children}

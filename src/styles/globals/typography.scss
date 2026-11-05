@@ -14,6 +14,15 @@
   }
 
   // Familles de police
+  // Texte courant : Geist (paquet `geist`, servi en local — aucune dépendance réseau).
+  // `--font-sans` est aussi le nom du token de Tailwind : cette déclaration (hors
+  // couche) l'emporte sur celle de `@layer theme`, si bien que le preflight
+  // (`html { font-family: var(--default-font-family) }`, alias de `--font-sans`) et la
+  // classe `font-sans` utilisent Geist sans configuration supplémentaire. Même repli
+  // interne que `--font-mono` ci-dessous, pour un composant installé hors next/font.
+  --font-sans: var(--font-geist-sans, ui-sans-serif), system-ui, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
   // `--font-geist-mono` est déclarée sur <html> par next/font (src/app/layout.tsx) ;
   // ce token n'est que l'alias stable que consomme le SCSS, pour ne pas coder en dur
   // le nom de la police dans 29 fichiers. Le repli interne `ui-monospace` est

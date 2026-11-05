@@ -193,6 +193,12 @@ since the copy they took.
   (`next/font/local`) instead of `next/font/google`: no request to Google Fonts at build
   time, and the same typography with or without network access. The CSS variables
   (`--font-geist-sans`, `--font-geist-mono`) are unchanged.
+- **Body text now uses Geist.** `--font-sans` (typography.scss) points to Geist and
+  overrides Tailwind's token of the same name, so the preflight and every
+  `var(--font-sans)` render Geist instead of the OS system font (Segoe UI, San
+  Francisco…): the site looks the same on every platform. The `--font-geist-*` classes
+  moved from `<body>` to `<html>`, where `--font-sans` / `--font-mono` resolve them —
+  `--font-mono` was silently falling back to the system monospace before.
 - **`<Chart fitOnZoom>` — the value axis now fits the zoom by default.** When the
   principal axis (x, or y for horizontal bars) is zoomed and the value axis is not, the
   value axis is recomputed on the visible rows, with the same zero rule and rounded
